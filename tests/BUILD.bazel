@@ -1,0 +1,5 @@
+"""Tests for the tiny_skia_cpp port."""
+
+package(default_visibility = ["//visibility:public"])
+
+# Placeholder package. Add cc_test/cpp_test targets as parity modules land.

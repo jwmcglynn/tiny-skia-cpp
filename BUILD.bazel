@@ -1,0 +1,5 @@
+"""Top-level package for the tiny_skia_cpp port."""
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["README.md", "LICENSE"])

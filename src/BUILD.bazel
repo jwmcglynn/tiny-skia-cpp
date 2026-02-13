@@ -1,0 +1,12 @@
+"""Core tiny_skia_cpp library sources."""
+
+load("//bazel:defs.bzl", "tiny_skia_cc_library")
+
+# Placeholder target. Populated as modules are ported from tiny-skia.
+tiny_skia_cc_library(
+    name = "tiny_skia_lib",
+    srcs = [],
+    hdrs = [],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
+    visibility = ["//visibility:public"],
+)
