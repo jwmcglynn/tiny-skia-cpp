@@ -5,6 +5,7 @@
 /bazel-testlogs
 /bazel-genfiles
 /bazel-common
+/bazel-tiny-skia-cpp
 
 # Bzlmod lockfile
 MODULE.bazel.lock
