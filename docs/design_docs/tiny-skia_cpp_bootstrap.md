@@ -124,7 +124,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ☐ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ☐ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ☐ |
-| `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ☐ |
+| `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | 🟡 |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ☐ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
@@ -188,6 +188,14 @@ When a file is actively being ported, add a table under this section.
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
 | _to be added_ | _to be added_ | ☐ | _to be added_ |
+
+### `third_party/tiny-skia/src/math.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `bound` | `bound` | 🟡 | Compare against min, max, and mid-interval samples |
+| `left_shift` | `leftShift` | 🟡 | Bit-equality for positive and negative inputs |
+| `left_shift64` | `leftShift64` | 🟡 | Bit-equality for positive and negative inputs |
+| `approx_powf` | `approxPowf` | 🟡 | Compare against Rust reference at canonical power pairs |
 
 Add one section per file as soon as implementation begins.
 
