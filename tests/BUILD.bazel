@@ -13,6 +13,7 @@ cc_test(
         "BlitterTest.cpp",
         "GeomTest.cpp",
         "LineClipperTest.cpp",
+        "Point64Test.cpp",
         "EdgeLineTest.cpp",
         "EdgeQuadraticTest.cpp",
         "EdgeCubicTest.cpp",
