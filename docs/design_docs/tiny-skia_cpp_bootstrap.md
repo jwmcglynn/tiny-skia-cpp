@@ -141,7 +141,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
-| `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | 🟡 |
+| `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ☐ |
@@ -223,11 +223,11 @@ When a file is actively being ported, add a table under this section.
 | `chop_quad_at` | `chopQuadAt` | ✅ | Monotonic and non-monotonic path samples |
 | `chop_quad_at_x_extrema` | `chopQuadAtXExtrema` | ✅ | Flat extrema and monotonic fallback |
 | `chop_quad_at_y_extrema` | `chopQuadAtYExtrema` | ✅ | Flat extrema and monotonic fallback |
-| `find_cubic_extrema` | `findCubicExtrema` | 🟡 | Correct t-values in simple and dual-extrema curves |
+| `find_cubic_extrema` | `findCubicExtrema` | ✅ | Correct t-values in simple and dual-extrema curves |
 | `chop_cubic_at` | `chopCubicAt` | ✅ | Empty, single-cut, and multi-cut cases |
 | `chop_cubic_at_x_extrema` | `chopCubicAtXExtrema` | ✅ | X-monotone output flattening checks |
 | `chop_cubic_at_y_extrema` | `chopCubicAtYExtrema` | ✅ | Y-monotone output flattening checks |
-| `chop_cubic_at_max_curvature` | `chopCubicAtMaxCurvature` | ☐ | `Cubic64`-derived curvature root parity |
+| `chop_cubic_at_max_curvature` | `chopCubicAtMaxCurvature` | ✅ | Curvature-root filtering and split parity |
 | `chop_mono_cubic_at_x` | `chopMonoCubicAtX` | ✅ | Horizontal-chop intersection root behavior |
 | `chop_mono_cubic_at_y` | `chopMonoCubicAtY` | ✅ | Vertical-chop intersection root behavior |
 | `chop_mono_quad_at_x` | `chopMonoQuadAtX` | ✅ | Quadratic intersection root behavior |

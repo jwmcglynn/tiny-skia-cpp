@@ -42,6 +42,23 @@ std::size_t findCubicExtrema(std::span<const float, 4> src, std::array<double, 3
   return tiny_skia::path64::quad64::rootsValidT(na, nb, nc, extrema);
 }
 
+std::array<double, 4> formulateF1DotF2(double p0, double p1, double p2, double p3) {
+  const auto a = p1 - p0;
+  const auto b = p2 - 2.0 * p1 + p0;
+  const auto c = p3 + 3.0 * (p1 - p2) - p0;
+  return {c * c, 3.0 * b * c, 2.0 * b * b + c * a, a * b};
+}
+
+std::size_t findMaxCurvatureRoots(std::array<Point, 4> src, std::array<double, 3>& t) {
+  auto x = formulateF1DotF2(src[0].x, src[1].x, src[2].x, src[3].x);
+  const auto y = formulateF1DotF2(src[0].y, src[1].y, src[2].y, src[3].y);
+  for (std::size_t i = 0; i < x.size(); ++i) {
+    x[i] += y[i];
+  }
+
+  return tiny_skia::path64::cubic64::rootsValidT(x[0], x[1], x[2], x[3], t);
+}
+
 void interpCubicAt(std::span<const Point, 4> src, double t, std::span<Point, 7> dst) {
   const auto ab = Point{src[0].x + static_cast<float>((src[1].x - src[0].x) * t),
                        src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
@@ -276,6 +293,36 @@ std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>&
     }
   }
   return split;
+}
+
+std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
+                                    std::array<double, 3>& tValues,
+                                    std::span<Point> dst) {
+  if (dst.size() < 4) {
+    return 0;
+  }
+
+  auto roots = std::array<double, 3>{};
+  const auto rootCount = findMaxCurvatureRoots(src, roots);
+  std::size_t count = 0;
+  for (std::size_t i = 0; i < rootCount; ++i) {
+    if (roots[i] > 0.0 && roots[i] < 1.0) {
+      tValues[count] = roots[i];
+      ++count;
+    }
+  }
+
+  if (count == 0) {
+    dst[0] = src[0];
+    dst[1] = src[1];
+    dst[2] = src[2];
+    dst[3] = src[3];
+    return 1;
+  }
+
+  return 1 + chopCubicAt(std::span<const Point, 4>(src),
+                         std::span<const double>(tValues.data(), count),
+                         dst);
 }
 
 bool chopMonoQuadAtX(std::array<Point, 3> src, float x, double& t) {

@@ -162,3 +162,45 @@ TEST(PathGeometryTest, ChopMonoCubicAtYReturnsFalseWithoutRoots) {
 
   EXPECT_FALSE(found);
 }
+
+TEST(PathGeometryTest, ChopCubicAtMaxCurvatureFiltersEndpointsAndSplits) {
+  const auto src = std::array<tiny_skia::Point, 4>{
+      tiny_skia::Point{20.0f, 160.0f},
+      {20.0001f, 160.0f},
+      {160.0f, 20.0f},
+      {160.0001f, 20.0f},
+  };
+  auto tValues = std::array<double, 3>{};
+  auto dst = std::array<tiny_skia::Point, 10>{};
+  const auto count = tiny_skia::path_geometry::chopCubicAtMaxCurvature(
+      src, tValues, std::span<tiny_skia::Point>(dst));
+
+  EXPECT_EQ(count, 2u);
+  EXPECT_FLOAT_EQ(tValues[0], 0.5f);
+  EXPECT_FLOAT_EQ(dst[0].x, 20.0f);
+  EXPECT_FLOAT_EQ(dst[0].y, 160.0f);
+  EXPECT_FLOAT_EQ(dst[6].x, 160.0001f);
+  EXPECT_FLOAT_EQ(dst[6].y, 20.0f);
+}
+
+TEST(PathGeometryTest, ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurve) {
+  const auto src = std::array<tiny_skia::Point, 4>{
+      tiny_skia::Point{0.0f, 0.0f},
+      {1.0f, 1.0f},
+      {2.0f, 2.0f},
+      {3.0f, 3.0f},
+  };
+  auto tValues = std::array<double, 3>{1.0, 2.0, 3.0};
+  auto dst = std::array<tiny_skia::Point, 4>{};
+  const auto count = tiny_skia::path_geometry::chopCubicAtMaxCurvature(
+      src, tValues, std::span<tiny_skia::Point>(dst));
+
+  EXPECT_EQ(count, 1u);
+  EXPECT_FLOAT_EQ(dst[0].x, src[0].x);
+  EXPECT_FLOAT_EQ(dst[1].x, src[1].x);
+  EXPECT_FLOAT_EQ(dst[2].x, src[2].x);
+  EXPECT_FLOAT_EQ(dst[3].x, src[3].x);
+  EXPECT_FLOAT_EQ(tValues[0], 1.0);
+  EXPECT_FLOAT_EQ(tValues[1], 2.0);
+  EXPECT_FLOAT_EQ(tValues[2], 3.0);
+}

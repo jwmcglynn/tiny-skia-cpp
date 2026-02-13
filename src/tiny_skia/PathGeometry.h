@@ -21,6 +21,10 @@ std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>&
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst);
 
+std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
+                                    std::array<double, 3>& tValues,
+                                    std::span<Point> dst);
+
 bool chopMonoQuadAtX(std::array<Point, 3> src, float x, double& t);
 
 bool chopMonoQuadAtY(std::array<Point, 3> src, float y, double& t);
