@@ -17,7 +17,7 @@ constexpr float clamp01(float value) {
 }  // namespace
 
 std::optional<NormalizedF32> NormalizedF32::newFloat(float value) {
-  if (value < 0.0f || value > 1.0f) {
+  if (!std::isfinite(value) || value < 0.0f || value > 1.0f) {
     return std::nullopt;
   }
   return NormalizedF32::newUnchecked(value);

@@ -237,7 +237,7 @@ When a file is actively being ported, add a table under this section.
 | `PremultipliedColorU8::is_opaque` | `PremultipliedColorU8::isOpaque` | ✅ | Boundary checks |
 | `PremultipliedColorU8::demultiply` | `PremultipliedColorU8::demultiply` | ✅ | Roundtrip + special-case checks |
 | `Color::from_rgba_unchecked` | `Color::fromRgbaUnchecked` | ✅ | Constant conversion checks |
-| `Color::from_rgba` | `Color::fromRgba` | 🟡 | Optional validity + range reject checks |
+| `Color::from_rgba` | `Color::fromRgba` | ✅ | Optional validity + range reject checks |
 | `Color::from_rgba8` | `Color::fromRgba8` | ✅ | 8-bit quantization checks |
 | `Color::red` | `Color::red` | ✅ | Component assertions |
 | `Color::green` | `Color::green` | ✅ | Component assertions |

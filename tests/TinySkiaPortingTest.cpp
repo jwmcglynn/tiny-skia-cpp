@@ -194,6 +194,28 @@ TEST(ColorTest, ColorFromRgbaAndOpacity) {
       << "out of range color component is rejected";
 }
 
+TEST(ColorTest, ColorFromRgbaEdgeCases) {
+  EXPECT_TRUE(tiny_skia::Color::fromRgba(0.0f, 0.0f, 0.0f, 0.0f).has_value());
+  EXPECT_TRUE(tiny_skia::Color::fromRgba(1.0f, 1.0f, 1.0f, 1.0f).has_value());
+  EXPECT_FALSE(
+      tiny_skia::Color::fromRgba(std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f, 0.0f)
+          .has_value())
+      << "NaN should be rejected";
+  EXPECT_FALSE(
+      tiny_skia::Color::fromRgba(std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f)
+          .has_value())
+      << "infinity should be rejected";
+}
+
+TEST(ColorTest, ColorSettersClampToRange) {
+  auto color = tiny_skia::Color::fromRgba8(0, 0, 0, 255);
+  color.setRed(-1.0f);
+  color.setGreen(1.5f);
+  color.setBlue(-0.2f);
+  color.setAlpha(2.0f);
+  expectColorFloatIs(color, 0.0f, 1.0f, 0.0f, 1.0f);
+}
+
 TEST(ColorTest, ColorConversionToU8AndPremultiplyRoundTrip) {
   const auto colorOpt = tiny_skia::Color::fromRgba(1.0f, 0.5f, 0.0f, 0.5f);
   ASSERT_TRUE(colorOpt.has_value());
