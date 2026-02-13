@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <span>
 #include <optional>
 #include <vector>
 
@@ -28,12 +29,12 @@ class AlphaRuns {
                   std::uint8_t max_value,
                   std::size_t offset_x);
 
-  static void break_run(AlphaRun* runs,
-                        std::uint8_t* alpha,
-                        std::size_t x,
-                        std::size_t count);
-  static void break_at(std::uint8_t* alpha,
-                       AlphaRun* runs,
+  static void break_run(std::span<AlphaRun> runs,
+                       std::span<std::uint8_t> alpha,
+                       std::size_t x,
+                       std::size_t count);
+  static void break_at(std::span<std::uint8_t> alpha,
+                       std::span<AlphaRun> runs,
                        std::int32_t x);
 
   std::vector<AlphaRun> runs;

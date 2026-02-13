@@ -52,8 +52,8 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   x_usize -= offset_x;
 
   if (start_alpha != 0) {
-    break_run(runs.data() + runs_offset,
-              alpha.data() + alpha_offset,
+    break_run(std::span{runs}.subspan(runs_offset),
+              std::span{alpha}.subspan(alpha_offset),
               x_usize,
               1);
 
@@ -68,8 +68,8 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   }
 
   if (middle_count != 0) {
-    break_run(runs.data() + runs_offset,
-              alpha.data() + alpha_offset,
+    break_run(std::span{runs}.subspan(runs_offset),
+              std::span{alpha}.subspan(alpha_offset),
               x_usize,
               middle_count);
 
@@ -95,8 +95,8 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   }
 
   if (stop_alpha != 0) {
-    break_run(runs.data() + runs_offset,
-              alpha.data() + alpha_offset,
+    break_run(std::span{runs}.subspan(runs_offset),
+              std::span{alpha}.subspan(alpha_offset),
               x_usize,
               1);
     alpha_offset += x_usize;
@@ -107,10 +107,10 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   return last_alpha_offset;
 }
 
-void AlphaRuns::break_run(AlphaRun* runs,
-                          std::uint8_t* alpha,
-                          std::size_t x,
-                          std::size_t count) {
+void AlphaRuns::break_run(std::span<AlphaRun> runs,
+                         std::span<std::uint8_t> alpha,
+                         std::size_t x,
+                         std::size_t count) {
   assert(count > 0);
 
   const std::size_t orig_x = x;
@@ -157,9 +157,9 @@ void AlphaRuns::break_run(AlphaRun* runs,
   }
 }
 
-void AlphaRuns::break_at(std::uint8_t* alpha,
-                         AlphaRun* runs,
-                         std::int32_t x) {
+void AlphaRuns::break_at(std::span<std::uint8_t> alpha,
+                        std::span<AlphaRun> runs,
+                        std::int32_t x) {
   std::size_t alpha_i = 0;
   std::size_t run_i = 0;
   while (x > 0) {
