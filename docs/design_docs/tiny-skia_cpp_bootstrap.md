@@ -134,14 +134,14 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ✅ |
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ✅ |
 | `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ✅ |
-| `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | ☐ |
+| `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | 🟡 |
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
-| `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ☐ |
+| `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | 🟡 |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ☐ |
@@ -205,6 +205,33 @@ When a file is actively being ported, add a table under this section.
 | --- | --- | --- | --- |
 | `BlendMode::should_pre_scale_coverage` | `shouldPreScaleCoverage` | ✅ | Branch coverage across positive and negative classes |
 | `BlendMode::to_stage` | `toStage` | ✅ | Full stage mapping coverage |
+
+### `third_party/tiny-skia/src/edge_builder.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `ShiftedIntRect::new` | `ShiftedIntRect::create` | 🟡 | Shifted rect round-trip and overflow checks |
+| `BasicEdgeBuilder::build_edges` | `BasicEdgeBuilder::buildEdges` | 🟡 | Build path output count and edge-type coverage |
+| `BasicEdgeBuilder::build` | `BasicEdgeBuilder::build` | 🟡 | Non-empty path pathing and early-failure checks |
+| `combine_vertical` | `combineVertical` | 🟡 | Vertical adjacency equivalence checks |
+| `edge_iter` | `pathIter` | ✅ | Auto-close contour transitions |
+| `PathEdgeIter::next` | `PathEdgeIter::next` | ✅ | Move/Close and edge emission sequencing |
+| `PathEdgeIter::close_line` | `PathEdgeIter::closeLine` | ✅ | Auto-close closure to move point |
+
+### `third_party/tiny-skia/src/path_geometry.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `chop_quad_at` | `chopQuadAt` | ✅ | Monotonic and non-monotonic path samples |
+| `chop_quad_at_x_extrema` | `chopQuadAtXExtrema` | ✅ | Flat extrema and monotonic fallback |
+| `chop_quad_at_y_extrema` | `chopQuadAtYExtrema` | ✅ | Flat extrema and monotonic fallback |
+| `find_cubic_extrema` | `findCubicExtrema` | 🟡 | Correct t-values in simple and dual-extrema curves |
+| `chop_cubic_at` | `chopCubicAt` | ✅ | Empty, single-cut, and multi-cut cases |
+| `chop_cubic_at_x_extrema` | `chopCubicAtXExtrema` | ✅ | X-monotone output flattening checks |
+| `chop_cubic_at_y_extrema` | `chopCubicAtYExtrema` | ✅ | Y-monotone output flattening checks |
+| `chop_cubic_at_max_curvature` | `chopCubicAtMaxCurvature` | ☐ | `Cubic64`-derived curvature root parity |
+| `chop_mono_cubic_at_x` | `chopMonoCubicAtX` | ✅ | Horizontal-chop intersection root behavior |
+| `chop_mono_cubic_at_y` | `chopMonoCubicAtY` | ✅ | Vertical-chop intersection root behavior |
+| `chop_mono_quad_at_x` | `chopMonoQuadAtX` | ✅ | Quadratic intersection root behavior |
+| `chop_mono_quad_at_y` | `chopMonoQuadAtY` | ✅ | Quadratic intersection root behavior |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

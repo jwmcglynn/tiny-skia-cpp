@@ -229,6 +229,18 @@ Edge::Edge(const LineEdge& line) : asVariant_(line) {}
 Edge::Edge(const QuadraticEdge& quad) : asVariant_(quad) {}
 Edge::Edge(const CubicEdge& cubic) : asVariant_(cubic) {}
 
+bool Edge::isLine() const {
+  return std::holds_alternative<LineEdge>(asVariant_);
+}
+
+bool Edge::isQuadratic() const {
+  return std::holds_alternative<QuadraticEdge>(asVariant_);
+}
+
+bool Edge::isCubic() const {
+  return std::holds_alternative<CubicEdge>(asVariant_);
+}
+
 const LineEdge& Edge::asLine() const {
   if (std::holds_alternative<LineEdge>(asVariant_)) {
     return std::get<LineEdge>(asVariant_);

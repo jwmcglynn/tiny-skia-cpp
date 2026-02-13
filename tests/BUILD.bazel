@@ -21,6 +21,8 @@ cc_test(
         "EdgeLineTest.cpp",
         "EdgeQuadraticTest.cpp",
         "EdgeCubicTest.cpp",
+        "EdgeBuilderTest.cpp",
+        "PathGeometryTest.cpp",
         "LibTest.cpp",
         "BlendModeTest.cpp",
         "MathTest.cpp",

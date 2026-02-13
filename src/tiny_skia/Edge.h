@@ -82,6 +82,9 @@ class Edge {
   explicit Edge(const QuadraticEdge& quad);
   explicit Edge(const CubicEdge& cubic);
 
+  [[nodiscard]] bool isLine() const;
+  [[nodiscard]] bool isQuadratic() const;
+  [[nodiscard]] bool isCubic() const;
   [[nodiscard]] const LineEdge& asLine() const;
   [[nodiscard]] LineEdge& asLine();
 
