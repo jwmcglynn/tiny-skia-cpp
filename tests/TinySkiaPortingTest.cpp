@@ -3,10 +3,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <span>
 
 #include "tiny_skia/AlphaRuns.h"
 #include "tiny_skia/Math.h"
+#include "tiny_skia/FixedPoint.h"
 
 namespace {
 
@@ -20,14 +22,6 @@ void require(bool condition, const char* message) {
 void requireEq(int lhs, int rhs, const char* message) {
   if (lhs != rhs) {
     std::cerr << "FAIL: " << message << " (lhs=" << lhs << ", rhs=" << rhs << ")\n";
-    std::exit(1);
-  }
-}
-
-void requireEq(std::uint8_t lhs, std::uint8_t rhs, const char* message) {
-  if (lhs != rhs) {
-    std::cerr << "FAIL: " << message << " (lhs=" << static_cast<int>(lhs)
-              << ", rhs=" << static_cast<int>(rhs) << ")\n";
     std::exit(1);
   }
 }
@@ -64,6 +58,35 @@ int main() {
   requireApprox(tiny_skia::approxPowf(1.0f, 3.0f), 1.0f, 0.0f, "pow one");
   requireApprox(tiny_skia::approxPowf(2.0f, 1.0f), 2.0f, 0.0001f, "pow identity y=1");
   requireApprox(tiny_skia::approxPowf(4.0f, 1.0f), 4.0f, 0.0001f, "pow identity y=1 large");
+
+  requireEq(tiny_skia::fdot6::fromI32(3), 192, "fdot6 fromI32");
+  requireEq(tiny_skia::fdot6::fromF32(1.5f), 96, "fdot6 fromF32");
+  requireEq(tiny_skia::fdot6::floor(65), 1, "fdot6 floor");
+  requireEq(tiny_skia::fdot6::ceil(65), 2, "fdot6 ceil");
+  requireEq(tiny_skia::fdot6::round(31), 0, "fdot6 round");
+  requireEq(tiny_skia::fdot6::toFdot16(64), 65536, "fdot6 toFdot16");
+  requireEq(static_cast<int>(tiny_skia::fdot6::canConvertToFdot16(30000)),
+            1,
+            "fdot6 canConvertToFdot16 true");
+  requireEq(
+      tiny_skia::fdot6::canConvertToFdot16(std::numeric_limits<std::int32_t>::min()),
+      0,
+            "fdot6 canConvertToFdot16 false");
+  requireEq(tiny_skia::fdot6::div(64, 32), 131072, "fdot6 div");
+  requireEq(tiny_skia::fdot6::smallScale(255, 64),
+            static_cast<int>(255),
+            "fdot6 smallScale");
+
+  requireEq(tiny_skia::fdot8::fromFdot16(0xFF00), 0x0FF, "fdot8 fromFdot16");
+
+  requireEq(tiny_skia::fdot16::one, 65536, "fdot16 one");
+  requireEq(tiny_skia::fdot16::fromF32(1.0f), 65536, "fdot16 fromF32");
+  requireEq(tiny_skia::fdot16::floorToI32(65535), 0, "fdot16 floorToI32");
+  requireEq(tiny_skia::fdot16::ceilToI32(65535), 1, "fdot16 ceilToI32");
+  requireEq(tiny_skia::fdot16::roundToI32(98304), 2, "fdot16 roundToI32");
+  requireEq(tiny_skia::fdot16::mul(65536, 65536), 65536, "fdot16 mul");
+  requireEq(tiny_skia::fdot16::divide(65536, 65536), 65536, "fdot16 divide");
+  requireEq(tiny_skia::fdot16::fastDiv(64, 32), 131072, "fdot16 fastDiv");
 
   tiny_skia::AlphaRuns runs(6);
   require(runs.isEmpty(), "alpha runs initially empty");

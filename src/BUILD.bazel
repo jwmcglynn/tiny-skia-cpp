@@ -9,11 +9,13 @@ tiny_skia_cc_library(
         "tiny_skia/Lib.cpp",
         "tiny_skia/AlphaRuns.cpp",
         "tiny_skia/Math.cpp",
+        "tiny_skia/FixedPoint.cpp",
     ],
     hdrs = [
         "tiny_skia/Lib.h",
         "tiny_skia/AlphaRuns.h",
         "tiny_skia/Math.h",
+        "tiny_skia/FixedPoint.h",
     ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     visibility = ["//visibility:public"],

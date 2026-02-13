@@ -129,7 +129,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ☐ |
 | `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | ☐ |
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
-| `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ☐ |
+| `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | 🟡 |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ☐ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ☐ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | 🟡 |
@@ -191,6 +191,27 @@ When a file is actively being ported, add a table under this section.
 | `AlphaRuns::add` | `AlphaRuns::add` | 🟡 | Manual parity vectors vs Rust reference |
 | `AlphaRuns::break_run` | `AlphaRuns::breakRun` | 🟡 | Manual parity vectors vs Rust reference |
 | `AlphaRuns::break_at` | `AlphaRuns::breakAt` | 🟡 | Manual parity vectors vs Rust reference |
+
+### `third_party/tiny-skia/src/fixed_point.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `fdot6::from_i32` | `fdot6::fromI32` | 🟡 | Scalar value checks around unit conversions |
+| `fdot6::from_f32` | `fdot6::fromF32` | 🟡 | Scalar value checks around fixed-point conversion |
+| `fdot6::floor` | `fdot6::floor` | 🟡 | Value boundary checks |
+| `fdot6::ceil` | `fdot6::ceil` | 🟡 | Value boundary checks |
+| `fdot6::round` | `fdot6::round` | 🟡 | Value boundary checks |
+| `fdot6::to_fdot16` | `fdot6::toFdot16` | 🟡 | Internal bit-shift consistency |
+| `fdot6::div` | `fdot6::div` | 🟡 | Integer division parity cases |
+| `fdot6::can_convert_to_fdot16` | `fdot6::canConvertToFdot16` | 🟡 | Magnitude boundary checks |
+| `fdot6::small_scale` | `fdot6::smallScale` | 🟡 | Scale boundary checks |
+| `fdot8::from_fdot16` | `fdot8::fromFdot16` | 🟡 | Scalar parity checks |
+| `fdot16::from_f32` | `fdot16::fromF32` | 🟡 | Saturation and conversion sanity checks |
+| `fdot16::floor_to_i32` | `fdot16::floorToI32` | 🟡 | Value boundary checks |
+| `fdot16::ceil_to_i32` | `fdot16::ceilToI32` | 🟡 | Value boundary checks |
+| `fdot16::round_to_i32` | `fdot16::roundToI32` | 🟡 | Value boundary checks |
+| `fdot16::mul` | `fdot16::mul` | 🟡 | Scale invariants |
+| `fdot16::div` | `fdot16::divide` | 🟡 | Value parity checks |
+| `fdot16::fast_div` | `fdot16::fastDiv` | 🟡 | Shift/branch parity checks |
 
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
