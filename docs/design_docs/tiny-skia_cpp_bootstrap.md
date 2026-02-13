@@ -135,7 +135,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ✅ |
 | `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ✅ |
 | `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | 🟡 |
-| `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
+| `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ✅ |
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
@@ -216,6 +216,32 @@ When a file is actively being ported, add a table under this section.
 | `edge_iter` | `pathIter` | ✅ | Auto-close contour transitions |
 | `PathEdgeIter::next` | `PathEdgeIter::next` | ✅ | Move/Close and edge emission sequencing |
 | `PathEdgeIter::close_line` | `PathEdgeIter::closeLine` | ✅ | Auto-close closure to move point |
+
+### `third_party/tiny-skia/src/edge_clipper.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `EdgeClipper::new` | `EdgeClipper::EdgeClipper` | ✅ | Construction/iterator integration smoke checks |
+| `EdgeClipper::clip_line` | `EdgeClipper::clipLine` | ✅ | Culling and preserved-right boundary behavior |
+| `EdgeClipper::push_line` | `ClippedEdges::pushLine` | ✅ | Vertical and finite segment emission parity |
+| `EdgeClipper::push_vline` | `EdgeClipper::pushVerticalLine` | ✅ | Left/right boundary vertical clips |
+| `EdgeClipper::clip_quad` | `EdgeClipper::clipQuad` | ✅ | Quadratic split and Y-filtering path |
+| `EdgeClipper::clip_mono_quad` | `EdgeClipper::clipMonoQuad` | ✅ | Left/right/inside clipping branches |
+| `EdgeClipper::push_quad` | `EdgeClipper::pushQuad` | ✅ | Reversed orientation emission |
+| `EdgeClipper::clip_cubic` | `EdgeClipper::clipCubic` | ✅ | Large-cubic fallback and clipping branches |
+| `EdgeClipper::clip_mono_cubic` | `EdgeClipper::clipMonoCubic` | ✅ | Left/right branch handling |
+| `EdgeClipper::push_cubic` | `EdgeClipper::pushCubic` | ✅ | Reversed orientation emission |
+| `EdgeClipperIter::new` | `EdgeClipperIter::EdgeClipperIter` | ✅ | Iterator construction and sequencing smoke check |
+| `EdgeClipperIter::next` | `EdgeClipperIter::next` | ✅ | Skip empty and return clipped batches |
+| `quick_reject` | `quickReject` | ✅ | Vertical non-overlap gating |
+| `sort_increasing_y` | `sortIncreasingY` | ✅ | Reversed source ordering |
+| `chop_quad_in_y` | `chopQuadInY` | ✅ | Clamp and fallback when chop fails |
+| `chop_mono_quad_at_x` | `path_geometry::chopMonoQuadAtX` | ✅ | Intersection root validation |
+| `chop_mono_quad_at_y` | `path_geometry::chopMonoQuadAtY` | ✅ | Intersection root validation |
+| `too_big_for_reliable_float_math` | `tooBigForReliableFloatMath` | ✅ | Large bounds fallback branch |
+| `chop_cubic_in_y` | `chopCubicInY` | ✅ | Top/bottom clipping and correction |
+| `chop_mono_cubic_at_x` | `chopMonoCubicAtXFallback` | ✅ | Exact/approximation fallback branch |
+| `chop_mono_cubic_at_y` | `chopMonoCubicAtYFallback` | ✅ | Exact/approximation fallback branch |
+| `mono_cubic_closest_t` | `monoCubicClosestT` | ✅ | Target-distance optimization branch |
 
 ### `third_party/tiny-skia/src/path_geometry.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
