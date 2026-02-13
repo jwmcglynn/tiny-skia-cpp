@@ -16,6 +16,8 @@ namespace {
 
 constexpr float kCubicFloatLimit = static_cast<float>(1 << 22);
 
+void chopMonoCubicAtYFallback(const std::array<Point, 4>& src, float y, std::array<Point, 7>& dst);
+
 bool quickReject(const Rect& bounds, const Rect& clip) {
   return bounds.top() >= clip.bottom() || bounds.bottom() <= clip.top();
 }
@@ -96,10 +98,10 @@ void chopCubicInY(const Rect& clip, std::array<Point, 4>& pts) {
   auto tmp = std::array<Point, 7>{};
 
   if (pts[0].y < clip.top()) {
-    path_geometry::chopMonoCubicAtY(pts, clip.top(), tmp);
+    chopMonoCubicAtYFallback(pts, clip.top(), tmp);
     if (tmp[3].y < clip.top() && tmp[4].y < clip.top() && tmp[5].y < clip.top()) {
       const auto recheck = std::array<Point, 4>{tmp[3], tmp[4], tmp[5], tmp[6]};
-      path_geometry::chopMonoCubicAtY(recheck, clip.top(), tmp);
+      chopMonoCubicAtYFallback(recheck, clip.top(), tmp);
     }
 
     tmp[3].y = clip.top();
@@ -110,7 +112,7 @@ void chopCubicInY(const Rect& clip, std::array<Point, 4>& pts) {
   }
 
   if (pts[3].y > clip.bottom()) {
-    path_geometry::chopMonoCubicAtY(pts, clip.bottom(), tmp);
+    chopMonoCubicAtYFallback(pts, clip.bottom(), tmp);
     tmp[3].y = clip.bottom();
     tmp[2].y = std::min(tmp[2].y, clip.bottom());
     pts[1] = tmp[1];

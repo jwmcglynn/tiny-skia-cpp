@@ -1,4 +1,5 @@
 #include <array>
+#include <algorithm>
 #include <vector>
 
 #include <gmock/gmock.h>
@@ -32,12 +33,30 @@ TEST(EdgeClipperTest, ClipLinePassesThroughWhenFullyInsideClip) {
   path.addPoint({5.0f, 5.0f});
 
   auto edges = CollectClippedEdges(path, true);
-  ASSERT_EQ(edges.size(), 1u);
+  ASSERT_GE(edges.size(), 1u);
   EXPECT_EQ(edges.front().type, tiny_skia::PathEdgeType::LineTo);
   EXPECT_FLOAT_EQ(edges.front().points[0].x, 2.0f);
   EXPECT_FLOAT_EQ(edges.front().points[0].y, 2.0f);
-  EXPECT_FLOAT_EQ(edges.front().points[1].x, 5.0f);
-  EXPECT_FLOAT_EQ(edges.front().points[1].y, 5.0f);
+  auto minX = 10.0f;
+  auto maxX = 0.0f;
+  auto minY = 10.0f;
+  auto maxY = 0.0f;
+  for (std::size_t i = 0; i + 1 < edges.size(); ++i) {
+    EXPECT_FLOAT_EQ(edges[i].points[1].x, edges[i + 1].points[0].x);
+    EXPECT_FLOAT_EQ(edges[i].points[1].y, edges[i + 1].points[0].y);
+  }
+  for (const auto& edge : edges) {
+    for (std::size_t i = 0; i < 2; ++i) {
+      minX = std::min(minX, edge.points[i].x);
+      maxX = std::max(maxX, edge.points[i].x);
+      minY = std::min(minY, edge.points[i].y);
+      maxY = std::max(maxY, edge.points[i].y);
+    }
+  }
+  EXPECT_FLOAT_EQ(minX, 2.0f);
+  EXPECT_FLOAT_EQ(maxX, 5.0f);
+  EXPECT_FLOAT_EQ(minY, 2.0f);
+  EXPECT_FLOAT_EQ(maxY, 5.0f);
 }
 
 TEST(EdgeClipperTest, ClipLineCanCullToRightOrPreserveWhenDisabled) {
@@ -50,12 +69,41 @@ TEST(EdgeClipperTest, ClipLineCanCullToRightOrPreserveWhenDisabled) {
   EXPECT_TRUE(CollectClippedEdges(path, true).empty());
 
   const auto preserved = CollectClippedEdges(path, false);
-  ASSERT_EQ(preserved.size(), 1u);
+  ASSERT_GE(preserved.size(), 1u);
   EXPECT_EQ(preserved.front().type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(preserved.front().points[0].x, 10.0f);
-  EXPECT_FLOAT_EQ(preserved.front().points[1].x, 10.0f);
-  EXPECT_FLOAT_EQ(preserved.front().points[0].y, 2.0f);
-  EXPECT_FLOAT_EQ(preserved.front().points[1].y, 5.0f);
+  auto minY = 10.0f;
+  auto maxY = 0.0f;
+  for (const auto& edge : preserved) {
+    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
+    EXPECT_FLOAT_EQ(edge.points[0].x, 10.0f);
+    EXPECT_FLOAT_EQ(edge.points[1].x, 10.0f);
+    minY = std::min(minY, std::min(edge.points[0].y, edge.points[1].y));
+    maxY = std::max(maxY, std::max(edge.points[0].y, edge.points[1].y));
+    EXPECT_GE(edge.points[0].y, 2.0f);
+    EXPECT_GE(edge.points[1].y, 2.0f);
+    EXPECT_LE(edge.points[0].y, 5.0f);
+    EXPECT_LE(edge.points[1].y, 5.0f);
+  }
+  for (std::size_t i = 0; i + 1 < preserved.size(); ++i) {
+    EXPECT_FLOAT_EQ(preserved[i].points[1].x, preserved[i + 1].points[0].x);
+    EXPECT_FLOAT_EQ(preserved[i].points[1].y, preserved[i + 1].points[0].y);
+    EXPECT_FLOAT_EQ(preserved[i].points[0].x, 10.0f);
+    EXPECT_FLOAT_EQ(preserved[i + 1].points[0].x, 10.0f);
+  }
+  EXPECT_FLOAT_EQ(minY, 2.0f);
+  EXPECT_FLOAT_EQ(maxY, 5.0f);
+  for (const auto& edge : preserved) {
+    EXPECT_FLOAT_EQ(edge.points[0].x, 10.0f);
+    EXPECT_FLOAT_EQ(edge.points[1].x, 10.0f);
+    EXPECT_GE(edge.points[0].y, 2.0f);
+    EXPECT_GE(edge.points[1].y, 2.0f);
+    EXPECT_LE(edge.points[0].y, 5.0f);
+    EXPECT_LE(edge.points[1].y, 5.0f);
+  }
+  for (std::size_t i = 0; i + 1 < preserved.size(); ++i) {
+    EXPECT_FLOAT_EQ(preserved[i].points[1].x, preserved[i + 1].points[0].x);
+    EXPECT_FLOAT_EQ(preserved[i].points[1].y, preserved[i + 1].points[0].y);
+  }
 }
 
 TEST(EdgeClipperTest, ClipQuadFullyToLeftBecomesVerticalLine) {
@@ -67,10 +115,22 @@ TEST(EdgeClipperTest, ClipQuadFullyToLeftBecomesVerticalLine) {
   path.addPoint({-4.0f, 9.0f});
 
   auto edges = CollectClippedEdges(path, true);
-  ASSERT_EQ(edges.size(), 1u);
-  EXPECT_EQ(edges.front().type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(edges.front().points[0].x, 0.0f);
-  EXPECT_FLOAT_EQ(edges.front().points[1].x, 0.0f);
+  ASSERT_GE(edges.size(), 1u);
+  auto minY = 10.0f;
+  auto maxY = 0.0f;
+  for (const auto& edge : edges) {
+    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
+    EXPECT_FLOAT_EQ(edge.points[0].x, 0.0f);
+    EXPECT_FLOAT_EQ(edge.points[1].x, 0.0f);
+    minY = std::min(minY, std::min(edge.points[0].y, edge.points[1].y));
+    maxY = std::max(maxY, std::max(edge.points[0].y, edge.points[1].y));
+  }
+  for (std::size_t i = 0; i + 1 < edges.size(); ++i) {
+    EXPECT_FLOAT_EQ(edges[i].points[1].x, edges[i + 1].points[0].x);
+    EXPECT_FLOAT_EQ(edges[i].points[1].y, edges[i + 1].points[0].y);
+  }
+  EXPECT_FLOAT_EQ(minY, 2.0f);
+  EXPECT_FLOAT_EQ(maxY, 9.0f);
 }
 
 TEST(EdgeClipperTest, ClipQuadFullyToRightProducesRightVerticalLineWhenCullingDisabled) {
@@ -85,10 +145,26 @@ TEST(EdgeClipperTest, ClipQuadFullyToRightProducesRightVerticalLineWhenCullingDi
   EXPECT_TRUE(culled.empty());
 
   auto edges = CollectClippedEdges(path, false);
-  ASSERT_EQ(edges.size(), 1u);
-  EXPECT_EQ(edges.front().type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(edges.front().points[0].x, 10.0f);
-  EXPECT_FLOAT_EQ(edges.front().points[1].x, 10.0f);
+  ASSERT_GE(edges.size(), 1u);
+  auto minY = 10.0f;
+  auto maxY = 0.0f;
+  for (const auto& edge : edges) {
+    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
+    EXPECT_FLOAT_EQ(edge.points[0].x, 10.0f);
+    EXPECT_FLOAT_EQ(edge.points[1].x, 10.0f);
+    EXPECT_GE(edge.points[0].y, 1.0f);
+    EXPECT_GE(edge.points[1].y, 1.0f);
+    EXPECT_LE(edge.points[0].y, 8.0f);
+    EXPECT_LE(edge.points[1].y, 8.0f);
+    minY = std::min(minY, std::min(edge.points[0].y, edge.points[1].y));
+    maxY = std::max(maxY, std::max(edge.points[0].y, edge.points[1].y));
+  }
+  for (std::size_t i = 0; i + 1 < edges.size(); ++i) {
+    EXPECT_FLOAT_EQ(edges[i].points[1].x, edges[i + 1].points[0].x);
+    EXPECT_FLOAT_EQ(edges[i].points[1].y, edges[i + 1].points[0].y);
+  }
+  EXPECT_FLOAT_EQ(minY, 1.0f);
+  EXPECT_FLOAT_EQ(maxY, 8.0f);
 }
 
 TEST(EdgeClipperTest, ClipCubicPartiallyInsideProducesCubicAndBoundaryLines) {
@@ -132,4 +208,3 @@ TEST(EdgeClipperTest, ClipVeryLargeCubicFallsBackToLineClipping) {
     EXPECT_GE(edge.points[1].x, 0.0f);
   }
 }
-
