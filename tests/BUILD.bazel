@@ -14,6 +14,7 @@ cc_test(
         "GeomTest.cpp",
         "LineClipperTest.cpp",
         "Point64Test.cpp",
+        "ModTest.cpp",
         "Quad64Test.cpp",
         "EdgeLineTest.cpp",
         "EdgeQuadraticTest.cpp",
