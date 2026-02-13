@@ -9,6 +9,12 @@
 - The initial goal is to establish a Bazel-first workspace and directory structure before any C++ translation starts.
 - This design gates implementation sequencing and keeps the migration deterministic and auditable.
 
+## Steering Decisions
+- Always run `bazel build //...` after each functional porting step.
+- Add/extend C++ tests during porting and validate with `bazel test //...`.
+- Add image-regression gates with pixel-diff tests (pixelmatch-cpp) when rendering
+  outputs are available for C++ parity runs.
+
 ## Goals
 - Set up a Bazel build system and top-level project layout usable from day one.
 - Keep repository layout optimized for incremental porting and easy parity validation.

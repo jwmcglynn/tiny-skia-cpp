@@ -7,6 +7,8 @@
 
 namespace tiny_skia {
 
+using LengthU32 = std::uint32_t;
+
 constexpr LengthU32 kLengthU32One = 1;
 
 template <typename T>
