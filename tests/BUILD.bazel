@@ -10,6 +10,8 @@ cc_test(
         "AlphaRunsTest.cpp",
         "FixedPointTest.cpp",
         "ColorTest.cpp",
+        "BlitterTest.cpp",
+        "GeomTest.cpp",
         "LibTest.cpp",
         "BlendModeTest.cpp",
         "MathTest.cpp",
