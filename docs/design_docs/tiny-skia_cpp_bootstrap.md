@@ -114,7 +114,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | Old Rust file | New C++ file | Status |
 | --- | --- | --- |
 | `third_party/tiny-skia/src/lib.rs` | `src/tiny_skia/Lib.cpp` + `src/tiny_skia/Lib.h` | ☐ |
-| `third_party/tiny-skia/src/alpha_runs.rs` | `src/tiny_skia/AlphaRuns.cpp` + `src/tiny_skia/AlphaRuns.h` | ☐ |
+| `third_party/tiny-skia/src/alpha_runs.rs` | `src/tiny_skia/AlphaRuns.cpp` + `src/tiny_skia/AlphaRuns.h` | 🟡 |
 | `third_party/tiny-skia/src/blend_mode.rs` | `src/tiny_skia/BlendMode.cpp` + `src/tiny_skia/BlendMode.h` | ☐ |
 | `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ☐ |
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ☐ |
@@ -171,6 +171,17 @@ When a file is actively being ported, add a table under this section.
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
 | _to be added_ | _to be added_ | ☐ | _to be added_ |
+
+### `third_party/tiny-skia/src/alpha_runs.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | 🟡 | Unit-equivalent construction invariants |
+| `AlphaRuns::catch_overflow` | `AlphaRuns::catch_overflow` | 🟡 | Manual checks with `0`, `1`, `255`, `256` |
+| `AlphaRuns::is_empty` | `AlphaRuns::is_empty` | 🟡 | Smoke tests for empty and non-empty states |
+| `AlphaRuns::reset` | `AlphaRuns::reset` | 🟡 | Reset re-initializes state at width boundary |
+| `AlphaRuns::add` | `AlphaRuns::add` | 🟡 | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_run` | `AlphaRuns::break_run` | 🟡 | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_at` | `AlphaRuns::break_at` | 🟡 | Manual parity vectors vs Rust reference |
 
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

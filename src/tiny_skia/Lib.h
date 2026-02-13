@@ -2,8 +2,10 @@
 
 namespace tiny_skia {
 
-int library_version();
+using LibraryVersion = int;
 
-constexpr int kLibraryVersion = 1;
+constexpr LibraryVersion kLibraryVersion = 1;
+
+LibraryVersion library_version();
 
 }  // namespace tiny_skia
