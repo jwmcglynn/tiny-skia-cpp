@@ -21,10 +21,10 @@ This directory holds user- and developer-facing documentation for design and imp
   and statuses as soon as a change is made.
 - Enforce a direct mapping from implementation work to milestone checkboxes:
   each implementation batch must include matching design-doc tracker and milestone updates.
-- HARD GATE: when the user has not explicitly authorized, do not commit.
-- When committing on approval, treat the exact phrase “Commit and next step” as the
-  explicit signal to include all outstanding working-directory changes
-  (tracked/untracked/deleted) in one commit.
-- “Next step” on its own is explicitly non-committal and must not trigger any commit.
-- Carry forward any explicit user commit-approval rule: no commits without explicit user
-  approval.
+- HARD GATE: NEVER commit without explicit user approval in the same session.
+- There is no implied commit consent. No shorthand, status words, or “next step” language
+  authorizes a commit without an explicit ask.
+- If a commit is approved, include every outstanding working-directory change
+  (tracked/untracked/deleted) in that commit.
+- “Next step” or workflow phrases without explicit approval are non-committal and must never
+  trigger commit.

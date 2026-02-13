@@ -29,21 +29,16 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - For any code change (new/edited/deleted file), update milestone checkboxes or function
   status entries in the same update batch as implementation.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
-- Do not commit any changes without explicit user approval in the current session.
-- Treat the exact user phrase “Commit and next step” as the hard commit handoff:
-  1) commit all currently outstanding working-directory changes with `git add -A`,
-  2) then continue to the next requested task only after receiving a new user instruction.
-- HARD STOP: DO NOT run any commit operation unless the user explicitly requested it in
-  this session.
-- “Next step” is non-committal and never means commit permission.
-- “Commit and next step” is required for any commit and means commit all current
-  working-directory changes before moving on.
-- If there is no explicit user permission, stop and ask before committing.
-- The phrase “Next step” by itself is non-committal; it does not authorize a commit.
-- After a “Commit and next step” handoff, do not commit subsequent new work without
-  another explicit commit approval from the user.
-- “All currently outstanding working-directory changes” means every modified, new, and
-  deleted file.
+- No commit is allowed without explicit user approval in this session, reviewed live.
+- Explicit user approval is required for **every** commit operation (including after previous
+  handoff phrases), regardless of any shorthand wording.
+- There is no implied commit permission. Always ask before running `git commit`.
+- The user phrase “Commit and next step” is only valid when it appears as an explicit request and
+  indicates approval for the current outstanding working-directory diff only.
+- “Next step” and similar non-commit phrases are explicitly non-committal and must not trigger any
+  commit.
+- Never commit partially. If a commit is approved, include all currently outstanding working-directory
+  changes in that commit.
 
 ## Building
 
