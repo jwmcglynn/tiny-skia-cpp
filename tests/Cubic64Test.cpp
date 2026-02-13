@@ -55,6 +55,15 @@ TEST(Cubic64Test, RootsValidTAddsEndpointsWhenWithinMargin) {
               testing::UnorderedElementsAre(testing::DoubleEq(0.0), testing::DoubleEq(1.0)));
 }
 
+TEST(Cubic64Test, RootsValidTForCubicPolynomial) {
+  std::array<double, 3> roots{};
+  const auto count = tiny_skia::path64::cubic64::rootsValidT(1.0, 0.0, -1.0, 0.0, roots);
+  EXPECT_EQ(count, 2u);
+  EXPECT_THAT((std::array<double, 2>{roots[0], roots[1]}),
+              testing::UnorderedElementsAre(testing::DoubleNear(0.0, 1e-12),
+                                          testing::DoubleNear(1.0, 1e-12)));
+}
+
 TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       tiny_skia::Point64::fromXy(0.0, 0.0),
@@ -68,4 +77,32 @@ TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
   EXPECT_DOUBLE_EQ(pair.points[4].x, 2.0);
   EXPECT_DOUBLE_EQ(pair.points[5].x, 2.5);
   EXPECT_DOUBLE_EQ(pair.points[6].x, 3.0);
+}
+
+TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {
+  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
+      tiny_skia::Point64::fromXy(0.0, 1.0),
+      tiny_skia::Point64::fromXy(1.0, -1.0),
+      tiny_skia::Point64::fromXy(2.0, 1.0 / 3.0),
+      tiny_skia::Point64::fromXy(3.0, 1.0),
+  });
+  std::array<double, 6> extremeTs{};
+  std::array<double, 3> roots{};
+  const auto extrema = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremeTs);
+  const auto count = cubic.searchRoots(extrema, 0.0, tiny_skia::SearchAxis::Y, extremeTs, roots);
+  EXPECT_EQ(count, 1u);
+  EXPECT_DOUBLE_EQ(roots[0], 0.5);
+}
+
+TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
+  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
+      tiny_skia::Point64::fromXy(0.0, 0.0),
+      tiny_skia::Point64::fromXy(0.0, 0.0),
+      tiny_skia::Point64::fromXy(0.0, 0.0),
+      tiny_skia::Point64::fromXy(1.0, 1.0),
+  });
+  std::array<double, 6> extremaTs{};
+  const auto count = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremaTs);
+  EXPECT_EQ(count, 1u);
+  EXPECT_NEAR(extremaTs[0], 0.0, 1e-12);
 }
