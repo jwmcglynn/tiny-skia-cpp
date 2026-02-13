@@ -221,7 +221,50 @@ When a file is actively being ported, add a table under this section.
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| _to be added_ | _to be added_ | ☐ | _to be added_ |
+| `ColorU8::from_rgba` | `ColorU8::fromRgba` | ✅ | Constructor and field-equality checks |
+| `ColorU8::red` | `ColorU8::red` | ✅ | Component assertions |
+| `ColorU8::green` | `ColorU8::green` | ✅ | Component assertions |
+| `ColorU8::blue` | `ColorU8::blue` | ✅ | Component assertions |
+| `ColorU8::alpha` | `ColorU8::alpha` | ✅ | Component assertions |
+| `ColorU8::is_opaque` | `ColorU8::isOpaque` | ✅ | Opaque/non-opaque checks |
+| `ColorU8::premultiply` | `ColorU8::premultiply` | ✅ | Integer-channel demotion/equality checks |
+| `PremultipliedColorU8::from_rgba` | `PremultipliedColorU8::fromRgba` | ✅ | `red <= alpha` validation checks |
+| `PremultipliedColorU8::from_rgba_unchecked` | `PremultipliedColorU8::fromRgbaUnchecked` | ✅ | Structural assertions |
+| `PremultipliedColorU8::red` | `PremultipliedColorU8::red` | ✅ | Component assertions |
+| `PremultipliedColorU8::green` | `PremultipliedColorU8::green` | ✅ | Component assertions |
+| `PremultipliedColorU8::blue` | `PremultipliedColorU8::blue` | ✅ | Component assertions |
+| `PremultipliedColorU8::alpha` | `PremultipliedColorU8::alpha` | ✅ | Component assertions |
+| `PremultipliedColorU8::is_opaque` | `PremultipliedColorU8::isOpaque` | ✅ | Boundary checks |
+| `PremultipliedColorU8::demultiply` | `PremultipliedColorU8::demultiply` | ✅ | Roundtrip + special-case checks |
+| `Color::from_rgba_unchecked` | `Color::fromRgbaUnchecked` | ✅ | Constant conversion checks |
+| `Color::from_rgba` | `Color::fromRgba` | 🟡 | Optional validity + range reject checks |
+| `Color::from_rgba8` | `Color::fromRgba8` | ✅ | 8-bit quantization checks |
+| `Color::red` | `Color::red` | ✅ | Component assertions |
+| `Color::green` | `Color::green` | ✅ | Component assertions |
+| `Color::blue` | `Color::blue` | ✅ | Component assertions |
+| `Color::alpha` | `Color::alpha` | ✅ | Component assertions |
+| `Color::set_red` | `Color::setRed` | ✅ | Clamp semantics check |
+| `Color::set_green` | `Color::setGreen` | ✅ | Clamp semantics check |
+| `Color::set_blue` | `Color::setBlue` | ✅ | Clamp semantics check |
+| `Color::set_alpha` | `Color::setAlpha` | ✅ | Clamp semantics check |
+| `Color::apply_opacity` | `Color::applyOpacity` | ✅ | Opacity clamp and multiplication check |
+| `Color::is_opaque` | `Color::isOpaque` | ✅ | Opacity boundary check |
+| `Color::premultiply` | `Color::premultiply` | ✅ | Premultiply and demultiply roundtrip checks |
+| `Color::to_color_u8` | `Color::toColorU8` | ✅ | Channel quantization checks |
+| `PremultipliedColor::red` | `PremultipliedColor::red` | ✅ | Component assertions |
+| `PremultipliedColor::green` | `PremultipliedColor::green` | ✅ | Component assertions |
+| `PremultipliedColor::blue` | `PremultipliedColor::blue` | ✅ | Component assertions |
+| `PremultipliedColor::alpha` | `PremultipliedColor::alpha` | ✅ | Component assertions |
+| `PremultipliedColor::demultiply` | `PremultipliedColor::demultiply` | ✅ | Alpha zero / normal-case checks |
+| `PremultipliedColor::to_color_u8` | `PremultipliedColor::toColorU8` | ✅ | Channel quantization checks |
+| `premultiply_u8` | `premultiplyU8` | ✅ | Fixed-point rounding checks |
+| `color_f32_to_u8` | `colorF32ToU8` | ✅ | Quantization parity checks |
+| `ColorSpace::expand_channel` | `expandChannel` | ✅ | Transform checkpoints for all modes |
+| `ColorSpace::expand_color` | `expandColor` | ✅ | Channel-wise transform check |
+| `ColorSpace::compress_channel` | `compressChannel` | ✅ | Transform checkpoints |
+| `ColorSpace::expand_stage` | `expandStage` | ✅ | Option mapping check |
+| `ColorSpace::expand_dest_stage` | `expandDestStage` | ✅ | Option mapping check |
+| `ColorSpace::compress_stage` | `compressStage` | ✅ | Option mapping check |
 
 ### `third_party/tiny-skia/src/math.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

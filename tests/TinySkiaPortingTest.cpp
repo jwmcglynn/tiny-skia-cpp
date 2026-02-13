@@ -69,6 +69,11 @@ TEST(MathTest, LeftShiftAndApproxPowf) {
 
   EXPECT_FLOAT_EQ(tiny_skia::approxPowf(0.0f, 3.0f), 0.0f);
   EXPECT_FLOAT_EQ(tiny_skia::approxPowf(1.0f, 3.0f), 1.0f);
+
+  EXPECT_NEAR(tiny_skia::approxPowf(2.0f, 0.5f), 1.4142135f, 0.02f);
+  EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 0.5f), 2.0f, 0.02f);
+  EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 0.0f), 1.0f, kFloatTolerance);
+  EXPECT_NEAR(tiny_skia::approxPowf(9.0f, 0.5f), 3.0f, 0.02f);
   EXPECT_NEAR(tiny_skia::approxPowf(2.0f, 1.0f), 2.0f, kFloatTolerance);
   EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 1.0f), 4.0f, kFloatTolerance);
 }
