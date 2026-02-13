@@ -25,10 +25,14 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Keep design and implementation steps actionable and testable.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
 - Do not commit any changes without explicit user approval in the current session.
-- Treat the user phrase “Commit and next step” as a hard handoff:
+- Treat the exact user phrase “Commit and next step” as the hard commit handoff:
   1) commit all currently outstanding working-directory changes with `git add -A`,
-  2) then stop editing until a new user authorization is received.
-- Do not commit any new work without explicit user approval after that handoff.
+  2) then continue to the next requested task only after receiving a new user instruction.
+- The phrase “Next step” by itself is non-committal; it does not authorize a commit.
+- After a “Commit and next step” handoff, do not commit subsequent new work without
+  another explicit commit approval from the user.
+- “All currently outstanding working-directory changes” means every modified, new, and
+  deleted file.
 - “All currently outstanding working-directory changes” means every modified, new, and
   deleted file.
 

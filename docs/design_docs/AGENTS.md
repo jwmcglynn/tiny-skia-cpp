@@ -17,8 +17,9 @@ This directory holds user- and developer-facing documentation for design and imp
   - Testing and Validation
   - Keep architecture and process notes in a single file per feature.
 - Document next steps clearly so the sequence is easy to continue.
-- When committing on approval, treat the phrase “Commit and next step” as the signal to
-  include all outstanding working-directory changes (tracked/untracked/deleted) in one
-  commit and pause.
+- When committing on approval, treat the exact phrase “Commit and next step” as the
+  explicit signal to include all outstanding working-directory changes
+  (tracked/untracked/deleted) in one commit.
+- “Next step” on its own is explicitly non-committal and must not trigger any commit.
 - Carry forward any explicit user commit-approval rule: no commits without explicit user
   approval.

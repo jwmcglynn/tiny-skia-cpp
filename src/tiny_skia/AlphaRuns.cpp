@@ -4,6 +4,18 @@
 
 namespace tiny_skia {
 
+namespace {
+
+AlphaRun makeRun(std::size_t value) {
+  assert(value <= std::numeric_limits<std::uint16_t>::max());
+  if (value == 0) {
+    return std::nullopt;
+  }
+  return AlphaRun{static_cast<std::uint16_t>(value)};
+}
+
+}  // namespace
+
 AlphaRuns::AlphaRuns(LengthU32 width) : runs(width + 1), alpha(width + 1, 0) {
   reset(width);
 }
@@ -25,14 +37,14 @@ bool AlphaRuns::isEmpty() const {
 void AlphaRuns::reset(LengthU32 width) {
   assert(width > 0);
   assert(width <= std::numeric_limits<std::uint16_t>::max());
-  const auto run = static_cast<std::uint16_t>(width);
+  const auto run = static_cast<std::size_t>(width);
 
   if (runs.size() < static_cast<std::size_t>(width) + 1) {
     runs.resize(width + 1);
     alpha.resize(width + 1);
   }
 
-  runs[0] = AlphaRun{run};
+  runs[0] = makeRun(run);
   runs[static_cast<std::size_t>(width)] = std::nullopt;
   alpha[0] = 0;
 }
@@ -123,8 +135,8 @@ void AlphaRuns::breakRun(std::span<AlphaRun> runs,
 
     if (x < n) {
       alpha[alpha_offset + x] = alpha[alpha_offset];
-      runs[runs_offset] = AlphaRun{static_cast<std::uint16_t>(x)};
-      runs[runs_offset + x] = AlphaRun{static_cast<std::uint16_t>(n - x)};
+      runs[runs_offset] = makeRun(x);
+      runs[runs_offset + x] = makeRun(n - x);
       break;
     }
 
@@ -142,8 +154,8 @@ void AlphaRuns::breakRun(std::span<AlphaRun> runs,
 
     if (x < n) {
       alpha[alpha_offset + x] = alpha[alpha_offset];
-      runs[runs_offset] = AlphaRun{static_cast<std::uint16_t>(x)};
-      runs[runs_offset + x] = AlphaRun{static_cast<std::uint16_t>(n - x)};
+      runs[runs_offset] = makeRun(x);
+      runs[runs_offset + x] = makeRun(n - x);
       break;
     }
 
@@ -168,9 +180,8 @@ void AlphaRuns::breakAt(std::span<std::uint8_t> alpha,
     const std::int32_t n_i32 = static_cast<std::int32_t>(n);
     if (x < n_i32) {
       alpha[alpha_i + static_cast<std::size_t>(x)] = alpha[alpha_i];
-      runs[0] = AlphaRun{static_cast<std::uint16_t>(x)};
-      runs[static_cast<std::size_t>(x)] =
-          AlphaRun{static_cast<std::uint16_t>(n_i32 - x)};
+      runs[0] = makeRun(static_cast<std::size_t>(x));
+      runs[static_cast<std::size_t>(x)] = makeRun(static_cast<std::size_t>(n_i32 - x));
       break;
     }
 

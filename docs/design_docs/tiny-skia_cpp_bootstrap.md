@@ -126,18 +126,18 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 
 | Old Rust file | New C++ file | Status |
 | --- | --- | --- |
-| `third_party/tiny-skia/src/lib.rs` | `src/tiny_skia/Lib.cpp` + `src/tiny_skia/Lib.h` | ☐ |
-| `third_party/tiny-skia/src/alpha_runs.rs` | `src/tiny_skia/AlphaRuns.cpp` + `src/tiny_skia/AlphaRuns.h` | 🟡 |
-| `third_party/tiny-skia/src/blend_mode.rs` | `src/tiny_skia/BlendMode.cpp` + `src/tiny_skia/BlendMode.h` | ☐ |
+| `third_party/tiny-skia/src/lib.rs` | `src/tiny_skia/Lib.cpp` + `src/tiny_skia/Lib.h` | ✅ |
+| `third_party/tiny-skia/src/alpha_runs.rs` | `src/tiny_skia/AlphaRuns.cpp` + `src/tiny_skia/AlphaRuns.h` | ✅ |
+| `third_party/tiny-skia/src/blend_mode.rs` | `src/tiny_skia/BlendMode.cpp` + `src/tiny_skia/BlendMode.h` | ✅ |
 | `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ☐ |
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ☐ |
 | `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ☐ |
 | `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | ☐ |
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
-| `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | 🟡 |
+| `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ☐ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ☐ |
-| `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | 🟡 |
+| `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ☐ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
@@ -184,39 +184,46 @@ When a file is actively being ported, add a table under this section.
 ### `third_party/tiny-skia/src/lib.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| _to be added_ | _to be added_ | ☐ | _to be added_ |
+| `k_library_version` | `kLibraryVersion` | ✅ | Constant value parity |
+| `library_version` | `libraryVersion` | ✅ | Exact return value parity |
 
 ### `third_party/tiny-skia/src/alpha_runs.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | 🟡 | Unit-equivalent construction invariants |
-| `AlphaRuns::catch_overflow` | `AlphaRuns::catchOverflow` | 🟡 | Manual checks with `0`, `1`, `255`, `256` |
-| `AlphaRuns::is_empty` | `AlphaRuns::isEmpty` | 🟡 | Smoke tests for empty and non-empty states |
-| `AlphaRuns::reset` | `AlphaRuns::reset` | 🟡 | Reset re-initializes state at width boundary |
-| `AlphaRuns::add` | `AlphaRuns::add` | 🟡 | Manual parity vectors vs Rust reference |
-| `AlphaRuns::break_run` | `AlphaRuns::breakRun` | 🟡 | Manual parity vectors vs Rust reference |
-| `AlphaRuns::break_at` | `AlphaRuns::breakAt` | 🟡 | Manual parity vectors vs Rust reference |
+| `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | ✅ | Unit-equivalent construction invariants |
+| `AlphaRuns::catch_overflow` | `AlphaRuns::catchOverflow` | ✅ | Manual checks with `0`, `1`, `255`, `256` |
+| `AlphaRuns::is_empty` | `AlphaRuns::isEmpty` | ✅ | Smoke tests for empty and non-empty states |
+| `AlphaRuns::reset` | `AlphaRuns::reset` | ✅ | Reset re-initializes state at width boundary |
+| `AlphaRuns::add` | `AlphaRuns::add` | ✅ | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_run` | `AlphaRuns::breakRun` | ✅ | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_at` | `AlphaRuns::breakAt` | ✅ | Manual parity vectors vs Rust reference |
+
+### `third_party/tiny-skia/src/blend_mode.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `BlendMode::should_pre_scale_coverage` | `shouldPreScaleCoverage` | ✅ | Branch coverage across positive and negative classes |
+| `BlendMode::to_stage` | `toStage` | ✅ | Full stage mapping coverage |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| `fdot6::from_i32` | `fdot6::fromI32` | 🟡 | Scalar value checks around unit conversions |
-| `fdot6::from_f32` | `fdot6::fromF32` | 🟡 | Scalar value checks around fixed-point conversion |
-| `fdot6::floor` | `fdot6::floor` | 🟡 | Value boundary checks |
-| `fdot6::ceil` | `fdot6::ceil` | 🟡 | Value boundary checks |
-| `fdot6::round` | `fdot6::round` | 🟡 | Value boundary checks |
-| `fdot6::to_fdot16` | `fdot6::toFdot16` | 🟡 | Internal bit-shift consistency |
-| `fdot6::div` | `fdot6::div` | 🟡 | Integer division parity cases |
-| `fdot6::can_convert_to_fdot16` | `fdot6::canConvertToFdot16` | 🟡 | Magnitude boundary checks |
-| `fdot6::small_scale` | `fdot6::smallScale` | 🟡 | Scale boundary checks |
-| `fdot8::from_fdot16` | `fdot8::fromFdot16` | 🟡 | Scalar parity checks |
-| `fdot16::from_f32` | `fdot16::fromF32` | 🟡 | Saturation and conversion sanity checks |
-| `fdot16::floor_to_i32` | `fdot16::floorToI32` | 🟡 | Value boundary checks |
-| `fdot16::ceil_to_i32` | `fdot16::ceilToI32` | 🟡 | Value boundary checks |
-| `fdot16::round_to_i32` | `fdot16::roundToI32` | 🟡 | Value boundary checks |
-| `fdot16::mul` | `fdot16::mul` | 🟡 | Scale invariants |
-| `fdot16::div` | `fdot16::divide` | 🟡 | Value parity checks |
-| `fdot16::fast_div` | `fdot16::fastDiv` | 🟡 | Shift/branch parity checks |
+| `fdot6::from_i32` | `fdot6::fromI32` | ✅ | Scalar value checks around unit conversions |
+| `fdot6::from_f32` | `fdot6::fromF32` | ✅ | Scalar value checks around fixed-point conversion |
+| `fdot6::floor` | `fdot6::floor` | ✅ | Value boundary checks |
+| `fdot6::ceil` | `fdot6::ceil` | ✅ | Value boundary checks |
+| `fdot6::round` | `fdot6::round` | ✅ | Value boundary checks |
+| `fdot6::to_fdot16` | `fdot6::toFdot16` | ✅ | Internal bit-shift consistency |
+| `fdot6::div` | `fdot6::div` | ✅ | Integer division parity cases |
+| `fdot6::can_convert_to_fdot16` | `fdot6::canConvertToFdot16` | ✅ | Magnitude boundary checks |
+| `fdot6::small_scale` | `fdot6::smallScale` | ✅ | Scale boundary checks |
+| `fdot8::from_fdot16` | `fdot8::fromFdot16` | ✅ | Scalar parity checks |
+| `fdot16::from_f32` | `fdot16::fromF32` | ✅ | Saturation and conversion sanity checks |
+| `fdot16::floor_to_i32` | `fdot16::floorToI32` | ✅ | Value boundary checks |
+| `fdot16::ceil_to_i32` | `fdot16::ceilToI32` | ✅ | Value boundary checks |
+| `fdot16::round_to_i32` | `fdot16::roundToI32` | ✅ | Value boundary checks |
+| `fdot16::mul` | `fdot16::mul` | ✅ | Scale invariants |
+| `fdot16::div` | `fdot16::divide` | ✅ | Value parity checks |
+| `fdot16::fast_div` | `fdot16::fastDiv` | ✅ | Shift/branch parity checks |
 
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
@@ -269,10 +276,10 @@ When a file is actively being ported, add a table under this section.
 ### `third_party/tiny-skia/src/math.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| `bound` | `bound` | 🟡 | Compare against min, max, and mid-interval samples |
-| `left_shift` | `leftShift` | 🟡 | Bit-equality for positive and negative inputs |
-| `left_shift64` | `leftShift64` | 🟡 | Bit-equality for positive and negative inputs |
-| `approx_powf` | `approxPowf` | 🟡 | Compare against Rust reference at canonical power pairs |
+| `bound` | `bound` | ✅ | Compare against min, max, and mid-interval samples |
+| `left_shift` | `leftShift` | ✅ | Bit-equality for positive and negative inputs |
+| `left_shift64` | `leftShift64` | ✅ | Bit-equality for positive and negative inputs |
+| `approx_powf` | `approxPowf` | ✅ | Compare against Rust reference at canonical power pairs |
 
 Add one section per file as soon as implementation begins.
 

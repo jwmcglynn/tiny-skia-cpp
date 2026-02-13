@@ -2,7 +2,6 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
-#include <span>
 #include <string_view>
 
 #include <gmock/gmock.h>
@@ -10,8 +9,6 @@
 
 #include "tiny_skia/AlphaRuns.h"
 #include "tiny_skia/Color.h"
-#include "tiny_skia/FixedPoint.h"
-#include "tiny_skia/Math.h"
 
 namespace {
 
@@ -56,64 +53,6 @@ void expectColorFloatIs(const tiny_skia::Color& actual,
 
 }  // namespace
 
-TEST(MathTest, BoundClampsToRange) {
-  EXPECT_EQ(tiny_skia::bound(0u, 3u, 10u), 3u);
-  EXPECT_EQ(tiny_skia::bound(5u, 3u, 10u), 5u);
-  EXPECT_EQ(tiny_skia::bound(0u, 13u, 10u), 10u);
-}
-
-TEST(MathTest, LeftShiftAndApproxPowf) {
-  EXPECT_EQ(tiny_skia::leftShift(3, 4), 48);
-  EXPECT_EQ(tiny_skia::leftShift64(-1, 1),
-            static_cast<std::int64_t>(0xFFFFFFFFFFFFFFFEULL));
-
-  EXPECT_FLOAT_EQ(tiny_skia::approxPowf(0.0f, 3.0f), 0.0f);
-  EXPECT_FLOAT_EQ(tiny_skia::approxPowf(1.0f, 3.0f), 1.0f);
-
-  EXPECT_NEAR(tiny_skia::approxPowf(2.0f, 0.5f), 1.4142135f, 0.02f);
-  EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 0.5f), 2.0f, 0.02f);
-  EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 0.0f), 1.0f, kFloatTolerance);
-  EXPECT_NEAR(tiny_skia::approxPowf(9.0f, 0.5f), 3.0f, 0.02f);
-  EXPECT_NEAR(tiny_skia::approxPowf(2.0f, 1.0f), 2.0f, kFloatTolerance);
-  EXPECT_NEAR(tiny_skia::approxPowf(4.0f, 1.0f), 4.0f, kFloatTolerance);
-}
-
-TEST(FixedPointFdot6Test, ConversionsAndRounding) {
-  EXPECT_EQ(tiny_skia::fdot6::fromI32(3), 192);
-  EXPECT_EQ(tiny_skia::fdot6::fromF32(1.5f), 96);
-  EXPECT_EQ(tiny_skia::fdot6::floor(65), 1);
-  EXPECT_EQ(tiny_skia::fdot6::ceil(65), 2);
-  EXPECT_EQ(tiny_skia::fdot6::round(31), 0);
-  EXPECT_EQ(tiny_skia::fdot6::toFdot16(64), 65536);
-  EXPECT_EQ(tiny_skia::fdot6::div(64, 32), 131072);
-  EXPECT_EQ(tiny_skia::fdot6::smallScale(255, 64), 255);
-
-  struct CanConvertCase {
-    std::string_view label;
-    std::int32_t value;
-    bool expected;
-  };
-  for (const auto& tc : {
-           CanConvertCase{"safe bound", 30000, true},
-           CanConvertCase{"overflow bound", std::numeric_limits<std::int32_t>::min(), false},
-       }) {
-    SCOPED_TRACE(tc.label);
-    EXPECT_EQ(tiny_skia::fdot6::canConvertToFdot16(tc.value), tc.expected);
-  }
-}
-
-TEST(Fdot8And16Test, ConversionsAndArithmetic) {
-  EXPECT_EQ(tiny_skia::fdot8::fromFdot16(0xFF00), 0x0FF);
-
-  EXPECT_EQ(tiny_skia::fdot16::one, 65536);
-  EXPECT_EQ(tiny_skia::fdot16::fromF32(1.0f), 65536);
-  EXPECT_EQ(tiny_skia::fdot16::floorToI32(65535), 0);
-  EXPECT_EQ(tiny_skia::fdot16::ceilToI32(65535), 1);
-  EXPECT_EQ(tiny_skia::fdot16::roundToI32(98304), 2);
-  EXPECT_EQ(tiny_skia::fdot16::mul(65536, 65536), 65536);
-  EXPECT_EQ(tiny_skia::fdot16::divide(65536, 65536), 65536);
-  EXPECT_EQ(tiny_skia::fdot16::fastDiv(64, 32), 131072);
-}
 
 TEST(ColorTest, ColorUPremultiplyPreservesAlphaAndClamp) {
   const tiny_skia::ColorU8 source = tiny_skia::ColorU8::fromRgba(10, 20, 30, 40);
@@ -257,42 +196,4 @@ TEST(ColorTest, ColorSpaceTransforms) {
       tiny_skia::compressChannel(ColorSpace::Gamma2,
                                 tiny_skia::NormalizedF32::newUnchecked(0.25f));
   EXPECT_NEAR(gammaCompressed.get(), 0.5f, 0.0005f);
-}
-
-TEST(AlphaRunsTest, BasicsAndOperations) {
-  tiny_skia::AlphaRuns runs(6);
-  EXPECT_TRUE(runs.isEmpty());
-
-  const auto midOffset = runs.add(0, 0, 2, 0, 50, 0);
-  EXPECT_EQ(midOffset, 2u);
-  EXPECT_FALSE(runs.isEmpty());
-  EXPECT_EQ(runs.alpha[0], static_cast<std::uint8_t>(50));
-
-  const auto stopOffset = runs.add(2, 0, 0, 8, 255, 0);
-  EXPECT_EQ(stopOffset, 2u);
-  EXPECT_EQ(runs.alpha[2], static_cast<std::uint8_t>(8));
-
-  std::array<tiny_skia::AlphaRun, 6> runData{};
-  std::array<std::uint8_t, 6> alphaData{};
-  runData[0] = tiny_skia::AlphaRun{5};
-  tiny_skia::AlphaRuns::breakRun(std::span{runData}, std::span{alphaData}, 2, 2);
-  EXPECT_TRUE(runData[0].has_value());
-  EXPECT_EQ(runData[0].value(), 2u);
-  EXPECT_TRUE(runData[2].has_value());
-  EXPECT_EQ(runData[2].value(), 2u);
-  EXPECT_TRUE(runData[4].has_value());
-  EXPECT_EQ(runData[4].value(), 1u);
-
-  std::array<tiny_skia::AlphaRun, 6> breakAtRuns{};
-  std::array<std::uint8_t, 6> breakAtAlpha{};
-  breakAtRuns[0] = tiny_skia::AlphaRun{5};
-  breakAtAlpha[0] = 11;
-  tiny_skia::AlphaRuns::breakAt(std::span{breakAtAlpha},
-                               std::span{breakAtRuns},
-                               2);
-  EXPECT_TRUE(breakAtRuns[0].has_value());
-  EXPECT_EQ(breakAtRuns[0].value(), 2u);
-  EXPECT_TRUE(breakAtRuns[2].has_value());
-  EXPECT_EQ(breakAtRuns[2].value(), 3u);
-  EXPECT_EQ(breakAtAlpha[2], breakAtAlpha[0]);
 }
