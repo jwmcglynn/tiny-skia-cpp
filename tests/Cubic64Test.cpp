@@ -94,6 +94,17 @@ TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {
   EXPECT_DOUBLE_EQ(roots[0], 0.5);
 }
 
+TEST(Cubic64Test, RootsRealReturnsThreeDistinctRoots) {
+  std::array<double, 3> roots{};
+  const auto count =
+      tiny_skia::path64::cubic64::rootsValidT(1.0, -1.5, 0.66, -0.08, roots);
+  EXPECT_EQ(count, 3u);
+  EXPECT_THAT((std::array<double, 3>{roots[0], roots[1], roots[2]}),
+              testing::UnorderedElementsAre(testing::DoubleNear(0.2, 1e-12),
+                                          testing::DoubleNear(0.5, 1e-12),
+                                          testing::DoubleNear(0.8, 1e-12)));
+}
+
 TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       tiny_skia::Point64::fromXy(0.0, 0.0),
@@ -105,4 +116,18 @@ TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
   const auto count = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremaTs);
   EXPECT_EQ(count, 1u);
   EXPECT_NEAR(extremaTs[0], 0.0, 1e-12);
+}
+
+TEST(Cubic64Test, SearchRootsReturnsNoneWhenCurveStaysAboveAxis) {
+  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
+      tiny_skia::Point64::fromXy(0.0, 1.0),
+      tiny_skia::Point64::fromXy(1.0, 1.0),
+      tiny_skia::Point64::fromXy(2.0, 1.0),
+      tiny_skia::Point64::fromXy(3.0, 1.0),
+  });
+  std::array<double, 6> extremeTs{};
+  std::array<double, 3> roots{};
+  const auto extrema = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremeTs);
+  const auto count = cubic.searchRoots(extrema, 0.0, tiny_skia::SearchAxis::Y, extremeTs, roots);
+  EXPECT_EQ(count, 0u);
 }

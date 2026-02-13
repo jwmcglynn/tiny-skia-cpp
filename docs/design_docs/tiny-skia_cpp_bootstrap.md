@@ -353,12 +353,12 @@ When a file is actively being ported, add a table under this section.
 | `Cubic64::new` | `Cubic64::create` | ✅ | Point copy semantics |
 | `Cubic64::as_f64_slice` | `Cubic64::asF64Slice` | ✅ | Flattened coordinate order |
 | `Cubic64::point_at_t` | `Cubic64::pointAtT` | ✅ | Endpoint fast-path and midpoint checks |
-| `Cubic64::search_roots` | `Cubic64::searchRoots` | 🟡 | Segmented binary-search behavior |
+| `Cubic64::search_roots` | `Cubic64::searchRoots` | ✅ | Segmented binary-search behavior |
 | `find_inflections` | `Cubic64::findInflections` | 🟡 | Subdivision invariants |
 | `Cubic64::chop_at` | `Cubic64::chopAt` | ✅ | Midpoint split control points |
 | `coefficients` | `coefficients` | ✅ | Coefficient transform parity |
 | `roots_valid_t` | `rootsValidT` | ✅ | Endpoint clamp and dedupe behavior |
-| `roots_real` | `rootsReal` | 🟡 | Real-root regime parity |
+| `roots_real` | `rootsReal` | ✅ | Real-root regime parity |
 | `find_extrema` | `findExtrema` | ✅ | Derivative-division parity |
 | `interp_cubic_coords_x` | `interpCubicCoordsX` | ✅ | Coord decomposition identity |
 | `interp_cubic_coords_y` | `interpCubicCoordsY` | ✅ | Coord decomposition identity |
