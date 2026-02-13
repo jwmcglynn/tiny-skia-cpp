@@ -1,5 +1,7 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 def _tiny_skia_cc_library_impl(name, srcs, hdrs, deps = [], copts = [], defines = [], visibility = ["//visibility:private"], **kwargs):
-    native.cc_library(
+    cc_library(
         name = name,
         srcs = srcs,
         hdrs = hdrs,

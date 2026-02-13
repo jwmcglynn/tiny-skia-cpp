@@ -1,0 +1,10 @@
+# Bazel artifacts
+/bazel-*/
+/bazel-out
+/bazel-bin
+/bazel-testlogs
+/bazel-genfiles
+/bazel-common
+
+# Bzlmod lockfile
+MODULE.bazel.lock

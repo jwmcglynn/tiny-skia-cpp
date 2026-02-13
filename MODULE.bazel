@@ -1,0 +1,7 @@
+module(name = "tiny-skia-cpp")
+
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+###############################################################################
+
+bazel_dep(name = "rules_cc", version = "0.2.14")
