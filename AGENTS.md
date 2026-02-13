@@ -33,6 +33,12 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Treat the exact user phrase “Commit and next step” as the hard commit handoff:
   1) commit all currently outstanding working-directory changes with `git add -A`,
   2) then continue to the next requested task only after receiving a new user instruction.
+- HARD STOP: DO NOT run any commit operation unless the user explicitly requested it in
+  this session.
+- “Next step” is non-committal and never means commit permission.
+- “Commit and next step” is required for any commit and means commit all current
+  working-directory changes before moving on.
+- If there is no explicit user permission, stop and ask before committing.
 - The phrase “Next step” by itself is non-committal; it does not authorize a commit.
 - After a “Commit and next step” handoff, do not commit subsequent new work without
   another explicit commit approval from the user.

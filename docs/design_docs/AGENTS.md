@@ -21,6 +21,7 @@ This directory holds user- and developer-facing documentation for design and imp
   and statuses as soon as a change is made.
 - Enforce a direct mapping from implementation work to milestone checkboxes:
   each implementation batch must include matching design-doc tracker and milestone updates.
+- HARD GATE: when the user has not explicitly authorized, do not commit.
 - When committing on approval, treat the exact phrase “Commit and next step” as the
   explicit signal to include all outstanding working-directory changes
   (tracked/untracked/deleted) in one commit.
