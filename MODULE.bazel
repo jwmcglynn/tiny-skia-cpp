@@ -5,3 +5,11 @@ module(name = "tiny-skia-cpp")
 ###############################################################################
 
 bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "googletest", version = "1.14.0")
+
+single_version_override(
+    module_name = "googletest",
+    version = "1.14.0",
+    patches = ["//:googletest.patch"],
+    patch_strip = 1,
+)

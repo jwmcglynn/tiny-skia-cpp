@@ -12,6 +12,8 @@
 ## Steering Decisions
 - Always run `bazel build //...` after each functional porting step.
 - Add/extend C++ tests during porting and validate with `bazel test //...`.
+- All tests in this repo must be written with Google Test + Google Mock (`gtest`/`gmock`),
+  including parity tests in `tests/`.
 - Add image-regression gates with pixel-diff tests (pixelmatch-cpp) when rendering
   outputs are available for C++ parity runs.
 - After user review/approval to proceed, commit current changes before any further
@@ -109,11 +111,14 @@ flowchart LR
 ```
 
 ## Testing and Validation
-- No functional test execution is required in this bootstrap milestone.
-- Validation of bootstrap includes:
-  - Confirm `MODULE.bazel` and package BUILD files are syntactically present.
-  - Confirm `third_party/tiny-skia` is checked in locally.
-  - Confirm design doc gate remains updated before implementation work continues.
+- Primary validation is build and behavioral parity checks through gtest/gmock:
+  - Confirm `bazel build //...`.
+  - Confirm `bazel test //...`.
+  - Confirm parity tests exist for each function-level implementation that is ported.
+- In bootstrap, ensure `MODULE.bazel` and package BUILD files are syntactically present.
+- Confirm `MODULE.bazel` and package BUILD files are syntactically present.
+- Confirm `third_party/tiny-skia` is checked in locally.
+- Confirm design doc gate remains updated before implementation work continues.
 
 ## Porting Tracker (Rust file → C++ file)
 

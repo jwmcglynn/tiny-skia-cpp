@@ -8,5 +8,9 @@ cc_test(
     name = "tiny_skia_core_tests",
     srcs = ["TinySkiaPortingTest.cpp"],
     copts = ["-std=c++20"],
-    deps = ["//src:tiny_skia_lib"],
+    deps = [
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "//src:tiny_skia_lib",
+    ],
 )
