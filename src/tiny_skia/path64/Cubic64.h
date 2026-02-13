@@ -25,10 +25,10 @@ struct Cubic64 {
                           SearchAxis axis,
                           std::array<double, 6>& extremeTs,
                           std::array<double, 3>& validRoots) const;
+  std::size_t findInflections(std::span<double> tValues) const;
   Cubic64Pair chopAt(double t) const;
 
  private:
-  std::size_t findInflections(std::span<double> tValues) const;
   double binarySearch(double min, double max, double axisIntercept, SearchAxis axis) const;
 };
 
