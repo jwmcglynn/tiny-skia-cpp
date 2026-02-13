@@ -13,6 +13,7 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Use C++20 and Bazel as the primary build system.
 - Keep line length under 100 characters when practical.
 - Use clear naming, strong types, and explicit ownership boundaries.
+- Use lowerCamelCase for all function names (e.g., `libraryVersion`, `catchOverflow`).
 - Prefer deterministic, bit-accurate implementations and explicit comments only when non-obvious.
 - Keep edits minimal and consistent with existing style in touched files.
 

@@ -162,6 +162,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 ### Naming rule
 - `snake_case.rs` -> `UpperCamel.cpp` and `UpperCamel.h`
 - `mod.rs` -> `Mod.cpp` and `Mod.h`
+- C++ function names are lowerCamelCase.
 
 ## Function Mapping Tables
 
@@ -176,12 +177,12 @@ When a file is actively being ported, add a table under this section.
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
 | `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | 🟡 | Unit-equivalent construction invariants |
-| `AlphaRuns::catch_overflow` | `AlphaRuns::catch_overflow` | 🟡 | Manual checks with `0`, `1`, `255`, `256` |
-| `AlphaRuns::is_empty` | `AlphaRuns::is_empty` | 🟡 | Smoke tests for empty and non-empty states |
+| `AlphaRuns::catch_overflow` | `AlphaRuns::catchOverflow` | 🟡 | Manual checks with `0`, `1`, `255`, `256` |
+| `AlphaRuns::is_empty` | `AlphaRuns::isEmpty` | 🟡 | Smoke tests for empty and non-empty states |
 | `AlphaRuns::reset` | `AlphaRuns::reset` | 🟡 | Reset re-initializes state at width boundary |
 | `AlphaRuns::add` | `AlphaRuns::add` | 🟡 | Manual parity vectors vs Rust reference |
-| `AlphaRuns::break_run` | `AlphaRuns::break_run` | 🟡 | Manual parity vectors vs Rust reference |
-| `AlphaRuns::break_at` | `AlphaRuns::break_at` | 🟡 | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_run` | `AlphaRuns::breakRun` | 🟡 | Manual parity vectors vs Rust reference |
+| `AlphaRuns::break_at` | `AlphaRuns::breakAt` | 🟡 | Manual parity vectors vs Rust reference |
 
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

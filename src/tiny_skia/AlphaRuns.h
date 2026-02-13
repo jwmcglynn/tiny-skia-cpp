@@ -17,8 +17,8 @@ class AlphaRuns {
  public:
   explicit AlphaRuns(LengthU32 width);
 
-  static std::uint8_t catch_overflow(std::uint16_t alpha);
-  [[nodiscard]] bool is_empty() const;
+  static std::uint8_t catchOverflow(std::uint16_t alpha);
+  [[nodiscard]] bool isEmpty() const;
 
   void reset(LengthU32 width);
 
@@ -29,12 +29,12 @@ class AlphaRuns {
                   std::uint8_t max_value,
                   std::size_t offset_x);
 
-  static void break_run(std::span<AlphaRun> runs,
+  static void breakRun(std::span<AlphaRun> runs,
                        std::span<std::uint8_t> alpha,
                        std::size_t x,
                        std::size_t count);
-  static void break_at(std::span<std::uint8_t> alpha,
-                       std::span<AlphaRun> runs,
+  static void breakAt(std::span<std::uint8_t> alpha,
+                      std::span<AlphaRun> runs,
                        std::int32_t x);
 
   std::vector<AlphaRun> runs;
