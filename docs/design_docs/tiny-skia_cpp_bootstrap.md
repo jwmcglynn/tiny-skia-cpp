@@ -153,7 +153,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ☐ |
 | `third_party/tiny-skia/src/scan/path.rs` | `src/tiny_skia/scan/Path.cpp` + `src/tiny_skia/scan/Path.h` | ☐ |
 | `third_party/tiny-skia/src/scan/path_aa.rs` | `src/tiny_skia/scan/PathAa.cpp` + `src/tiny_skia/scan/PathAa.h` | ☐ |
-| `third_party/tiny-skia/src/path64/cubic64.rs` | `src/tiny_skia/path64/Cubic64.cpp` + `src/tiny_skia/path64/Cubic64.h` | ☐ |
+| `third_party/tiny-skia/src/path64/cubic64.rs` | `src/tiny_skia/path64/Cubic64.cpp` + `src/tiny_skia/path64/Cubic64.h` | 🟡 |
 | `third_party/tiny-skia/src/path64/line_cubic_intersections.rs` | `src/tiny_skia/path64/LineCubicIntersections.cpp` + `src/tiny_skia/path64/LineCubicIntersections.h` | ☐ |
 | `third_party/tiny-skia/src/path64/mod.rs` | `src/tiny_skia/path64/Mod.cpp` + `src/tiny_skia/path64/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/path64/point64.rs` | `src/tiny_skia/path64/Point64.cpp` + `src/tiny_skia/path64/Point64.h` | ✅ |
@@ -345,6 +345,23 @@ When a file is actively being ported, add a table under this section.
 | `MAX_POINTS` | `kLineClipperMaxPoints` | ✅ | Output capacity coverage |
 | `clip` | `clip` | ✅ | Reject/trim/cull cases and right-clamp behavior |
 | `intersect` | `intersect` | ✅ | Fully inside, partial overlap, and disjoint cases |
+
+### `third_party/tiny-skia/src/path64/cubic64.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `Cubic64Pair` | `Cubic64Pair` | ✅ | Struct layout coverage |
+| `Cubic64::new` | `Cubic64::create` | ✅ | Point copy semantics |
+| `Cubic64::as_f64_slice` | `Cubic64::asF64Slice` | ✅ | Flattened coordinate order |
+| `Cubic64::point_at_t` | `Cubic64::pointAtT` | ✅ | Endpoint fast-path and midpoint checks |
+| `Cubic64::search_roots` | `Cubic64::searchRoots` | 🟡 | Segmented binary-search behavior |
+| `find_inflections` | `Cubic64::findInflections` | 🟡 | Subdivision invariants |
+| `Cubic64::chop_at` | `Cubic64::chopAt` | ✅ | Midpoint split control points |
+| `coefficients` | `coefficients` | ✅ | Coefficient transform parity |
+| `roots_valid_t` | `rootsValidT` | ✅ | Endpoint clamp and dedupe behavior |
+| `roots_real` | `rootsReal` | 🟡 | Real-root regime parity |
+| `find_extrema` | `findExtrema` | ✅ | Derivative-division parity |
+| `interp_cubic_coords_x` | `interpCubicCoordsX` | ✅ | Coord decomposition identity |
+| `interp_cubic_coords_y` | `interpCubicCoordsY` | ✅ | Coord decomposition identity |
 
 ### `third_party/tiny-skia/src/path64/mod.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
