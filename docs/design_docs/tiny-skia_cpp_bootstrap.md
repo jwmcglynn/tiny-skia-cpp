@@ -14,6 +14,8 @@
 - Add/extend C++ tests during porting and validate with `bazel test //...`.
 - Add image-regression gates with pixel-diff tests (pixelmatch-cpp) when rendering
   outputs are available for C++ parity runs.
+- After user review/approval to proceed, commit current changes before any further
+  implementation edits.
 
 ## Goals
 - Set up a Bazel build system and top-level project layout usable from day one.

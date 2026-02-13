@@ -24,6 +24,8 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Use `AGENTS.md` and `docs/design_docs/AGENTS.md` as the source of truth for local instruction.
 - Keep design and implementation steps actionable and testable.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
+- After user approval to move to the next implementation step, commit outstanding changes
+  before making new edits.
 
 ## Building
 
