@@ -25,8 +25,12 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Keep design and implementation steps actionable and testable.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
 - Do not commit any changes without explicit user approval in the current session.
-- After user approval to move to the next implementation step, commit outstanding changes
-  before making new edits.
+- Treat the user phrase “Commit and next step” as a hard handoff:
+  1) commit all currently outstanding working-directory changes with `git add -A`,
+  2) then stop editing until a new user authorization is received.
+- Do not commit any new work without explicit user approval after that handoff.
+- “All currently outstanding working-directory changes” means every modified, new, and
+  deleted file.
 
 ## Building
 
