@@ -7,7 +7,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "tiny_skia/AlphaRuns.h"
 #include "tiny_skia/Color.h"
 
 namespace {
@@ -52,7 +51,6 @@ void expectColorFloatIs(const tiny_skia::Color& actual,
 }
 
 }  // namespace
-
 
 TEST(ColorTest, ColorUPremultiplyPreservesAlphaAndClamp) {
   const tiny_skia::ColorU8 source = tiny_skia::ColorU8::fromRgba(10, 20, 30, 40);
@@ -189,8 +187,7 @@ TEST(ColorTest, ColorSpaceTransforms) {
   const auto color = *linearOpt;
   const auto expanded = tiny_skia::expandColor(ColorSpace::Linear, color);
   const std::array expandedChannels{expanded.red(), expanded.green(), expanded.blue(), expanded.alpha()};
-  EXPECT_THAT(expandedChannels,
-              ElementsAre(0.25f, 0.5f, 0.75f, 1.0f));
+  EXPECT_THAT(expandedChannels, ElementsAre(0.25f, 0.5f, 0.75f, 1.0f));
 
   const auto gammaCompressed =
       tiny_skia::compressChannel(ColorSpace::Gamma2,

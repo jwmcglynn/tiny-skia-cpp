@@ -9,10 +9,10 @@ cc_test(
     srcs = [
         "AlphaRunsTest.cpp",
         "FixedPointTest.cpp",
+        "ColorTest.cpp",
         "LibTest.cpp",
         "BlendModeTest.cpp",
         "MathTest.cpp",
-        "TinySkiaPortingTest.cpp",
     ],
     copts = ["-std=c++20"],
     deps = [
