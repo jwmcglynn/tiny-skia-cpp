@@ -16,6 +16,7 @@ cc_test(
         "Point64Test.cpp",
         "ModTest.cpp",
         "Quad64Test.cpp",
+        "LineCubicIntersectionsTest.cpp",
         "Cubic64Test.cpp",
         "EdgeLineTest.cpp",
         "EdgeQuadraticTest.cpp",
