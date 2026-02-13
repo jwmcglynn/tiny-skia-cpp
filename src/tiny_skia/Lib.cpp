@@ -2,7 +2,7 @@
 
 namespace tiny_skia {
 
-int library_version() {
+int libraryVersion() {
     return kLibraryVersion;
 }
 

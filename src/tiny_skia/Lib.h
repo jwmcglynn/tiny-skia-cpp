@@ -6,6 +6,6 @@ using LibraryVersion = int;
 
 constexpr LibraryVersion kLibraryVersion = 1;
 
-LibraryVersion library_version();
+LibraryVersion libraryVersion();
 
 }  // namespace tiny_skia
