@@ -15,5 +15,7 @@ This directory holds user- and developer-facing documentation for design and imp
   - Proposed Architecture
   - Security/Privacy where inputs cross trust boundaries
   - Testing and Validation
-- Keep architecture and process notes in a single file per feature.
+  - Keep architecture and process notes in a single file per feature.
 - Document next steps clearly so the sequence is easy to continue.
+- Carry forward any explicit user commit-approval rule: no commits without explicit user
+  approval.
