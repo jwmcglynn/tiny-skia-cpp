@@ -14,6 +14,7 @@ tiny_skia_cc_library(
         "tiny_skia/Edge.cpp",
         "tiny_skia/Math.cpp",
         "tiny_skia/FixedPoint.cpp",
+        "tiny_skia/LineClipper.cpp",
         "tiny_skia/BlendMode.cpp",
     ],
     hdrs = [
@@ -25,6 +26,7 @@ tiny_skia_cc_library(
         "tiny_skia/Edge.h",
         "tiny_skia/Math.h",
         "tiny_skia/FixedPoint.h",
+        "tiny_skia/LineClipper.h",
         "tiny_skia/BlendMode.h",
     ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],

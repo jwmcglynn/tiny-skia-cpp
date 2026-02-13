@@ -138,7 +138,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
-| `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ☐ |
+| `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ☐ |
@@ -338,6 +338,13 @@ When a file is actively being ported, add a table under this section.
 | `CubicEdge::new` | `CubicEdge::create` | ✅ | Valid/invalid input checks and state init |
 | `CubicEdge::new2` | `CubicEdge::create` | ✅ | Coefficient setup parity |
 | `CubicEdge::update` | `CubicEdge::update` | ✅ | Subdivision stepping invariants |
+
+### `third_party/tiny-skia/src/line_clipper.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `MAX_POINTS` | `kLineClipperMaxPoints` | ✅ | Output capacity coverage |
+| `clip` | `clip` | ✅ | Reject/trim/cull cases and right-clamp behavior |
+| `intersect` | `intersect` | ✅ | Fully inside, partial overlap, and disjoint cases |
 
 Add one section per file as soon as implementation begins.
 
