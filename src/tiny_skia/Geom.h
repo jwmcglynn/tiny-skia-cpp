@@ -117,7 +117,7 @@ class IntRect {
     return height_;
   }
 
-  [[nodiscard]] ScreenIntRect toScreenIntRect(std::uint32_t x, std::uint32_t y) const;
+  [[nodiscard]] std::optional<ScreenIntRect> toScreenIntRect() const;
 
  private:
   constexpr IntRect(std::int32_t x,

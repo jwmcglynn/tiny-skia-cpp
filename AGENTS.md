@@ -18,11 +18,16 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Keep edits minimal and consistent with existing style in touched files.
 - Run `bazel build //...` after each implementation step.
 - Add/extend C++ tests as each file is ported and validate with `bazel test //...`.
+- Update the design doc immediately when a function or module is marked complete or in progress.
+- Keep milestone checkboxes synchronized with code changes (any new/edited/deleted file must
+  be reflected by an accurate status change in the design tracker).
 
 ## LLM-Specific Guidance
 
 - Use `AGENTS.md` and `docs/design_docs/AGENTS.md` as the source of truth for local instruction.
 - Keep design and implementation steps actionable and testable.
+- For any code change (new/edited/deleted file), update milestone checkboxes or function
+  status entries in the same update batch as implementation.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
 - Do not commit any changes without explicit user approval in the current session.
 - Treat the exact user phrase “Commit and next step” as the hard commit handoff:
@@ -31,8 +36,6 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - The phrase “Next step” by itself is non-committal; it does not authorize a commit.
 - After a “Commit and next step” handoff, do not commit subsequent new work without
   another explicit commit approval from the user.
-- “All currently outstanding working-directory changes” means every modified, new, and
-  deleted file.
 - “All currently outstanding working-directory changes” means every modified, new, and
   deleted file.
 

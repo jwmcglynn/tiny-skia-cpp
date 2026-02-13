@@ -55,3 +55,35 @@ TEST(GeomTest, IntSizeAndRectConversions) {
   EXPECT_EQ(convertedValue.width(), 3u);
   EXPECT_EQ(convertedValue.height(), 4u);
 }
+
+TEST(GeomTest, IntSizeFromWhRejectsZero) {
+  EXPECT_FALSE(tiny_skia::IntSize::fromWh(0, 1).has_value());
+  EXPECT_FALSE(tiny_skia::IntSize::fromWh(1, 0).has_value());
+}
+
+TEST(GeomTest, IntRectFromXYWHRejectsInvalidInputs) {
+  EXPECT_FALSE(tiny_skia::IntRect::fromXYWH(-1, 0, 1, 1).has_value());
+  EXPECT_FALSE(tiny_skia::IntRect::fromXYWH(0, -1, 1, 1).has_value());
+  EXPECT_FALSE(tiny_skia::IntRect::fromXYWH(0, 0, 0, 1).has_value());
+  EXPECT_FALSE(tiny_skia::IntRect::fromXYWH(0, 0, 1, 0).has_value());
+}
+
+TEST(GeomTest, IntRectToScreenIntRectReturnsExpected) {
+  const auto rectOpt = tiny_skia::IntRect::fromXYWH(10, 20, 1, 1);
+  ASSERT_TRUE(rectOpt.has_value());
+  const auto rect = rectOpt.value();
+  const auto screen = tiny_skia::intRectToScreen(rect);
+  ASSERT_TRUE(screen.has_value());
+  EXPECT_EQ(screen.value().x(), 10u);
+  EXPECT_EQ(screen.value().y(), 20u);
+
+  const auto direct = rect.toScreenIntRect();
+  ASSERT_TRUE(direct.has_value());
+  EXPECT_EQ(direct.value().x(), 10u);
+  EXPECT_EQ(direct.value().y(), 20u);
+}
+
+TEST(GeomTest, RectFromLtrbRejectsInvalidBounds) {
+  EXPECT_FALSE(tiny_skia::Rect::fromLtrb(2.0f, 1.0f, 1.0f, 2.0f).has_value());
+  EXPECT_FALSE(tiny_skia::Rect::fromLtrb(1.0f, 2.0f, 1.0f, 1.0f).has_value());
+}

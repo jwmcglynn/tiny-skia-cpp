@@ -39,56 +39,58 @@
 ## Implementation Plan
 
 ### Milestone 0: Alignment and ownership
-- [ ] Confirm canonical conventions:
-  - Bzlmod-only build (`MODULE.bazel` ownership, no `WORKSPACE` runtime dependency).
-  - Bazel package model with `src/tiny_skia/` as library and header home.
-  - UpperCamel filenames and `tiny_skia` include root (`#include <tiny_skia/Filename.h>`).
-- [ ] Define the file naming and visibility contract:
-  - Public header path: `src/tiny_skia/<File>.h`.
-  - Private include path only for local includes within the package.
-- [ ] Record build and porting risk policy in this design doc.
-- [ ] Add this design doc section as the gating checkpoint before every module handoff.
+- [x] Confirm canonical conventions:
+  - Bzlmod-first build (`MODULE.bazel` ownership, no `WORKSPACE` runtime dependency).
+  - Bazel-native layout with no top-level `include/` directory.
+  - Library source and headers in `src/tiny_skia/`.
+  - Consumer include root is `tiny_skia` (`#include <tiny_skia/Filename.h>`).
+- [x] Define file naming and visibility contract:
+  - Public header path: `src/tiny_skia/<UpperCamel>.h`.
+  - Public source path: `src/tiny_skia/<UpperCamel>.cpp`.
+  - Private package includes remain in-tree, no split include tree.
+- [x] Record build and porting risk policy in this design doc.
+- [x] Add this design doc section as the gating checkpoint before every module handoff.
 
 ### Milestone 1: Build and repository bootstrap (required before functional ports)
-- [ ] Verify `MODULE.bazel` captures all external toolchain dependencies.
-- [ ] Finalize `BUILD.bazel` stubs in `src/`, `tests/`, and nested modules.
-- [ ] Finalize `bazel/defs.bzl` macro API and document call patterns.
-- [ ] Add baseline test target(s) for build smoke checks.
-- [ ] Add Bazel outputs and `MODULE.bazel.lock` to `.gitignore`.
-- [ ] Ensure `bazel build //...` is green before any C++ translation starts.
+- [x] Verify `MODULE.bazel` captures core external toolchain dependencies.
+- [🟡] Finalize `BUILD.bazel` stubs in `src/`, `tests/`, and nested modules.
+- [🟡] Finalize `bazel/defs.bzl` macro API and document call patterns.
+- [x] Add baseline test target(s) for build smoke checks.
+- [x] Add Bazel outputs and `MODULE.bazel.lock` to `.gitignore`.
+- [x] Ensure `bazel build //...` is green before/through translation steps.
 
 ### Milestone 2: Rust reference indexing
-- [ ] Validate that all Rust files from `third_party/tiny-skia/src` are indexed in the tracker table.
-- [ ] For each Rust file, record symbol ownership, dependencies, and visibility assumptions.
+- [x] Validate that all Rust files from `third_party/tiny-skia/src` are indexed in the tracker table.
+- [🟡] For each Rust file, record symbol ownership, dependencies, and visibility assumptions.
 - [ ] Mark dependencies between modules in the tracker before code starts moving.
 - [ ] Identify hard equivalence anchors (golden vectors, float semantics, bit-level ops).
 - [ ] Resolve any module-order blockers by dependency DAG before porting.
 
 ### Milestone 3: Translation workflow lock
-- [ ] For each Rust file:
+- [🟡] For each Rust file:
   - Add row to the file-level function table with `Rust function/item` / `C++ function/item`.
   - Add status and equivalence check entry for every function.
 - [ ] Port in deterministic order: foundations → geometry/path64 → scan/pipeline → shading.
-- [ ] Keep headers and sources colocated under `src/tiny_skia` and update BUILD deps as you go.
-- [ ] Compile every partially done file through incremental builds.
+- [x] Keep headers and sources colocated under `src/tiny_skia` and update BUILD deps as you go.
+- [x] Compile every partially done file through incremental builds.
 
 ### Milestone 4: Function-by-function porting execution
-- [ ] For each function:
+- [🟡] For each function:
   - Translate signature and types preserving semantics and error behavior.
   - Port constants, helper invariants, and edge-case branches first.
   - Add C++ unit or property tests with strict equality or documented epsilon tolerance.
   - Add a gtest parity test against Rust-derived behavior for each function when feasible.
   - Update tracker status from `☐` to `🟡` then `✅`.
 - [ ] For each file, mark blocked status `⏸` with explicit reason if unresolved.
-- [ ] If Rust tests are missing for a function, add equivalent C++ coverage first.
+- [🟡] If Rust tests are missing for a function, add equivalent C++ coverage first.
 
 ### Milestone 5: Validation and release gates
-- [ ] Update port tracker and function tables after each file is fully ported.
+- [🟡] Update port tracker and function tables after each file is fully ported.
 - [ ] Keep per-file completion criteria:
   - File-level build success.
   - All declared functions have status and test evidence.
-- [ ] Add module integration tests for public API seams once adjacent files are complete.
-- [ ] Require a clean `bazel build //...` as a gate before moving to next milestone.
+- [🟡] Add module integration tests for public API seams once adjacent files are complete.
+- [x] Require a clean `bazel build //...` as a gate before moving to next milestone.
 
 ## Proposed Architecture
 - A thin monorepo-style topology:
@@ -129,13 +131,13 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/lib.rs` | `src/tiny_skia/Lib.cpp` + `src/tiny_skia/Lib.h` | ✅ |
 | `third_party/tiny-skia/src/alpha_runs.rs` | `src/tiny_skia/AlphaRuns.cpp` + `src/tiny_skia/AlphaRuns.h` | ✅ |
 | `third_party/tiny-skia/src/blend_mode.rs` | `src/tiny_skia/BlendMode.cpp` + `src/tiny_skia/BlendMode.h` | ✅ |
-| `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ☐ |
+| `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ✅ |
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ✅ |
-| `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ☐ |
+| `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ✅ |
 | `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | ☐ |
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ☐ |
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
-| `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ☐ |
+| `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ☐ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
@@ -280,6 +282,62 @@ When a file is actively being ported, add a table under this section.
 | `left_shift` | `leftShift` | ✅ | Bit-equality for positive and negative inputs |
 | `left_shift64` | `leftShift64` | ✅ | Bit-equality for positive and negative inputs |
 | `approx_powf` | `approxPowf` | ✅ | Compare against Rust reference at canonical power pairs |
+
+### `third_party/tiny-skia/src/geom.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `ScreenIntRect::from_xywh` | `ScreenIntRect::fromXYWH` | ✅ | Boundary checks and overflow invariants |
+| `ScreenIntRect::from_xywh_safe` | `ScreenIntRect::fromXYWHSafe` | ✅ | Constructor sanity smoke tests |
+| `ScreenIntRect::x` | `ScreenIntRect::x` | ✅ | Coordinate round-trip checks |
+| `ScreenIntRect::y` | `ScreenIntRect::y` | ✅ | Coordinate round-trip checks |
+| `ScreenIntRect::width` | `ScreenIntRect::width` | ✅ | Width read/write boundary tests |
+| `ScreenIntRect::height` | `ScreenIntRect::height` | ✅ | Height read/write boundary tests |
+| `ScreenIntRect::width_safe` | `ScreenIntRect::widthSafe` | ✅ | Width safety checks |
+| `ScreenIntRect::left` | `ScreenIntRect::left` | ✅ | Coordinate round-trip checks |
+| `ScreenIntRect::top` | `ScreenIntRect::top` | ✅ | Coordinate round-trip checks |
+| `ScreenIntRect::right` | `ScreenIntRect::right` | ✅ | Overflow guard checks |
+| `ScreenIntRect::bottom` | `ScreenIntRect::bottom` | ✅ | Overflow guard checks |
+| `ScreenIntRect::size` | `ScreenIntRect::size` | ✅ | Size extraction invariants |
+| `ScreenIntRect::contains` | `ScreenIntRect::contains` | ✅ | Containment property checks |
+| `ScreenIntRect::to_int_rect` | `ScreenIntRect::toIntRect` | ✅ | Struct conversion invariants |
+| `ScreenIntRect::to_rect` | `ScreenIntRect::toRect` | ✅ | Float conversion parity |
+| `IntSizeExt::to_screen_int_rect` | `IntSize::toScreenIntRect` | ✅ | Positioned rectangle smoke tests |
+| `IntSize::from_wh` | `IntSize::fromWh` | ✅ | Reject zero dimensions |
+| `IntRect::from_xywh` | `IntRect::fromXYWH` | ✅ | Bounds and overflow checks |
+| `IntRect::width` | `IntRect::width` | ✅ | Width read/write checks |
+| `IntRect::height` | `IntRect::height` | ✅ | Height read/write checks |
+| `IntRectExt::to_screen_int_rect` | `IntRect::toScreenIntRect` | ✅ | Conversion validity checks |
+| `Rect::from_ltrb` | `Rect::fromLtrb` | ✅ | LTRB ordering checks |
+| `int_rect_to_screen` | `intRectToScreen` | ✅ | Cross-type conversion checks |
+
+### `third_party/tiny-skia/src/blitter.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `Mask::image` | `Mask::image` | ✅ | Structural field coverage |
+| `Mask::bounds` | `Mask::bounds` | ✅ | Structural field coverage |
+| `Mask::row_bytes` | `Mask::rowBytes` | ✅ | Structural field coverage |
+| `Blitter::blit_h` | `Blitter::blitH` | ✅ | Default abort-path coverage |
+| `Blitter::blit_anti_h` | `Blitter::blitAntiH` | ✅ | Default abort-path coverage |
+| `Blitter::blit_v` | `Blitter::blitV` | ✅ | Default abort-path coverage |
+| `Blitter::blit_anti_h2` | `Blitter::blitAntiH2` | ✅ | Default abort-path coverage |
+| `Blitter::blit_anti_v2` | `Blitter::blitAntiV2` | ✅ | Default abort-path coverage |
+| `Blitter::blit_rect` | `Blitter::blitRect` | ✅ | Default abort-path coverage |
+| `Blitter::blit_mask` | `Blitter::blitMask` | ✅ | Default abort-path coverage |
+
+### `third_party/tiny-skia/src/edge.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `Edge::as_line` | `Edge::asLine` | ✅ | Delegation to embedded `LineEdge` |
+| `Edge::as_line_mut` | `Edge::asLine` | ✅ | Mutable delegate access |
+| `LineEdge::new` | `LineEdge::create` | ✅ | Zero-height reject + winding checks |
+| `LineEdge::is_vertical` | `LineEdge::isVertical` | ✅ | Vertical slope checks |
+| `LineEdge::update` | `LineEdge::update` | ✅ | Internal branch behavior via constructor |
+| `QuadraticEdge::new` | `QuadraticEdge::create` | ✅ | Valid/invalid input checks and state init |
+| `QuadraticEdge::new2` | `QuadraticEdge::create` | ✅ | Coefficient setup parity |
+| `QuadraticEdge::update` | `QuadraticEdge::update` | ✅ | Subdivision stepping invariants |
+| `CubicEdge::new` | `CubicEdge::create` | ✅ | Valid/invalid input checks and state init |
+| `CubicEdge::new2` | `CubicEdge::create` | ✅ | Coefficient setup parity |
+| `CubicEdge::update` | `CubicEdge::update` | ✅ | Subdivision stepping invariants |
 
 Add one section per file as soon as implementation begins.
 

@@ -101,3 +101,19 @@ TEST(BlitterTest, OverridableMethodsReceiveCalls) {
 
   EXPECT_EQ(blitter.calls(), 7);
 }
+
+TEST(BlitterTest, DefaultImplementationAborts) {
+  tiny_skia::Blitter blitter;
+  const auto rect = tiny_skia::ScreenIntRect::fromXYWH(1, 2, 3, 4).value();
+  std::array<std::uint8_t, 2> alpha{};
+  std::array<tiny_skia::AlphaRun, 2> runs{};
+  tiny_skia::Mask mask{};
+
+  EXPECT_DEATH(blitter.blitH(1, 2, 3), ".*");
+  EXPECT_DEATH(blitter.blitAntiH(4, 5, std::span{alpha}, std::span{runs}), ".*");
+  EXPECT_DEATH(blitter.blitV(6, 7, 8, 9), ".*");
+  EXPECT_DEATH(blitter.blitAntiH2(10, 11, 12, 13), ".*");
+  EXPECT_DEATH(blitter.blitAntiV2(14, 15, 16, 17), ".*");
+  EXPECT_DEATH(blitter.blitRect(rect), ".*");
+  EXPECT_DEATH(blitter.blitMask(mask, rect), ".*");
+}

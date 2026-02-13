@@ -109,8 +109,14 @@ std::optional<IntRect> IntRect::fromXYWH(std::int32_t x,
   return IntRect{x, y, widthSafe.value(), heightSafe.value()};
 }
 
-ScreenIntRect IntRect::toScreenIntRect(std::uint32_t x, std::uint32_t y) const {
-  return *ScreenIntRect::fromXYWH(x, y, width_, height_);
+std::optional<ScreenIntRect> IntRect::toScreenIntRect() const {
+  if (x_ < 0 || y_ < 0) {
+    return std::nullopt;
+  }
+  return ScreenIntRect::fromXYWH(static_cast<std::uint32_t>(x_),
+                                static_cast<std::uint32_t>(y_),
+                                width_,
+                                height_);
 }
 
 ScreenIntRect IntSize::toScreenIntRect(std::uint32_t x, std::uint32_t y) const {
@@ -129,11 +135,7 @@ std::optional<Rect> Rect::fromLtrb(float left, float top, float right, float bot
 }
 
 std::optional<ScreenIntRect> intRectToScreen(const IntRect& rect) {
-  return ScreenIntRect::fromXYWH(
-      static_cast<std::uint32_t>(rect.x()),
-      static_cast<std::uint32_t>(rect.y()),
-      rect.width(),
-      rect.height());
+  return rect.toScreenIntRect();
 }
 
 }  // namespace tiny_skia
