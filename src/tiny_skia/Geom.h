@@ -117,6 +117,18 @@ class IntRect {
     return height_;
   }
 
+  [[nodiscard]] constexpr std::int32_t left() const {
+    return x_;
+  }
+  [[nodiscard]] constexpr std::int32_t top() const {
+    return y_;
+  }
+
+  [[nodiscard]] std::int32_t right() const;
+  [[nodiscard]] std::int32_t bottom() const;
+
+  [[nodiscard]] std::optional<IntRect> intersect(const IntRect& other) const;
+
   [[nodiscard]] std::optional<ScreenIntRect> toScreenIntRect() const;
 
  private:
@@ -150,6 +162,8 @@ class Rect {
   }
 
   constexpr bool operator==(const Rect&) const = default;
+
+  [[nodiscard]] std::optional<IntRect> roundOut() const;
 
  private:
   constexpr Rect(float left, float top, float right, float bottom)

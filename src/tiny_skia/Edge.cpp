@@ -261,6 +261,22 @@ LineEdge& Edge::asLine() {
   return std::get<CubicEdge>(asVariant_).line;
 }
 
+const QuadraticEdge& Edge::asQuadratic() const {
+  return std::get<QuadraticEdge>(asVariant_);
+}
+
+QuadraticEdge& Edge::asQuadratic() {
+  return std::get<QuadraticEdge>(asVariant_);
+}
+
+const CubicEdge& Edge::asCubic() const {
+  return std::get<CubicEdge>(asVariant_);
+}
+
+CubicEdge& Edge::asCubic() {
+  return std::get<CubicEdge>(asVariant_);
+}
+
 std::optional<LineEdge> LineEdge::create(Point p0, Point p1, std::int32_t shift) {
   const auto scaleShift = shift + 6;
   if (scaleShift < 0 || scaleShift >= 31) {

@@ -25,6 +25,8 @@ tiny_skia_cc_library(
         "tiny_skia/path64/Quad64.cpp",
         "tiny_skia/EdgeBuilder.cpp",
         "tiny_skia/BlendMode.cpp",
+        "tiny_skia/scan/Path.cpp",
+        "tiny_skia/scan/PathAa.cpp",
     ],
     hdrs = [
         "tiny_skia/Lib.h",
@@ -47,6 +49,8 @@ tiny_skia_cc_library(
         "tiny_skia/path64/Scalar64.h",
         "tiny_skia/path64/Quad64.h",
         "tiny_skia/BlendMode.h",
+        "tiny_skia/scan/Path.h",
+        "tiny_skia/scan/PathAa.h",
     ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     visibility = ["//visibility:public"],

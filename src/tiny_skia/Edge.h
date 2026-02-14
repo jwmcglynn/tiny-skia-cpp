@@ -87,6 +87,10 @@ class Edge {
   [[nodiscard]] bool isCubic() const;
   [[nodiscard]] const LineEdge& asLine() const;
   [[nodiscard]] LineEdge& asLine();
+  [[nodiscard]] const QuadraticEdge& asQuadratic() const;
+  [[nodiscard]] QuadraticEdge& asQuadratic();
+  [[nodiscard]] const CubicEdge& asCubic() const;
+  [[nodiscard]] CubicEdge& asCubic();
 
  private:
   std::variant<LineEdge, QuadraticEdge, CubicEdge> asVariant_;

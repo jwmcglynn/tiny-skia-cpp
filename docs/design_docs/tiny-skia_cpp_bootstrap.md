@@ -151,8 +151,8 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ☐ |
 | `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ☐ |
 | `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ☐ |
-| `third_party/tiny-skia/src/scan/path.rs` | `src/tiny_skia/scan/Path.cpp` + `src/tiny_skia/scan/Path.h` | ☐ |
-| `third_party/tiny-skia/src/scan/path_aa.rs` | `src/tiny_skia/scan/PathAa.cpp` + `src/tiny_skia/scan/PathAa.h` | ☐ |
+| `third_party/tiny-skia/src/scan/path.rs` | `src/tiny_skia/scan/Path.cpp` + `src/tiny_skia/scan/Path.h` | ✅ |
+| `third_party/tiny-skia/src/scan/path_aa.rs` | `src/tiny_skia/scan/PathAa.cpp` + `src/tiny_skia/scan/PathAa.h` | ✅ |
 | `third_party/tiny-skia/src/path64/cubic64.rs` | `src/tiny_skia/path64/Cubic64.cpp` + `src/tiny_skia/path64/Cubic64.h` | ✅ |
 | `third_party/tiny-skia/src/path64/line_cubic_intersections.rs` | `src/tiny_skia/path64/LineCubicIntersections.cpp` + `src/tiny_skia/path64/LineCubicIntersections.h` | ✅ |
 | `third_party/tiny-skia/src/path64/mod.rs` | `src/tiny_skia/path64/Mod.cpp` + `src/tiny_skia/path64/Mod.h` | ✅ |
@@ -243,6 +243,13 @@ When a file is actively being ported, add a table under this section.
 | `chop_mono_cubic_at_y` | `chopMonoCubicAtYFallback` | ✅ | Exact/approximation fallback branch |
 | `mono_cubic_closest_t` | `monoCubicClosestT` | ✅ | Target-distance optimization branch |
 
+### `third_party/tiny-skia/path/src/path.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `FillRule::Winding` | `FillRule::Winding` | ✅ | Enum value mapping checks |
+| `FillRule::EvenOdd` | `FillRule::EvenOdd` | ✅ | Enum value mapping checks |
+| `Path::bounds` | `Path::bounds` | ✅ | Bounds from points with empty-path fallback |
+
 ### `third_party/tiny-skia/src/path_geometry.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
@@ -258,6 +265,29 @@ When a file is actively being ported, add a table under this section.
 | `chop_mono_cubic_at_y` | `chopMonoCubicAtY` | ✅ | Vertical-chop intersection root behavior |
 | `chop_mono_quad_at_x` | `chopMonoQuadAtX` | ✅ | Quadratic intersection root behavior |
 | `chop_mono_quad_at_y` | `chopMonoQuadAtY` | ✅ | Quadratic intersection root behavior |
+
+### `third_party/tiny-skia/src/scan/path.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `fill_path` | `scan::fillPath` | ✅ | Empty-path no-op and rectangle fill span smoke tests |
+| `fill_path_impl` | `scan::fillPathImpl` | ✅ | Clipping-disabled and culling paths |
+| `conservative_round_to_int` | `conservativeRoundToInt` | ✅ | Conservative rounding bounds checks |
+| `round_down_to_int` | `roundDownToInt` | ✅ | Biased down-round behavior |
+| `round_up_to_int` | `roundUpToInt` | ✅ | Biased up-round behavior |
+| `walk_edges` | `walkEdges` | ✅ | Horizontal span sequencing checks |
+| `remove_edge` | `removeEdge` | ✅ | Linked-list unlink behavior |
+| `backward_insert_edge_based_on_x` | `backwardInsertEdgeBasedOnX` | ✅ | Ordered insertion with backward scan |
+| `insert_edge_after` | `insertEdgeAfter` | ✅ | Doubly-linked splice behavior |
+| `backward_insert_start` | `backwardInsertStart` | ✅ | Backward start probe invariants |
+| `insert_new_edges` | `insertNewEdges` | ✅ | Y-gated new-edge insertion behavior |
+
+### `third_party/tiny-skia/src/scan/path_aa.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `fill_path` | `scan::path_aa::fillPath` | ✅ | Empty path no-op and rectangle AA span smoke checks |
+| `fill_path_impl` | `scan::path_aa::fillPathImpl` | ✅ | Fallback-to-non-AA and clipping bounds coverage |
+| `rect_overflows_short_shift` | `rectOverflowsShortShift` | ✅ | Overflow and clamp behavior on large bounds |
+| `coverage_to_partial_alpha` | `coverageToPartialAlpha` | ✅ | Alpha quantization checks at boundaries |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

@@ -119,6 +119,32 @@ std::optional<ScreenIntRect> IntRect::toScreenIntRect() const {
                                 height_);
 }
 
+std::int32_t IntRect::right() const {
+  return x_ + static_cast<std::int32_t>(width_);
+}
+
+std::int32_t IntRect::bottom() const {
+  return y_ + static_cast<std::int32_t>(height_);
+}
+
+std::optional<IntRect> IntRect::intersect(const IntRect& other) const {
+  const auto left = std::max(x_, other.x_);
+  const auto top = std::max(y_, other.y_);
+
+  const auto rightCoord = std::min(right(), other.right());
+  const auto bottomCoord = std::min(bottom(), other.bottom());
+
+  if (rightCoord <= left || bottomCoord <= top) {
+    return std::nullopt;
+  }
+
+  return IntRect::fromXYWH(
+      left,
+      top,
+      static_cast<std::uint32_t>(static_cast<std::uint32_t>(rightCoord - left)),
+      static_cast<std::uint32_t>(static_cast<std::uint32_t>(bottomCoord - top)));
+}
+
 ScreenIntRect IntSize::toScreenIntRect(std::uint32_t x, std::uint32_t y) const {
   return ScreenIntRect::fromXYWHSafe(x, y, width_, height_);
 }
@@ -132,6 +158,26 @@ std::optional<Rect> Rect::fromLtrb(float left, float top, float right, float bot
     return std::nullopt;
   }
   return Rect{left, top, right, bottom};
+}
+
+std::optional<IntRect> Rect::roundOut() const {
+  const auto left = static_cast<std::int32_t>(std::floor(left_));
+  const auto top = static_cast<std::int32_t>(std::floor(top_));
+  const auto right = static_cast<std::int32_t>(std::ceil(right_));
+  const auto bottom = static_cast<std::int32_t>(std::ceil(bottom_));
+
+  const auto width = std::max<std::int64_t>(1, static_cast<std::int64_t>(right - left));
+  const auto height = std::max<std::int64_t>(1, static_cast<std::int64_t>(bottom - top));
+  if (width > std::numeric_limits<std::uint32_t>::max() ||
+      height > std::numeric_limits<std::uint32_t>::max()) {
+    return std::nullopt;
+  }
+
+  return IntRect::fromXYWH(
+      left,
+      top,
+      static_cast<std::uint32_t>(width),
+      static_cast<std::uint32_t>(height));
 }
 
 std::optional<ScreenIntRect> intRectToScreen(const IntRect& rect) {
