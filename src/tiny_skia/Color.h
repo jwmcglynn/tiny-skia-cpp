@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "tiny_skia/Math.h"
+#include "tiny_skia/pipeline/Mod.h"
 
 namespace tiny_skia {
 
@@ -12,67 +13,6 @@ using AlphaU8 = std::uint8_t;
 
 constexpr AlphaU8 kAlphaU8Transparent = 0x00;
 constexpr AlphaU8 kAlphaU8Opaque = 0xFF;
-
-namespace pipeline {
-
-enum class Stage : std::uint8_t {
-  GammaExpand2,
-  GammaExpandDestination2,
-  GammaExpand22,
-  GammaExpandDestination22,
-  GammaExpandSrgb,
-  GammaExpandDestinationSrgb,
-  GammaCompress2,
-  GammaCompress22,
-  GammaCompressSrgb,
-  MoveSourceToDestination,
-  MoveDestinationToSource,
-  Clamp0,
-  ClampA,
-  Premultiply,
-  UniformColor,
-  SeedShader,
-  LoadDestination,
-  Store,
-  LoadDestinationU8,
-  StoreU8,
-  Gather,
-  LoadMaskU8,
-  MaskU8,
-  ScaleU8,
-  LerpU8,
-  Scale1Float,
-  Lerp1Float,
-  DestinationAtop,
-  DestinationIn,
-  DestinationOut,
-  DestinationOver,
-  SourceAtop,
-  SourceIn,
-  SourceOut,
-  SourceOver,
-  Clear,
-  Modulate,
-  Multiply,
-  Plus,
-  Screen,
-  Xor,
-  ColorBurn,
-  ColorDodge,
-  Darken,
-  Difference,
-  Exclusion,
-  HardLight,
-  Lighten,
-  Overlay,
-  SoftLight,
-  Hue,
-  Saturation,
-  Color,
-  Luminosity,
-};
-
-}  // namespace pipeline
 
 class NormalizedF32 {
  public:

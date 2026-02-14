@@ -194,3 +194,181 @@ TEST(ColorTest, ColorSpaceTransforms) {
                                 tiny_skia::NormalizedF32::newUnchecked(0.25f));
   EXPECT_NEAR(gammaCompressed.get(), 0.5f, 0.0005f);
 }
+
+TEST(ColorTest, PipelineStageOrderingMatchesRustReference) {
+  using tiny_skia::pipeline::Stage;
+
+  constexpr std::array<Stage, 79> kExpectedOrder{
+      Stage::MoveSourceToDestination,
+      Stage::MoveDestinationToSource,
+      Stage::Clamp0,
+      Stage::ClampA,
+      Stage::Premultiply,
+      Stage::UniformColor,
+      Stage::SeedShader,
+      Stage::LoadDestination,
+      Stage::Store,
+      Stage::LoadDestinationU8,
+      Stage::StoreU8,
+      Stage::Gather,
+      Stage::LoadMaskU8,
+      Stage::MaskU8,
+      Stage::ScaleU8,
+      Stage::LerpU8,
+      Stage::Scale1Float,
+      Stage::Lerp1Float,
+      Stage::DestinationAtop,
+      Stage::DestinationIn,
+      Stage::DestinationOut,
+      Stage::DestinationOver,
+      Stage::SourceAtop,
+      Stage::SourceIn,
+      Stage::SourceOut,
+      Stage::SourceOver,
+      Stage::Clear,
+      Stage::Modulate,
+      Stage::Multiply,
+      Stage::Plus,
+      Stage::Screen,
+      Stage::Xor,
+      Stage::ColorBurn,
+      Stage::ColorDodge,
+      Stage::Darken,
+      Stage::Difference,
+      Stage::Exclusion,
+      Stage::HardLight,
+      Stage::Lighten,
+      Stage::Overlay,
+      Stage::SoftLight,
+      Stage::Hue,
+      Stage::Saturation,
+      Stage::Color,
+      Stage::Luminosity,
+      Stage::SourceOverRgba,
+      Stage::Transform,
+      Stage::Reflect,
+      Stage::Repeat,
+      Stage::Bilinear,
+      Stage::Bicubic,
+      Stage::PadX1,
+      Stage::ReflectX1,
+      Stage::RepeatX1,
+      Stage::Gradient,
+      Stage::EvenlySpaced2StopGradient,
+      Stage::XYToUnitAngle,
+      Stage::XYToRadius,
+      Stage::XYTo2PtConicalFocalOnCircle,
+      Stage::XYTo2PtConicalWellBehaved,
+      Stage::XYTo2PtConicalSmaller,
+      Stage::XYTo2PtConicalGreater,
+      Stage::XYTo2PtConicalStrip,
+      Stage::Mask2PtConicalNan,
+      Stage::Mask2PtConicalDegenerates,
+      Stage::ApplyVectorMask,
+      Stage::Alter2PtConicalCompensateFocal,
+      Stage::Alter2PtConicalUnswap,
+      Stage::NegateX,
+      Stage::ApplyConcentricScaleBias,
+      Stage::GammaExpand2,
+      Stage::GammaExpandDestination2,
+      Stage::GammaCompress2,
+      Stage::GammaExpand22,
+      Stage::GammaExpandDestination22,
+      Stage::GammaCompress22,
+      Stage::GammaExpandSrgb,
+      Stage::GammaExpandDestinationSrgb,
+      Stage::GammaCompressSrgb};
+
+  EXPECT_EQ(static_cast<std::size_t>(79), tiny_skia::pipeline::kStagesCount);
+  EXPECT_EQ(tiny_skia::pipeline::kStagesCount, kExpectedOrder.size());
+
+  for (std::size_t i = 0; i < kExpectedOrder.size(); ++i) {
+    EXPECT_EQ(static_cast<std::size_t>(kExpectedOrder[i]), i) << "stage at index " << i;
+  }
+}
+
+TEST(ColorTest, PipelineAAMaskCtxCopyAtXYReturnsExpectedPairs) {
+  tiny_skia::pipeline::AAMaskCtx ctx{{1, 3}, 4, 1};
+  EXPECT_THAT(ctx.copyAtXY(1, 0, 1), testing::ElementsAre(1u, 0u));
+  EXPECT_THAT(ctx.copyAtXY(1, 0, 2), testing::ElementsAre(1u, 3u));
+  EXPECT_THAT(ctx.copyAtXY(2, 0, 1), testing::ElementsAre(3u, 0u));
+  EXPECT_THAT(ctx.copyAtXY(3, 0, 1), testing::ElementsAre(0u, 0u));
+}
+
+TEST(ColorTest, PipelineGradientCtxPushConstColorAppendsBiasAndZeroFactor) {
+  tiny_skia::pipeline::Context::GradientCtx gradient_ctx{};
+  const auto first = tiny_skia::pipeline::GradientColor::newFromRGBA(0.2f, 0.4f, 0.6f, 0.8f);
+  const auto second = tiny_skia::pipeline::GradientColor::newFromRGBA(0.3f, 0.5f, 0.7f, 0.9f);
+
+  ASSERT_EQ(gradient_ctx.factors.size(), 0u);
+  ASSERT_EQ(gradient_ctx.biases.size(), 0u);
+  gradient_ctx.pushConstColor(first);
+  EXPECT_EQ(gradient_ctx.factors.size(), 1u);
+  EXPECT_EQ(gradient_ctx.biases.size(), 1u);
+  EXPECT_EQ(gradient_ctx.factors[0], tiny_skia::pipeline::GradientColor{});
+  EXPECT_EQ(gradient_ctx.biases[0].r, first.r);
+  EXPECT_EQ(gradient_ctx.biases[0].g, first.g);
+  EXPECT_EQ(gradient_ctx.biases[0].b, first.b);
+
+  gradient_ctx.pushConstColor(second);
+  EXPECT_EQ(gradient_ctx.factors.size(), 2u);
+  EXPECT_EQ(gradient_ctx.biases.size(), 2u);
+  EXPECT_EQ(gradient_ctx.biases[1].a, second.a);
+}
+
+TEST(ColorTest, RasterPipelineBuilderCompileBuildsExpectedKindAndContext) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.setForceHqPipeline(true);
+  const auto uniform = tiny_skia::Color::fromRgba8(10, 20, 30, 40).premultiply();
+
+  builder.pushUniformColor(uniform);
+  auto pipeline = builder.compile();
+
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::High);
+  const auto& ctx = pipeline.ctx();
+  EXPECT_NEAR(ctx.uniform_color.r, uniform.red(), 0.0001f);
+  EXPECT_NEAR(ctx.uniform_color.g, uniform.green(), 0.0001f);
+  EXPECT_NEAR(ctx.uniform_color.b, uniform.blue(), 0.0001f);
+  EXPECT_NEAR(ctx.uniform_color.a, uniform.alpha(), 0.0001f);
+  EXPECT_EQ(ctx.uniform_color.rgba[0], static_cast<std::uint16_t>(uniform.red() * 255.0f + 0.5f));
+  EXPECT_EQ(ctx.uniform_color.rgba[1], static_cast<std::uint16_t>(uniform.green() * 255.0f + 0.5f));
+  EXPECT_EQ(ctx.uniform_color.rgba[2], static_cast<std::uint16_t>(uniform.blue() * 255.0f + 0.5f));
+  EXPECT_EQ(ctx.uniform_color.rgba[3], static_cast<std::uint16_t>(uniform.alpha() * 255.0f + 0.5f));
+}
+
+TEST(ColorTest, RasterPipelineBuilderPushAppendsStage) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.push(tiny_skia::pipeline::Stage::LoadDestination);
+
+  auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::Low);
+}
+
+TEST(ColorTest, RasterPipelineBuilderPushTransformSkipsIdentity) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.pushTransform(tiny_skia::Transform{});
+
+  const auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::High)
+      << "identity transform must not push transform stage";
+}
+
+TEST(ColorTest, RasterPipelineBuilderPushTransformStoresNonIdentityTransform) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  tiny_skia::Transform ts{true, false};
+  builder.pushTransform(ts);
+
+  const auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::Low);
+  EXPECT_FALSE(pipeline.ctx().transform.isIdentity());
+}
+
+TEST(ColorTest, RasterPipelineBuilderCompileStageOverflowSkipsBeyondCapacitySafely) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  for (std::size_t i = 0; i < tiny_skia::pipeline::kMaxStages + 1; ++i) {
+    builder.push(tiny_skia::pipeline::Stage::LoadDestination);
+  }
+
+  const auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::Low);
+}

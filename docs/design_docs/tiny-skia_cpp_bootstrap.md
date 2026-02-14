@@ -147,7 +147,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | ☐ |
-| `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ☐ |
+| `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | 🟡 |
 | `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ✅ |
 | `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ✅ |
 | `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ✅ |
@@ -398,6 +398,7 @@ When a file is actively being ported, add a table under this section.
 | `ColorSpace::expand_stage` | `expandStage` | ✅ | Option mapping check |
 | `ColorSpace::expand_dest_stage` | `expandDestStage` | ✅ | Option mapping check |
 | `ColorSpace::compress_stage` | `compressStage` | ✅ | Option mapping check |
+| `pipeline::Stage::*` | `tiny_skia::pipeline::Stage` | ✅ | Stage ordering parity with Rust definition |
 
 ### `third_party/tiny-skia/src/math.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
@@ -469,6 +470,26 @@ When a file is actively being ported, add a table under this section.
 | `MAX_POINTS` | `kLineClipperMaxPoints` | ✅ | Output capacity coverage |
 | `clip` | `clip` | ✅ | Reject/trim/cull cases and right-clamp behavior |
 | `intersect` | `intersect` | ✅ | Fully inside, partial overlap, and disjoint cases |
+
+### `third_party/tiny-skia/src/pipeline/mod.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `Stage` variants | `pipeline::Stage` | ✅ | Rust/C++ enum ordering parity |
+| `STAGES_COUNT` | `pipeline::kStagesCount` | ✅ | Constant value equivalence check |
+| `Context` | `pipeline::Context` | 🟡 | Core raster-context members added |
+| `AAMaskCtx::copy_at_xy` | `AAMaskCtx::copyAtXY` | 🟡 | Offset-based byte pair mapping |
+| `MaskCtx` | `pipeline::MaskCtx` | 🟡 | Offset helper parity smoke |
+| `SamplerCtx` | `pipeline::SamplerCtx` | 🟡 | Struct field defaults |
+| `UniformColorCtx::from (implicit)` | `pipeline::UniformColorCtx` | 🟡 | Float and quantized color mapping |
+| `GradientColor::new` | `GradientColor::newFromRGBA` | 🟡 | RGBA passthrough checks |
+| `GradientCtx::push_const_color` | `GradientCtx::pushConstColor` | 🟡 | Factor fill and bias append |
+| `RasterPipelineBuilder::new` | `RasterPipelineBuilder` ctor | 🟡 | Builder construction smoke test |
+| `RasterPipelineBuilder::set_force_hq_pipeline` | `setForceHqPipeline` | 🟡 | Flag storage and default |
+| `RasterPipelineBuilder::push` | `push` | ✅ | Stage append behavior |
+| `RasterPipelineBuilder::push_transform` | `pushTransform` | ✅ | Transform-guarded append behavior |
+| `RasterPipelineBuilder::push_uniform_color` | `pushUniformColor` | 🟡 | Uniform context quantization check |
+| `RasterPipelineBuilder::compile` | `compile` | 🟡 | Default-kind compile behavior |
+| `RasterPipeline` | `pipeline::RasterPipeline` | 🟡 | Kind and ctx access |
 
 ### `third_party/tiny-skia/src/path64/cubic64.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
