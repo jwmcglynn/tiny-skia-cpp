@@ -16,8 +16,8 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Use lowerCamelCase for all function names (e.g., `catchOverflow`, `setForceHqPipeline`).
 - Prefer deterministic, bit-accurate implementations and explicit comments only when non-obvious.
 - Keep edits minimal and consistent with existing style in touched files.
-- Run `bazel build //...` after each implementation step.
-- Add/extend C++ tests as each file is ported and validate with `bazel test //...`.
+- Run both `bazel build //...` and `bazel test //...` after each implementation step.
+- Add/extend C++ tests as each file is ported before running the per-step build/test gate.
 - Keep tests colocated with source modules:
   - `src/tiny_skia/Foo.cpp` -> `src/tiny_skia/tests/FooTest.cpp`
   - `src/tiny_skia/subdir/Bar.cpp` -> `src/tiny_skia/subdir/tests/BarTest.cpp`

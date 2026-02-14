@@ -8,16 +8,11 @@
 #include "tiny_skia/AlphaRuns.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
+#include "tiny_skia/Mask.h"
 
 namespace tiny_skia {
 
 class Blitter;
-
-struct Mask {
-  std::array<std::uint8_t, 2> image{};
-  ScreenIntRect bounds;
-  std::uint32_t rowBytes = 0;
-};
 
 class Blitter {
  public:

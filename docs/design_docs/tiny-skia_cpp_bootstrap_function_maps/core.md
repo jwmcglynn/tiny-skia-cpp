@@ -224,3 +224,24 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `MAX_POINTS` | `kLineClipperMaxPoints` | 🟢 | Line-by-line audited: Rust `MAX_POINTS: usize = 4` matches C++ `kLineClipperMaxPoints = 4` |
 | `clip` | `clip` | 🟢 | Line-by-line audited: Y-intersection math now uses original `src` for `sectWithHorizontal`, and winding orientation follows `src` X-order like Rust |
 | `intersect` | `intersect` | 🟢 | Line-by-line audited: clipped endpoint Y values now use `sectWithVertical(src, ...)` parity with Rust |
+
+### `third_party/tiny-skia/src/mask.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `MaskType::Alpha` | `MaskType::Alpha` | 🟢 | Line-by-line audited: enum discriminant parity (`Alpha = 0`) |
+| `MaskType::Luminance` | `MaskType::Luminance` | 🟢 | Line-by-line audited: enum discriminant parity (`Luminance = 1`) |
+| `Mask::new` | `Mask::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation match Rust semantics |
+| `Mask::from_vec` | `Mask::fromVec` | 🟢 | Line-by-line audited: exact size check (`width * height`) and ownership transfer match |
+| `Mask::width` | `Mask::width` | 🟢 | Line-by-line audited: returns stored `IntSize::width()` |
+| `Mask::height` | `Mask::height` | 🟢 | Line-by-line audited: returns stored `IntSize::height()` |
+| `Mask::size` | `Mask::size` | 🟢 | Line-by-line audited: stored size passthrough |
+| `Mask::data` | `Mask::data` | 🟢 | Line-by-line audited: immutable backing buffer view |
+| `Mask::data_mut` | `Mask::dataMut` | 🟢 | Line-by-line audited: mutable backing buffer view |
+| `Mask::take` | `Mask::take` | 🟢 | Line-by-line audited: ownership move-out; C++ resets stored size to default-empty state |
+| `Mask::from_pixmap` | `Mask::fromPixmap` | ☐ | Awaiting `Pixmap/PixmapRef` port |
+| `Mask::as_submask` | `Mask::asSubmask` | ☐ | Awaiting `SubMaskRef`/pixmap-mask view types |
+| `Mask::submask` | `Mask::submask` | ☐ | Awaiting `SubMaskRef`/rect-view plumbing |
+| `Mask::as_subpixmap` | `Mask::asSubpixmap` | ☐ | Awaiting `SubPixmapMut` mask view integration |
+| `Mask::subpixmap` | `Mask::subpixmap` | ☐ | Awaiting `SubPixmapMut` mask view integration |
+| `Mask::fill_path` | `Mask::fillPath` | ☐ | Awaiting `Painter/Pixmap/scan` integration path |
+| `Mask::intersect_path` | `Mask::intersectPath` | ☐ | Awaiting `fillPath` and blending integration |

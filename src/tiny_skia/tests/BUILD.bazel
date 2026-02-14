@@ -20,6 +20,7 @@ cc_test(
         "GeomTest.cpp",
         "LineClipperTest.cpp",
         "MathTest.cpp",
+        "MaskTest.cpp",
         "PathGeometryTest.cpp",
     ],
     copts = ["-std=c++20"],

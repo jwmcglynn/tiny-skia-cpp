@@ -10,8 +10,8 @@
 - This design gates implementation sequencing and keeps the migration deterministic and auditable.
 
 ## Steering Decisions
-- Always run `bazel build //...` after each functional porting step.
-- Add/extend C++ tests during porting and validate with `bazel test //...`.
+- Always run both `bazel build //...` and `bazel test //...` after each functional porting step.
+- Add/extend C++ tests during porting before running the per-step build/test gate.
 - All tests in this repo must be written with Google Test + Google Mock (`gtest`/`gmock`),
   including parity tests in `tests/`.
 - Add image-regression gates with pixel-diff tests (pixelmatch-cpp) when rendering
@@ -141,7 +141,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
-| `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | ☐ |
+| `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | 🟡 |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ☐ |
