@@ -13,11 +13,14 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Use C++20 and Bazel as the primary build system.
 - Keep line length under 100 characters when practical.
 - Use clear naming, strong types, and explicit ownership boundaries.
-- Use lowerCamelCase for all function names (e.g., `libraryVersion`, `catchOverflow`).
+- Use lowerCamelCase for all function names (e.g., `catchOverflow`, `setForceHqPipeline`).
 - Prefer deterministic, bit-accurate implementations and explicit comments only when non-obvious.
 - Keep edits minimal and consistent with existing style in touched files.
 - Run `bazel build //...` after each implementation step.
 - Add/extend C++ tests as each file is ported and validate with `bazel test //...`.
+- Keep tests colocated with source modules:
+  - `src/tiny_skia/Foo.cpp` -> `src/tiny_skia/tests/FooTest.cpp`
+  - `src/tiny_skia/subdir/Bar.cpp` -> `src/tiny_skia/subdir/tests/BarTest.cpp`
 - Update the design doc immediately when a function or module is marked complete or in progress.
 - Keep milestone checkboxes synchronized with code changes (any new/edited/deleted file must
   be reflected by an accurate status change in the design tracker).

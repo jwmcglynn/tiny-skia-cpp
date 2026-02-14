@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "tiny_skia/Lib.h"
-
 namespace tiny_skia {
 
 using LengthU32 = std::uint32_t;

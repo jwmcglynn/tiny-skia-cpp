@@ -1,0 +1,18 @@
+"""Tests for src/tiny_skia/scan modules."""
+
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "tiny_skia_scan_tests",
+    srcs = [
+        "ScanPathTest.cpp",
+    ],
+    copts = ["-std=c++20"],
+    deps = [
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "//src:tiny_skia_lib",
+    ],
+)

@@ -1,0 +1,21 @@
+"""tiny_skia pipeline source groups."""
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "Highp.cpp",
+        "Lowp.cpp",
+        "Mod.cpp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "hdrs",
+    srcs = [
+        "Highp.h",
+        "Lowp.h",
+        "Mod.h",
+    ],
+    visibility = ["//visibility:public"],
+)

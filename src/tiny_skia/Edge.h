@@ -7,13 +7,9 @@
 
 #include "tiny_skia/FixedPoint.h"
 #include "tiny_skia/Math.h"
+#include "tiny_skia/Point.h"
 
 namespace tiny_skia {
-
-struct Point {
-  float x = 0.0f;
-  float y = 0.0f;
-};
 
 class LineEdge {
  public:

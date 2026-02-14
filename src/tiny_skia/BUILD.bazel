@@ -1,0 +1,58 @@
+"""Root tiny_skia sources."""
+
+load("//:bazel/defs.bzl", "tiny_skia_cc_library")
+
+tiny_skia_cc_library(
+    name = "tiny_skia_point",
+    srcs = [],
+    hdrs = [
+        "Point.h",
+    ],
+    include_prefix = "tiny_skia",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)
+
+tiny_skia_cc_library(
+    name = "tiny_skia_core",
+    srcs = [
+        "AlphaRuns.cpp",
+        "BlendMode.cpp",
+        "Blitter.cpp",
+        "Color.cpp",
+        "Edge.cpp",
+        "EdgeBuilder.cpp",
+        "EdgeClipper.cpp",
+        "FixedPoint.cpp",
+        "Geom.cpp",
+        "LineClipper.cpp",
+        "Math.cpp",
+        "PathGeometry.cpp",
+        "//src/tiny_skia/pipeline:srcs",
+    ],
+    hdrs = [
+        "AlphaRuns.h",
+        "BlendMode.h",
+        "Blitter.h",
+        "Color.h",
+        "Edge.h",
+        "EdgeBuilder.h",
+        "EdgeClipper.h",
+        "FixedPoint.h",
+        "Geom.h",
+        "LineClipper.h",
+        "Math.h",
+        "Path.h",
+        "PathGeometry.h",
+        "Point.h",
+        "//src/tiny_skia/pipeline:hdrs",
+    ],
+    deps = [
+        "//src/tiny_skia:tiny_skia_point",
+        "//src/tiny_skia/path64:tiny_skia_path64",
+    ],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
+    include_prefix = "tiny_skia",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)

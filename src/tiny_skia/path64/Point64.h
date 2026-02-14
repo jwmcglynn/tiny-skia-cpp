@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tiny_skia/Edge.h"
-
 namespace tiny_skia {
+
+struct Point;
 
 enum class SearchAxis {
   X,
@@ -17,9 +17,7 @@ struct Point64 {
     return Point64{x, y};
   }
 
-  static Point64 fromPoint(const Point& point) {
-    return Point64{static_cast<double>(point.x), static_cast<double>(point.y)};
-  }
+  static Point64 fromPoint(const Point& point);
 
   static constexpr Point64 zero() {
     return Point64{};
