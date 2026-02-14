@@ -117,6 +117,39 @@ TEST(EdgeBuilderTest, BuildEdgesWithClipChangesPartiallyOutsidePath) {
   EXPECT_NE(edges->size(), clippedEdges->size());
 }
 
+TEST(EdgeBuilderTest, BuildEdgesMergesContiguousVerticalSegments) {
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({2.0f, 0.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({2.0f, 5.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({2.0f, 10.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({3.0f, 10.0f});
+
+  auto builder = tiny_skia::BasicEdgeBuilder::newBuilder(0);
+  EXPECT_TRUE(builder.build(path, nullptr, false));
+  EXPECT_EQ(builder.edges().size(), 2u);
+  EXPECT_TRUE(builder.edges().front().isLine());
+  const auto& mergedEdge = builder.edges().front().asLine();
+  EXPECT_EQ(mergedEdge.firstY, 0);
+  EXPECT_EQ(mergedEdge.lastY, 9);
+}
+
+TEST(EdgeBuilderTest, BuildEdgesCancelsOppositeWindingVerticalSegments) {
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({3.0f, 0.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({3.0f, 5.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({3.0f, 0.0f});
+
+  auto edges = tiny_skia::BasicEdgeBuilder::buildEdges(path, nullptr, 0);
+  EXPECT_FALSE(edges.has_value());
+}
+
 TEST(EdgeBuilderTest, BuildEdgesRejectsNonFiniteInputs) {
   tiny_skia::Path path;
   path.addVerb(tiny_skia::PathVerb::Move);
