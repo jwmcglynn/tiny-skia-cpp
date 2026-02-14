@@ -240,8 +240,10 @@ class RasterPipeline {
   };
 
   RasterPipeline() = default;
-
-  RasterPipeline(Kind kind, Context context) : kind_(kind), ctx_(context) {}
+  RasterPipeline(Kind kind,
+                Context context,
+                const std::array<Stage, kMaxStages>& stages,
+                std::size_t stage_count);
 
   [[nodiscard]] Kind kind() const {
     return kind_;
@@ -254,15 +256,21 @@ class RasterPipeline {
     return ctx_;
   }
 
-  void run(const ScreenIntRect& /*rect*/,
-           AAMaskCtx /*aa_mask_ctx*/,
-           MaskCtx /*mask_ctx*/,
-           const PixmapRef& /*pixmap_src*/,
-           SubPixmapMut* /*pixmap_dst*/) {}
+  void run(const ScreenIntRect& rect,
+           const AAMaskCtx& aa_mask_ctx,
+           MaskCtx mask_ctx,
+           const PixmapRef& pixmap_src,
+           SubPixmapMut* pixmap_dst);
+
+  [[nodiscard]] std::size_t stageCount() const {
+    return stage_count_;
+  }
 
  private:
   Kind kind_ = Kind::High;
   Context ctx_{};
+  std::array<Stage, kMaxStages> stages_ = {};
+  std::size_t stage_count_ = 0;
 };
 
 class RasterPipelineBuilder {

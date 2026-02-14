@@ -8,6 +8,13 @@
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Color.h"
+#include "tiny_skia/Geom.h"
+#include "tiny_skia/pipeline/Highp.h"
+#include "tiny_skia/pipeline/Lowp.h"
+
+namespace tiny_skia {
+class PixmapRef {};
+}
 
 namespace {
 
@@ -353,6 +360,153 @@ TEST(ColorTest, RasterPipelineBuilderCompileForcesHighForUnsupportedStage) {
 
   const auto pipeline = builder.compile();
   EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::High);
+}
+
+TEST(ColorTest, RasterPipelineCompileRecordsStageCountForExecutionPlan) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.push(tiny_skia::pipeline::Stage::LoadDestination);
+  builder.push(tiny_skia::pipeline::Stage::Store);
+  builder.push(tiny_skia::pipeline::Stage::LoadMaskU8);
+
+  auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.stageCount(), 3u);
+  EXPECT_TRUE(pipeline.ctx().transform.isFinite());
+  EXPECT_TRUE(pipeline.ctx().transform.isIdentity());
+}
+
+TEST(ColorTest, PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults) {
+  constexpr std::size_t stageWidthHighp = tiny_skia::pipeline::highp::kStageWidth;
+  constexpr std::size_t stageWidthLowp = tiny_skia::pipeline::lowp::kStageWidth;
+  EXPECT_EQ(stageWidthHighp, 8u);
+  EXPECT_EQ(stageWidthLowp, 16u);
+  EXPECT_EQ(tiny_skia::pipeline::highp::STAGES.size(), tiny_skia::pipeline::kStagesCount);
+  EXPECT_EQ(tiny_skia::pipeline::lowp::STAGES.size(), tiny_skia::pipeline::kStagesCount);
+
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[0], &tiny_skia::pipeline::highp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::lowp::fnPtrEq(
+      tiny_skia::pipeline::lowp::STAGES[0], &tiny_skia::pipeline::lowp::justReturn));
+  EXPECT_FALSE(
+      tiny_skia::pipeline::highp::fnPtrEq(tiny_skia::pipeline::highp::STAGES[0],
+                                         tiny_skia::pipeline::highp::STAGES[1]));
+  EXPECT_FALSE(
+      tiny_skia::pipeline::lowp::fnPtrEq(tiny_skia::pipeline::lowp::STAGES[0],
+                                        tiny_skia::pipeline::lowp::STAGES[1]));
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[6], &tiny_skia::pipeline::highp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::lowp::fnPtrEq(
+      tiny_skia::pipeline::lowp::STAGES[6], &tiny_skia::pipeline::lowp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[14], &tiny_skia::pipeline::highp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::lowp::fnPtrEq(
+      tiny_skia::pipeline::lowp::STAGES[14], &tiny_skia::pipeline::lowp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[15], &tiny_skia::pipeline::highp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::lowp::fnPtrEq(
+      tiny_skia::pipeline::lowp::STAGES[15], &tiny_skia::pipeline::lowp::justReturn));
+
+  for (const std::size_t index :
+       {17ull, 18ull, 19ull, 20ull, 21ull, 22ull, 23ull, 24ull, 25ull,
+        26ull, 27ull, 28ull, 29ull, 30ull, 31ull}) {
+    EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+        tiny_skia::pipeline::highp::STAGES[index], &tiny_skia::pipeline::highp::justReturn));
+    EXPECT_FALSE(tiny_skia::pipeline::lowp::fnPtrEq(
+        tiny_skia::pipeline::lowp::STAGES[index], &tiny_skia::pipeline::lowp::justReturn));
+  }
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[32], &tiny_skia::pipeline::highp::justReturn));
+  EXPECT_FALSE(tiny_skia::pipeline::highp::fnPtrEq(
+      tiny_skia::pipeline::highp::STAGES[33], &tiny_skia::pipeline::highp::justReturn));
+}
+
+namespace {
+
+std::size_t highpFullChunkCallCount = 0;
+std::size_t highpTailChunkCallCount = 0;
+
+void highpFullChunkFn(tiny_skia::pipeline::highp::Pipeline&) {
+  ++highpFullChunkCallCount;
+}
+
+void highpTailChunkFn(tiny_skia::pipeline::highp::Pipeline&) {
+  ++highpTailChunkCallCount;
+}
+
+void resetHighpDispatchCounters() {
+  highpFullChunkCallCount = 0;
+  highpTailChunkCallCount = 0;
+}
+
+std::size_t lowpFullChunkCallCount = 0;
+std::size_t lowpTailChunkCallCount = 0;
+
+void lowpFullChunkFn(tiny_skia::pipeline::lowp::Pipeline&) {
+  ++lowpFullChunkCallCount;
+}
+
+void lowpTailChunkFn(tiny_skia::pipeline::lowp::Pipeline&) {
+  ++lowpTailChunkCallCount;
+}
+
+void resetLowpDispatchCounters() {
+  lowpFullChunkCallCount = 0;
+  lowpTailChunkCallCount = 0;
+}
+
+}  // namespace
+
+TEST(ColorTest, PipelineLowpStartUsesFullAndTailChunks) {
+  const auto rect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 17, 2);
+  ASSERT_TRUE(rect.has_value()) << "test rectangle should be valid";
+
+  std::array<tiny_skia::pipeline::lowp::StageFn, tiny_skia::pipeline::kMaxStages> lowpFull{};
+  std::array<tiny_skia::pipeline::lowp::StageFn, tiny_skia::pipeline::kMaxStages> lowpTail{};
+  lowpFull.fill(&lowpFullChunkFn);
+  lowpTail.fill(&lowpTailChunkFn);
+
+  tiny_skia::pipeline::AAMaskCtx aaMask{};
+  tiny_skia::pipeline::MaskCtx maskCtx{};
+  tiny_skia::pipeline::Context context{};
+  resetLowpDispatchCounters();
+
+  tiny_skia::pipeline::lowp::start(lowpFull,
+                                   lowpTail,
+                                   *rect,
+                                   aaMask,
+                                   maskCtx,
+                                   context,
+                                   nullptr);
+
+  EXPECT_EQ(lowpFullChunkCallCount, 2u) << "one full chunk per row";
+  EXPECT_EQ(lowpTailChunkCallCount, 2u) << "one tail chunk per row";
+}
+
+TEST(ColorTest, PipelineHighpStartUsesFullAndTailChunks) {
+  const auto rect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 17, 2);
+  ASSERT_TRUE(rect.has_value()) << "test rectangle should be valid";
+
+  std::array<tiny_skia::pipeline::highp::StageFn, tiny_skia::pipeline::kMaxStages> highpFull{};
+  std::array<tiny_skia::pipeline::highp::StageFn, tiny_skia::pipeline::kMaxStages> highpTail{};
+  highpFull.fill(&highpFullChunkFn);
+  highpTail.fill(&highpTailChunkFn);
+
+  tiny_skia::pipeline::AAMaskCtx aaMask{};
+  tiny_skia::pipeline::MaskCtx maskCtx{};
+  tiny_skia::pipeline::Context context{};
+  const tiny_skia::PixmapRef source{};
+  resetHighpDispatchCounters();
+
+  tiny_skia::pipeline::highp::start(highpFull,
+                                    highpTail,
+                                    *rect,
+                                    aaMask,
+                                    maskCtx,
+                                    context,
+                                    source,
+                                    nullptr);
+
+  EXPECT_EQ(highpFullChunkCallCount, 4u) << "two full chunks per row";
+  EXPECT_EQ(highpTailChunkCallCount, 2u) << "one tail chunk per row";
 }
 
 TEST(ColorTest, GradientColorNewFromRGBARoundTripsRGBAValues) {

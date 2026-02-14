@@ -145,8 +145,8 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ☐ |
-| `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | ☐ |
-| `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | ☐ |
+| `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | 🟡 |
+| `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ✅ |
 | `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ✅ |
@@ -489,7 +489,60 @@ When a file is actively being ported, add a table under this section.
 | `RasterPipelineBuilder::push_transform` | `pushTransform` | ✅ | Transform-guarded append behavior |
 | `RasterPipelineBuilder::push_uniform_color` | `pushUniformColor` | ✅ | Uniform context quantization check |
 | `RasterPipelineBuilder::compile` | `compile` | ✅ | Lowp compatibility check parity with Rust table intent |
+| `RasterPipeline::run` | `RasterPipeline::run` | 🟡 | Builds highp/lowp stage dispatch tables and calls appropriate start path (stage effects not yet implemented) |
 | `RasterPipeline` | `pipeline::RasterPipeline` | ✅ | Kind and ctx access |
+
+### `third_party/tiny-skia/src/pipeline/highp.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `STAGE_WIDTH` | `highp::kStageWidth` | ✅ | Constant-width scaffold |
+| `StageFn` | `highp::StageFn` | ✅ | Signature parity smoke |
+| `fn_ptr_eq` | `highp::fnPtrEq` | ✅ | Pointer equality smoke |
+| `fn_ptr` | `highp::fnPtr` | ✅ | Pointer identity smoke |
+| `start` | `highp::start` | ✅ | Full width/tail dispatch plumbing with implemented stage callbacks |
+| `just_return` | `highp::justReturn` | ✅ | Stub function coverage |
+| `destination_atop` | `highp::destination_atop` | ✅ | Blend equation identity |
+| `destination_in` | `highp::destination_in` | ✅ | Blend equation identity |
+| `destination_out` | `highp::destination_out` | ✅ | Blend equation identity |
+| `destination_over` | `highp::destination_over` | ✅ | Blend equation identity |
+| `source_atop` | `highp::source_atop` | ✅ | Blend equation identity |
+| `source_in` | `highp::source_in` | ✅ | Blend equation identity |
+| `source_out` | `highp::source_out` | ✅ | Blend equation identity |
+| `source_over` | `highp::source_over` | ✅ | Blend equation identity |
+| `clear` | `highp::clear` | ✅ | Zeroed lane math |
+| `modulate` | `highp::modulate` | ✅ | Channel multiply |
+| `multiply` | `highp::multiply` | ✅ | Blend multiplication formula |
+| `plus` | `highp::plus` | ✅ | Add-and-clamp formula |
+| `screen` | `highp::screen` | ✅ | Screen formula |
+| `xor` | `highp::x_or` | ✅ | Overlap inversion formula |
+| `color_burn` | `highp::color_burn` | ✅ | Blend formula from highp Rust |
+| `color_dodge` | `highp::color_dodge` | ✅ | Blend formula from highp Rust |
+| `STAGES` | `highp::STAGES` | ✅ | Width-sized table with full Rust stage ordering |
+
+### `third_party/tiny-skia/src/pipeline/lowp.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `STAGE_WIDTH` | `lowp::kStageWidth` | ✅ | Constant-width scaffold |
+| `StageFn` | `lowp::StageFn` | ✅ | Signature parity smoke |
+| `fn_ptr_eq` | `lowp::fnPtrEq` | ✅ | Pointer equality smoke |
+| `fn_ptr` | `lowp::fnPtr` | ✅ | Pointer identity smoke |
+| `start` | `lowp::start` | ✅ | Full width/tail dispatch plumbing with implemented stage callbacks |
+| `just_return` | `lowp::justReturn` | ✅ | Stub function coverage |
+| `destination_atop` | `lowp::destination_atop` | ✅ | Blend equation identity |
+| `destination_in` | `lowp::destination_in` | ✅ | Blend equation identity |
+| `destination_out` | `lowp::destination_out` | ✅ | Blend equation identity |
+| `destination_over` | `lowp::destination_over` | ✅ | Blend equation identity |
+| `source_atop` | `lowp::source_atop` | ✅ | Blend equation identity |
+| `source_in` | `lowp::source_in` | ✅ | Blend equation identity |
+| `source_out` | `lowp::source_out` | ✅ | Blend equation identity |
+| `source_over` | `lowp::source_over` | ✅ | Blend equation identity |
+| `clear` | `lowp::clear` | ✅ | Zeroed lane math |
+| `modulate` | `lowp::modulate` | ✅ | Channel multiply |
+| `multiply` | `lowp::multiply` | ✅ | Blend multiplication formula |
+| `plus` | `lowp::plus` | ✅ | Add-and-clamp formula |
+| `screen` | `lowp::screen` | ✅ | Screen formula |
+| `xor` | `lowp::x_or` | ✅ | Overlap inversion formula |
+| `STAGES` | `lowp::STAGES` | ✅ | Width-sized table with Rust-compat mapping (null stubs where unsupported) |
 
 ### `third_party/tiny-skia/src/path64/cubic64.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

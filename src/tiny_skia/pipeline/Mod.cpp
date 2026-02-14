@@ -1,6 +1,10 @@
 #include "tiny_skia/pipeline/Mod.h"
 
+#include <algorithm>
+
 #include "tiny_skia/Color.h"
+#include "tiny_skia/pipeline/Highp.h"
+#include "tiny_skia/pipeline/Lowp.h"
 
 namespace tiny_skia::pipeline {
 
@@ -108,6 +112,73 @@ namespace {
 
 }  // namespace
 
+RasterPipeline::RasterPipeline(Kind kind,
+                             Context context,
+                             const std::array<Stage, kMaxStages>& stages,
+                             std::size_t stage_count) {
+  stage_count_ = std::min(stage_count, kMaxStages);
+  kind_ = kind;
+  ctx_ = context;
+  for (std::size_t i = 0; i < kMaxStages; ++i) {
+    stages_[i] = Stage::MoveDestinationToSource;
+  }
+  for (std::size_t i = 0; i < stage_count_; ++i) {
+    stages_[i] = stages[i];
+  }
+}
+
+namespace {
+
+[[nodiscard]] std::array<highp::StageFn, kMaxStages> highpFunctions(
+    const std::array<Stage, kMaxStages>& stages,
+    std::size_t stage_count) {
+  std::array<highp::StageFn, kMaxStages> functions{};
+  std::fill(functions.begin(), functions.end(), &highp::justReturn);
+
+  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+    functions[i] = highp::STAGES[static_cast<std::size_t>(stages[i])];
+  }
+  return functions;
+}
+
+[[nodiscard]] std::array<highp::StageFn, kMaxStages> highpTailFunctions(
+    const std::array<Stage, kMaxStages>& stages,
+    std::size_t stage_count) {
+  std::array<highp::StageFn, kMaxStages> tail_functions{};
+  std::fill(tail_functions.begin(), tail_functions.end(), &highp::justReturn);
+
+  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+    tail_functions[i] = highp::STAGES[static_cast<std::size_t>(stages[i])];
+  }
+  return tail_functions;
+}
+
+[[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpFunctions(
+    const std::array<Stage, kMaxStages>& stages,
+    std::size_t stage_count) {
+  std::array<lowp::StageFn, kMaxStages> functions{};
+  std::fill(functions.begin(), functions.end(), &lowp::justReturn);
+
+  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+    functions[i] = lowp::STAGES[static_cast<std::size_t>(stages[i])];
+  }
+  return functions;
+}
+
+[[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpTailFunctions(
+    const std::array<Stage, kMaxStages>& stages,
+    std::size_t stage_count) {
+  std::array<lowp::StageFn, kMaxStages> tail_functions{};
+  std::fill(tail_functions.begin(), tail_functions.end(), &lowp::justReturn);
+
+  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+    tail_functions[i] = lowp::STAGES[static_cast<std::size_t>(stages[i])];
+  }
+  return tail_functions;
+}
+
+}  // namespace
+
 void RasterPipelineBuilder::pushUniformColor(const PremultipliedColor& color) {
   const auto r = color.red();
   const auto g = color.green();
@@ -132,7 +203,7 @@ void RasterPipelineBuilder::pushUniformColor(const PremultipliedColor& color) {
 
 RasterPipeline RasterPipelineBuilder::compile() {
   if (stage_count_ == 0) {
-    RasterPipeline pipeline(RasterPipeline::Kind::High, Context{});
+    RasterPipeline pipeline(RasterPipeline::Kind::High, Context{}, stages_, 0);
     return pipeline;
   }
 
@@ -140,7 +211,44 @@ RasterPipeline RasterPipelineBuilder::compile() {
   const auto kind = (force_hq_pipeline_ || !is_lowp_compatible)
                         ? RasterPipeline::Kind::High
                         : RasterPipeline::Kind::Low;
-  return RasterPipeline(kind, ctx_);
+  return RasterPipeline(kind, ctx_, stages_, stage_count_);
+}
+
+void RasterPipeline::run(const ScreenIntRect& rect,
+                        const AAMaskCtx& aa_mask_ctx,
+                        MaskCtx mask_ctx,
+                        const PixmapRef& pixmap_src,
+                        SubPixmapMut* pixmap_dst) {
+  if (stage_count_ == 0) {
+    return;
+  }
+
+  const auto highp_functions = highpFunctions(stages_, stage_count_);
+  const auto highp_tail_functions = highpTailFunctions(stages_, stage_count_);
+  const auto lowp_functions = lowpFunctions(stages_, stage_count_);
+  const auto lowp_tail_functions = lowpTailFunctions(stages_, stage_count_);
+
+  switch (kind_) {
+    case Kind::High:
+      highp::start(highp_functions,
+                   highp_tail_functions,
+                   rect,
+                   aa_mask_ctx,
+                   mask_ctx,
+                   ctx_,
+                   pixmap_src,
+                   pixmap_dst);
+      break;
+    case Kind::Low:
+      lowp::start(lowp_functions,
+                   lowp_tail_functions,
+                   rect,
+                   aa_mask_ctx,
+                   mask_ctx,
+                   ctx_,
+                   pixmap_dst);
+      break;
+  }
 }
 
 }  // namespace tiny_skia::pipeline
