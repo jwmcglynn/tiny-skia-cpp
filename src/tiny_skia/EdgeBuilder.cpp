@@ -1,5 +1,7 @@
 #include "tiny_skia/EdgeBuilder.h"
 
+#include "tiny_skia/EdgeClipper.h"
+
 #include <algorithm>
 #include <cmath>
 #include <array>
@@ -224,8 +226,48 @@ std::optional<std::vector<Edge>> BasicEdgeBuilder::buildEdges(const Path& path,
 }
 
 bool BasicEdgeBuilder::build(const Path& path, const ShiftedIntRect* clip, bool canCullToTheRight) {
-  (void)canCullToTheRight;
-  (void)clip;
+  if (clip != nullptr) {
+    const auto clipRect = clip->recover().toRect();
+    for (auto iterator = EdgeClipperIter(path, clipRect, canCullToTheRight);;) {
+      const auto clippedEdges = iterator.next();
+      if (!clippedEdges.has_value()) {
+        break;
+      }
+
+      for (const auto& edgeValue : clippedEdges->span()) {
+        if (!isFinite(edgeValue.points[0]) || !isFinite(edgeValue.points[1])) {
+          return false;
+        }
+
+        switch (edgeValue.type) {
+          case PathEdgeType::LineTo:
+            pushLine(std::span<const Point, 2>{&edgeValue.points[0], 2});
+            break;
+          case PathEdgeType::QuadTo: {
+            if (!isFinite(edgeValue.points[2])) {
+              return false;
+            }
+            const auto points =
+                std::array<Point, 3>{edgeValue.points[0], edgeValue.points[1], edgeValue.points[2]};
+            pushQuad(std::span<const Point>{points.data(), 3});
+            break;
+          }
+          case PathEdgeType::CubicTo: {
+            if (!isFinite(edgeValue.points[2]) || !isFinite(edgeValue.points[3])) {
+              return false;
+            }
+            const auto points = std::array<Point, 4>{edgeValue.points[0],
+                                                    edgeValue.points[1],
+                                                    edgeValue.points[2],
+                                                    edgeValue.points[3]};
+            pushCubic(std::span<const Point>{points.data(), 4});
+            break;
+          }
+        }
+      }
+    }
+    return true;
+  }
 
   for (auto iterator = pathIter(path);; ) {
     auto edge = iterator.next();

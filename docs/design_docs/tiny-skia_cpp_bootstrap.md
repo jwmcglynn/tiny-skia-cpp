@@ -134,7 +134,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/blitter.rs` | `src/tiny_skia/Blitter.cpp` + `src/tiny_skia/Blitter.h` | ✅ |
 | `third_party/tiny-skia/src/color.rs` | `src/tiny_skia/Color.cpp` + `src/tiny_skia/Color.h` | ✅ |
 | `third_party/tiny-skia/src/edge.rs` | `src/tiny_skia/Edge.cpp` + `src/tiny_skia/Edge.h` | ✅ |
-| `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | 🟡 |
+| `third_party/tiny-skia/src/edge_builder.rs` | `src/tiny_skia/EdgeBuilder.cpp` + `src/tiny_skia/EdgeBuilder.h` | ✅ |
 | `third_party/tiny-skia/src/edge_clipper.rs` | `src/tiny_skia/EdgeClipper.cpp` + `src/tiny_skia/EdgeClipper.h` | ✅ |
 | `third_party/tiny-skia/src/fixed_point.rs` | `src/tiny_skia/FixedPoint.cpp` + `src/tiny_skia/FixedPoint.h` | ✅ |
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
@@ -209,10 +209,10 @@ When a file is actively being ported, add a table under this section.
 ### `third_party/tiny-skia/src/edge_builder.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
 | --- | --- | --- | --- |
-| `ShiftedIntRect::new` | `ShiftedIntRect::create` | 🟡 | Shifted rect round-trip and overflow checks |
-| `BasicEdgeBuilder::build_edges` | `BasicEdgeBuilder::buildEdges` | 🟡 | Build path output count and edge-type coverage |
-| `BasicEdgeBuilder::build` | `BasicEdgeBuilder::build` | 🟡 | Non-empty path pathing and early-failure checks |
-| `combine_vertical` | `combineVertical` | 🟡 | Vertical adjacency equivalence checks |
+| `ShiftedIntRect::new` | `ShiftedIntRect::create` | ✅ | Shifted rect round-trip and overflow checks |
+| `BasicEdgeBuilder::build_edges` | `BasicEdgeBuilder::buildEdges` | ✅ | Build path output count, clip pathing, and edge-type coverage |
+| `BasicEdgeBuilder::build` | `BasicEdgeBuilder::build` | ✅ | Non-empty pathing and clip-path/early-failure checks |
+| `combine_vertical` | `combineVertical` | ✅ | Vertical adjacency equivalence checks |
 | `edge_iter` | `pathIter` | ✅ | Auto-close contour transitions |
 | `PathEdgeIter::next` | `PathEdgeIter::next` | ✅ | Move/Close and edge emission sequencing |
 | `PathEdgeIter::close_line` | `PathEdgeIter::closeLine` | ✅ | Auto-close closure to move point |

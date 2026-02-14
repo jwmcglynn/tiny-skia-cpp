@@ -81,6 +81,42 @@ TEST(EdgeBuilderTest, BuildEdgesRejectsMalformedPath) {
   EXPECT_FALSE(edges.has_value());
 }
 
+TEST(EdgeBuilderTest, BuildEdgesWithClipRejectsPathCompletelyOutsideClip) {
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({1.0f, 20.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({9.0f, 25.0f});
+
+  const auto clipRect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 10, 10).value();
+  const auto shiftedClip = tiny_skia::ShiftedIntRect::create(clipRect, 0).value();
+
+  const auto edges = tiny_skia::BasicEdgeBuilder::buildEdges(path, nullptr, 0);
+  ASSERT_TRUE(edges.has_value());
+  const auto clippedEdges = tiny_skia::BasicEdgeBuilder::buildEdges(path, &shiftedClip, 0);
+  EXPECT_FALSE(clippedEdges.has_value());
+}
+
+TEST(EdgeBuilderTest, BuildEdgesWithClipChangesPartiallyOutsidePath) {
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({-5.0f, 5.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({20.0f, 5.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({20.0f, 20.0f});
+  path.addVerb(tiny_skia::PathVerb::Close);
+
+  const auto clipRect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 10, 10).value();
+  const auto shiftedClip = tiny_skia::ShiftedIntRect::create(clipRect, 0).value();
+
+  const auto edges = tiny_skia::BasicEdgeBuilder::buildEdges(path, nullptr, 0);
+  ASSERT_TRUE(edges.has_value());
+  const auto clippedEdges = tiny_skia::BasicEdgeBuilder::buildEdges(path, &shiftedClip, 0);
+  ASSERT_TRUE(clippedEdges.has_value());
+  EXPECT_NE(edges->size(), clippedEdges->size());
+}
+
 TEST(EdgeBuilderTest, BuildEdgesRejectsNonFiniteInputs) {
   tiny_skia::Path path;
   path.addVerb(tiny_skia::PathVerb::Move);
