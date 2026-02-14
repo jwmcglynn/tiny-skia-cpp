@@ -1,0 +1,23 @@
+"""tiny_skia wide sources."""
+
+load("//:bazel/defs.bzl", "tiny_skia_cc_library")
+
+tiny_skia_cc_library(
+    name = "tiny_skia_wide",
+    srcs = [
+        "F32x4T.cpp",
+        "I32x4T.cpp",
+        "Mod.cpp",
+        "U32x4T.cpp",
+    ],
+    hdrs = [
+        "F32x4T.h",
+        "I32x4T.h",
+        "Mod.h",
+        "U32x4T.h",
+    ],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
+    include_prefix = "tiny_skia/wide",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)
