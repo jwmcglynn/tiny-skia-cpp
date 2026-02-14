@@ -5,19 +5,18 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/lib.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `k_library_version` | `kLibraryVersion` | 🟡 | C++ compatibility constant; no direct Rust symbol in `src/lib.rs` for line-by-line parity |
-| `library_version` | `libraryVersion` | 🟡 | C++ compatibility helper; no direct Rust symbol in `src/lib.rs` for line-by-line parity |
+| _none tracked_ | _none_ | ⏸ | No function-level symbols tracked for this Rust file in current C++ scope |
 
 ### `third_party/tiny-skia/src/alpha_runs.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | 🟡 | Covered by `AlphaRunsTest.ConstructorResetAndIsEmpty` |
-| `AlphaRuns::catch_overflow` | `AlphaRuns::catchOverflow` | 🟡 | Covered by `AlphaRunsTest.CatchOverflow` (`0`, `1`, `255`, `256`) |
-| `AlphaRuns::is_empty` | `AlphaRuns::isEmpty` | 🟡 | Covered by `AlphaRunsTest.ConstructorResetAndIsEmpty` |
-| `AlphaRuns::reset` | `AlphaRuns::reset` | 🟡 | Covered by `AlphaRunsTest.ConstructorResetAndIsEmpty` |
-| `AlphaRuns::add` | `AlphaRuns::add` | 🟡 | Covered by `AlphaRunsTest.AddComposesStartAndMiddle` and `AddUsesOffsetAndStopAlpha` |
-| `AlphaRuns::break_run` | `AlphaRuns::breakRun` | 🟡 | Covered by `AlphaRunsTest.BreakRunSplitsRunsWithNonZeroBoundaries` |
-| `AlphaRuns::break_at` | `AlphaRuns::breakAt` | 🟡 | Covered by `AlphaRunsTest.BreakAtSplitsAtOffset` |
+| `AlphaRuns::new` | `AlphaRuns::AlphaRuns` | 🟢 | Line-by-line audited: allocates `width+1` runs/alpha and calls `reset(width)` like Rust |
+| `AlphaRuns::catch_overflow` | `AlphaRuns::catchOverflow` | 🟢 | Line-by-line audited: identical `alpha - (alpha >> 8)` overflow catch and `alpha <= 256` guard |
+| `AlphaRuns::is_empty` | `AlphaRuns::isEmpty` | 🟢 | Line-by-line audited: same `runs[0]`/`alpha[0]` and terminal-run-empty logic |
+| `AlphaRuns::reset` | `AlphaRuns::reset` | 🟢 | Line-by-line audited: sets `runs[0]`, `runs[width]=None/nullopt`, and `alpha[0]=0` equivalently |
+| `AlphaRuns::add` | `AlphaRuns::add` | 🟢 | Line-by-line audited: start/middle/stop branches, offset updates, and overflow handling match Rust flow |
+| `AlphaRuns::break_run` | `AlphaRuns::breakRun` | 🟢 | Line-by-line audited: two-phase run splitting logic (`x`, then `count`) matches Rust |
+| `AlphaRuns::break_at` | `AlphaRuns::breakAt` | 🟢 | Line-by-line audited: same run-walk and split-at-x behavior used by clipping path |
 
 ### `third_party/tiny-skia/src/blend_mode.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
@@ -193,31 +192,31 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/blitter.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `Mask::image` | `Mask::image` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` mask dispatch path |
-| `Mask::bounds` | `Mask::bounds` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` mask dispatch path |
-| `Mask::row_bytes` | `Mask::rowBytes` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` mask dispatch path |
-| `Blitter::blit_h` | `Blitter::blitH` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_anti_h` | `Blitter::blitAntiH` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_v` | `Blitter::blitV` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_anti_h2` | `Blitter::blitAntiH2` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_anti_v2` | `Blitter::blitAntiV2` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_rect` | `Blitter::blitRect` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
-| `Blitter::blit_mask` | `Blitter::blitMask` | 🟡 | Covered by `BlitterTest.OverridableMethodsReceiveCalls` and `DefaultImplementationAborts` |
+| `Mask::image` | `Mask::image` | 🟢 | Line-by-line audited: Rust `[u8;2] image` maps directly to C++ `std::array<uint8_t,2> image` |
+| `Mask::bounds` | `Mask::bounds` | 🟢 | Line-by-line audited: Rust `ScreenIntRect bounds` maps directly to C++ `ScreenIntRect bounds` |
+| `Mask::row_bytes` | `Mask::rowBytes` | 🟢 | Line-by-line audited: Rust `u32 row_bytes` maps to C++ `uint32_t rowBytes` (name-only casing change) |
+| `Blitter::blit_h` | `Blitter::blitH` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_anti_h` | `Blitter::blitAntiH` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_v` | `Blitter::blitV` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_anti_h2` | `Blitter::blitAntiH2` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_anti_v2` | `Blitter::blitAntiV2` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_rect` | `Blitter::blitRect` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_mask` | `Blitter::blitMask` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
 
 ### `third_party/tiny-skia/src/edge.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `Edge::as_line` | `Edge::asLine` | 🟡 | Covered by `EdgeLineTest.EdgeAsLineReturnsUnderlyingLine` |
-| `Edge::as_line_mut` | `Edge::asLine` | 🟡 | Covered by `EdgeLineTest.EdgeAsLineReturnsUnderlyingLine` mutable delegate path |
-| `LineEdge::new` | `LineEdge::create` | 🟡 | Covered by `EdgeLineTest.LineEdgeCreateRejectsHorizontalRun`, `LineEdgeCreateAssignsWindingAndBounds`, and `LineEdgeCreateFlipsWindingForDescendingY` |
-| `LineEdge::is_vertical` | `LineEdge::isVertical` | 🟡 | Covered by `EdgeLineTest.LineEdgeIsVertical` |
-| `LineEdge::update` | `LineEdge::update` | 🟡 | Covered indirectly via `LineEdge::create` constructor/update paths in `EdgeLineTest` |
-| `QuadraticEdge::new` | `QuadraticEdge::create` | 🟡 | Covered by `EdgeQuadraticTest.QuadraticEdgeCreateRejectsBadInputs`, `QuadraticEdgeCreateBasic`, and `QuadraticEdgeCreateDescendingYFlipsWinding` |
-| `QuadraticEdge::new2` | `QuadraticEdge::create` | 🟡 | Coefficient setup parity |
-| `QuadraticEdge::update` | `QuadraticEdge::update` | 🟡 | Covered by `EdgeQuadraticTest.QuadraticEdgeUpdateCanAdvance` |
-| `CubicEdge::new` | `CubicEdge::create` | 🟡 | Covered by `EdgeCubicTest.CubicEdgeCreateRejectsBadInputs`, `CubicEdgeCreateBasic`, and `CubicEdgeCreateDescendingYFlipsWindingAndUpdates` |
-| `CubicEdge::new2` | `CubicEdge::create` | 🟡 | Coefficient setup parity |
-| `CubicEdge::update` | `CubicEdge::update` | 🟡 | Covered by `EdgeCubicTest.CubicEdgeCreateDescendingYFlipsWindingAndUpdates` |
+| `Edge::as_line` | `Edge::asLine` | 🟢 | Line-by-line audited: enum/variant dispatch to embedded `LineEdge` matches Rust `match` branches |
+| `Edge::as_line_mut` | `Edge::asLine` | 🟢 | Line-by-line audited: mutable delegate dispatch matches Rust `match` branches |
+| `LineEdge::new` | `LineEdge::create` | 🟢 | Line-by-line audited: scale conversion, winding swap, zero-height reject, slope/dy setup, and field writes match Rust |
+| `LineEdge::is_vertical` | `LineEdge::isVertical` | 🟢 | Line-by-line audited: `dx == 0` parity |
+| `LineEdge::update` | `LineEdge::update` | 🟢 | Line-by-line audited: fixed-point downshift, zero-height reject, slope recompute, and edge state updates match Rust |
+| `QuadraticEdge::new` | `QuadraticEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust |
+| `QuadraticEdge::new2` | `QuadraticEdge::create` | 🟢 | Line-by-line audited via internal `makeQuadraticEdge`: coefficient/shift derivation and state initialization match Rust `new2` |
+| `QuadraticEdge::update` | `QuadraticEdge::update` | 🟢 | Line-by-line audited: segment stepping loop, success break conditions, and persisted state updates match Rust |
+| `CubicEdge::new` | `CubicEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust |
+| `CubicEdge::new2` | `CubicEdge::create` | 🟢 | Line-by-line audited via internal `makeCubicEdge`: delta/shift math, coefficient setup, and initial state match Rust `new2` |
+| `CubicEdge::update` | `CubicEdge::update` | 🟢 | Line-by-line audited: forward-difference stepping, `newY` monotonic clamp, and loop termination semantics match Rust |
 
 ### `third_party/tiny-skia/src/line_clipper.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
