@@ -28,6 +28,8 @@ tiny_skia_cc_library(
         "tiny_skia/scan/Path.cpp",
         "tiny_skia/scan/PathAa.cpp",
         "tiny_skia/scan/Hairline.cpp",
+        "tiny_skia/scan/HairlineAa.cpp",
+        "tiny_skia/scan/Mod.cpp",
     ],
     hdrs = [
         "tiny_skia/Lib.h",
@@ -53,6 +55,8 @@ tiny_skia_cc_library(
         "tiny_skia/scan/Path.h",
         "tiny_skia/scan/PathAa.h",
         "tiny_skia/scan/Hairline.h",
+        "tiny_skia/scan/HairlineAa.h",
+        "tiny_skia/scan/Mod.h",
     ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     visibility = ["//visibility:public"],

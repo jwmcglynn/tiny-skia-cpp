@@ -148,9 +148,9 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ☐ |
-| `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | 🟡 |
-| `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ☐ |
-| `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ☐ |
+| `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ✅ |
+| `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ✅ |
+| `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/scan/path.rs` | `src/tiny_skia/scan/Path.cpp` + `src/tiny_skia/scan/Path.h` | ✅ |
 | `third_party/tiny-skia/src/scan/path_aa.rs` | `src/tiny_skia/scan/PathAa.cpp` + `src/tiny_skia/scan/PathAa.h` | ✅ |
 | `third_party/tiny-skia/src/path64/cubic64.rs` | `src/tiny_skia/path64/Cubic64.cpp` + `src/tiny_skia/path64/Cubic64.h` | ✅ |
@@ -299,10 +299,36 @@ When a file is actively being ported, add a table under this section.
 | `LineCap::Square` | `LineCap::Square` | ✅ | Enum value parity |
 | `hair_line_rgn` | `hairLineRgn` | ✅ | Horizontal/vertical clipping and traversal |
 | `extend_pts` | `extendPts` | ✅ | Segment-end cap extension coverage |
-| `hair_quad` | `hairQuad` | 🟡 | Bounding checks and culling branch checks |
-| `hair_quad2` | `hairQuad2` | 🟡 | Fixed-point subdivision coverage |
-| `hair_cubic` | `hairCubic` | 🟡 | Curvature split branch checks |
-| `hair_cubic2` | `hairCubic2` | 🟡 | Fixed-point subdivision coverage |
+| `hair_quad` | `hairQuad` | ✅ | Colinear control points reduce to line-equivalent spans |
+| `hair_quad2` | `hairQuad2` | ✅ | Colinear control-point path uses direct line span sequence |
+| `hair_cubic` | `hairCubic` | ✅ | Colinear cubic reduces to no-split line-equivalent spans |
+| `hair_cubic2` | `hairCubic2` | ✅ | Colinear cubic no-split spans and path-level regression checks |
+
+### `third_party/tiny-skia/src/scan/hairline_aa.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `fill_rect` | `fillRect` | ✅ | Rectangle intersection fallback and fixed-rect dispatch |
+| `fill_fixed_rect` | `fillFixedRect` | ✅ | Fixed-point conversion to 8-bit span coordinates |
+| `fill_dot8` | `fillDot8` | ✅ | Boundary and fractional-edge coverage |
+| `do_scanline` | `doScanline` | ✅ | 1-pixel, single-edge, and fractional scanline checks |
+| `call_hline_blitter` | `callHlineBlitter` | ✅ | Chunked call sequence and width clamping checks |
+| `stroke_path` | `scan::hairline_aa::strokePath` | ✅ | Clipping/no-clip anti-span behavior |
+| `anti_hair_line_rgn` | `antiHairLineRgn` | ✅ | Line pre-clip and partial-clip sub-rect dispatch checks |
+| `do_anti_hairline` | `doAntiHairline` | ✅ | Dominant-axis and clipping-overlap branch checks |
+| `bad_int` | `badInt` | ✅ | Integer edge sentinel parity |
+| `any_bad_ints` | `anyBadInts` | ✅ | High-bit-flag checks |
+| `contribution_64` | `contribution64` | ✅ | Fractional contribution extraction |
+| `HLineAntiHairBlitter` | `HLineAntiHairBlitter` | ✅ | Lower/upper blend split checks |
+| `HorishAntiHairBlitter` | `HorishAntiHairBlitter` | ✅ | Vertical pair blend split checks |
+| `VLineAntiHairBlitter` | `VLineAntiHairBlitter` | ✅ | Horizontal pair blend split checks |
+| `VertishAntiHairBlitter` | `VertishAntiHairBlitter` | ✅ | Horizontal pair blend split checks |
+| `RectClipBlitter` | `RectClipBlitter` | ✅ | Rect clipping boundaries and anti-run clipping checks |
+
+### `third_party/tiny-skia/src/scan/mod.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `fill_rect` | `scan::fillRect` | ✅ | Integer-rounding and clip intersection behavior |
+| `fill_rect_aa` | `scan::fillRectAa` | ✅ | Fractional-rect antialias path coverage |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |
