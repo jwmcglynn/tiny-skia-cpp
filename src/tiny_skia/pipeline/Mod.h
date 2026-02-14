@@ -155,6 +155,10 @@ struct MaskCtx {
   const std::uint8_t* data = nullptr;
   std::uint32_t real_width = 0;
 
+  [[nodiscard]] std::size_t byteOffset(std::size_t dx, std::size_t dy) const {
+    return offset(dx, dy);
+  }
+
  private:
   [[nodiscard]] constexpr std::size_t offset(std::size_t dx, std::size_t dy) const {
     return static_cast<std::size_t>(real_width) * dy + dx;

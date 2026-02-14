@@ -336,6 +336,59 @@ TEST(ColorTest, RasterPipelineBuilderCompileBuildsExpectedKindAndContext) {
   EXPECT_EQ(ctx.uniform_color.rgba[3], static_cast<std::uint16_t>(uniform.alpha() * 255.0f + 0.5f));
 }
 
+TEST(ColorTest, RasterPipelineBuilderCompileUsesLowpByDefaultForSupportedStages) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.push(tiny_skia::pipeline::Stage::LoadDestination);
+  builder.push(tiny_skia::pipeline::Stage::Store);
+
+  const auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::Low);
+}
+
+TEST(ColorTest, RasterPipelineBuilderCompileForcesHighForUnsupportedStage) {
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  builder.push(tiny_skia::pipeline::Stage::LoadDestination);
+  builder.push(tiny_skia::pipeline::Stage::Clamp0);
+  builder.push(tiny_skia::pipeline::Stage::Store);
+
+  const auto pipeline = builder.compile();
+  EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::High);
+}
+
+TEST(ColorTest, GradientColorNewFromRGBARoundTripsRGBAValues) {
+  const auto color = tiny_skia::pipeline::GradientColor::newFromRGBA(0.1f, 0.2f, 0.3f, 0.4f);
+  EXPECT_NEAR(color.r, 0.1f, 1e-6f);
+  EXPECT_NEAR(color.g, 0.2f, 1e-6f);
+  EXPECT_NEAR(color.b, 0.3f, 1e-6f);
+  EXPECT_NEAR(color.a, 0.4f, 1e-6f);
+}
+
+TEST(ColorTest, PipelineContextDefaultsMatchExpectedMembers) {
+  const auto context = tiny_skia::pipeline::Context{};
+  const auto& transform = context.transform;
+
+  EXPECT_EQ(context.current_coverage, 0.0f);
+  EXPECT_EQ(context.sampler.spread_mode, tiny_skia::SpreadMode::Pad);
+  EXPECT_EQ(context.sampler.inv_width, 0.0f);
+  EXPECT_EQ(context.sampler.inv_height, 0.0f);
+  EXPECT_EQ(context.uniform_color.r, 0.0f);
+  EXPECT_EQ(context.uniform_color.g, 0.0f);
+  EXPECT_EQ(context.uniform_color.b, 0.0f);
+  EXPECT_EQ(context.uniform_color.a, 0.0f);
+  EXPECT_TRUE(transform.isFinite());
+  EXPECT_TRUE(transform.isIdentity());
+}
+
+TEST(ColorTest, MaskCtxOffsetMatchesPackedCoordinateFormula) {
+  tiny_skia::pipeline::MaskCtx ctx{};
+  ctx.real_width = 7;
+
+  EXPECT_EQ(ctx.byteOffset(0, 0), 0u);
+  EXPECT_EQ(ctx.byteOffset(3, 0), 3u);
+  EXPECT_EQ(ctx.byteOffset(2, 1), 9u);
+  EXPECT_EQ(ctx.byteOffset(6, 2), 20u);
+}
+
 TEST(ColorTest, RasterPipelineBuilderPushAppendsStage) {
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   builder.push(tiny_skia::pipeline::Stage::LoadDestination);
