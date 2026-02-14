@@ -245,3 +245,33 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Mask::subpixmap` | `Mask::subpixmap` | ☐ | Awaiting `SubPixmapMut` mask view integration |
 | `Mask::fill_path` | `Mask::fillPath` | ☐ | Awaiting `Painter/Pixmap/scan` integration path |
 | `Mask::intersect_path` | `Mask::intersectPath` | ☐ | Awaiting `fillPath` and blending integration |
+
+### `third_party/tiny-skia/src/pixmap.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `BYTES_PER_PIXEL` | `kBytesPerPixel` | 🟢 | Line-by-line audited: `4` bytes per RGBA pixel |
+| `Pixmap::new` | `Pixmap::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation parity; width cap matches Rust |
+| `Pixmap::from_vec` | `Pixmap::fromVec` | 🟢 | Line-by-line audited: exact byte-length validation and ownership transfer parity |
+| `Pixmap::as_ref` | `Pixmap::asRef` | 🟢 | Line-by-line audited: immutable borrowed view over same storage |
+| `Pixmap::as_mut` | `Pixmap::asMut` | 🟢 | Line-by-line audited: mutable borrowed view over same storage |
+| `Pixmap::width` | `Pixmap::width` | 🟢 | Line-by-line audited: stored size passthrough |
+| `Pixmap::height` | `Pixmap::height` | 🟢 | Line-by-line audited: stored size passthrough |
+| `Pixmap::size` | `Pixmap::size` | 🟢 | Line-by-line audited: stored size passthrough |
+| `Pixmap::data` | `Pixmap::data` | 🟢 | Line-by-line audited: immutable RGBA byte span |
+| `Pixmap::data_mut` | `Pixmap::dataMut` | 🟢 | Line-by-line audited: mutable RGBA byte span |
+| `Pixmap::pixel` | `Pixmap::pixel` | 🟢 | Line-by-line audited: checked coordinate-to-index and optional return parity |
+| `Pixmap::pixels` | `Pixmap::pixels` | 🟢 | Line-by-line audited: byte storage reinterpreted as premultiplied RGBA pixels |
+| `Pixmap::pixels_mut` | `Pixmap::pixelsMut` | 🟢 | Line-by-line audited: mutable pixel reinterpret view parity |
+| `Pixmap::take` | `Pixmap::take` | 🟢 | Line-by-line audited: ownership move-out; C++ resets stored size to default-empty state |
+| `PixmapRef::from_bytes` | `PixmapRef::fromBytes` | 🟢 | Line-by-line audited: validates non-zero size + minimum data length and width cap |
+| `PixmapRef::pixel` | `PixmapRef::pixel` | 🟢 | Line-by-line audited: checked index computation parity |
+| `PixmapRef::pixels` | `PixmapRef::pixels` | 🟢 | Line-by-line audited: immutable pixel reinterpret view |
+| `PixmapMut` APIs | `PixmapMut` APIs | 🟢 | Line-by-line audited: mutable borrowed view shape mapped for Rust parity |
+| `SubPixmapMut` struct | `SubPixmapMut` struct | 🟢 | Line-by-line audited: stride + data pointer scaffold mapped for pipeline integration |
+| `Pixmap::fill` | `Pixmap::fill` | ☐ | Awaiting painter-facing color fill integration |
+| `Pixmap::take_demultiplied` | `Pixmap::takeDemultiplied` | ☐ | Awaiting demultiply conversion path |
+| `Pixmap::clone_rect` | `Pixmap::cloneRect` | ☐ | Awaiting `IntRect`-scoped extraction helper |
+| `PixmapRef::clone_rect` | `PixmapRef::cloneRect` | ☐ | Awaiting borrowed-view rect clone helper |
+| `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | ☐ | Pending mutable view constructor parity |
+| `PixmapMut::as_subpixmap` | `PixmapMut::asSubpixmap` | ☐ | Pending subview extraction helpers |
+| `PixmapMut::subpixmap` | `PixmapMut::subpixmap` | ☐ | Pending subview extraction helpers |
