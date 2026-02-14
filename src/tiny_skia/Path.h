@@ -20,6 +20,12 @@ enum class PathVerb : std::uint8_t {
   Cubic,
 };
 
+enum class LineCap : std::uint8_t {
+  Butt,
+  Round,
+  Square,
+};
+
 class Path {
  public:
   Path() = default;

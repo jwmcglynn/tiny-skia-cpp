@@ -148,7 +148,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | ☐ |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ☐ |
-| `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ☐ |
+| `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | 🟡 |
 | `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ☐ |
 | `third_party/tiny-skia/src/scan/mod.rs` | `src/tiny_skia/scan/Mod.cpp` + `src/tiny_skia/scan/Mod.h` | ☐ |
 | `third_party/tiny-skia/src/scan/path.rs` | `src/tiny_skia/scan/Path.cpp` + `src/tiny_skia/scan/Path.h` | ✅ |
@@ -288,6 +288,21 @@ When a file is actively being ported, add a table under this section.
 | `fill_path_impl` | `scan::path_aa::fillPathImpl` | ✅ | Fallback-to-non-AA and clipping bounds coverage |
 | `rect_overflows_short_shift` | `rectOverflowsShortShift` | ✅ | Overflow and clamp behavior on large bounds |
 | `coverage_to_partial_alpha` | `coverageToPartialAlpha` | ✅ | Alpha quantization checks at boundaries |
+
+### `third_party/tiny-skia/src/scan/hairline.rs`
+| Rust function/item | C++ function/item | Status | Equivalence checks |
+| --- | --- | --- | --- |
+| `stroke_path` | `scan::strokePath` | ✅ | Clip handling and span sequence smoke checks |
+| `stroke_path_impl` | `scan::strokePathImpl` | ✅ | Segment dispatch smoke checks |
+| `LineCap::Butt` | `LineCap::Butt` | ✅ | Enum value parity |
+| `LineCap::Round` | `LineCap::Round` | ✅ | Enum value parity |
+| `LineCap::Square` | `LineCap::Square` | ✅ | Enum value parity |
+| `hair_line_rgn` | `hairLineRgn` | ✅ | Horizontal/vertical clipping and traversal |
+| `extend_pts` | `extendPts` | ✅ | Segment-end cap extension coverage |
+| `hair_quad` | `hairQuad` | 🟡 | Bounding checks and culling branch checks |
+| `hair_quad2` | `hairQuad2` | 🟡 | Fixed-point subdivision coverage |
+| `hair_cubic` | `hairCubic` | 🟡 | Curvature split branch checks |
+| `hair_cubic2` | `hairCubic2` | 🟡 | Fixed-point subdivision coverage |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Equivalence checks |

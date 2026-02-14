@@ -9,6 +9,7 @@
 #include "tiny_skia/Path.h"
 #include "tiny_skia/scan/Path.h"
 #include "tiny_skia/scan/PathAa.h"
+#include "tiny_skia/scan/Hairline.h"
 
 namespace {
 
@@ -154,4 +155,79 @@ TEST(ScanPathTest, FillPathAaClipOverflowAvoidsBlitting) {
 
   EXPECT_THAT(blitter.spans(), ::testing::IsEmpty());
   EXPECT_THAT(blitter.antiSpans(), ::testing::IsEmpty());
+}
+
+TEST(ScanPathTest, StrokePathButtHorizontalLine) {
+  const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({2.0f, 2.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({8.0f, 2.0f});
+
+  RecordingBlitter blitter;
+  tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
+
+  ASSERT_THAT(blitter.spans(), ::testing::SizeIs(6u));
+  for (std::size_t i = 0; i < blitter.spans().size(); ++i) {
+    EXPECT_EQ(blitter.spans()[i].x, static_cast<std::uint32_t>(2u + i));
+    EXPECT_EQ(blitter.spans()[i].y, 2u);
+    EXPECT_EQ(blitter.spans()[i].width, 1u);
+  }
+}
+
+TEST(ScanPathTest, StrokePathButtVerticalLine) {
+  const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({5.0f, 2.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({5.0f, 8.0f});
+
+  RecordingBlitter blitter;
+  tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
+
+  ASSERT_THAT(blitter.spans(), ::testing::SizeIs(6u));
+  for (std::size_t i = 0; i < blitter.spans().size(); ++i) {
+    EXPECT_EQ(blitter.spans()[i].x, 5u);
+    EXPECT_EQ(blitter.spans()[i].y, 2u + i);
+    EXPECT_EQ(blitter.spans()[i].width, 1u);
+  }
+}
+
+TEST(ScanPathTest, StrokePathRoundCapExtendsSubpixelLine) {
+  const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({2.6f, 2.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({4.6f, 2.0f});
+
+  RecordingBlitter blitter;
+  tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Round, clip, blitter);
+
+  ASSERT_THAT(blitter.spans(), ::testing::SizeIs(3u));
+  EXPECT_EQ(blitter.spans()[0].x, 2u);
+  EXPECT_EQ(blitter.spans()[0].y, 2u);
+  EXPECT_EQ(blitter.spans()[0].width, 1u);
+  EXPECT_EQ(blitter.spans()[1].x, 3u);
+  EXPECT_EQ(blitter.spans()[1].y, 2u);
+  EXPECT_EQ(blitter.spans()[1].width, 1u);
+  EXPECT_EQ(blitter.spans()[2].x, 4u);
+  EXPECT_EQ(blitter.spans()[2].y, 2u);
+  EXPECT_EQ(blitter.spans()[2].width, 1u);
+}
+
+TEST(ScanPathTest, StrokePathOutsideClipCullsWithoutSpans) {
+  const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 10, 10).value();
+  tiny_skia::Path path;
+  path.addVerb(tiny_skia::PathVerb::Move);
+  path.addPoint({12.0f, 1.0f});
+  path.addVerb(tiny_skia::PathVerb::Line);
+  path.addPoint({20.0f, 1.0f});
+
+  RecordingBlitter blitter;
+  tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
+
+  EXPECT_THAT(blitter.spans(), ::testing::IsEmpty());
 }
