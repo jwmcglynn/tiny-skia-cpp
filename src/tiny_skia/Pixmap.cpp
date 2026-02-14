@@ -1,5 +1,6 @@
 #include "tiny_skia/Pixmap.h"
 
+#include <algorithm>
 #include <limits>
 #include <utility>
 
@@ -34,6 +35,11 @@ std::optional<std::size_t> pixelIndex(std::uint32_t width,
   return static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x);
 }
 
+bool containsRect(const IntRect& outer, const IntRect& inner) {
+  return outer.left() <= inner.left() && outer.top() <= inner.top() &&
+         outer.right() >= inner.right() && outer.bottom() >= inner.bottom();
+}
+
 }  // namespace
 
 std::optional<PixmapRef> PixmapRef::fromBytes(std::span<const std::uint8_t> data,
@@ -66,10 +72,87 @@ std::optional<PremultipliedColorU8> PixmapRef::pixel(std::uint32_t x, std::uint3
   return pixels()[index.value()];
 }
 
+std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
+  const auto full = IntRect::fromXYWH(0, 0, width(), height());
+  if (!full.has_value() || !containsRect(full.value(), rect)) {
+    return std::nullopt;
+  }
+
+  auto out = Pixmap::fromSize(rect.width(), rect.height());
+  if (!out.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto srcBytes = data();
+  auto dstBytes = out->dataMut();
+
+  const auto srcWidth = static_cast<std::size_t>(width());
+  const auto rowBytes = static_cast<std::size_t>(rect.width()) * kBytesPerPixel;
+  for (std::uint32_t y = 0; y < rect.height(); ++y) {
+    const auto srcOffset = (static_cast<std::size_t>(rect.top()) + y) * srcWidth * kBytesPerPixel +
+                           static_cast<std::size_t>(rect.left()) * kBytesPerPixel;
+    const auto dstOffset = static_cast<std::size_t>(y) * rowBytes;
+    std::copy_n(srcBytes.data() + srcOffset, rowBytes, dstBytes.data() + dstOffset);
+  }
+
+  return out;
+}
+
+std::optional<PixmapMut> PixmapMut::fromBytes(std::span<std::uint8_t> data,
+                                              std::uint32_t width,
+                                              std::uint32_t height) {
+  const auto size = IntSize::fromWh(width, height);
+  if (!size.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto required = dataLenForSize(size.value());
+  if (!required.has_value() || data.size() < required.value()) {
+    return std::nullopt;
+  }
+
+  return PixmapMut(data.data(), data.size(), size.value());
+}
+
 std::span<PremultipliedColorU8> PixmapMut::pixelsMut() const {
   static_assert(sizeof(PremultipliedColorU8) == kBytesPerPixel);
   auto* ptr = reinterpret_cast<PremultipliedColorU8*>(data_);
   return std::span<PremultipliedColorU8>(ptr, len_ / kBytesPerPixel);
+}
+
+SubPixmapMut PixmapMut::asSubpixmap() const {
+  return SubPixmapMut{
+      .size = size_,
+      .real_width = static_cast<std::size_t>(size_.width()),
+      .data = data_,
+  };
+}
+
+std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
+  const auto full = IntRect::fromXYWH(0, 0, width(), height());
+  if (!full.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto intersection = full->intersect(rect);
+  if (!intersection.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto srcWidth = static_cast<std::size_t>(size_.width());
+  const auto offset =
+      (static_cast<std::size_t>(intersection->top()) * srcWidth + static_cast<std::size_t>(intersection->left())) *
+      kBytesPerPixel;
+  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  if (!subSize.has_value()) {
+    return std::nullopt;
+  }
+
+  return SubPixmapMut{
+      .size = subSize.value(),
+      .real_width = srcWidth,
+      .data = data_ + offset,
+  };
 }
 
 std::span<std::uint8_t> SubPixmapMut::dataMut() const {
@@ -112,9 +195,30 @@ std::optional<PremultipliedColorU8> Pixmap::pixel(std::uint32_t x, std::uint32_t
   return asRef().pixel(x, y);
 }
 
+std::optional<Pixmap> Pixmap::cloneRect(const IntRect& rect) const {
+  return asRef().cloneRect(rect);
+}
+
+void Pixmap::fill(const Color& color) {
+  const auto c = color.premultiply().toColorU8();
+  auto px = pixelsMut();
+  for (auto& p : px) {
+    p = c;
+  }
+}
+
 std::vector<std::uint8_t> Pixmap::take() {
   size_ = IntSize{};
   return std::move(data_);
+}
+
+std::vector<std::uint8_t> Pixmap::takeDemultiplied() {
+  auto px = pixelsMut();
+  for (auto& p : px) {
+    const auto c = p.demultiply();
+    p = PremultipliedColorU8::fromRgbaUnchecked(c.red(), c.green(), c.blue(), c.alpha());
+  }
+  return take();
 }
 
 }  // namespace tiny_skia

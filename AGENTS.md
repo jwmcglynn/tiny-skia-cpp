@@ -31,6 +31,9 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Keep design and implementation steps actionable and testable.
 - For any code change (new/edited/deleted file), update milestone checkboxes or function
   status entries in the same update batch as implementation.
+- During porting, explicitly report good sequence points for incremental commits.
+- Explicitly call out when a full Rust source file mapping is complete in C++ so the user can
+  decide to commit in pieces.
 - Before taking risky actions (large refactors, deletions, destructive git operations), confirm intent.
 - No commit is allowed without explicit user approval in this session, reviewed live.
 - Explicit user approval is required for **every** commit operation (including after previous

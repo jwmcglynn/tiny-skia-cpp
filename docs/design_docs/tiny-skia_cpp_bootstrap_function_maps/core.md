@@ -238,11 +238,11 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Mask::data` | `Mask::data` | 🟢 | Line-by-line audited: immutable backing buffer view |
 | `Mask::data_mut` | `Mask::dataMut` | 🟢 | Line-by-line audited: mutable backing buffer view |
 | `Mask::take` | `Mask::take` | 🟢 | Line-by-line audited: ownership move-out; C++ resets stored size to default-empty state |
-| `Mask::from_pixmap` | `Mask::fromPixmap` | ☐ | Awaiting `Pixmap/PixmapRef` port |
-| `Mask::as_submask` | `Mask::asSubmask` | ☐ | Awaiting `SubMaskRef`/pixmap-mask view types |
-| `Mask::submask` | `Mask::submask` | ☐ | Awaiting `SubMaskRef`/rect-view plumbing |
-| `Mask::as_subpixmap` | `Mask::asSubpixmap` | ☐ | Awaiting `SubPixmapMut` mask view integration |
-| `Mask::subpixmap` | `Mask::subpixmap` | ☐ | Awaiting `SubPixmapMut` mask view integration |
+| `Mask::from_pixmap` | `Mask::fromPixmap` | 🟢 | Line-by-line audited: alpha copy and luminance path (demultiply + luma + alpha + ceil clamp) match Rust |
+| `Mask::as_submask` | `Mask::asSubmask` | 🟢 | Line-by-line audited: full-size borrowed mask view with real-width parity |
+| `Mask::submask` | `Mask::submask` | 🟢 | Line-by-line audited: intersects requested rect with mask bounds and returns offset view |
+| `Mask::as_subpixmap` | `Mask::asSubpixmap` | 🟢 | Line-by-line audited: mutable full-size mask view parity |
+| `Mask::subpixmap` | `Mask::subpixmap` | 🟢 | Line-by-line audited: mutable intersected subview + row-offset parity |
 | `Mask::fill_path` | `Mask::fillPath` | ☐ | Awaiting `Painter/Pixmap/scan` integration path |
 | `Mask::intersect_path` | `Mask::intersectPath` | ☐ | Awaiting `fillPath` and blending integration |
 
@@ -268,10 +268,10 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `PixmapRef::pixels` | `PixmapRef::pixels` | 🟢 | Line-by-line audited: immutable pixel reinterpret view |
 | `PixmapMut` APIs | `PixmapMut` APIs | 🟢 | Line-by-line audited: mutable borrowed view shape mapped for Rust parity |
 | `SubPixmapMut` struct | `SubPixmapMut` struct | 🟢 | Line-by-line audited: stride + data pointer scaffold mapped for pipeline integration |
-| `Pixmap::fill` | `Pixmap::fill` | ☐ | Awaiting painter-facing color fill integration |
-| `Pixmap::take_demultiplied` | `Pixmap::takeDemultiplied` | ☐ | Awaiting demultiply conversion path |
-| `Pixmap::clone_rect` | `Pixmap::cloneRect` | ☐ | Awaiting `IntRect`-scoped extraction helper |
-| `PixmapRef::clone_rect` | `PixmapRef::cloneRect` | ☐ | Awaiting borrowed-view rect clone helper |
-| `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | ☐ | Pending mutable view constructor parity |
-| `PixmapMut::as_subpixmap` | `PixmapMut::asSubpixmap` | ☐ | Pending subview extraction helpers |
-| `PixmapMut::subpixmap` | `PixmapMut::subpixmap` | ☐ | Pending subview extraction helpers |
+| `Pixmap::fill` | `Pixmap::fill` | 🟢 | Line-by-line audited: premultiply once and broadcast fill across full pixmap storage |
+| `Pixmap::take_demultiplied` | `Pixmap::takeDemultiplied` | 🟢 | Line-by-line audited: per-pixel demultiply conversion before ownership move-out |
+| `Pixmap::clone_rect` | `Pixmap::cloneRect` | 🟢 | Line-by-line audited: contained-rect check + row-wise copy into new pixmap |
+| `PixmapRef::clone_rect` | `PixmapRef::cloneRect` | 🟢 | Line-by-line audited: borrowed-view rect clone path mirrors Rust ownership semantics |
+| `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | 🟢 | Line-by-line audited: mutable-byte constructor validates size and minimum byte length |
+| `PixmapMut::as_subpixmap` | `PixmapMut::asSubpixmap` | 🟢 | Line-by-line audited: full mutable subview with real-width stride parity |
+| `PixmapMut::subpixmap` | `PixmapMut::subpixmap` | 🟢 | Line-by-line audited: intersected mutable subview + byte-offset parity |

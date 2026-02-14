@@ -1,6 +1,8 @@
 #include "tiny_skia/Mask.h"
 
+#include <algorithm>
 #include <cstddef>
+#include <cmath>
 #include <utility>
 
 namespace tiny_skia {
@@ -23,6 +25,109 @@ std::optional<Mask> Mask::fromVec(std::vector<std::uint8_t> data, IntSize size) 
   }
 
   return Mask(std::move(data), size);
+}
+
+Mask Mask::fromPixmap(const PixmapRef& pixmap, MaskType maskType) {
+  const auto data_len =
+      static_cast<std::size_t>(pixmap.width()) * static_cast<std::size_t>(pixmap.height());
+  auto data = std::vector<std::uint8_t>(data_len, 0);
+
+  const auto pixels = pixmap.pixels();
+  switch (maskType) {
+    case MaskType::Alpha:
+      for (std::size_t i = 0; i < pixels.size(); ++i) {
+        data[i] = pixels[i].alpha();
+      }
+      break;
+    case MaskType::Luminance:
+      for (std::size_t i = 0; i < pixels.size(); ++i) {
+        float r = static_cast<float>(pixels[i].red()) / 255.0f;
+        float g = static_cast<float>(pixels[i].green()) / 255.0f;
+        float b = static_cast<float>(pixels[i].blue()) / 255.0f;
+        const float a = static_cast<float>(pixels[i].alpha()) / 255.0f;
+
+        if (pixels[i].alpha() != 0) {
+          r /= a;
+          g /= a;
+          b /= a;
+        }
+
+        const auto luma = r * 0.2126f + g * 0.7152f + b * 0.0722f;
+        const auto masked = std::clamp((luma * a) * 255.0f, 0.0f, 255.0f);
+        data[i] = static_cast<std::uint8_t>(std::ceil(masked));
+      }
+      break;
+  }
+
+  return Mask(std::move(data), pixmap.size());
+}
+
+SubMaskRef Mask::asSubmask() const {
+  return SubMaskRef{
+      .size = size_,
+      .realWidth = width(),
+      .data = data_.data(),
+  };
+}
+
+std::optional<SubMaskRef> Mask::submask(IntRect rect) const {
+  const auto self = IntRect::fromXYWH(0, 0, width(), height());
+  if (!self.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto intersection = self->intersect(rect);
+  if (!intersection.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto rowBytes = static_cast<std::size_t>(width());
+  const auto offset = static_cast<std::size_t>(intersection->top()) * rowBytes +
+                      static_cast<std::size_t>(intersection->left());
+  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  if (!subSize.has_value()) {
+    return std::nullopt;
+  }
+
+  return SubMaskRef{
+      .size = subSize.value(),
+      .realWidth = width(),
+      .data = data_.data() + offset,
+  };
+}
+
+SubMaskMut Mask::asSubpixmap() {
+  return SubMaskMut{
+      .size = size_,
+      .realWidth = width(),
+      .data = data_.data(),
+  };
+}
+
+std::optional<SubMaskMut> Mask::subpixmap(IntRect rect) {
+  const auto self = IntRect::fromXYWH(0, 0, width(), height());
+  if (!self.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto intersection = self->intersect(rect);
+  if (!intersection.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto rowBytes = static_cast<std::size_t>(width());
+  const auto offset = static_cast<std::size_t>(intersection->top()) * rowBytes +
+                      static_cast<std::size_t>(intersection->left());
+  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  if (!subSize.has_value()) {
+    return std::nullopt;
+  }
+
+  return SubMaskMut{
+      .size = subSize.value(),
+      .realWidth = width(),
+      .data = data_.data() + offset,
+  };
 }
 
 std::vector<std::uint8_t> Mask::take() {

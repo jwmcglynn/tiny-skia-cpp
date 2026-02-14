@@ -15,6 +15,9 @@ namespace tiny_skia {
 
 inline constexpr std::size_t kBytesPerPixel = 4;
 
+class Pixmap;
+struct SubPixmapMut;
+
 class PixmapRef {
  public:
   PixmapRef() = default;
@@ -42,6 +45,7 @@ class PixmapRef {
   [[nodiscard]] std::span<const PremultipliedColorU8> pixels() const;
 
   [[nodiscard]] std::optional<PremultipliedColorU8> pixel(std::uint32_t x, std::uint32_t y) const;
+  [[nodiscard]] std::optional<Pixmap> cloneRect(const IntRect& rect) const;
 
  private:
   friend class Pixmap;
@@ -60,6 +64,10 @@ class PixmapMut {
   explicit PixmapMut(std::uint8_t* data, std::size_t len, IntSize size)
       : data_(data), len_(len), size_(size) {}
 
+  static std::optional<PixmapMut> fromBytes(std::span<std::uint8_t> data,
+                                            std::uint32_t width,
+                                            std::uint32_t height);
+
   [[nodiscard]] std::uint32_t width() const {
     return size_.width();
   }
@@ -77,6 +85,8 @@ class PixmapMut {
   }
 
   [[nodiscard]] std::span<PremultipliedColorU8> pixelsMut() const;
+  [[nodiscard]] SubPixmapMut asSubpixmap() const;
+  [[nodiscard]] std::optional<SubPixmapMut> subpixmap(const IntRect& rect) const;
 
  private:
   std::uint8_t* data_ = nullptr;
@@ -139,8 +149,12 @@ class Pixmap {
   [[nodiscard]] std::span<PremultipliedColorU8> pixelsMut();
 
   [[nodiscard]] std::optional<PremultipliedColorU8> pixel(std::uint32_t x, std::uint32_t y) const;
+  [[nodiscard]] std::optional<Pixmap> cloneRect(const IntRect& rect) const;
+
+  void fill(const Color& color);
 
   std::vector<std::uint8_t> take();
+  std::vector<std::uint8_t> takeDemultiplied();
 
  private:
   explicit Pixmap(std::vector<std::uint8_t> data, IntSize size)
