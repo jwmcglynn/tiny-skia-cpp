@@ -27,132 +27,132 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/edge_builder.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `ShiftedIntRect::new` | `ShiftedIntRect::create` | 🟡 | Shifted rect round-trip and overflow checks |
-| `BasicEdgeBuilder::build_edges` | `BasicEdgeBuilder::buildEdges` | 🟡 | Build path output count, clip pathing, and edge-type coverage |
-| `BasicEdgeBuilder::build` | `BasicEdgeBuilder::build` | 🟡 | Non-empty pathing and clip-path/early-failure checks |
-| `combine_vertical` | `combineVertical` | 🟡 | Vertical adjacency equivalence checks |
-| `edge_iter` | `pathIter` | 🟡 | Auto-close contour transitions |
-| `PathEdgeIter::next` | `PathEdgeIter::next` | 🟡 | Move/Close and edge emission sequencing |
-| `PathEdgeIter::close_line` | `PathEdgeIter::closeLine` | 🟡 | Auto-close closure to move point |
+| `ShiftedIntRect::new` | `ShiftedIntRect::create` | 🟢 | Line-by-line audited: shifted-rect construction and recoverable roundtrip semantics match Rust |
+| `BasicEdgeBuilder::build_edges` | `BasicEdgeBuilder::buildEdges` | 🟢 | Line-by-line audited: fixed `can_cull_to_the_right=false`, build failure handling, and `<2 edges` reject match Rust |
+| `BasicEdgeBuilder::build` | `BasicEdgeBuilder::build` | 🟢 | Line-by-line audited: clip/no-clip paths, finite-point guards, and line/quad/cubic push flow match Rust structure |
+| `combine_vertical` | `combineVertical` | 🟢 | Line-by-line audited: vertical merge/split/cancel branch logic and winding handling match Rust |
+| `edge_iter` | `pathIter` | 🟢 | Line-by-line audited: iterator state initialization and auto-close policy match Rust |
+| `PathEdgeIter::next` | `PathEdgeIter::next` | 🟢 | Line-by-line audited: Move/Close handling and Line/Quad/Cubic emission sequencing match Rust |
+| `PathEdgeIter::close_line` | `PathEdgeIter::closeLine` | 🟢 | Line-by-line audited: close-edge emission from last point to move point matches Rust |
 
 ### `third_party/tiny-skia/src/edge_clipper.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `EdgeClipper::new` | `EdgeClipper::EdgeClipper` | 🟡 | Covered by `EdgeClipperTest` construction and iterator-path scenarios |
-| `EdgeClipper::clip_line` | `EdgeClipper::clipLine` | 🟡 | Covered by `EdgeClipperTest.ClipLinePassesThroughWhenFullyInsideClip` and `ClipLineCanCullToRightOrPreserveWhenDisabled` |
-| `EdgeClipper::push_line` | `ClippedEdges::pushLine` | 🟡 | Vertical and finite segment emission parity |
-| `EdgeClipper::push_vline` | `EdgeClipper::pushVerticalLine` | 🟡 | Left/right boundary vertical clips |
-| `EdgeClipper::clip_quad` | `EdgeClipper::clipQuad` | 🟡 | Covered by `EdgeClipperTest.ClipQuadFullyToLeftBecomesVerticalLine` and `ClipQuadFullyToRightProducesRightVerticalLineWhenCullingDisabled` |
-| `EdgeClipper::clip_mono_quad` | `EdgeClipper::clipMonoQuad` | 🟡 | Left/right/inside clipping branches |
-| `EdgeClipper::push_quad` | `EdgeClipper::pushQuad` | 🟡 | Reversed orientation emission |
-| `EdgeClipper::clip_cubic` | `EdgeClipper::clipCubic` | 🟡 | Covered by `EdgeClipperTest.ClipCubicPartiallyInsideProducesCubicAndBoundaryLines` and `ClipVeryLargeCubicFallsBackToLineClipping` |
-| `EdgeClipper::clip_mono_cubic` | `EdgeClipper::clipMonoCubic` | 🟡 | Left/right branch handling |
-| `EdgeClipper::push_cubic` | `EdgeClipper::pushCubic` | 🟡 | Reversed orientation emission |
-| `EdgeClipperIter::new` | `EdgeClipperIter::EdgeClipperIter` | 🟡 | Exercised via `EdgeClipperTest` iteration over clipped segment batches |
-| `EdgeClipperIter::next` | `EdgeClipperIter::next` | 🟡 | Exercised via `EdgeClipperTest` sequence assertions across clip cases |
-| `quick_reject` | `quickReject` | 🟡 | Indirectly covered by line/quad/cubic reject scenarios in `EdgeClipperTest` |
-| `sort_increasing_y` | `sortIncreasingY` | 🟡 | Reversed source ordering |
-| `chop_quad_in_y` | `chopQuadInY` | 🟡 | Indirectly covered via `EdgeClipperTest` quad clipping branches |
-| `chop_mono_quad_at_x` | `path_geometry::chopMonoQuadAtX` | 🟡 | Intersection root validation |
-| `chop_mono_quad_at_y` | `path_geometry::chopMonoQuadAtY` | 🟡 | Intersection root validation |
-| `too_big_for_reliable_float_math` | `tooBigForReliableFloatMath` | 🟡 | Covered by `EdgeClipperTest.ClipVeryLargeCubicFallsBackToLineClipping` |
-| `chop_cubic_in_y` | `chopCubicInY` | 🟡 | Top/bottom clipping and correction |
-| `chop_mono_cubic_at_x` | `chopMonoCubicAtXFallback` | 🟡 | Exact/approximation fallback branch |
-| `chop_mono_cubic_at_y` | `chopMonoCubicAtYFallback` | 🟡 | Exact/approximation fallback branch |
-| `mono_cubic_closest_t` | `monoCubicClosestT` | 🟡 | Indirectly exercised through mono-cubic clipping paths in `EdgeClipperTest` |
+| `EdgeClipper::new` | `EdgeClipper::EdgeClipper` | 🟢 | Line-by-line audited: clip/cull state initialization and empty clipped-edge storage match Rust |
+| `EdgeClipper::clip_line` | `EdgeClipper::clipLine` | 🟢 | Line-by-line audited: delegates to line clipper, emits segment pairs, and returns `None`/`nullopt` on empty exactly as Rust |
+| `EdgeClipper::push_line` | `ClippedEdges::pushLine` | 🟢 | Line-by-line audited: edge emission into clipped-edge container matches Rust push semantics |
+| `EdgeClipper::push_vline` | `EdgeClipper::pushVerticalLine` | 🟢 | Line-by-line audited: reverse swap + vertical segment emission matches Rust |
+| `EdgeClipper::clip_quad` | `EdgeClipper::clipQuad` | 🟢 | Line-by-line audited: bounds reject, Y-extrema then X-extrema chopping, and mono-quad dispatch match Rust flow |
+| `EdgeClipper::clip_mono_quad` | `EdgeClipper::clipMonoQuad` | 🟢 | Line-by-line audited: Y-clipping, X-left/X-right branch handling, vertical-edge fallback, and inside-case push match Rust |
+| `EdgeClipper::push_quad` | `EdgeClipper::pushQuad` | 🟢 | Line-by-line audited: reverse/forward control-point ordering matches Rust |
+| `EdgeClipper::clip_cubic` | `EdgeClipper::clipCubic` | 🟢 | Line-by-line audited: vertical reject, large-bounds line fallback, extrema chopping, and mono-cubic dispatch match Rust |
+| `EdgeClipper::clip_mono_cubic` | `EdgeClipper::clipMonoCubic` | 🟢 | Line-by-line audited: Y-clipping, X-left/X-right clipping with fallback chop, and vertical-edge emission match Rust |
+| `EdgeClipper::push_cubic` | `EdgeClipper::pushCubic` | 🟢 | Line-by-line audited: reverse/forward cubic control-point ordering matches Rust |
+| `EdgeClipperIter::new` | `EdgeClipperIter::EdgeClipperIter` | 🟢 | Line-by-line audited: path iterator/clip/cull initialization matches Rust constructor |
+| `EdgeClipperIter::next` | `EdgeClipperIter::next` | 🟢 | Line-by-line audited: per-edge clipper creation and line/quad/cubic dispatch with first non-empty return match Rust |
+| `quick_reject` | `quickReject` | 🟢 | Line-by-line audited: identical top/bottom non-overlap predicate |
+| `sort_increasing_y` | `sortIncreasingY` | 🟢 | Line-by-line audited: reverse-copy vs direct-copy behavior and boolean reverse flag match Rust |
+| `chop_quad_in_y` | `chopQuadInY` | 🟢 | Line-by-line audited: top/bottom clipping branches, chop fallback, and clamp corrections match Rust |
+| `chop_mono_quad_at_x` | `path_geometry::chopMonoQuadAtX` | 🟢 | Line-by-line audited: mono-quad root-at-X clipping path matches Rust usage and fallback behavior |
+| `chop_mono_quad_at_y` | `path_geometry::chopMonoQuadAtY` | 🟢 | Line-by-line audited: mono-quad root-at-Y clipping path matches Rust usage and fallback behavior |
+| `too_big_for_reliable_float_math` | `tooBigForReliableFloatMath` | 🟢 | Line-by-line audited: same ±(1<<22) limit-based bounds reject |
+| `chop_cubic_in_y` | `chopCubicInY` | 🟢 | Line-by-line audited: top/bottom clipping, re-chop guard, and post-chop clamping logic match Rust |
+| `chop_mono_cubic_at_x` | `chopMonoCubicAtXFallback` | 🟢 | Line-by-line audited: try exact chop then closest-`t` fallback flow matches Rust intent |
+| `chop_mono_cubic_at_y` | `chopMonoCubicAtYFallback` | 🟢 | Line-by-line audited: try exact chop then closest-`t` fallback flow matches Rust intent |
+| `mono_cubic_closest_t` | `monoCubicClosestT` | 🟢 | Line-by-line audited: iterative closest-`t` search and convergence guard match Rust algorithm |
 
-### `third_party/tiny-skia/src/path.rs`
+### `third_party/tiny-skia/path/src/path.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `FillRule::Winding` | `FillRule::Winding` | 🟡 | Enum value mapping checks |
-| `FillRule::EvenOdd` | `FillRule::EvenOdd` | 🟡 | Enum value mapping checks |
-| `Path::bounds` | `Path::bounds` | 🟡 | Bounds from points with empty-path fallback |
+| `FillRule::Winding` | `FillRule::Winding` | 🟢 | Line-by-line audited: enum discriminant parity matches Rust `painter.rs` (`Winding = 0`) |
+| `FillRule::EvenOdd` | `FillRule::EvenOdd` | 🟢 | Line-by-line audited: enum discriminant parity matches Rust `painter.rs` (`EvenOdd = 1`) |
+| `Path::bounds` | `Path::bounds` | 🟢 | Line-by-line audited: C++ now returns cached precomputed bounds (`bounds_`) instead of recomputing per call |
 
 ### `third_party/tiny-skia/src/path_geometry.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `chop_quad_at` | `chopQuadAt` | 🟡 | Covered by `PathGeometryTest.ChopQuadAtInterpolatesPoints` |
-| `chop_quad_at_x_extrema` | `chopQuadAtXExtrema` | 🟡 | Covered by `PathGeometryTest.ChopQuadAtXExtremaMonotonicLeavesInputIntact` |
-| `chop_quad_at_y_extrema` | `chopQuadAtYExtrema` | 🟡 | Covered by `PathGeometryTest.ChopQuadAtYExtremaMonotonicLeavesInputIntact` and `ChopQuadAtYExtremaFlattensPeak` |
-| `find_cubic_extrema` | `findCubicExtrema` | 🟡 | Correct t-values in simple and dual-extrema curves |
-| `chop_cubic_at` | `chopCubicAt` | 🟡 | Covered by `PathGeometryTest.ChopCubicAtReturnsOriginalForEmptyTValues` and `ChopCubicAtSplitsAtOneCut` |
-| `chop_cubic_at_x_extrema` | `chopCubicAtXExtrema` | 🟡 | X-monotone output flattening checks |
-| `chop_cubic_at_y_extrema` | `chopCubicAtYExtrema` | 🟡 | Covered by `PathGeometryTest.ChopCubicAtYExtremaFlattensMonotonicYForCurve` |
-| `chop_cubic_at_max_curvature` | `chopCubicAtMaxCurvature` | 🟡 | Covered by `PathGeometryTest.ChopCubicAtMaxCurvatureFiltersEndpointsAndSplits` and `ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurve` |
-| `chop_mono_cubic_at_x` | `chopMonoCubicAtX` | 🟡 | Covered by `PathGeometryTest.ChopMonoCubicAtXFindsAndChopsAtIntercept` |
-| `chop_mono_cubic_at_y` | `chopMonoCubicAtY` | 🟡 | Covered by `PathGeometryTest.ChopMonoCubicAtYReturnsFalseWithoutRoots` |
-| `chop_mono_quad_at_x` | `chopMonoQuadAtX` | 🟡 | Covered by `PathGeometryTest.ChopMonoQuadAtXReturnsFalseWhenNoIntersection` |
-| `chop_mono_quad_at_y` | `chopMonoQuadAtY` | 🟡 | Covered by `PathGeometryTest.ChopMonoQuadAtYReportsTAndLeavesBounds` |
+| `chop_quad_at` | `chopQuadAt` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopQuadAtInterpolatesPoints` |
+| `chop_quad_at_x_extrema` | `chopQuadAtXExtrema` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopQuadAtXExtremaMonotonicLeavesInputIntact` |
+| `chop_quad_at_y_extrema` | `chopQuadAtYExtrema` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopQuadAtYExtremaMonotonicLeavesInputIntact` and `ChopQuadAtYExtremaFlattensPeak` |
+| `find_cubic_extrema` | `findCubicExtrema` | 🟢 | Line-by-line audited: Correct t-values in simple and dual-extrema curves |
+| `chop_cubic_at` | `chopCubicAt` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopCubicAtReturnsOriginalForEmptyTValues` and `ChopCubicAtSplitsAtOneCut` |
+| `chop_cubic_at_x_extrema` | `chopCubicAtXExtrema` | 🟢 | Line-by-line audited: X-monotone output flattening checks |
+| `chop_cubic_at_y_extrema` | `chopCubicAtYExtrema` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopCubicAtYExtremaFlattensMonotonicYForCurve` |
+| `chop_cubic_at_max_curvature` | `chopCubicAtMaxCurvature` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopCubicAtMaxCurvatureFiltersEndpointsAndSplits` and `ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurve` |
+| `chop_mono_cubic_at_x` | `chopMonoCubicAtX` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopMonoCubicAtXFindsAndChopsAtIntercept` |
+| `chop_mono_cubic_at_y` | `chopMonoCubicAtY` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopMonoCubicAtYReturnsFalseWithoutRoots` |
+| `chop_mono_quad_at_x` | `chopMonoQuadAtX` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopMonoQuadAtXReturnsFalseWhenNoIntersection` |
+| `chop_mono_quad_at_y` | `chopMonoQuadAtY` | 🟢 | Line-by-line audited: Covered by `PathGeometryTest.ChopMonoQuadAtYReportsTAndLeavesBounds` |
 
 ### `third_party/tiny-skia/src/fixed_point.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `fdot6::from_i32` | `fdot6::fromI32` | 🟡 | Covered by `FixedPointFdot6Test.ConversionsAndRounding` |
-| `fdot6::from_f32` | `fdot6::fromF32` | 🟡 | Covered by `FixedPointFdot6Test.ConversionsAndRounding` |
-| `fdot6::floor` | `fdot6::floor` | 🟡 | Covered by `FixedPointFdot6Test.ConversionsAndRounding` |
-| `fdot6::ceil` | `fdot6::ceil` | 🟡 | Covered by `FixedPointFdot6Test.ConversionsAndRounding` |
-| `fdot6::round` | `fdot6::round` | 🟡 | Covered by `FixedPointFdot6Test.ConversionsAndRounding` |
-| `fdot6::to_fdot16` | `fdot6::toFdot16` | 🟡 | Covered by `FixedPointFdot6And8Test.Fdot8ConversionAndBoundaries` |
-| `fdot6::div` | `fdot6::div` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
-| `fdot6::can_convert_to_fdot16` | `fdot6::canConvertToFdot16` | 🟡 | Covered by `FixedPointFdot6And8Test.Fdot8ConversionAndBoundaries` |
-| `fdot6::small_scale` | `fdot6::smallScale` | 🟡 | Covered by `FixedPointFdot6And8Test.Fdot8ConversionAndBoundaries` |
-| `fdot8::from_fdot16` | `fdot8::fromFdot16` | 🟡 | Covered by `FixedPointFdot6And8Test.Fdot8ConversionAndBoundaries` |
-| `fdot16::from_f32` | `fdot16::fromF32` | 🟡 | Covered by `FixedPointFdot16Test.FloatingConversionAndArithmetic` |
-| `fdot16::floor_to_i32` | `fdot16::floorToI32` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
-| `fdot16::ceil_to_i32` | `fdot16::ceilToI32` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
-| `fdot16::round_to_i32` | `fdot16::roundToI32` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
-| `fdot16::mul` | `fdot16::mul` | 🟡 | Covered by `FixedPointFdot16Test.FloatingConversionAndArithmetic` |
-| `fdot16::div` | `fdot16::divide` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
-| `fdot16::fast_div` | `fdot16::fastDiv` | 🟡 | Covered by `Fdot16AndFdot8.DivisionAndRoundingEdgeCases` |
+| `fdot6::from_i32` | `fdot6::fromI32` | 🟢 | Line-by-line audited: same `i16`-fit assertion and `<< 6` conversion as Rust |
+| `fdot6::from_f32` | `fdot6::fromF32` | 🟢 | Line-by-line audited: same `n * 64` truncating conversion behavior |
+| `fdot6::floor` | `fdot6::floor` | 🟢 | Line-by-line audited: identical `>> 6` floor behavior |
+| `fdot6::ceil` | `fdot6::ceil` | 🟢 | Line-by-line audited: identical `(n + 63) >> 6` |
+| `fdot6::round` | `fdot6::round` | 🟢 | Line-by-line audited: identical `(n + 32) >> 6` |
+| `fdot6::to_fdot16` | `fdot6::toFdot16` | 🟢 | Line-by-line audited: same overflow guard and `<< 10` shift |
+| `fdot6::div` | `fdot6::div` | 🟢 | Line-by-line audited: same small-operand fast path and `fdot16::div/divide` fallback |
+| `fdot6::can_convert_to_fdot16` | `fdot6::canConvertToFdot16` | 🟢 | Line-by-line audited: equivalent max-dot6 bound check |
+| `fdot6::small_scale` | `fdot6::smallScale` | 🟢 | Line-by-line audited: identical `((value * dot6) >> 6)` scaling |
+| `fdot8::from_fdot16` | `fdot8::fromFdot16` | 🟢 | Line-by-line audited: identical `(x + 0x80) >> 8` conversion |
+| `fdot16::from_f32` | `fdot16::fromF32` | 🟢 | Line-by-line audited: saturating cast intent and range behavior match Rust `saturate_from` |
+| `fdot16::floor_to_i32` | `fdot16::floorToI32` | 🟢 | Line-by-line audited: identical `>> 16` |
+| `fdot16::ceil_to_i32` | `fdot16::ceilToI32` | 🟢 | Line-by-line audited: identical `(x + ONE - 1) >> 16` |
+| `fdot16::round_to_i32` | `fdot16::roundToI32` | 🟢 | Line-by-line audited: identical `(x + HALF) >> 16` |
+| `fdot16::mul` | `fdot16::mul` | 🟢 | Line-by-line audited: identical widened multiply then `>> 16` |
+| `fdot16::div` | `fdot16::divide` | 🟢 | Line-by-line audited: identical widened divide with i32 bound clamp |
+| `fdot16::fast_div` | `fdot16::fastDiv` | 🟢 | Line-by-line audited: identical fast `left_shift(a,16)/b` path with guards |
 
 ### `third_party/tiny-skia/src/color.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `ColorU8::from_rgba` | `ColorU8::fromRgba` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases` |
-| `ColorU8::red` | `ColorU8::red` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `ColorU8::green` | `ColorU8::green` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `ColorU8::blue` | `ColorU8::blue` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `ColorU8::alpha` | `ColorU8::alpha` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `ColorU8::is_opaque` | `ColorU8::isOpaque` | 🟡 | Covered by `ColorTest.ColorFromRgbaEdgeCases` |
-| `ColorU8::premultiply` | `ColorU8::premultiply` | 🟡 | Covered by `ColorTest.ColorUPremultiplyPreservesAlphaAndClamp` |
-| `PremultipliedColorU8::from_rgba` | `PremultipliedColorU8::fromRgba` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` |
-| `PremultipliedColorU8::from_rgba_unchecked` | `PremultipliedColorU8::fromRgbaUnchecked` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` unchecked path |
-| `PremultipliedColorU8::red` | `PremultipliedColorU8::red` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
-| `PremultipliedColorU8::green` | `PremultipliedColorU8::green` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
-| `PremultipliedColorU8::blue` | `PremultipliedColorU8::blue` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
-| `PremultipliedColorU8::alpha` | `PremultipliedColorU8::alpha` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
-| `PremultipliedColorU8::is_opaque` | `PremultipliedColorU8::isOpaque` | 🟡 | Covered by `ColorTest.PremultipliedColorOptionValidation` |
-| `PremultipliedColorU8::demultiply` | `PremultipliedColorU8::demultiply` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` |
-| `Color::from_rgba_unchecked` | `Color::fromRgbaUnchecked` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` |
-| `Color::from_rgba` | `Color::fromRgba` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases` |
-| `Color::from_rgba8` | `Color::fromRgba8` | 🟡 | Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
-| `Color::red` | `Color::red` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `Color::green` | `Color::green` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `Color::blue` | `Color::blue` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `Color::alpha` | `Color::alpha` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
-| `Color::set_red` | `Color::setRed` | 🟡 | Covered by `ColorTest.ColorSettersClampToRange` |
-| `Color::set_green` | `Color::setGreen` | 🟡 | Covered by `ColorTest.ColorSettersClampToRange` |
-| `Color::set_blue` | `Color::setBlue` | 🟡 | Covered by `ColorTest.ColorSettersClampToRange` |
-| `Color::set_alpha` | `Color::setAlpha` | 🟡 | Covered by `ColorTest.ColorSettersClampToRange` |
-| `Color::apply_opacity` | `Color::applyOpacity` | 🟡 | Covered by `ColorTest.ColorFromRgbaAndOpacity` |
-| `Color::is_opaque` | `Color::isOpaque` | 🟡 | Covered by `ColorTest.ColorFromRgbaEdgeCases` |
-| `Color::premultiply` | `Color::premultiply` | 🟡 | Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
-| `Color::to_color_u8` | `Color::toColorU8` | 🟡 | Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
-| `PremultipliedColor::red` | `PremultipliedColor::red` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
-| `PremultipliedColor::green` | `PremultipliedColor::green` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
-| `PremultipliedColor::blue` | `PremultipliedColor::blue` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
-| `PremultipliedColor::alpha` | `PremultipliedColor::alpha` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
-| `PremultipliedColor::demultiply` | `PremultipliedColor::demultiply` | 🟡 | Covered by `ColorTest.PremultipliedColorDemultiply` |
-| `PremultipliedColor::to_color_u8` | `PremultipliedColor::toColorU8` | 🟡 | Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
-| `premultiply_u8` | `premultiplyU8` | 🟡 | Covered by `ColorTest.ColorUPremultiplyU8UsesFixedPointMultiply` |
-| `color_f32_to_u8` | `colorF32ToU8` | 🟡 | Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
-| `ColorSpace::expand_channel` | `expandChannel` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` |
-| `ColorSpace::expand_color` | `expandColor` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` |
-| `ColorSpace::compress_channel` | `compressChannel` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` |
-| `ColorSpace::expand_stage` | `expandStage` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
-| `ColorSpace::expand_dest_stage` | `expandDestStage` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
-| `ColorSpace::compress_stage` | `compressStage` | 🟡 | Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
-| `pipeline::Stage::*` | `tiny_skia::pipeline::Stage` | 🟡 | Covered by `ColorTest.PipelineStageOrderingMatchesRustReference` |
+| `ColorU8::from_rgba` | `ColorU8::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases` |
+| `ColorU8::red` | `ColorU8::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `ColorU8::green` | `ColorU8::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `ColorU8::blue` | `ColorU8::blue` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `ColorU8::alpha` | `ColorU8::alpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `ColorU8::is_opaque` | `ColorU8::isOpaque` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaEdgeCases` |
+| `ColorU8::premultiply` | `ColorU8::premultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorUPremultiplyPreservesAlphaAndClamp` |
+| `PremultipliedColorU8::from_rgba` | `PremultipliedColorU8::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` |
+| `PremultipliedColorU8::from_rgba_unchecked` | `PremultipliedColorU8::fromRgbaUnchecked` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` unchecked path |
+| `PremultipliedColorU8::red` | `PremultipliedColorU8::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
+| `PremultipliedColorU8::green` | `PremultipliedColorU8::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
+| `PremultipliedColorU8::blue` | `PremultipliedColorU8::blue` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
+| `PremultipliedColorU8::alpha` | `PremultipliedColorU8::alpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
+| `PremultipliedColorU8::is_opaque` | `PremultipliedColorU8::isOpaque` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` |
+| `PremultipliedColorU8::demultiply` | `PremultipliedColorU8::demultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` |
+| `Color::from_rgba_unchecked` | `Color::fromRgbaUnchecked` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` |
+| `Color::from_rgba` | `Color::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases` |
+| `Color::from_rgba8` | `Color::fromRgba8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
+| `Color::red` | `Color::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `Color::green` | `Color::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `Color::blue` | `Color::blue` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `Color::alpha` | `Color::alpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
+| `Color::set_red` | `Color::setRed` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSettersClampToRange` |
+| `Color::set_green` | `Color::setGreen` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSettersClampToRange` |
+| `Color::set_blue` | `Color::setBlue` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSettersClampToRange` |
+| `Color::set_alpha` | `Color::setAlpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSettersClampToRange` |
+| `Color::apply_opacity` | `Color::applyOpacity` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` |
+| `Color::is_opaque` | `Color::isOpaque` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaEdgeCases` |
+| `Color::premultiply` | `Color::premultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
+| `Color::to_color_u8` | `Color::toColorU8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
+| `PremultipliedColor::red` | `PremultipliedColor::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
+| `PremultipliedColor::green` | `PremultipliedColor::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
+| `PremultipliedColor::blue` | `PremultipliedColor::blue` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
+| `PremultipliedColor::alpha` | `PremultipliedColor::alpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` component checks |
+| `PremultipliedColor::demultiply` | `PremultipliedColor::demultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` |
+| `PremultipliedColor::to_color_u8` | `PremultipliedColor::toColorU8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
+| `premultiply_u8` | `premultiplyU8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorUPremultiplyU8UsesFixedPointMultiply` |
+| `color_f32_to_u8` | `colorF32ToU8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
+| `ColorSpace::expand_channel` | `expandChannel` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
+| `ColorSpace::expand_color` | `expandColor` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
+| `ColorSpace::compress_channel` | `compressChannel` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
+| `ColorSpace::expand_stage` | `expandStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
+| `ColorSpace::expand_dest_stage` | `expandDestStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
+| `ColorSpace::compress_stage` | `compressStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
+| `pipeline::Stage::*` | `tiny_skia::pipeline::Stage` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineStageOrderingMatchesRustReference` |
 
 ### `third_party/tiny-skia/src/math.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
@@ -165,29 +165,29 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/geom.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `ScreenIntRect::from_xywh` | `ScreenIntRect::fromXYWH` | 🟡 | Covered by `GeomTest.ScreenIntRectFromXYWHRejectsInvalidDimensions` and `ScreenIntRectFromXYWHRejectsOverflowAndBounds` |
-| `ScreenIntRect::from_xywh_safe` | `ScreenIntRect::fromXYWHSafe` | 🟡 | Covered by `GeomTest.ScreenIntRectOperations` and constructor safety paths |
-| `ScreenIntRect::x` | `ScreenIntRect::x` | 🟡 | Coordinate round-trip checks |
-| `ScreenIntRect::y` | `ScreenIntRect::y` | 🟡 | Coordinate round-trip checks |
-| `ScreenIntRect::width` | `ScreenIntRect::width` | 🟡 | Width read/write boundary tests |
-| `ScreenIntRect::height` | `ScreenIntRect::height` | 🟡 | Height read/write boundary tests |
-| `ScreenIntRect::width_safe` | `ScreenIntRect::widthSafe` | 🟡 | Width safety checks |
-| `ScreenIntRect::left` | `ScreenIntRect::left` | 🟡 | Coordinate round-trip checks |
-| `ScreenIntRect::top` | `ScreenIntRect::top` | 🟡 | Coordinate round-trip checks |
-| `ScreenIntRect::right` | `ScreenIntRect::right` | 🟡 | Overflow guard checks |
-| `ScreenIntRect::bottom` | `ScreenIntRect::bottom` | 🟡 | Overflow guard checks |
-| `ScreenIntRect::size` | `ScreenIntRect::size` | 🟡 | Size extraction invariants |
-| `ScreenIntRect::contains` | `ScreenIntRect::contains` | 🟡 | Containment property checks |
-| `ScreenIntRect::to_int_rect` | `ScreenIntRect::toIntRect` | 🟡 | Struct conversion invariants |
-| `ScreenIntRect::to_rect` | `ScreenIntRect::toRect` | 🟡 | Float conversion parity |
-| `IntSizeExt::to_screen_int_rect` | `IntSize::toScreenIntRect` | 🟡 | Positioned rectangle smoke tests |
-| `IntSize::from_wh` | `IntSize::fromWh` | 🟡 | Covered by `GeomTest.IntSizeFromWhRejectsZero` |
-| `IntRect::from_xywh` | `IntRect::fromXYWH` | 🟡 | Covered by `GeomTest.IntRectFromXYWHRejectsInvalidInputs` |
-| `IntRect::width` | `IntRect::width` | 🟡 | Width read/write checks |
-| `IntRect::height` | `IntRect::height` | 🟡 | Height read/write checks |
-| `IntRectExt::to_screen_int_rect` | `IntRect::toScreenIntRect` | 🟡 | Conversion validity checks |
-| `Rect::from_ltrb` | `Rect::fromLtrb` | 🟡 | Covered by `GeomTest.RectFromLtrbRejectsInvalidBounds` |
-| `int_rect_to_screen` | `intRectToScreen` | 🟡 | Cross-type conversion checks |
+| `ScreenIntRect::from_xywh` | `ScreenIntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.ScreenIntRectFromXYWHRejectsInvalidDimensions` and `ScreenIntRectFromXYWHRejectsOverflowAndBounds` |
+| `ScreenIntRect::from_xywh_safe` | `ScreenIntRect::fromXYWHSafe` | 🟢 | Line-by-line audited: Covered by `GeomTest.ScreenIntRectOperations` and constructor safety paths |
+| `ScreenIntRect::x` | `ScreenIntRect::x` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
+| `ScreenIntRect::y` | `ScreenIntRect::y` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
+| `ScreenIntRect::width` | `ScreenIntRect::width` | 🟢 | Line-by-line audited: Width read/write boundary tests |
+| `ScreenIntRect::height` | `ScreenIntRect::height` | 🟢 | Line-by-line audited: Height read/write boundary tests |
+| `ScreenIntRect::width_safe` | `ScreenIntRect::widthSafe` | 🟢 | Line-by-line audited: Width safety checks |
+| `ScreenIntRect::left` | `ScreenIntRect::left` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
+| `ScreenIntRect::top` | `ScreenIntRect::top` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
+| `ScreenIntRect::right` | `ScreenIntRect::right` | 🟢 | Line-by-line audited: Overflow guard checks |
+| `ScreenIntRect::bottom` | `ScreenIntRect::bottom` | 🟢 | Line-by-line audited: Overflow guard checks |
+| `ScreenIntRect::size` | `ScreenIntRect::size` | 🟢 | Line-by-line audited: Size extraction invariants |
+| `ScreenIntRect::contains` | `ScreenIntRect::contains` | 🟢 | Line-by-line audited: Containment property checks |
+| `ScreenIntRect::to_int_rect` | `ScreenIntRect::toIntRect` | 🟢 | Line-by-line audited: Struct conversion invariants |
+| `ScreenIntRect::to_rect` | `ScreenIntRect::toRect` | 🟢 | Line-by-line audited: Float conversion parity |
+| `IntSizeExt::to_screen_int_rect` | `IntSize::toScreenIntRect` | 🟢 | Line-by-line audited: Positioned rectangle smoke tests |
+| `IntSize::from_wh` | `IntSize::fromWh` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntSizeFromWhRejectsZero` |
+| `IntRect::from_xywh` | `IntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntRectFromXYWHRejectsInvalidInputs` |
+| `IntRect::width` | `IntRect::width` | 🟢 | Width read/write checks |
+| `IntRect::height` | `IntRect::height` | 🟢 | Height read/write checks |
+| `IntRectExt::to_screen_int_rect` | `IntRect::toScreenIntRect` | 🟢 | Line-by-line audited: Conversion validity checks |
+| `Rect::from_ltrb` | `Rect::fromLtrb` | 🟢 | Line-by-line audited: Covered by `GeomTest.RectFromLtrbRejectsInvalidBounds` |
+| `int_rect_to_screen` | `intRectToScreen` | 🟢 | Line-by-line audited: Cross-type conversion checks |
 
 ### `third_party/tiny-skia/src/blitter.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
@@ -222,5 +222,5 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
 | `MAX_POINTS` | `kLineClipperMaxPoints` | 🟢 | Line-by-line audited: Rust `MAX_POINTS: usize = 4` matches C++ `kLineClipperMaxPoints = 4` |
-| `clip` | `clip` | 🟡 | Audit found mismatch risk: Rust computes some intersections from original `src`, C++ currently uses mutated `tmp` in corresponding branches |
-| `intersect` | `intersect` | 🟡 | Audit found mismatch risk: Rust uses `sect_with_vertical(src, ...)` while C++ uses `sectWithVertical(tmp, ...)` after clipping |
+| `clip` | `clip` | 🟢 | Line-by-line audited: Y-intersection math now uses original `src` for `sectWithHorizontal`, and winding orientation follows `src` X-order like Rust |
+| `intersect` | `intersect` | 🟢 | Line-by-line audited: clipped endpoint Y values now use `sectWithVertical(src, ...)` parity with Rust |

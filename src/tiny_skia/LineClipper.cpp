@@ -103,18 +103,18 @@ std::span<const Point> clip(std::span<const Point, 2> src,
 
   std::array<Point, 2> tmp = {src[0], src[1]};
 
-  if (tmp[index0].y < clip.top()) {
-    tmp[index0] = {sectWithHorizontal(tmp, clip.top()), clip.top()};
+  if (src[index0].y < clip.top()) {
+    tmp[index0] = {sectWithHorizontal({src[0], src[1]}, clip.top()), clip.top()};
   }
   if (tmp[index1].y > clip.bottom()) {
-    tmp[index1] = {sectWithHorizontal(tmp, clip.bottom()), clip.bottom()};
+    tmp[index1] = {sectWithHorizontal({src[0], src[1]}, clip.bottom()), clip.bottom()};
   }
 
   std::array<Point, kLineClipperMaxPoints> result = {Point{}, Point{}, Point{}, Point{}};
   int lineCount = 1;
   bool reverse = false;
 
-  if (tmp[0].x < tmp[1].x) {
+  if (src[0].x < src[1].x) {
     index0 = 0;
     index1 = 1;
   } else {
@@ -211,10 +211,10 @@ bool intersect(std::span<const Point, 2> src, const Rect& clip, std::span<Point,
   std::array<Point, 2> tmp = {src[0], src[1]};
 
   if (tmp[index0].y < clip.top()) {
-    tmp[index0] = {sectWithHorizontal(tmp, clip.top()), clip.top()};
+    tmp[index0] = {sectWithHorizontal({src[0], src[1]}, clip.top()), clip.top()};
   }
   if (tmp[index1].y > clip.bottom()) {
-    tmp[index1] = {sectWithHorizontal(tmp, clip.bottom()), clip.bottom()};
+    tmp[index1] = {sectWithHorizontal({src[0], src[1]}, clip.bottom()), clip.bottom()};
   }
 
   if (tmp[0].x < tmp[1].x) {
@@ -232,10 +232,10 @@ bool intersect(std::span<const Point, 2> src, const Rect& clip, std::span<Point,
   }
 
   if (tmp[index0].x < clip.left()) {
-    tmp[index0] = {clip.left(), sectWithVertical(tmp, clip.left())};
+    tmp[index0] = {clip.left(), sectWithVertical({src[0], src[1]}, clip.left())};
   }
   if (tmp[index1].x > clip.right()) {
-    tmp[index1] = {clip.right(), sectWithVertical(tmp, clip.right())};
+    tmp[index1] = {clip.right(), sectWithVertical({src[0], src[1]}, clip.right())};
   }
 
   dst[0] = tmp[0];
