@@ -64,3 +64,21 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 
 - Prefer concise Markdown with the repository-specific section structure.
 - Keep markdown paths and links simple and stable.
+
+## Learned Patterns and Recommendations
+
+- For `std::optional` results in tests, prefer matcher assertions over `has_value()` checks:
+  - present: `ASSERT_THAT(value, Optional(_))`
+  - absent: `EXPECT_THAT(value, Eq(std::nullopt))`
+- When asserting multiple related scalar results, prefer aggregating into arrays/spans and using
+  `ElementsAre(...)` (or `UnorderedElementsAre(...)`) to improve mismatch diagnostics.
+- Promote repeated domain assertions into reusable matchers under
+  `src/**/tests/test_utils/` instead of copy/pasting local helper loops.
+- Prefer `Field(...)`, `Property(...)`, and `AllOf(...)` for struct/member diagnostics when
+  failures should identify exactly which field mismatched.
+- Keep matcher upgrades behavior-preserving: no production logic changes in readability-only
+  batches.
+- Diminishing returns rule: once remaining work is mostly isolated scalar equality checks with
+  clear failure output already, prioritize new porting work over further matcher refactors.
+- In readability-only test passes, keep edits scoped and still run the full gate:
+  `bazel build //...` and `bazel test //...`.
