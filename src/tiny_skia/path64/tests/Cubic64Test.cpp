@@ -6,6 +6,16 @@
 
 #include "tiny_skia/path64/Cubic64.h"
 
+namespace {
+
+auto Point64Eq(double expectedX, double expectedY) {
+  return testing::AllOf(
+      testing::Field(&tiny_skia::Point64::x, testing::DoubleEq(expectedX)),
+      testing::Field(&tiny_skia::Point64::y, testing::DoubleEq(expectedY)));
+}
+
+}  // namespace
+
 TEST(Cubic64Test, AsF64SlicePreservesCoordinates) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       tiny_skia::Point64::fromXy(0.0, 1.0),
@@ -31,21 +41,15 @@ TEST(Cubic64Test, PointAtTEvaluatesEndpointsAndMidpoint) {
   const auto p0 = cubic.pointAtT(0.0);
   const auto p1 = cubic.pointAtT(1.0);
   const auto p2 = cubic.pointAtT(0.5);
-  EXPECT_DOUBLE_EQ(p0.x, 0.0);
-  EXPECT_DOUBLE_EQ(p0.y, 0.0);
-  EXPECT_DOUBLE_EQ(p1.x, 1.0);
-  EXPECT_DOUBLE_EQ(p1.y, 0.0);
-  EXPECT_DOUBLE_EQ(p2.x, 0.5);
-  EXPECT_DOUBLE_EQ(p2.y, 0.0);
+  EXPECT_THAT(p0, Point64Eq(0.0, 0.0));
+  EXPECT_THAT(p1, Point64Eq(1.0, 0.0));
+  EXPECT_THAT(p2, Point64Eq(0.5, 0.0));
 }
 
 TEST(Cubic64Test, CoefficientsFollowExpectedTransform) {
   const std::array<double, 8> src{0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0};
   const auto coefficients = tiny_skia::path64::cubic64::coefficients(src);
-  EXPECT_DOUBLE_EQ(coefficients[0], 0.0);
-  EXPECT_DOUBLE_EQ(coefficients[1], 0.0);
-  EXPECT_DOUBLE_EQ(coefficients[2], 6.0);
-  EXPECT_DOUBLE_EQ(coefficients[3], 0.0);
+  EXPECT_THAT(coefficients, testing::ElementsAre(0.0, 0.0, 6.0, 0.0));
 }
 
 TEST(Cubic64Test, RootsValidTAddsEndpointsWhenWithinMargin) {
@@ -74,10 +78,10 @@ TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
   });
   const auto pair = cubic.chopAt(0.5);
 
-  EXPECT_DOUBLE_EQ(pair.points[3].x, 1.5);
-  EXPECT_DOUBLE_EQ(pair.points[4].x, 2.0);
-  EXPECT_DOUBLE_EQ(pair.points[5].x, 2.5);
-  EXPECT_DOUBLE_EQ(pair.points[6].x, 3.0);
+  EXPECT_THAT(pair.points[3], Point64Eq(1.5, 0.0));
+  EXPECT_THAT(pair.points[4], Point64Eq(2.0, 0.0));
+  EXPECT_THAT(pair.points[5], Point64Eq(2.5, 0.0));
+  EXPECT_THAT(pair.points[6], Point64Eq(3.0, 0.0));
 }
 
 TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {

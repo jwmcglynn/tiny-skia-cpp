@@ -6,6 +6,19 @@
 
 #include "tiny_skia/PathGeometry.h"
 
+namespace {
+
+::testing::Matcher<const tiny_skia::Point&> PointEq(float x, float y) {
+  using ::testing::AllOf;
+  using ::testing::FloatEq;
+  using ::testing::Field;
+
+  return AllOf(Field("x", &tiny_skia::Point::x, FloatEq(x)),
+               Field("y", &tiny_skia::Point::y, FloatEq(y)));
+}
+
+}  // namespace
+
 TEST(PathGeometryTest, ChopQuadAtInterpolatesPoints) {
   const auto src =
       std::array<tiny_skia::Point, 3>{tiny_skia::Point{0.0f, 0.0f}, {10.0f, 10.0f}, {20.0f, 0.0f}};
@@ -13,16 +26,10 @@ TEST(PathGeometryTest, ChopQuadAtInterpolatesPoints) {
   const auto count = tiny_skia::path_geometry::chopQuadAt(src, 0.25, dst);
 
   EXPECT_EQ(count, 1u);
-  EXPECT_FLOAT_EQ(dst[0].x, 0.0f);
-  EXPECT_FLOAT_EQ(dst[0].y, 0.0f);
-  EXPECT_FLOAT_EQ(dst[1].x, 2.5f);
-  EXPECT_FLOAT_EQ(dst[1].y, 2.5f);
-  EXPECT_FLOAT_EQ(dst[2].x, 5.0f);
-  EXPECT_FLOAT_EQ(dst[2].y, 3.75f);
-  EXPECT_FLOAT_EQ(dst[3].x, 12.5f);
-  EXPECT_FLOAT_EQ(dst[3].y, 7.5f);
-  EXPECT_FLOAT_EQ(dst[4].x, 20.0f);
-  EXPECT_FLOAT_EQ(dst[4].y, 0.0f);
+  EXPECT_THAT(std::span<const tiny_skia::Point>(dst.data(), 5),
+              testing::ElementsAre(PointEq(0.0f, 0.0f), PointEq(2.5f, 2.5f),
+                                   PointEq(5.0f, 3.75f), PointEq(12.5f, 7.5f),
+                                   PointEq(20.0f, 0.0f)));
 }
 
 TEST(PathGeometryTest, ChopQuadAtXExtremaMonotonicLeavesInputIntact) {
@@ -75,10 +82,9 @@ TEST(PathGeometryTest, ChopCubicAtReturnsOriginalForEmptyTValues) {
       tiny_skia::path_geometry::chopCubicAt(src, span, std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 0u);
-  EXPECT_EQ(dst[0].x, src[0].x);
-  EXPECT_EQ(dst[0].y, src[0].y);
-  EXPECT_EQ(dst[1].x, src[1].x);
-  EXPECT_EQ(dst[3].x, src[3].x);
+  EXPECT_THAT(dst[0], PointEq(src[0].x, src[0].y));
+  EXPECT_THAT(dst[1], PointEq(src[1].x, src[1].y));
+  EXPECT_THAT(dst[3], PointEq(src[3].x, src[3].y));
 }
 
 TEST(PathGeometryTest, ChopCubicAtSplitsAtOneCut) {
@@ -95,11 +101,9 @@ TEST(PathGeometryTest, ChopCubicAtSplitsAtOneCut) {
                                             std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 1u);
-  EXPECT_FLOAT_EQ(dst[0].x, 0.0f);
-  EXPECT_FLOAT_EQ(dst[3].x, 15.0f);
-  EXPECT_FLOAT_EQ(dst[3].y, 7.5f);
-  EXPECT_FLOAT_EQ(dst[6].x, 30.0f);
-  EXPECT_FLOAT_EQ(dst[6].y, 0.0f);
+  EXPECT_THAT(dst[0], PointEq(0.0f, 0.0f));
+  EXPECT_THAT(dst[3], PointEq(15.0f, 7.5f));
+  EXPECT_THAT(dst[6], PointEq(30.0f, 0.0f));
 }
 
 TEST(PathGeometryTest, ChopCubicAtYExtremaFlattensMonotonicYForCurve) {
@@ -147,8 +151,8 @@ TEST(PathGeometryTest, ChopMonoCubicAtXFindsAndChopsAtIntercept) {
   const auto found = tiny_skia::path_geometry::chopMonoCubicAtX(src, 15.0f, dst);
 
   EXPECT_TRUE(found);
-  EXPECT_FLOAT_EQ(dst[0].x, 0.0f);
-  EXPECT_FLOAT_EQ(dst[6].x, 30.0f);
+  EXPECT_THAT(dst[0], PointEq(0.0f, 0.0f));
+  EXPECT_THAT(dst[6], PointEq(30.0f, 0.0f));
   EXPECT_NEAR(dst[3].x, 15.0f, 1e-5);
 }
 
@@ -177,10 +181,8 @@ TEST(PathGeometryTest, ChopCubicAtMaxCurvatureFiltersEndpointsAndSplits) {
 
   EXPECT_EQ(count, 2u);
   EXPECT_FLOAT_EQ(tValues[0], 0.5f);
-  EXPECT_FLOAT_EQ(dst[0].x, 20.0f);
-  EXPECT_FLOAT_EQ(dst[0].y, 160.0f);
-  EXPECT_FLOAT_EQ(dst[6].x, 160.0001f);
-  EXPECT_FLOAT_EQ(dst[6].y, 20.0f);
+  EXPECT_THAT(dst[0], PointEq(20.0f, 160.0f));
+  EXPECT_THAT(dst[6], PointEq(160.0001f, 20.0f));
 }
 
 TEST(PathGeometryTest, ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurve) {
@@ -196,10 +198,9 @@ TEST(PathGeometryTest, ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurv
       src, tValues, std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 1u);
-  EXPECT_FLOAT_EQ(dst[0].x, src[0].x);
-  EXPECT_FLOAT_EQ(dst[1].x, src[1].x);
-  EXPECT_FLOAT_EQ(dst[2].x, src[2].x);
-  EXPECT_FLOAT_EQ(dst[3].x, src[3].x);
+  EXPECT_THAT(std::span<const tiny_skia::Point>(dst.data(), 4),
+              testing::ElementsAre(PointEq(src[0].x, src[0].y), PointEq(src[1].x, src[1].y),
+                                   PointEq(src[2].x, src[2].y), PointEq(src[3].x, src[3].y)));
   EXPECT_FLOAT_EQ(tValues[0], 1.0);
   EXPECT_FLOAT_EQ(tValues[1], 2.0);
   EXPECT_FLOAT_EQ(tValues[2], 3.0);

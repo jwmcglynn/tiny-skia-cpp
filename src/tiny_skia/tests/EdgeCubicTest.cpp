@@ -1,14 +1,23 @@
 #include <array>
+#include <optional>
 #include <span>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Edge.h"
 
+namespace {
+using testing::Field;
+using testing::Lt;
+using testing::Optional;
+}  // namespace
+
 TEST(EdgeCubicTest, CubicEdgeCreateRejectsBadInputs) {
   const std::array<tiny_skia::Point, 3> badCubic{{{0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}}};
-  EXPECT_FALSE(
-      tiny_skia::CubicEdge::create(std::span{badCubic.data(), badCubic.size()}, 0).has_value());
+  EXPECT_THAT(
+      tiny_skia::CubicEdge::create(std::span{badCubic.data(), badCubic.size()}, 0),
+      testing::Eq(std::nullopt));
 }
 
 TEST(EdgeCubicTest, CubicEdgeCreateBasic) {
@@ -17,9 +26,8 @@ TEST(EdgeCubicTest, CubicEdgeCreateBasic) {
 
   const auto edgeOpt = tiny_skia::CubicEdge::create(
       std::span{cubic.data(), cubic.size()}, 0);
-  ASSERT_TRUE(edgeOpt.has_value());
-  const auto& edge = edgeOpt.value();
-  EXPECT_LT(edge.curveCount, 0);
+  ASSERT_THAT(edgeOpt, Optional(Field(&tiny_skia::CubicEdge::curveCount, Lt(0))));
+  const auto& edge = *edgeOpt;
   EXPECT_NE(edge.cLastX, edge.cx);
   EXPECT_NE(edge.cLastY, edge.cy);
 }
@@ -30,9 +38,9 @@ TEST(EdgeCubicTest, CubicEdgeCreateDescendingYFlipsWindingAndUpdates) {
 
   auto edgeOpt = tiny_skia::CubicEdge::create(
       std::span{cubic.data(), cubic.size()}, 0);
-  ASSERT_TRUE(edgeOpt.has_value());
-  auto edge = edgeOpt.value();
-  EXPECT_EQ(edge.line.winding, -1);
+  ASSERT_THAT(edgeOpt, Optional(testing::_));
+  auto edge = *edgeOpt;
+  EXPECT_THAT(edge.line, Field(&tiny_skia::LineEdge::winding, -1));
 
   const auto xBefore = edge.cx;
   const auto yBefore = edge.cy;
@@ -40,4 +48,3 @@ TEST(EdgeCubicTest, CubicEdgeCreateDescendingYFlipsWindingAndUpdates) {
   EXPECT_NE(edge.cx, xBefore);
   EXPECT_NE(edge.cy, yBefore);
 }
-

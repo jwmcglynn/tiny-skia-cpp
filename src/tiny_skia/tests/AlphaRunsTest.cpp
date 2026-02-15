@@ -4,31 +4,36 @@
 #include <span>
 #include <vector>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/AlphaRuns.h"
 
+using ::testing::ElementsAre;
+using ::testing::Optional;
+
 TEST(AlphaRunsTest, CatchOverflow) {
-  EXPECT_EQ(tiny_skia::AlphaRuns::catchOverflow(0), 0u);
-  EXPECT_EQ(tiny_skia::AlphaRuns::catchOverflow(1), 1u);
-  EXPECT_EQ(tiny_skia::AlphaRuns::catchOverflow(128), 128u);
-  EXPECT_EQ(tiny_skia::AlphaRuns::catchOverflow(255), 255u);
-  EXPECT_EQ(tiny_skia::AlphaRuns::catchOverflow(256), 255u);
+  const std::array overflowResults{
+      tiny_skia::AlphaRuns::catchOverflow(0),
+      tiny_skia::AlphaRuns::catchOverflow(1),
+      tiny_skia::AlphaRuns::catchOverflow(128),
+      tiny_skia::AlphaRuns::catchOverflow(255),
+      tiny_skia::AlphaRuns::catchOverflow(256),
+  };
+  EXPECT_THAT(overflowResults, ElementsAre(0u, 1u, 128u, 255u, 255u));
 }
 
 TEST(AlphaRunsTest, ConstructorResetAndIsEmpty) {
   tiny_skia::AlphaRuns runs(5);
   EXPECT_TRUE(runs.isEmpty());
-  EXPECT_TRUE(runs.runs[0].has_value());
-  EXPECT_EQ(*runs.runs[0], 5u);
+  EXPECT_THAT(runs.runs[0], Optional(5u));
   EXPECT_EQ(runs.alpha[0], 0u);
   EXPECT_FALSE(runs.runs[5].has_value());
 
   runs.runs = std::vector<tiny_skia::AlphaRun>(6);
   runs.alpha = std::vector<std::uint8_t>(6, 42);
   runs.reset(7);
-  EXPECT_TRUE(runs.runs[0].has_value());
-  EXPECT_EQ(*runs.runs[0], 7u);
+  EXPECT_THAT(runs.runs[0], Optional(7u));
   EXPECT_EQ(runs.alpha[0], 0u);
 }
 
@@ -38,12 +43,9 @@ TEST(AlphaRunsTest, AddComposesStartAndMiddle) {
   EXPECT_EQ(offset, 4u);
   EXPECT_FALSE(runs.isEmpty());
 
-  EXPECT_TRUE(runs.runs[0].has_value());
-  EXPECT_EQ(*runs.runs[0], 1u);
-  EXPECT_TRUE(runs.runs[1].has_value());
-  EXPECT_EQ(*runs.runs[1], 3u);
-  EXPECT_TRUE(runs.runs[4].has_value());
-  EXPECT_EQ(*runs.runs[4], 1u);
+  EXPECT_THAT(runs.runs[0], Optional(1u));
+  EXPECT_THAT(runs.runs[1], Optional(3u));
+  EXPECT_THAT(runs.runs[4], Optional(1u));
   EXPECT_EQ(runs.alpha[1], 70u);
 }
 
@@ -51,8 +53,7 @@ TEST(AlphaRunsTest, AddUsesOffsetAndStopAlpha) {
   tiny_skia::AlphaRuns runs(6);
   const auto first = runs.add(1, 0, 3, 0, 70, 0);
   EXPECT_EQ(first, 4u);
-  EXPECT_TRUE(runs.runs[1].has_value());
-  EXPECT_EQ(*runs.runs[1], 3u);
+  EXPECT_THAT(runs.runs[1], Optional(3u));
   EXPECT_EQ(runs.alpha[1], 70u);
 
   const auto second = runs.add(4, 0, 0, 15, 0, first);
@@ -67,10 +68,8 @@ TEST(AlphaRunsTest, BreakRunSplitsRunsWithNonZeroBoundaries) {
   alpha[0] = 11;
 
   tiny_skia::AlphaRuns::breakRun(std::span{runs}, std::span{alpha}, 0, 3);
-  EXPECT_TRUE(runs[0].has_value());
-  EXPECT_EQ(*runs[0], 3u);
-  EXPECT_TRUE(runs[3].has_value());
-  EXPECT_EQ(*runs[3], 5u);
+  EXPECT_THAT(runs[0], Optional(3u));
+  EXPECT_THAT(runs[3], Optional(5u));
   EXPECT_EQ(alpha[3], 11u);
   EXPECT_FALSE(runs[6].has_value());
 }
@@ -82,9 +81,7 @@ TEST(AlphaRunsTest, BreakAtSplitsAtOffset) {
   alpha[0] = 11;
 
   tiny_skia::AlphaRuns::breakAt(std::span{alpha}, std::span{runs}, 2);
-  EXPECT_TRUE(runs[0].has_value());
-  EXPECT_EQ(*runs[0], 2u);
-  EXPECT_TRUE(runs[2].has_value());
-  EXPECT_EQ(*runs[2], 6u);
+  EXPECT_THAT(runs[0], Optional(2u));
+  EXPECT_THAT(runs[2], Optional(6u));
   EXPECT_EQ(alpha[2], 11u);
 }

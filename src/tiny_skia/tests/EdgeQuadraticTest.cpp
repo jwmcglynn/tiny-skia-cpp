@@ -1,14 +1,23 @@
 #include <array>
+#include <optional>
 #include <span>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Edge.h"
 
+namespace {
+using testing::Field;
+using testing::Gt;
+using testing::Optional;
+}  // namespace
+
 TEST(EdgeQuadraticTest, QuadraticEdgeCreateRejectsBadInputs) {
   const std::array<tiny_skia::Point, 2> badQuad{{{0.0f, 0.0f}, {1.0f, 1.0f}}};
-  EXPECT_FALSE(tiny_skia::QuadraticEdge::create(
-      std::span{badQuad.data(), badQuad.size()}, 0).has_value());
+  EXPECT_THAT(tiny_skia::QuadraticEdge::create(
+                  std::span{badQuad.data(), badQuad.size()}, 0),
+              testing::Eq(std::nullopt));
 }
 
 TEST(EdgeQuadraticTest, QuadraticEdgeCreateBasic) {
@@ -16,10 +25,9 @@ TEST(EdgeQuadraticTest, QuadraticEdgeCreateBasic) {
 
   const auto edgeOpt = tiny_skia::QuadraticEdge::create(
       std::span{quad.data(), quad.size()}, 0);
-  ASSERT_TRUE(edgeOpt.has_value());
-  const auto& edge = edgeOpt.value();
+  ASSERT_THAT(edgeOpt, Optional(Field(&tiny_skia::QuadraticEdge::curveCount, Gt(0))));
+  const auto& edge = *edgeOpt;
   EXPECT_TRUE(edge.line.firstY < edge.line.lastY);
-  EXPECT_GT(edge.curveCount, 0);
   EXPECT_NE(edge.qLastX, edge.qx);
   EXPECT_NE(edge.qLastY, edge.qy);
 }
@@ -29,8 +37,10 @@ TEST(EdgeQuadraticTest, QuadraticEdgeCreateDescendingYFlipsWinding) {
 
   const auto edgeOpt = tiny_skia::QuadraticEdge::create(
       std::span{quad.data(), quad.size()}, 0);
-  ASSERT_TRUE(edgeOpt.has_value());
-  EXPECT_EQ(edgeOpt.value().line.winding, -1);
+  EXPECT_THAT(
+      edgeOpt,
+      Optional(Field(&tiny_skia::QuadraticEdge::line,
+                     Field(&tiny_skia::LineEdge::winding, -1))));
 }
 
 TEST(EdgeQuadraticTest, QuadraticEdgeUpdateCanAdvance) {
@@ -38,9 +48,9 @@ TEST(EdgeQuadraticTest, QuadraticEdgeUpdateCanAdvance) {
 
   auto edgeOpt = tiny_skia::QuadraticEdge::create(
       std::span{quad.data(), quad.size()}, 0);
-  ASSERT_TRUE(edgeOpt.has_value());
+  ASSERT_THAT(edgeOpt, Optional(testing::_));
 
-  auto edge = edgeOpt.value();
+  auto edge = *edgeOpt;
   const auto xBefore = edge.qx;
   const auto yBefore = edge.qy;
 
@@ -49,4 +59,3 @@ TEST(EdgeQuadraticTest, QuadraticEdgeUpdateCanAdvance) {
   EXPECT_NE(edge.qx, xBefore);
   EXPECT_NE(edge.qy, yBefore);
 }
-

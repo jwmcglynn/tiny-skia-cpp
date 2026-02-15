@@ -21,8 +21,8 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/blend_mode.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `BlendMode::should_pre_scale_coverage` | `shouldPreScaleCoverage` | 🟢 | Line-by-line audited vs Rust `matches!` set; includes `Destination`, `DestinationOver`, `Plus`, `DestinationOut`, `SourceAtop`, `SourceOver`, `Xor` |
-| `BlendMode::to_stage` | `toStage` | 🟢 | Line-by-line audited vs Rust `match`; all 29 blend-mode mappings + `Source -> nullopt` parity confirmed |
+| `BlendMode::should_pre_scale_coverage` | `shouldPreScaleCoverage` | 🟢 | Line-by-line audited vs Rust `matches!` set; includes `Destination`, `DestinationOver`, `Plus`, `DestinationOut`, `SourceAtop`, `SourceOver`, `Xor`; matcher diagnostics upgraded in `BlendModeTest.ShouldPreScaleCoverage` |
+| `BlendMode::to_stage` | `toStage` | 🟢 | Line-by-line audited vs Rust `match`; all 29 blend-mode mappings + `Source -> nullopt` parity confirmed; matcher diagnostics upgraded with `Optional`/`nullopt` assertions in `BlendModeTest.ToStageMapping` |
 
 ### `third_party/tiny-skia/src/edge_builder.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
@@ -115,7 +115,7 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `ColorU8::alpha` | `ColorU8::alpha` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
 | `ColorU8::is_opaque` | `ColorU8::isOpaque` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaEdgeCases` |
 | `ColorU8::premultiply` | `ColorU8::premultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorUPremultiplyPreservesAlphaAndClamp` |
-| `PremultipliedColorU8::from_rgba` | `PremultipliedColorU8::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` |
+| `PremultipliedColorU8::from_rgba` | `PremultipliedColorU8::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation`; matcher diagnostics upgraded with `Optional`/`nullopt` assertions |
 | `PremultipliedColorU8::from_rgba_unchecked` | `PremultipliedColorU8::fromRgbaUnchecked` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` unchecked path |
 | `PremultipliedColorU8::red` | `PremultipliedColorU8::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
 | `PremultipliedColorU8::green` | `PremultipliedColorU8::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` component checks |
@@ -124,7 +124,7 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `PremultipliedColorU8::is_opaque` | `PremultipliedColorU8::isOpaque` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorOptionValidation` |
 | `PremultipliedColorU8::demultiply` | `PremultipliedColorU8::demultiply` | 🟢 | Line-by-line audited: Covered by `ColorTest.PremultipliedColorDemultiply` |
 | `Color::from_rgba_unchecked` | `Color::fromRgbaUnchecked` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` |
-| `Color::from_rgba` | `Color::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases` |
+| `Color::from_rgba` | `Color::fromRgba` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` and `ColorFromRgbaEdgeCases`; matcher diagnostics upgraded with `Optional`/`nullopt` assertions (including invalid-input case) |
 | `Color::from_rgba8` | `Color::fromRgba8` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorConversionToU8AndPremultiplyRoundTrip` |
 | `Color::red` | `Color::red` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
 | `Color::green` | `Color::green` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorFromRgbaAndOpacity` component checks |
@@ -149,9 +149,9 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `ColorSpace::expand_channel` | `expandChannel` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
 | `ColorSpace::expand_color` | `expandColor` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
 | `ColorSpace::compress_channel` | `compressChannel` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` |
-| `ColorSpace::expand_stage` | `expandStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
-| `ColorSpace::expand_dest_stage` | `expandDestStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
-| `ColorSpace::compress_stage` | `compressStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions |
+| `ColorSpace::expand_stage` | `expandStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions; linear-path `nullopt` check now uses matcher assertion |
+| `ColorSpace::expand_dest_stage` | `expandDestStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions; linear-path `nullopt` check now uses matcher assertion |
+| `ColorSpace::compress_stage` | `compressStage` | 🟢 | Line-by-line audited: Covered by `ColorTest.ColorSpaceTransforms` stage mapping assertions; linear-path `nullopt` check now uses matcher assertion |
 | `pipeline::Stage::*` | `tiny_skia::pipeline::Stage` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineStageOrderingMatchesRustReference` |
 
 ### `third_party/tiny-skia/src/math.rs`
@@ -160,12 +160,12 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `bound` | `bound` | 🟢 | Line-by-line audited: Rust `max.min(value).max(min)` matches C++ clamp ordering exactly |
 | `left_shift` | `leftShift` | 🟢 | Line-by-line audited: Rust `((value as u32) << shift) as i32` matches C++ unsigned-shift then cast |
 | `left_shift64` | `leftShift64` | 🟢 | Line-by-line audited: Rust `((value as u64) << shift) as i64` matches C++ unsigned-shift then cast |
-| `approx_powf` | `approxPowf` | 🟢 | Line-by-line audited: constants, bit-casts, floor/round branches, and infinity/zero guards match Rust formula |
+| `approx_powf` | `approxPowf` | 🟢 | Line-by-line audited: constants, bit-casts, floor/round branches, and infinity/zero guards match Rust formula; matcher diagnostics upgraded in `MathTest.LeftShiftAndApproxPowf` |
 
 ### `third_party/tiny-skia/src/geom.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `ScreenIntRect::from_xywh` | `ScreenIntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.ScreenIntRectFromXYWHRejectsInvalidDimensions` and `ScreenIntRectFromXYWHRejectsOverflowAndBounds` |
+| `ScreenIntRect::from_xywh` | `ScreenIntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.ScreenIntRectFromXYWHRejectsInvalidDimensions` and `ScreenIntRectFromXYWHRejectsOverflowAndBounds`; invalid/overflow cases now use matcher-based `nullopt` assertions |
 | `ScreenIntRect::from_xywh_safe` | `ScreenIntRect::fromXYWHSafe` | 🟢 | Line-by-line audited: Covered by `GeomTest.ScreenIntRectOperations` and constructor safety paths |
 | `ScreenIntRect::x` | `ScreenIntRect::x` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
 | `ScreenIntRect::y` | `ScreenIntRect::y` | 🟢 | Line-by-line audited: Coordinate round-trip checks |
@@ -181,12 +181,12 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `ScreenIntRect::to_int_rect` | `ScreenIntRect::toIntRect` | 🟢 | Line-by-line audited: Struct conversion invariants |
 | `ScreenIntRect::to_rect` | `ScreenIntRect::toRect` | 🟢 | Line-by-line audited: Float conversion parity |
 | `IntSizeExt::to_screen_int_rect` | `IntSize::toScreenIntRect` | 🟢 | Line-by-line audited: Positioned rectangle smoke tests |
-| `IntSize::from_wh` | `IntSize::fromWh` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntSizeFromWhRejectsZero` |
-| `IntRect::from_xywh` | `IntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntRectFromXYWHRejectsInvalidInputs` |
+| `IntSize::from_wh` | `IntSize::fromWh` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntSizeFromWhRejectsZero`; reject-path now uses matcher-based `nullopt` assertions |
+| `IntRect::from_xywh` | `IntRect::fromXYWH` | 🟢 | Line-by-line audited: Covered by `GeomTest.IntRectFromXYWHRejectsInvalidInputs`; reject-path now uses matcher-based `nullopt` assertions |
 | `IntRect::width` | `IntRect::width` | 🟢 | Width read/write checks |
 | `IntRect::height` | `IntRect::height` | 🟢 | Height read/write checks |
 | `IntRectExt::to_screen_int_rect` | `IntRect::toScreenIntRect` | 🟢 | Line-by-line audited: Conversion validity checks |
-| `Rect::from_ltrb` | `Rect::fromLtrb` | 🟢 | Line-by-line audited: Covered by `GeomTest.RectFromLtrbRejectsInvalidBounds` |
+| `Rect::from_ltrb` | `Rect::fromLtrb` | 🟢 | Line-by-line audited: Covered by `GeomTest.RectFromLtrbRejectsInvalidBounds`; reject-path now uses matcher-based `nullopt` assertions |
 | `int_rect_to_screen` | `intRectToScreen` | 🟢 | Line-by-line audited: Cross-type conversion checks |
 
 ### `third_party/tiny-skia/src/blitter.rs`
@@ -195,7 +195,7 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Mask::image` | `Mask::image` | 🟢 | Line-by-line audited: Rust `[u8;2] image` maps directly to C++ `std::array<uint8_t,2> image` |
 | `Mask::bounds` | `Mask::bounds` | 🟢 | Line-by-line audited: Rust `ScreenIntRect bounds` maps directly to C++ `ScreenIntRect bounds` |
 | `Mask::row_bytes` | `Mask::rowBytes` | 🟢 | Line-by-line audited: Rust `u32 row_bytes` maps to C++ `uint32_t rowBytes` (name-only casing change) |
-| `Blitter::blit_h` | `Blitter::blitH` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
+| `Blitter::blit_h` | `Blitter::blitH` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++; call-sequence diagnostics upgraded in `BlitterTest.OverridableMethodsReceiveCalls` |
 | `Blitter::blit_anti_h` | `Blitter::blitAntiH` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
 | `Blitter::blit_v` | `Blitter::blitV` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
 | `Blitter::blit_anti_h2` | `Blitter::blitAntiH2` | 🟢 | Line-by-line audited: default implementation is unreachable/abort in both Rust and C++ |
@@ -208,13 +208,13 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | --- | --- | --- | --- |
 | `Edge::as_line` | `Edge::asLine` | 🟢 | Line-by-line audited: enum/variant dispatch to embedded `LineEdge` matches Rust `match` branches |
 | `Edge::as_line_mut` | `Edge::asLine` | 🟢 | Line-by-line audited: mutable delegate dispatch matches Rust `match` branches |
-| `LineEdge::new` | `LineEdge::create` | 🟢 | Line-by-line audited: scale conversion, winding swap, zero-height reject, slope/dy setup, and field writes match Rust |
+| `LineEdge::new` | `LineEdge::create` | 🟢 | Line-by-line audited: scale conversion, winding swap, zero-height reject, slope/dy setup, and field writes match Rust; matcher diagnostics upgraded in `EdgeLineTest.LineEdgeCreateAssignsWindingAndBounds` and remaining optional assertions in `EdgeLineTest` |
 | `LineEdge::is_vertical` | `LineEdge::isVertical` | 🟢 | Line-by-line audited: `dx == 0` parity |
 | `LineEdge::update` | `LineEdge::update` | 🟢 | Line-by-line audited: fixed-point downshift, zero-height reject, slope recompute, and edge state updates match Rust |
-| `QuadraticEdge::new` | `QuadraticEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust |
+| `QuadraticEdge::new` | `QuadraticEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust; matcher diagnostics upgraded in `EdgeQuadraticTest.QuadraticEdgeCreateBasic` |
 | `QuadraticEdge::new2` | `QuadraticEdge::create` | 🟢 | Line-by-line audited via internal `makeQuadraticEdge`: coefficient/shift derivation and state initialization match Rust `new2` |
 | `QuadraticEdge::update` | `QuadraticEdge::update` | 🟢 | Line-by-line audited: segment stepping loop, success break conditions, and persisted state updates match Rust |
-| `CubicEdge::new` | `CubicEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust |
+| `CubicEdge::new` | `CubicEdge::create` | 🟢 | Line-by-line audited: constructor delegates to internal setup + first `update()` gate, same as Rust; matcher diagnostics upgraded in `EdgeCubicTest.CubicEdgeCreateBasic` |
 | `CubicEdge::new2` | `CubicEdge::create` | 🟢 | Line-by-line audited via internal `makeCubicEdge`: delta/shift math, coefficient setup, and initial state match Rust `new2` |
 | `CubicEdge::update` | `CubicEdge::update` | 🟢 | Line-by-line audited: forward-difference stepping, `newY` monotonic clamp, and loop termination semantics match Rust |
 
@@ -222,16 +222,16 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
 | `MAX_POINTS` | `kLineClipperMaxPoints` | 🟢 | Line-by-line audited: Rust `MAX_POINTS: usize = 4` matches C++ `kLineClipperMaxPoints = 4` |
-| `clip` | `clip` | 🟢 | Line-by-line audited: Y-intersection math now uses original `src` for `sectWithHorizontal`, and winding orientation follows `src` X-order like Rust |
-| `intersect` | `intersect` | 🟢 | Line-by-line audited: clipped endpoint Y values now use `sectWithVertical(src, ...)` parity with Rust |
+| `clip` | `clip` | 🟢 | Line-by-line audited: Y-intersection math now uses original `src` for `sectWithHorizontal`, and winding orientation follows `src` X-order like Rust; matcher diagnostics upgraded in `LineClipperTest.ClipClampsBothSidesOnSkewLine` |
+| `intersect` | `intersect` | 🟢 | Line-by-line audited: clipped endpoint Y values now use `sectWithVertical(src, ...)` parity with Rust; matcher diagnostics upgraded in `LineClipperTest.IntersectClipsAndReturnsTrueForPartiallyOverlapping` |
 
 ### `third_party/tiny-skia/src/mask.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
 | `MaskType::Alpha` | `MaskType::Alpha` | 🟢 | Line-by-line audited: enum discriminant parity (`Alpha = 0`) |
 | `MaskType::Luminance` | `MaskType::Luminance` | 🟢 | Line-by-line audited: enum discriminant parity (`Luminance = 1`) |
-| `Mask::new` | `Mask::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation match Rust semantics |
-| `Mask::from_vec` | `Mask::fromVec` | 🟢 | Line-by-line audited: exact size check (`width * height`) and ownership transfer match |
+| `Mask::new` | `Mask::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation match Rust semantics; matcher diagnostics upgraded in `MaskTest.FromSizeRejectsZeroDimensions` |
+| `Mask::from_vec` | `Mask::fromVec` | 🟢 | Line-by-line audited: exact size check (`width * height`) and ownership transfer match; matcher diagnostics upgraded in `MaskTest.FromVecRequiresExactSize` |
 | `Mask::width` | `Mask::width` | 🟢 | Line-by-line audited: returns stored `IntSize::width()` |
 | `Mask::height` | `Mask::height` | 🟢 | Line-by-line audited: returns stored `IntSize::height()` |
 | `Mask::size` | `Mask::size` | 🟢 | Line-by-line audited: stored size passthrough |
@@ -240,9 +240,9 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Mask::take` | `Mask::take` | 🟢 | Line-by-line audited: ownership move-out; C++ resets stored size to default-empty state |
 | `Mask::from_pixmap` | `Mask::fromPixmap` | 🟢 | Line-by-line audited: alpha copy and luminance path (demultiply + luma + alpha + ceil clamp) match Rust |
 | `Mask::as_submask` | `Mask::asSubmask` | 🟢 | Line-by-line audited: full-size borrowed mask view with real-width parity |
-| `Mask::submask` | `Mask::submask` | 🟢 | Line-by-line audited: intersects requested rect with mask bounds and returns offset view |
+| `Mask::submask` | `Mask::submask` | 🟢 | Line-by-line audited: intersects requested rect with mask bounds and returns offset view; matcher diagnostics upgraded in `MaskTest.SubmaskComputesIntersectedViewAndOffset` |
 | `Mask::as_subpixmap` | `Mask::asSubpixmap` | 🟢 | Line-by-line audited: mutable full-size mask view parity |
-| `Mask::subpixmap` | `Mask::subpixmap` | 🟢 | Line-by-line audited: mutable intersected subview + row-offset parity |
+| `Mask::subpixmap` | `Mask::subpixmap` | 🟢 | Line-by-line audited: mutable intersected subview + row-offset parity; matcher diagnostics upgraded in `MaskTest.SubpixmapComputesIntersectedMutableView` |
 | `Mask::fill_path` | `Mask::fillPath` | ☐ | Awaiting `Painter/Pixmap/scan` integration path |
 | `Mask::intersect_path` | `Mask::intersectPath` | ☐ | Awaiting `fillPath` and blending integration |
 
@@ -250,8 +250,8 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
 | `BYTES_PER_PIXEL` | `kBytesPerPixel` | 🟢 | Line-by-line audited: `4` bytes per RGBA pixel |
-| `Pixmap::new` | `Pixmap::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation parity; width cap matches Rust |
-| `Pixmap::from_vec` | `Pixmap::fromVec` | 🟢 | Line-by-line audited: exact byte-length validation and ownership transfer parity |
+| `Pixmap::new` | `Pixmap::fromSize` | 🟢 | Line-by-line audited: size validation + zero-initialized allocation parity; width cap matches Rust; matcher diagnostics upgraded in `PixmapTest.FromSizeRejectsZeroAndTooWideInputs` |
+| `Pixmap::from_vec` | `Pixmap::fromVec` | 🟢 | Line-by-line audited: exact byte-length validation and ownership transfer parity; matcher diagnostics upgraded in `PixmapTest.FromVecValidatesExactByteLength` |
 | `Pixmap::as_ref` | `Pixmap::asRef` | 🟢 | Line-by-line audited: immutable borrowed view over same storage |
 | `Pixmap::as_mut` | `Pixmap::asMut` | 🟢 | Line-by-line audited: mutable borrowed view over same storage |
 | `Pixmap::width` | `Pixmap::width` | 🟢 | Line-by-line audited: stored size passthrough |
@@ -263,7 +263,7 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Pixmap::pixels` | `Pixmap::pixels` | 🟢 | Line-by-line audited: byte storage reinterpreted as premultiplied RGBA pixels |
 | `Pixmap::pixels_mut` | `Pixmap::pixelsMut` | 🟢 | Line-by-line audited: mutable pixel reinterpret view parity |
 | `Pixmap::take` | `Pixmap::take` | 🟢 | Line-by-line audited: ownership move-out; C++ resets stored size to default-empty state |
-| `PixmapRef::from_bytes` | `PixmapRef::fromBytes` | 🟢 | Line-by-line audited: validates non-zero size + minimum data length and width cap |
+| `PixmapRef::from_bytes` | `PixmapRef::fromBytes` | 🟢 | Line-by-line audited: validates non-zero size + minimum data length and width cap; matcher diagnostics upgraded in `PixmapTest.PixmapRefFromBytesAndPixelAccessMatchRgbaPacking` |
 | `PixmapRef::pixel` | `PixmapRef::pixel` | 🟢 | Line-by-line audited: checked index computation parity |
 | `PixmapRef::pixels` | `PixmapRef::pixels` | 🟢 | Line-by-line audited: immutable pixel reinterpret view |
 | `PixmapMut` APIs | `PixmapMut` APIs | 🟢 | Line-by-line audited: mutable borrowed view shape mapped for Rust parity |
@@ -272,6 +272,6 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Pixmap::take_demultiplied` | `Pixmap::takeDemultiplied` | 🟢 | Line-by-line audited: per-pixel demultiply conversion before ownership move-out |
 | `Pixmap::clone_rect` | `Pixmap::cloneRect` | 🟢 | Line-by-line audited: contained-rect check + row-wise copy into new pixmap |
 | `PixmapRef::clone_rect` | `PixmapRef::cloneRect` | 🟢 | Line-by-line audited: borrowed-view rect clone path mirrors Rust ownership semantics |
-| `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | 🟢 | Line-by-line audited: mutable-byte constructor validates size and minimum byte length |
+| `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | 🟢 | Line-by-line audited: mutable-byte constructor validates size and minimum byte length; matcher diagnostics upgraded in `PixmapTest.PixmapMutFromBytesAndSubpixmapProvideMutableSubview` |
 | `PixmapMut::as_subpixmap` | `PixmapMut::asSubpixmap` | 🟢 | Line-by-line audited: full mutable subview with real-width stride parity |
 | `PixmapMut::subpixmap` | `PixmapMut::subpixmap` | 🟢 | Line-by-line audited: intersected mutable subview + byte-offset parity |

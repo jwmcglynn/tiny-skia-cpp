@@ -21,6 +21,20 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `f32x4::{cmp_eq,cmp_ne,cmp_ge,cmp_gt,cmp_le,cmp_lt}` | `tiny_skia::wide::F32x4T::{cmpEq,cmpNe,cmpGe,cmpGt,cmpLe,cmpLt}` | 🟡 | Scalar mask encoding (`0xFFFFFFFF`/`0`) ported; `cmpEq` mask bits validated in `F32x4TTest.ComparisonsReturnAllOnesMaskOrZero`. |
 | `f32x4::blend` | `tiny_skia::wide::F32x4T::blend` | 🟡 | Scalar fallback delegates to bit-blend equivalent via `genericBitBlend`; covered by `F32x4TTest.BlendSelectsTrueAndFalseLanesByMaskBits`. |
 
+## `third_party/tiny-skia/src/wide/f32x8_t.rs` -> `src/tiny_skia/wide/F32x8T.cpp` / `src/tiny_skia/wide/F32x8T.h`
+
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `f32x8::splat` | `tiny_skia::wide::F32x8T::splat` | 🟡 | Direct eight-lane broadcast constructor port. |
+| `f32x8::{floor,fract,normalize}` | `tiny_skia::wide::F32x8T::{floor,fract,normalize}` | 🟡 | Scalar fallback lane math ported; covered by `F32x8TTest.FloorFractRoundAndIntegerConversionsMatchScalarFallback` and `F32x8TTest.AbsMinMaxAndNormalizeArePerLane`. |
+| `f32x8::{to_i32x8_bitcast,to_u32x8_bitcast}` | `tiny_skia::wide::F32x8T::{toI32x8Bitcast,toU32x8Bitcast}` | 🟡 | Per-lane bitcast conversion paths match Rust cast intent. |
+| `f32x8::{cmp_eq,cmp_ne,cmp_ge,cmp_gt,cmp_le,cmp_lt}` | `tiny_skia::wide::F32x8T::{cmpEq,cmpNe,cmpGe,cmpGt,cmpLe,cmpLt}` | 🟡 | Scalar mask encoding (`0xFFFFFFFF`/`0`) ported; mask bits validated in `F32x8TTest.ComparisonsAndBlendUseMaskBits`. |
+| `f32x8::blend` | `tiny_skia::wide::F32x8T::blend` | 🟡 | Bit-select fallback via `genericBitBlend`; covered by `F32x8TTest.ComparisonsAndBlendUseMaskBits`. |
+| `f32x8::{abs,max,min,is_finite}` | `tiny_skia::wide::F32x8T::{abs,max,min,isFinite}` | 🟡 | Per-lane scalar fallback ported; finite-mask behavior covered by `F32x8TTest.IsFiniteMatchesRustBitMaskLogic`. |
+| `f32x8::{round,round_int,trunc_int}` | `tiny_skia::wide::F32x8T::{round,roundInt,truncInt}` | 🟡 | Scalar rounding/truncation fallback and integer conversion paths covered by `F32x8TTest.FloorFractRoundAndIntegerConversionsMatchScalarFallback`. |
+| `impl {Add,Sub,Mul,Div,BitAnd,BitOr,BitXor,Neg,Not,PartialEq} for f32x8` | `tiny_skia::wide::F32x8T operators` | 🟡 | Per-lane arithmetic and bitwise operators implemented in scalar fallback form for Rust parity scaffolding. |
+| `f32x8::{recip_fast,recip_sqrt,sqrt,powf}` | `tiny_skia::wide::F32x8T::{recipFast,recipSqrt,sqrt,powf}` | ☐ | Deferred to a follow-up batch; required before `f32x16` math port parity can be marked complete. |
+
 ## `third_party/tiny-skia/src/wide/i32x4_t.rs` -> `src/tiny_skia/wide/I32x4T.cpp` / `src/tiny_skia/wide/I32x4T.h`
 
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
@@ -32,6 +46,18 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `impl Add for i32x4` | `tiny_skia::wide::I32x4T::operator+` | 🟡 | Wrapping lane-add semantics via unsigned bit math; covered by `I32x4TTest.AddAndMulUseWrappingSemantics`. |
 | `impl Mul for i32x4` | `tiny_skia::wide::I32x4T::operator*` | 🟡 | Wrapping lane-mul semantics via unsigned bit math; covered by `I32x4TTest.AddAndMulUseWrappingSemantics`. |
 | `impl {BitAnd,BitOr,BitXor} for i32x4` | `tiny_skia::wide::I32x4T::{operator&,operator|,operator^}` | 🟡 | Per-lane bitwise ops ported; behavior exercised through blend/mask pathways and direct operator implementation. |
+
+## `third_party/tiny-skia/src/wide/i32x8_t.rs` -> `src/tiny_skia/wide/I32x8T.cpp` / `src/tiny_skia/wide/I32x8T.h`
+
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `i32x8::splat` | `tiny_skia::wide::I32x8T::splat` | 🟡 | Direct eight-lane broadcast constructor port. |
+| `i32x8::blend` | `tiny_skia::wide::I32x8T::blend` | 🟡 | Bit-select path via `genericBitBlend`; covered by `I32x8TTest.BlendUsesMaskBitsPerLane`. |
+| `i32x8::{cmp_eq,cmp_gt,cmp_lt}` | `tiny_skia::wide::I32x8T::{cmpEq,cmpGt,cmpLt}` | 🟡 | Scalar fallback mask encoding (`-1` / `0`) ported; covered by `I32x8TTest.ComparisonsEmitMinusOneMasks`. |
+| `i32x8::{to_f32x8,to_u32x8_bitcast,to_f32x8_bitcast}` | `tiny_skia::wide::I32x8T::{toF32x8,toU32x8Bitcast,toF32x8Bitcast}` | 🟡 | Numeric cast and bitcast conversion paths ported; covered by `I32x8TTest.ToF32x8AndBitcastMatchRustConversions`. |
+| `impl Add for i32x8` | `tiny_skia::wide::I32x8T::operator+` | 🟡 | Wrapping lane-add semantics via unsigned bit math; covered by `I32x8TTest.AddAndMulUseWrappingSemantics`. |
+| `impl Mul for i32x8` | `tiny_skia::wide::I32x8T::operator*` | 🟡 | Wrapping lane-mul semantics via unsigned bit math; covered by `I32x8TTest.AddAndMulUseWrappingSemantics`. |
+| `impl {BitAnd,BitOr,BitXor} for i32x8` | `tiny_skia::wide::I32x8T::{operator&,operator|,operator^}` | 🟡 | Per-lane bitwise ops ported with direct operator tests and mask/blend coverage. |
 
 ## `third_party/tiny-skia/src/wide/u32x4_t.rs` -> `src/tiny_skia/wide/U32x4T.cpp` / `src/tiny_skia/wide/U32x4T.h`
 
@@ -45,3 +71,15 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `impl Add for u32x4` | `tiny_skia::wide::U32x4T::operator+` | 🟡 | Unsigned wrap add matches Rust scalar fallback; covered by `U32x4TTest.BitwiseAndAddOpsArePerLane`. |
 | `impl {BitAnd,BitOr} for u32x4` | `tiny_skia::wide::U32x4T::{operator&,operator|}` | 🟡 | Per-lane bitwise ops ported; covered by `U32x4TTest.BitwiseAndAddOpsArePerLane`. |
 
+## `third_party/tiny-skia/src/wide/u32x8_t.rs` -> `src/tiny_skia/wide/U32x8T.cpp` / `src/tiny_skia/wide/U32x8T.h`
+
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `u32x8::splat` | `tiny_skia::wide::U32x8T::splat` | 🟡 | Direct eight-lane broadcast constructor port. |
+| `u32x8::{to_i32x8_bitcast,to_f32x8_bitcast}` | `tiny_skia::wide::U32x8T::{toI32x8Bitcast,toF32x8Bitcast}` | 🟡 | Per-lane bitcast conversion paths ported for cross-vector reinterpret support. |
+| `u32x8::cmp_eq` | `tiny_skia::wide::U32x8T::cmpEq` | 🟡 | Scalar fallback equality mask (`u32::MAX`/`0`) ported; covered by `U32x8TTest.CmpEqProducesAllOnesMaskPerLane`. |
+| `u32x8::shl` | `tiny_skia::wide::U32x8T::shl<Rhs>` | 🟡 | Template shift-left mirrors per-lane scalar fallback; covered by `U32x8TTest.ShiftOperationsMatchRustScalarFallback`. |
+| `u32x8::shr` | `tiny_skia::wide::U32x8T::shr<Rhs>` | 🟡 | Template shift-right mirrors per-lane scalar fallback; covered by `U32x8TTest.ShiftOperationsMatchRustScalarFallback`. |
+| `impl Not for u32x8` | `tiny_skia::wide::U32x8T::operator~` | 🟡 | Per-lane bitwise NOT matches Rust fallback; covered by `U32x8TTest.BitwiseAndAddOpsArePerLane`. |
+| `impl Add for u32x8` | `tiny_skia::wide::U32x8T::operator+` | 🟡 | Unsigned wrap add matches Rust scalar fallback; covered by `U32x8TTest.BitwiseAndAddOpsArePerLane`. |
+| `impl {BitAnd,BitOr} for u32x8` | `tiny_skia::wide::U32x8T::{operator&,operator|}` | 🟡 | Per-lane bitwise ops ported; covered by `U32x8TTest.BitwiseAndAddOpsArePerLane`. |

@@ -1,7 +1,10 @@
 #include <array>
 #include <cstdint>
 #include <span>
+#include <string>
+#include <vector>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Blitter.h"
@@ -12,6 +15,7 @@ namespace {
 class TestBlitter final : public tiny_skia::Blitter {
  public:
   void blitH(std::uint32_t x, std::uint32_t y, tiny_skia::LengthU32 width) override {
+    operations_.emplace_back("blitH");
     x_ = x;
     y_ = y;
     width_ = width;
@@ -22,6 +26,7 @@ class TestBlitter final : public tiny_skia::Blitter {
                  std::uint32_t y,
                  std::span<std::uint8_t> alpha,
                  std::span<tiny_skia::AlphaRun> runs) override {
+    operations_.emplace_back("blitAntiH");
     x_ = x;
     y_ = y;
     antiAlphaCount_ = static_cast<std::uint32_t>(alpha.size() + runs.size());
@@ -32,6 +37,7 @@ class TestBlitter final : public tiny_skia::Blitter {
              std::uint32_t y,
              tiny_skia::LengthU32 height,
              tiny_skia::AlphaU8 alpha) override {
+    operations_.emplace_back("blitV");
     x_ = x;
     y_ = y;
     height_ = height;
@@ -43,6 +49,7 @@ class TestBlitter final : public tiny_skia::Blitter {
                   std::uint32_t y,
                   tiny_skia::AlphaU8 alpha0,
                   tiny_skia::AlphaU8 alpha1) override {
+    operations_.emplace_back("blitAntiH2");
     x_ = x;
     y_ = y;
     alpha_ = static_cast<std::uint8_t>(alpha0 + alpha1);
@@ -53,6 +60,7 @@ class TestBlitter final : public tiny_skia::Blitter {
                   std::uint32_t y,
                   tiny_skia::AlphaU8 alpha0,
                   tiny_skia::AlphaU8 alpha1) override {
+    operations_.emplace_back("blitAntiV2");
     x_ = x;
     y_ = y;
     alpha_ = static_cast<std::uint8_t>(alpha0 + alpha1);
@@ -60,15 +68,21 @@ class TestBlitter final : public tiny_skia::Blitter {
   }
 
   void blitRect(const tiny_skia::ScreenIntRect&) override {
+    operations_.emplace_back("blitRect");
     ++calls_;
   }
 
   void blitMask(const tiny_skia::Mask&, const tiny_skia::ScreenIntRect&) override {
+    operations_.emplace_back("blitMask");
     ++calls_;
   }
 
   int calls() const {
     return calls_;
+  }
+
+  std::span<const std::string> operations() const {
+    return operations_;
   }
 
  private:
@@ -79,6 +93,7 @@ class TestBlitter final : public tiny_skia::Blitter {
   tiny_skia::LengthU32 height_ = 0;
   std::uint32_t antiAlphaCount_ = 0;
   std::uint8_t alpha_ = 0;
+  std::vector<std::string> operations_;
 };
 
 }  // namespace
@@ -99,7 +114,15 @@ TEST(BlitterTest, OverridableMethodsReceiveCalls) {
   blitter.blitRect(rect);
   blitter.blitMask(mask, rect);
 
-  EXPECT_EQ(blitter.calls(), 7);
+  EXPECT_THAT(blitter.calls(), testing::Eq(7));
+  EXPECT_THAT(blitter.operations(),
+              testing::ElementsAre("blitH",
+                                   "blitAntiH",
+                                   "blitV",
+                                   "blitAntiH2",
+                                   "blitAntiV2",
+                                   "blitRect",
+                                   "blitMask"));
 }
 
 TEST(BlitterTest, DefaultImplementationAborts) {

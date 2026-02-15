@@ -1,6 +1,7 @@
 #include <optional>
 #include <string_view>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/BlendMode.h"
@@ -26,7 +27,7 @@ TEST(BlendModeTest, ShouldPreScaleCoverage) {
            CoverageCase{tiny_skia::BlendMode::Multiply, false, "multiply"},
        }) {
     SCOPED_TRACE(tc.label);
-    EXPECT_EQ(tiny_skia::shouldPreScaleCoverage(tc.mode), tc.expected);
+    EXPECT_THAT(tiny_skia::shouldPreScaleCoverage(tc.mode), testing::Eq(tc.expected));
   }
 }
 
@@ -117,10 +118,9 @@ TEST(BlendModeTest, ToStageMapping) {
     SCOPED_TRACE(tc.label);
     const auto mapped = tiny_skia::toStage(tc.mode);
     if (tc.stage.has_value()) {
-      ASSERT_TRUE(mapped.has_value()) << "expected stage";
-      EXPECT_EQ(mapped.value(), tc.stage.value());
+      EXPECT_THAT(mapped, testing::Optional(testing::Eq(*tc.stage)));
     } else {
-      EXPECT_FALSE(mapped.has_value()) << "expected nullopt";
+      EXPECT_THAT(mapped, testing::Eq(std::nullopt));
     }
   }
 }

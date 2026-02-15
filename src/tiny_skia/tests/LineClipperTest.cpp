@@ -1,6 +1,5 @@
 #include <array>
 #include <span>
-#include <string>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -10,17 +9,10 @@
 
 namespace {
 
-void ExpectPoints(std::span<const tiny_skia::Point> actual,
-                 std::initializer_list<tiny_skia::Point> expected,
-                 const std::string& context) {
-  EXPECT_THAT(actual.size(), testing::Eq(expected.size())) << context;
-  int index = 0;
-  for (const auto& point : expected) {
-    ASSERT_LT(index, static_cast<int>(actual.size())) << context;
-    EXPECT_FLOAT_EQ(actual[index].x, point.x) << "index " << index << " x: " << context;
-    EXPECT_FLOAT_EQ(actual[index].y, point.y) << "index " << index << " y: " << context;
-    ++index;
-  }
+auto PointEq(float expectedX, float expectedY) {
+  return testing::AllOf(
+      testing::Field(&tiny_skia::Point::x, testing::FloatEq(expectedX)),
+      testing::Field(&tiny_skia::Point::y, testing::FloatEq(expectedY)));
 }
 
 }  // namespace
@@ -53,9 +45,9 @@ TEST(LineClipperTest, ClipClampsHorizontallyInsideBounds) {
                                              clip,
                                              false,
                                              std::span<tiny_skia::Point, 4>(out));
-  ExpectPoints(result,
-              {tiny_skia::Point{1.0f, 3.0f}, tiny_skia::Point{1.0f, 3.0f}, tiny_skia::Point{5.0f, 3.0f}},
-              "horizontal segment clipped from left");
+  EXPECT_THAT(result, testing::ElementsAre(PointEq(1.0f, 3.0f),
+                                           PointEq(1.0f, 3.0f),
+                                           PointEq(5.0f, 3.0f)));
 }
 
 TEST(LineClipperTest, ClipClampsBothSidesOnSkewLine) {
@@ -67,12 +59,10 @@ TEST(LineClipperTest, ClipClampsBothSidesOnSkewLine) {
                                              clip,
                                              false,
                                              std::span<tiny_skia::Point, 4>(out));
-  ExpectPoints(result,
-              {tiny_skia::Point{0.0f, 2.0f},
-               tiny_skia::Point{0.0f, 3.5f},
-               tiny_skia::Point{10.0f, 6.5f},
-               tiny_skia::Point{10.0f, 8.0f}},
-              "diagonal segment clipped across both edges");
+  EXPECT_THAT(result, testing::ElementsAre(PointEq(0.0f, 2.0f),
+                                           PointEq(0.0f, 3.5f),
+                                           PointEq(10.0f, 6.5f),
+                                           PointEq(10.0f, 8.0f)));
 }
 
 TEST(LineClipperTest, ClipCanCullToRightAndPreserveWhenFalse) {
@@ -90,9 +80,7 @@ TEST(LineClipperTest, ClipCanCullToRightAndPreserveWhenFalse) {
                                                 clip,
                                                 false,
                                                 std::span<tiny_skia::Point, 4>(out));
-  ExpectPoints(preserved,
-              {tiny_skia::Point{10.0f, 2.0f}, tiny_skia::Point{10.0f, 4.0f}},
-              "horizontal clip preserves right edge when culling disabled");
+  EXPECT_THAT(preserved, testing::ElementsAre(PointEq(10.0f, 2.0f), PointEq(10.0f, 4.0f)));
 }
 
 TEST(LineClipperTest, IntersectClipsAndReturnsTrueForPartiallyOverlapping) {
@@ -104,10 +92,7 @@ TEST(LineClipperTest, IntersectClipsAndReturnsTrueForPartiallyOverlapping) {
                                                       clip,
                                                       std::span<tiny_skia::Point, 2>(dst));
   EXPECT_TRUE(intersects);
-  EXPECT_FLOAT_EQ(dst[0].x, 1.0f);
-  EXPECT_FLOAT_EQ(dst[0].y, 1.0f);
-  EXPECT_FLOAT_EQ(dst[1].x, 9.0f);
-  EXPECT_FLOAT_EQ(dst[1].y, 9.0f);
+  EXPECT_THAT(dst, testing::ElementsAre(PointEq(1.0f, 1.0f), PointEq(9.0f, 9.0f)));
 }
 
 TEST(LineClipperTest, IntersectRejectsDisjointSegment) {

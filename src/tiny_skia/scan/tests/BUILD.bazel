@@ -14,5 +14,7 @@ cc_test(
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "//src:tiny_skia_lib",
+        "//src/tiny_skia/tests/test_utils:geom_matchers",
+        "//src/tiny_skia/tests/test_utils:scan_matchers",
     ],
 )

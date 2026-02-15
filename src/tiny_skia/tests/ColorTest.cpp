@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <string_view>
 
 #include <gmock/gmock.h>
@@ -19,6 +20,8 @@ class PixmapRef {};
 namespace {
 
 using ::testing::ElementsAre;
+using ::testing::Optional;
+using ::testing::SizeIs;
 
 constexpr float kFloatTolerance = 0.0001f;
 constexpr std::string_view kOpaque = "opaque";
@@ -71,7 +74,8 @@ TEST(ColorTest, ColorUPremultiplyPreservesAlphaAndClamp) {
             tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10, 20, 30, 255));
 
   const auto validated = tiny_skia::PremultipliedColorU8::fromRgba(2, 3, 5, 40);
-  ASSERT_TRUE(validated.has_value()) << "valid premultiplied values must be accepted";
+  ASSERT_THAT(validated, Optional(testing::_))
+      << "valid premultiplied values must be accepted";
 }
 
 TEST(ColorTest, ColorUPremultiplyU8UsesFixedPointMultiply) {
@@ -117,9 +121,9 @@ TEST(ColorTest, PremultipliedColorDemultiply) {
 }
 
 TEST(ColorTest, PremultipliedColorOptionValidation) {
-  EXPECT_FALSE(tiny_skia::PremultipliedColorU8::fromRgba(255, 0, 0, 128).has_value())
+  EXPECT_THAT(tiny_skia::PremultipliedColorU8::fromRgba(255, 0, 0, 128), testing::Eq(std::nullopt))
       << "channel values above alpha must be invalid";
-  EXPECT_TRUE(tiny_skia::PremultipliedColorU8::fromRgba(0, 0, 0, 0).has_value())
+  EXPECT_THAT(tiny_skia::PremultipliedColorU8::fromRgba(0, 0, 0, 0), Optional(testing::_))
       << "all-zero must be valid";
 }
 
@@ -129,25 +133,25 @@ TEST(ColorTest, ColorFromRgbaAndOpacity) {
   EXPECT_TRUE(color.isOpaque());
 
   const auto semiColor = tiny_skia::Color::fromRgba(1.0f, 0.5f, 0.25f, 1.0f);
-  ASSERT_TRUE(semiColor.has_value());
+  ASSERT_THAT(semiColor, Optional(testing::_));
   auto semi = *semiColor;
   semi.applyOpacity(0.5f);
   EXPECT_NEAR(semi.alpha(), 0.5f, kFloatTolerance);
 
-  EXPECT_FALSE(tiny_skia::Color::fromRgba(1.1f, -0.1f, 0.0f, 0.5f).has_value())
+  EXPECT_THAT(tiny_skia::Color::fromRgba(1.1f, -0.1f, 0.0f, 0.5f), testing::Eq(std::nullopt))
       << "out of range color component is rejected";
 }
 
 TEST(ColorTest, ColorFromRgbaEdgeCases) {
-  EXPECT_TRUE(tiny_skia::Color::fromRgba(0.0f, 0.0f, 0.0f, 0.0f).has_value());
-  EXPECT_TRUE(tiny_skia::Color::fromRgba(1.0f, 1.0f, 1.0f, 1.0f).has_value());
-  EXPECT_FALSE(
-      tiny_skia::Color::fromRgba(std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f, 0.0f)
-          .has_value())
+  EXPECT_THAT(tiny_skia::Color::fromRgba(0.0f, 0.0f, 0.0f, 0.0f), Optional(testing::_));
+  EXPECT_THAT(tiny_skia::Color::fromRgba(1.0f, 1.0f, 1.0f, 1.0f), Optional(testing::_));
+  EXPECT_THAT(
+      tiny_skia::Color::fromRgba(std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f, 0.0f),
+      testing::Eq(std::nullopt))
       << "NaN should be rejected";
-  EXPECT_FALSE(
-      tiny_skia::Color::fromRgba(std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f)
-          .has_value())
+  EXPECT_THAT(
+      tiny_skia::Color::fromRgba(std::numeric_limits<float>::infinity(), 0.0f, 0.0f, 0.0f),
+      testing::Eq(std::nullopt))
       << "infinity should be rejected";
 }
 
@@ -162,7 +166,7 @@ TEST(ColorTest, ColorSettersClampToRange) {
 
 TEST(ColorTest, ColorConversionToU8AndPremultiplyRoundTrip) {
   const auto colorOpt = tiny_skia::Color::fromRgba(1.0f, 0.5f, 0.0f, 0.5f);
-  ASSERT_TRUE(colorOpt.has_value());
+  ASSERT_THAT(colorOpt, Optional(testing::_));
   const auto color = *colorOpt;
   const auto u8 = color.toColorU8();
   expectColorU8Is(u8, 255, 128, 0, 128);
@@ -178,9 +182,9 @@ TEST(ColorTest, ColorConversionToU8AndPremultiplyRoundTrip) {
 
 TEST(ColorTest, ColorSpaceTransforms) {
   using tiny_skia::ColorSpace;
-  EXPECT_FALSE(tiny_skia::expandStage(ColorSpace::Linear).has_value());
-  EXPECT_FALSE(tiny_skia::expandDestStage(ColorSpace::Linear).has_value());
-  EXPECT_FALSE(tiny_skia::compressStage(ColorSpace::Linear).has_value());
+  EXPECT_THAT(tiny_skia::expandStage(ColorSpace::Linear), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::expandDestStage(ColorSpace::Linear), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::compressStage(ColorSpace::Linear), testing::Eq(std::nullopt));
 
   EXPECT_EQ(tiny_skia::expandStage(ColorSpace::Gamma2).value(),
             tiny_skia::pipeline::Stage::GammaExpand2);
@@ -190,7 +194,7 @@ TEST(ColorTest, ColorSpaceTransforms) {
             tiny_skia::pipeline::Stage::GammaCompressSrgb);
 
   const auto linearOpt = tiny_skia::Color::fromRgba(0.25f, 0.5f, 0.75f, 1.0f);
-  ASSERT_TRUE(linearOpt.has_value());
+  ASSERT_THAT(linearOpt, Optional(testing::_));
   const auto color = *linearOpt;
   const auto expanded = tiny_skia::expandColor(ColorSpace::Linear, color);
   const std::array expandedChannels{expanded.red(), expanded.green(), expanded.blue(), expanded.alpha()};
@@ -307,19 +311,19 @@ TEST(ColorTest, PipelineGradientCtxPushConstColorAppendsBiasAndZeroFactor) {
   const auto first = tiny_skia::pipeline::GradientColor::newFromRGBA(0.2f, 0.4f, 0.6f, 0.8f);
   const auto second = tiny_skia::pipeline::GradientColor::newFromRGBA(0.3f, 0.5f, 0.7f, 0.9f);
 
-  ASSERT_EQ(gradient_ctx.factors.size(), 0u);
-  ASSERT_EQ(gradient_ctx.biases.size(), 0u);
+  ASSERT_THAT(gradient_ctx.factors, SizeIs(0));
+  ASSERT_THAT(gradient_ctx.biases, SizeIs(0));
   gradient_ctx.pushConstColor(first);
-  EXPECT_EQ(gradient_ctx.factors.size(), 1u);
-  EXPECT_EQ(gradient_ctx.biases.size(), 1u);
+  EXPECT_THAT(gradient_ctx.factors, SizeIs(1));
+  EXPECT_THAT(gradient_ctx.biases, SizeIs(1));
   EXPECT_EQ(gradient_ctx.factors[0], tiny_skia::pipeline::GradientColor{});
   EXPECT_EQ(gradient_ctx.biases[0].r, first.r);
   EXPECT_EQ(gradient_ctx.biases[0].g, first.g);
   EXPECT_EQ(gradient_ctx.biases[0].b, first.b);
 
   gradient_ctx.pushConstColor(second);
-  EXPECT_EQ(gradient_ctx.factors.size(), 2u);
-  EXPECT_EQ(gradient_ctx.biases.size(), 2u);
+  EXPECT_THAT(gradient_ctx.factors, SizeIs(2));
+  EXPECT_THAT(gradient_ctx.biases, SizeIs(2));
   EXPECT_EQ(gradient_ctx.biases[1].a, second.a);
 }
 
@@ -337,10 +341,13 @@ TEST(ColorTest, RasterPipelineBuilderCompileBuildsExpectedKindAndContext) {
   EXPECT_NEAR(ctx.uniform_color.g, uniform.green(), 0.0001f);
   EXPECT_NEAR(ctx.uniform_color.b, uniform.blue(), 0.0001f);
   EXPECT_NEAR(ctx.uniform_color.a, uniform.alpha(), 0.0001f);
-  EXPECT_EQ(ctx.uniform_color.rgba[0], static_cast<std::uint16_t>(uniform.red() * 255.0f + 0.5f));
-  EXPECT_EQ(ctx.uniform_color.rgba[1], static_cast<std::uint16_t>(uniform.green() * 255.0f + 0.5f));
-  EXPECT_EQ(ctx.uniform_color.rgba[2], static_cast<std::uint16_t>(uniform.blue() * 255.0f + 0.5f));
-  EXPECT_EQ(ctx.uniform_color.rgba[3], static_cast<std::uint16_t>(uniform.alpha() * 255.0f + 0.5f));
+  const std::array rgba{
+      ctx.uniform_color.rgba[0], ctx.uniform_color.rgba[1], ctx.uniform_color.rgba[2],
+      ctx.uniform_color.rgba[3]};
+  EXPECT_THAT(rgba, ElementsAre(static_cast<std::uint16_t>(uniform.red() * 255.0f + 0.5f),
+                                static_cast<std::uint16_t>(uniform.green() * 255.0f + 0.5f),
+                                static_cast<std::uint16_t>(uniform.blue() * 255.0f + 0.5f),
+                                static_cast<std::uint16_t>(uniform.alpha() * 255.0f + 0.5f)));
 }
 
 TEST(ColorTest, RasterPipelineBuilderCompileUsesLowpByDefaultForSupportedStages) {
@@ -457,7 +464,7 @@ void resetLowpDispatchCounters() {
 
 TEST(ColorTest, PipelineLowpStartUsesFullAndTailChunks) {
   const auto rect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 17, 2);
-  ASSERT_TRUE(rect.has_value()) << "test rectangle should be valid";
+  ASSERT_THAT(rect, Optional(testing::_)) << "test rectangle should be valid";
 
   std::array<tiny_skia::pipeline::lowp::StageFn, tiny_skia::pipeline::kMaxStages> lowpFull{};
   std::array<tiny_skia::pipeline::lowp::StageFn, tiny_skia::pipeline::kMaxStages> lowpTail{};
@@ -483,7 +490,7 @@ TEST(ColorTest, PipelineLowpStartUsesFullAndTailChunks) {
 
 TEST(ColorTest, PipelineHighpStartUsesFullAndTailChunks) {
   const auto rect = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 17, 2);
-  ASSERT_TRUE(rect.has_value()) << "test rectangle should be valid";
+  ASSERT_THAT(rect, Optional(testing::_)) << "test rectangle should be valid";
 
   std::array<tiny_skia::pipeline::highp::StageFn, tiny_skia::pipeline::kMaxStages> highpFull{};
   std::array<tiny_skia::pipeline::highp::StageFn, tiny_skia::pipeline::kMaxStages> highpTail{};
@@ -525,10 +532,10 @@ TEST(ColorTest, PipelineContextDefaultsMatchExpectedMembers) {
   EXPECT_EQ(context.sampler.spread_mode, tiny_skia::SpreadMode::Pad);
   EXPECT_EQ(context.sampler.inv_width, 0.0f);
   EXPECT_EQ(context.sampler.inv_height, 0.0f);
-  EXPECT_EQ(context.uniform_color.r, 0.0f);
-  EXPECT_EQ(context.uniform_color.g, 0.0f);
-  EXPECT_EQ(context.uniform_color.b, 0.0f);
-  EXPECT_EQ(context.uniform_color.a, 0.0f);
+  const std::array uniformColor{
+      context.uniform_color.r, context.uniform_color.g, context.uniform_color.b,
+      context.uniform_color.a};
+  EXPECT_THAT(uniformColor, ElementsAre(0.0f, 0.0f, 0.0f, 0.0f));
   EXPECT_TRUE(transform.isFinite());
   EXPECT_TRUE(transform.isIdentity());
 }
@@ -537,10 +544,9 @@ TEST(ColorTest, MaskCtxOffsetMatchesPackedCoordinateFormula) {
   tiny_skia::pipeline::MaskCtx ctx{};
   ctx.real_width = 7;
 
-  EXPECT_EQ(ctx.byteOffset(0, 0), 0u);
-  EXPECT_EQ(ctx.byteOffset(3, 0), 3u);
-  EXPECT_EQ(ctx.byteOffset(2, 1), 9u);
-  EXPECT_EQ(ctx.byteOffset(6, 2), 20u);
+  const std::array offsets{
+      ctx.byteOffset(0, 0), ctx.byteOffset(3, 0), ctx.byteOffset(2, 1), ctx.byteOffset(6, 2)};
+  EXPECT_THAT(offsets, ElementsAre(0u, 3u, 9u, 20u));
 }
 
 TEST(ColorTest, RasterPipelineBuilderPushAppendsStage) {

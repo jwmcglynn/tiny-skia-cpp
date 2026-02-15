@@ -18,6 +18,14 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Keep edits minimal and consistent with existing style in touched files.
 - Run both `bazel build //...` and `bazel test //...` after each implementation step.
 - Add/extend C++ tests as each file is ported before running the per-step build/test gate.
+- Prefer Google Mock matchers (`EXPECT_THAT`, `ASSERT_THAT`) for container/value assertions
+  when they provide better diagnostics than plain equality checks.
+- Prioritize diagnosable failures: choose assertion styles that clearly report element-level
+  mismatches (for example `ElementsAre`/`Pointwise`) over opaque pass/fail comparisons.
+- It is explicitly acceptable to add custom matchers when they improve readability and
+  diagnostics (for example `ScreenIntRectEq`).
+- Prefer reusable matcher helpers in `src/**/tests/test_utils/` (header-only where practical)
+  and share them across tests instead of duplicating ad-hoc matcher logic per file.
 - Keep tests colocated with source modules:
   - `src/tiny_skia/Foo.cpp` -> `src/tiny_skia/tests/FooTest.cpp`
   - `src/tiny_skia/subdir/Bar.cpp` -> `src/tiny_skia/subdir/tests/BarTest.cpp`

@@ -6,8 +6,11 @@
 #include <gtest/gtest.h>
 
 #include "tiny_skia/EdgeClipper.h"
+#include "tiny_skia/tests/test_utils/PathEdgeMatchers.h"
 
 namespace {
+
+using tiny_skia::tests::matchers::VerticalPathEdgeAtX;
 
 std::vector<tiny_skia::PathEdge> CollectClippedEdges(const tiny_skia::Path& path,
                                                     bool canCullToTheRight) {
@@ -34,7 +37,7 @@ TEST(EdgeClipperTest, ClipLinePassesThroughWhenFullyInsideClip) {
 
   auto edges = CollectClippedEdges(path, true);
   ASSERT_GE(edges.size(), 1u);
-  EXPECT_EQ(edges.front().type, tiny_skia::PathEdgeType::LineTo);
+  EXPECT_THAT(edges.front(), tiny_skia::tests::matchers::PathEdgeLineEq(2.0f, 2.0f, 5.0f, 5.0f));
   EXPECT_FLOAT_EQ(edges.front().points[0].x, 2.0f);
   EXPECT_FLOAT_EQ(edges.front().points[0].y, 2.0f);
   auto minX = 10.0f;
@@ -70,13 +73,11 @@ TEST(EdgeClipperTest, ClipLineCanCullToRightOrPreserveWhenDisabled) {
 
   const auto preserved = CollectClippedEdges(path, false);
   ASSERT_GE(preserved.size(), 1u);
-  EXPECT_EQ(preserved.front().type, tiny_skia::PathEdgeType::LineTo);
+  EXPECT_THAT(preserved.front(), VerticalPathEdgeAtX(10.0f));
   auto minY = 10.0f;
   auto maxY = 0.0f;
   for (const auto& edge : preserved) {
-    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
-    EXPECT_FLOAT_EQ(edge.points[0].x, 10.0f);
-    EXPECT_FLOAT_EQ(edge.points[1].x, 10.0f);
+    EXPECT_THAT(edge, VerticalPathEdgeAtX(10.0f));
     minY = std::min(minY, std::min(edge.points[0].y, edge.points[1].y));
     maxY = std::max(maxY, std::max(edge.points[0].y, edge.points[1].y));
     EXPECT_GE(edge.points[0].y, 2.0f);
@@ -119,9 +120,7 @@ TEST(EdgeClipperTest, ClipQuadFullyToLeftBecomesVerticalLine) {
   auto minY = 10.0f;
   auto maxY = 0.0f;
   for (const auto& edge : edges) {
-    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
-    EXPECT_FLOAT_EQ(edge.points[0].x, 0.0f);
-    EXPECT_FLOAT_EQ(edge.points[1].x, 0.0f);
+    EXPECT_THAT(edge, VerticalPathEdgeAtX(0.0f));
     minY = std::min(minY, std::min(edge.points[0].y, edge.points[1].y));
     maxY = std::max(maxY, std::max(edge.points[0].y, edge.points[1].y));
   }
@@ -149,9 +148,7 @@ TEST(EdgeClipperTest, ClipQuadFullyToRightProducesRightVerticalLineWhenCullingDi
   auto minY = 10.0f;
   auto maxY = 0.0f;
   for (const auto& edge : edges) {
-    EXPECT_EQ(edge.type, tiny_skia::PathEdgeType::LineTo);
-    EXPECT_FLOAT_EQ(edge.points[0].x, 10.0f);
-    EXPECT_FLOAT_EQ(edge.points[1].x, 10.0f);
+    EXPECT_THAT(edge, VerticalPathEdgeAtX(10.0f));
     EXPECT_GE(edge.points[0].y, 1.0f);
     EXPECT_GE(edge.points[1].y, 1.0f);
     EXPECT_LE(edge.points[0].y, 8.0f);

@@ -17,7 +17,7 @@ TEST(LineCubicIntersectionsTest, HorizontalIntersectFindsExpectedSingleRoot) {
   std::array<double, 3> roots{};
   const auto count = tiny_skia::path64::line_cubic_intersections::horizontalIntersect(cubic, 0.5, roots);
   EXPECT_EQ(count, 1u);
-  EXPECT_DOUBLE_EQ(roots[0], 0.5);
+  EXPECT_THAT(roots[0], testing::DoubleEq(0.5));
 }
 
 TEST(LineCubicIntersectionsTest, VerticalIntersectFindsExpectedSingleRoot) {
@@ -31,7 +31,7 @@ TEST(LineCubicIntersectionsTest, VerticalIntersectFindsExpectedSingleRoot) {
   std::array<double, 3> roots{};
   const auto count = tiny_skia::path64::line_cubic_intersections::verticalIntersect(cubic, 0.5, roots);
   EXPECT_EQ(count, 1u);
-  EXPECT_DOUBLE_EQ(roots[0], 0.5);
+  EXPECT_THAT(roots[0], testing::DoubleEq(0.5));
 }
 
 TEST(LineCubicIntersectionsTest, VerticalIntersectReturnsZeroForMiss) {

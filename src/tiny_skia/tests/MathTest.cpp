@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <limits>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Math.h"
@@ -14,18 +15,30 @@ constexpr float kFloatTolerance = 0.0001f;
 }  // namespace
 
 TEST(MathTest, BoundClampsToRange) {
-  EXPECT_EQ(tiny_skia::bound(0u, 3u, 10u), 3u);
-  EXPECT_EQ(tiny_skia::bound(5u, 3u, 10u), 5u);
-  EXPECT_EQ(tiny_skia::bound(0u, 13u, 10u), 10u);
+  const std::array<unsigned, 3> results{
+      tiny_skia::bound(0u, 3u, 10u),
+      tiny_skia::bound(5u, 3u, 10u),
+      tiny_skia::bound(0u, 13u, 10u),
+  };
+  EXPECT_THAT(results, testing::ElementsAre(3u, 5u, 10u));
 }
 
 TEST(MathTest, LeftShiftAndApproxPowf) {
-  EXPECT_EQ(tiny_skia::leftShift(3, 4), 48);
-  EXPECT_EQ(tiny_skia::leftShift(-1, 31), std::numeric_limits<std::int32_t>::min());
-  EXPECT_EQ(tiny_skia::leftShift(-1, 0), -1);
-  EXPECT_EQ(tiny_skia::leftShift64(-1, 1),
-            static_cast<std::int64_t>(0xFFFFFFFFFFFFFFFEULL));
-  EXPECT_EQ(tiny_skia::leftShift64(1, 63), std::numeric_limits<std::int64_t>::min());
+  const std::array<std::int32_t, 3> leftShiftResults{
+      tiny_skia::leftShift(3, 4),
+      tiny_skia::leftShift(-1, 31),
+      tiny_skia::leftShift(-1, 0),
+  };
+  EXPECT_THAT(leftShiftResults,
+              testing::ElementsAre(48, std::numeric_limits<std::int32_t>::min(), -1));
+
+  const std::array<std::int64_t, 2> leftShift64Results{
+      tiny_skia::leftShift64(-1, 1),
+      tiny_skia::leftShift64(1, 63),
+  };
+  EXPECT_THAT(leftShift64Results,
+              testing::ElementsAre(static_cast<std::int64_t>(0xFFFFFFFFFFFFFFFEULL),
+                                   std::numeric_limits<std::int64_t>::min()));
 
   EXPECT_FLOAT_EQ(tiny_skia::approxPowf(0.0f, 3.0f), 0.0f);
   EXPECT_FLOAT_EQ(tiny_skia::approxPowf(1.0f, 3.0f), 1.0f);

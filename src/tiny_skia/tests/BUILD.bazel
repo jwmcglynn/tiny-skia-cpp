@@ -29,5 +29,8 @@ cc_test(
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "//src:tiny_skia_lib",
+        "//src/tiny_skia/tests/test_utils:geom_matchers",
+        "//src/tiny_skia/tests/test_utils:path_edge_matchers",
+        "//src/tiny_skia/tests/test_utils:pixmap_mask_matchers",
     ],
 )

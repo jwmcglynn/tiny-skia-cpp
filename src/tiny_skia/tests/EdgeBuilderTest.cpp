@@ -6,8 +6,13 @@
 
 #include "tiny_skia/EdgeBuilder.h"
 #include "tiny_skia/Geom.h"
+#include "tiny_skia/tests/test_utils/GeomMatchers.h"
+#include "tiny_skia/tests/test_utils/PathEdgeMatchers.h"
 
 namespace {
+
+using tiny_skia::tests::matchers::OptionalPathEdgeLineEq;
+using tiny_skia::tests::matchers::ScreenIntRectEq;
 
 TEST(EdgeBuilderTest, BuildEdgesRejectsEmptyPath) {
   tiny_skia::Path path;
@@ -181,23 +186,9 @@ TEST(EdgeBuilderTest, PathIterClosesOpenContourBeforeMoveVerb) {
   ASSERT_TRUE(second.has_value());
   ASSERT_TRUE(third.has_value());
 
-  EXPECT_EQ(first->type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(first->points[0].x, 0.0f);
-  EXPECT_FLOAT_EQ(first->points[0].y, 0.0f);
-  EXPECT_FLOAT_EQ(first->points[1].x, 10.0f);
-  EXPECT_FLOAT_EQ(first->points[1].y, 0.0f);
-
-  EXPECT_EQ(second->type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(second->points[0].x, 10.0f);
-  EXPECT_FLOAT_EQ(second->points[0].y, 0.0f);
-  EXPECT_FLOAT_EQ(second->points[1].x, 0.0f);
-  EXPECT_FLOAT_EQ(second->points[1].y, 0.0f);
-
-  EXPECT_EQ(third->type, tiny_skia::PathEdgeType::LineTo);
-  EXPECT_FLOAT_EQ(third->points[0].x, 20.0f);
-  EXPECT_FLOAT_EQ(third->points[0].y, 0.0f);
-  EXPECT_FLOAT_EQ(third->points[1].x, 30.0f);
-  EXPECT_FLOAT_EQ(third->points[1].y, 10.0f);
+  EXPECT_THAT(first, OptionalPathEdgeLineEq(0.0f, 0.0f, 10.0f, 0.0f));
+  EXPECT_THAT(second, OptionalPathEdgeLineEq(10.0f, 0.0f, 0.0f, 0.0f));
+  EXPECT_THAT(third, OptionalPathEdgeLineEq(20.0f, 0.0f, 30.0f, 10.0f));
 }
 
 TEST(EdgeBuilderTest, ShiftedIntRectCreateRoundTrips) {
@@ -205,15 +196,8 @@ TEST(EdgeBuilderTest, ShiftedIntRectCreateRoundTrips) {
   const auto shifted = tiny_skia::ShiftedIntRect::create(source, 2).value();
 
   const auto recovered = shifted.recover();
-  EXPECT_EQ(shifted.shifted().x(), 4u);
-  EXPECT_EQ(shifted.shifted().y(), 8u);
-  EXPECT_EQ(shifted.shifted().width(), 40u);
-  EXPECT_EQ(shifted.shifted().height(), 80u);
-
-  EXPECT_EQ(recovered.x(), source.x());
-  EXPECT_EQ(recovered.y(), source.y());
-  EXPECT_EQ(recovered.width(), source.width());
-  EXPECT_EQ(recovered.height(), source.height());
+  EXPECT_THAT(shifted.shifted(), ScreenIntRectEq(4u, 8u, 40u, 80u));
+  EXPECT_THAT(recovered, ScreenIntRectEq(source.x(), source.y(), source.width(), source.height()));
 }
 
 TEST(EdgeBuilderTest, ShiftedIntRectCreateRejectsBadShifts) {
