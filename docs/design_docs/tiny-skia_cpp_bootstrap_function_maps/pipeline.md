@@ -74,3 +74,19 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `screen` | `lowp::screen` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `xor` | `lowp::x_or` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `STAGES` | `lowp::STAGES` | 🟢 | Line-by-line audited: Covered by stage-table execution in `ColorTest.PipelineLowpStartUsesFullAndTailChunks` |
+
+
+### `third_party/tiny-skia/src/pipeline/blitter.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `RasterPipelineBlitter` | `pipeline::RasterPipelineBlitter` | 🧩 | Stub scaffold added in `src/tiny_skia/pipeline/Blitter.cpp/.h`; full Rust parity pending. |
+| `RasterPipelineBlitter::new` | `RasterPipelineBlitter::create` | 🧩 | Factory skeleton with optional `SubMaskRef` validation added; covered by `PipelineBlitterTest.CreateRejectsNullPixmap`, `CreateRejectsMaskSizeMismatch`, and `CreateWithExternalMaskModulatesRectAlpha`. |
+| `RasterPipelineBlitter::new_mask` | `RasterPipelineBlitter::createMask` | 🧩 | Stub implemented + covered by `PipelineBlitterTest.CreateMaskRejectsNullPixmap`. |
+| `Blitter::blit_h` | `RasterPipelineBlitter::blitH` | 🧩 | Stub delegates to rect path; full run-loop parity pending. |
+| `Blitter::blit_anti_h` | `RasterPipelineBlitter::blitAntiH` | 🧩 | Run-walk + transparent/partial/opaque coverage branches stubbed; covered by `PipelineBlitterTest.BlitAntiHRespectsRunsAndCoverageKinds` and `BlitAntiHStopsAtRunSentinel`. |
+| `Blitter::blit_v` | `RasterPipelineBlitter::blitV` | 🧩 | Constant-coverage vertical blend path implemented; covered by `PipelineBlitterTest.BlitVHandlesTransparentPartialAndOpaqueCoverage`, `PartialCoverageComposesWithExistingDestinationAlpha`, `CreateBlitVPartialCoverageSetsColorAndComposesAlpha`, and `CreateBlitVOpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_anti_h2` | `RasterPipelineBlitter::blitAntiH2` | 🧩 | Two-pixel horizontal coverage application implemented; covered by `PipelineBlitterTest.BlitAntiH2WritesPerPixelCoverage`, `CreateBlitAntiH2PartialCoverageSetsColorAndAlpha`, and `CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_anti_v2` | `RasterPipelineBlitter::blitAntiV2` | 🧩 | Two-pixel vertical coverage application covered by `PipelineBlitterTest.BlitAntiV2WritesSeparatePixelCoverages` and `CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_rect` | `RasterPipelineBlitter::blitRect` | 🧩 | Mask-only alpha fill + external-mask modulation path covered by `PipelineBlitterTest.CreateMaskAndBlitRectWritesOpaqueAlphaInRegion`, `BlitRectClipsToPixmapBounds`, and `CreateWithExternalMaskModulatesRectAlpha`. |
+| `Blitter::blit_mask` | `RasterPipelineBlitter::blitMask` | 🧩 | Mask-data coverage path implemented for mask-only and create-color modes (including optional external mask modulation); covered by `PipelineBlitterTest.BlitMaskLerpsDestinationAlphaWithCoverageMap`, `BlitMaskClipsWhenClipExceedsMaskDimensions`, `BlitMaskPartialCoverageComposesAcrossPasses`, `CreateBlitMaskWritesColorWithMaskCoverage`, `CreateBlitMaskCombinesWithExternalMaskCoverage`, and `CreateBlitMaskPartialCoverageComposesAcrossPasses`. |
+

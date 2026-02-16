@@ -37,6 +37,11 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 
 - Use `AGENTS.md` and `docs/design_docs/AGENTS.md` as the source of truth for local instruction.
 - Keep design and implementation steps actionable and testable.
+- When a user asks to keep a larger-step strategy, plan and execute a cohesive, larger-than-normal
+  implementation batch (code + tests + tracker/doc status updates) instead of micro-steps.
+- By default, if the active model is in a top capability tier (for example GPT-5.2-Codex or
+  Claude Opus 4.5-class reasoning), use the larger-step strategy automatically unless the user
+  explicitly requests smaller incremental steps.
 - For any code change (new/edited/deleted file), update milestone checkboxes or function
   status entries in the same update batch as implementation.
 - During porting, explicitly report good sequence points for incremental commits.
