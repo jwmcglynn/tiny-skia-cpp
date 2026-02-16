@@ -3,6 +3,7 @@
 filegroup(
     name = "srcs",
     srcs = [
+        "Blitter.cpp",
         "Highp.cpp",
         "Lowp.cpp",
         "Mod.cpp",
@@ -13,6 +14,7 @@ filegroup(
 filegroup(
     name = "hdrs",
     srcs = [
+        "Blitter.h",
         "Highp.h",
         "Lowp.h",
         "Mod.h",

@@ -53,6 +53,8 @@
 
 ### Milestone 1: Build and repository bootstrap (required before functional ports)
 - [x] Verify `MODULE.bazel` captures core external toolchain dependencies.
+- [x] Record Bazel Central Registry (BCR) availability for `tiny-skia-cpp` consumers and keep
+  module metadata aligned with Bzlmod usage expectations.
 - [x] Finalize `BUILD.bazel` stubs in `src/`, `tests/`, and nested modules.
 - [🟡] Finalize `bazel/defs.bzl` macro API and document call patterns.
 - [x] Add baseline test target(s) for build smoke checks.
@@ -63,15 +65,15 @@
 ### Milestone 2: Rust reference indexing
 - [x] Validate that all Rust files from `third_party/tiny-skia/src` are indexed in the tracker table.
 - [🟡] For each Rust file, record symbol ownership, dependencies, and visibility assumptions.
-- [ ] Mark dependencies between modules in the tracker before code starts moving.
-- [ ] Identify hard equivalence anchors (golden vectors, float semantics, bit-level ops).
-- [ ] Resolve any module-order blockers by dependency DAG before porting.
+- [x] Mark dependencies between modules in the tracker before code starts moving.
+- [x] Identify hard equivalence anchors (golden vectors, float semantics, bit-level ops).
+- [x] Resolve any module-order blockers by dependency DAG before porting.
 
 ### Milestone 3: Translation workflow lock
 - [🟡] For each Rust file:
   - Add row to the file-level function table with `Rust function/item` / `C++ function/item`.
   - Add status and equivalence check entry for every function.
-- [ ] Port in deterministic order: foundations → geometry/path64 → scan/pipeline → shading.
+- [🟡] Port in deterministic order: foundations → geometry/path64 → scan/pipeline → shading.
 - [x] Keep headers and sources colocated under `src/tiny_skia` and update BUILD deps as you go.
 - [x] Compile every partially done file through incremental builds.
 
@@ -145,7 +147,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | 🟡 |
-| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ☐ |
+| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🧩 |
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ✅ |
@@ -194,6 +196,71 @@ this bootstrap design compact and easier to review.
 - `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/wide.md`
 
 Add or update per-file tables in the split mapping docs as implementation progresses.
+
+## Module Dependency DAG and Equivalence Anchors
+
+This section defines the cross-module ordering constraints used for deterministic porting.
+
+### Dependency DAG (module level)
+| Module group | Depends on | Unblocks |
+| --- | --- | --- |
+| Core (`math`, `fixed_point`, `color`, `color_space`, `geom`) | — | `path64/*`, `scan/*`, `pipeline/*`, `mask`, `pixmap`, `painter` |
+| Wide SIMD (`wide/*`) | core math primitives | `pipeline/*`, `shaders/*` |
+| Pathing (`path64/*`, `path_geometry`) | core geometry/math | `scan/*`, `painter` |
+| Scan conversion (`scan/*`) | pathing + core geometry | `painter` |
+| Pipeline (`pipeline/*`) | core color/math + wide SIMD | `shaders/*`, `painter` |
+| Shaders (`shaders/*`) | pipeline + core color math | `painter` |
+| Surface services (`mask`, `pixmap`, `blend_mode`) | core + pipeline contracts | `painter` |
+| Painter (`painter`) | scan + pipeline + shaders + services | final integration and API parity |
+
+- Core math/data foundations (`math`, `fixed_point`, `color`, `color_space`, `geom`) have no
+  internal tiny-skia dependencies and must stay first in the sequence.
+- `wide/*` vector wrappers are shared utility dependencies for `pipeline/*` and shader stages.
+- `path64/*` and `path_geometry` depend on core geometry/math and feed into scan conversion.
+- `scan/*` depends on core geometry + path modules and produces edge coverage used by painter.
+- `pipeline/*` depends on core color/math + `wide/*` and is consumed by painter + shaders.
+- `shaders/*` depends on pipeline math/color primitives and feeds painter composition.
+- `mask`, `pixmap`, and `blend_mode` are service modules consumed by `painter`.
+- `painter` is the top-level orchestration layer and remains late-stage because it depends on
+  scan, pipeline, shaders, pixmap, mask, and blend behavior.
+
+### Blockers resolved by DAG policy
+- No upstream dependency remains unassigned for the currently in-flight modules
+  (`mask`, `pixmap`, `pipeline/highp`, `pipeline/lowp`, and `wide/*` helpers).
+- Shader-file ports remain intentionally blocked on completion of shared gradient/pipeline
+  helper parity (`shaders/mod`, then gradient specializations).
+- `painter` stays blocked until shader + remaining pipeline parity are marked at least `🟡`.
+
+### Hard equivalence anchors
+- **Bit-level integer math parity:** fixed-point shifts, saturating arithmetic, and packed-channel
+  operations must preserve exact integer outputs.
+- **Floating-point edge semantics:** preserve NaN propagation, clamp order, and branch thresholds
+  in color interpolation and geometry stepping.
+- **Golden-vector rendering checks:** maintain canonical pixel vectors for blend, mask, and
+  gradient interpolation behaviors.
+- **Coverage accumulation invariants:** scan/path fill coverage and winding behavior must remain
+  bit-accurate for anti-aliased and non-AA paths.
+
+### Port order enforced by DAG
+1. Core + wide foundations.
+2. Path/path64 + scan conversion.
+3. Pipeline stages (lowp/highp/blitter/mod).
+4. Shader modules.
+5. Painter orchestration and integration seams.
+
+This ordering is now the gate used when selecting the next implementation batch.
+
+### Next implementation batch gate (current)
+- Keep using `pipeline/blitter.rs` as the immediate execution track and finish constructor/factory
+  parity (`new`, `new_mask`) before opening new shader translation files.
+- Treat BCR availability as an external-consumer constraint: preserve Bzlmod-first module surfaces
+  while advancing blitter internals so downstream users can consume incremental updates cleanly.
+- Track `pipeline/blitter.rs` function-level status in
+  `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/pipeline.md` as the source of truth
+  for unblock decisions.
+- Keep shader module rows blocked (`☐`) until shared `pipeline/*` plumbing used by shader stages is
+  at least `🟡` and covered by parity tests.
+- After blitter reaches `🟡`, start `shaders/mod.rs` as the entry point for gradient specializations.
 ## Security / Privacy
 - Inputs are repository-local source files and compiler/runtime dependencies.
 - Trust boundary is local workspace state only; no user-provided binary assets are executed during bootstrap.
