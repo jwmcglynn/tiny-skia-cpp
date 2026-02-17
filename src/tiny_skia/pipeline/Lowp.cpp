@@ -380,12 +380,15 @@ void store_8888_lowp(std::uint8_t* data, std::size_t stride, std::size_t dx, std
                      const std::array<float, kStageWidth>& b,
                      const std::array<float, kStageWidth>& a) {
   const auto offset = (dy * stride + dx) * 4;
+  auto clamp = [](float v) -> std::uint8_t {
+    return static_cast<std::uint8_t>(std::max(0.0f, std::min(255.0f, v)));
+  };
   for (std::size_t i = 0; i < count; ++i) {
     const auto base = offset + i * 4;
-    data[base + 0] = static_cast<std::uint8_t>(r[i]);
-    data[base + 1] = static_cast<std::uint8_t>(g[i]);
-    data[base + 2] = static_cast<std::uint8_t>(b[i]);
-    data[base + 3] = static_cast<std::uint8_t>(a[i]);
+    data[base + 0] = clamp(r[i]);
+    data[base + 1] = clamp(g[i]);
+    data[base + 2] = clamp(b[i]);
+    data[base + 3] = clamp(a[i]);
   }
 }
 
@@ -508,22 +511,182 @@ void source_over_rgba(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-#define STAGE_FN(name) void name(Pipeline& pipeline) { pipeline.nextStage(); }
-STAGE_FN(darken)
-STAGE_FN(difference)
-STAGE_FN(exclusion)
-STAGE_FN(hard_light)
-STAGE_FN(lighten)
-STAGE_FN(overlay)
-STAGE_FN(transform)
-STAGE_FN(pad_x1)
-STAGE_FN(reflect_x1)
-STAGE_FN(repeat_x1)
-STAGE_FN(gradient)
-STAGE_FN(evenly_spaced_2_stop_gradient)
-STAGE_FN(xy_to_radius)
+// --- Lowp blend modes (colors in [0, 255] range) ---
 
-#undef STAGE_FN
+void darken(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
+        (std::max(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
+        (std::max(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
+        (std::max(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void lighten(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
+        (std::min(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
+        (std::min(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
+        (std::min(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void difference(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
+        2.0f * (std::min(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
+        2.0f * (std::min(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
+        2.0f * (std::min(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void exclusion(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
+        2.0f * (pipeline.r[i] * pipeline.dr[i] + 255.0f) * kInv256;
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
+        2.0f * (pipeline.g[i] * pipeline.dg[i] + 255.0f) * kInv256;
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
+        2.0f * (pipeline.b[i] * pipeline.db[i] + 255.0f) * kInv256;
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void hard_light(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
+    auto blend_ch = [&](float s, float d) -> float {
+      const float body = (2.0f * s <= sa)
+          ? (2.0f * s * d)
+          : (sa * da - 2.0f * (sa - s) * (da - d));
+      return (s * inv_da + d * inv_sa + body + 255.0f) * kInv256;
+    };
+    pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
+    pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
+    pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void overlay(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
+    auto blend_ch = [&](float s, float d) -> float {
+      const float body = (2.0f * d <= da)
+          ? (2.0f * s * d)
+          : (sa * da - 2.0f * (sa - s) * (da - d));
+      return (s * inv_da + d * inv_sa + body + 255.0f) * kInv256;
+    };
+    pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
+    pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
+    pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
+    pipeline.a[i] = pipeline.a[i] +
+        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+// --- Lowp coordinate/shader stages ---
+
+void transform(Pipeline& pipeline) {
+  const auto& ts = pipeline.ctx->transform;
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float x = pipeline.r[i];
+    const float y = pipeline.g[i];
+    pipeline.r[i] = x * ts.sx + y * ts.kx + ts.tx;
+    pipeline.g[i] = x * ts.ky + y * ts.sy + ts.ty;
+  }
+  pipeline.nextStage();
+}
+
+void pad_x1(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    pipeline.r[i] = std::max(0.0f, std::min(1.0f, pipeline.r[i]));
+  }
+  pipeline.nextStage();
+}
+
+void reflect_x1(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float v = pipeline.r[i];
+    pipeline.r[i] = std::max(0.0f, std::min(1.0f,
+        std::abs((v - 1.0f) - 2.0f * std::floor((v - 1.0f) * 0.5f) - 1.0f)));
+  }
+  pipeline.nextStage();
+}
+
+void repeat_x1(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float v = pipeline.r[i];
+    pipeline.r[i] = std::max(0.0f, std::min(1.0f, v - std::floor(v)));
+  }
+  pipeline.nextStage();
+}
+
+void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
+  const auto& ctx = pipeline.ctx->evenly_spaced_2_stop_gradient;
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float t = pipeline.r[i];
+    pipeline.r[i] = std::round((t * ctx.factor.r + ctx.bias.r) * 255.0f);
+    pipeline.g[i] = std::round((t * ctx.factor.g + ctx.bias.g) * 255.0f);
+    pipeline.b[i] = std::round((t * ctx.factor.b + ctx.bias.b) * 255.0f);
+    pipeline.a[i] = std::round((t * ctx.factor.a + ctx.bias.a) * 255.0f);
+  }
+  pipeline.nextStage();
+}
+
+void gradient(Pipeline& pipeline) {
+  const auto& ctx = pipeline.ctx->gradient;
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float t = pipeline.r[i];
+    std::uint32_t idx = 0;
+    for (std::size_t s = 1; s < ctx.len; ++s) {
+      if (t >= ctx.t_values[s]) {
+        idx += 1;
+      }
+    }
+    const auto& factor = ctx.factors[idx];
+    const auto& bias = ctx.biases[idx];
+    pipeline.r[i] = std::round((t * factor.r + bias.r) * 255.0f);
+    pipeline.g[i] = std::round((t * factor.g + bias.g) * 255.0f);
+    pipeline.b[i] = std::round((t * factor.b + bias.b) * 255.0f);
+    pipeline.a[i] = std::round((t * factor.a + bias.a) * 255.0f);
+  }
+  pipeline.nextStage();
+}
+
+void xy_to_radius(Pipeline& pipeline) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float x = pipeline.r[i];
+    const float y = pipeline.g[i];
+    pipeline.r[i] = std::sqrt(x * x + y * y);
+  }
+  pipeline.nextStage();
+}
 
 }  // namespace
 
@@ -610,6 +773,7 @@ const std::array<StageFn, kStagesCount> STAGES = {
     null_fn,
     null_fn,
     null_fn,
+    null_fn,  // Luminosity (not lowp compatible)
     source_over_rgba,
     transform,
     null_fn,
@@ -623,7 +787,6 @@ const std::array<StageFn, kStagesCount> STAGES = {
     evenly_spaced_2_stop_gradient,
     null_fn,
     xy_to_radius,
-    null_fn,
     null_fn,
     null_fn,
     null_fn,
