@@ -17,9 +17,12 @@ using tiny_skia::GradientStop;
 using tiny_skia::Gradient;
 using tiny_skia::LinearGradient;
 using tiny_skia::NormalizedF32;
+using tiny_skia::Pattern;
 using tiny_skia::Point;
+using tiny_skia::RadialGradient;
 using tiny_skia::Shader;
 using tiny_skia::SpreadMode;
+using tiny_skia::SweepGradient;
 using tiny_skia::Transform;
 
 // ---------------------------------------------------------------------------
@@ -467,6 +470,390 @@ TEST(ShaderTest, PushStagesSolidColor) {
   const bool ok = tiny_skia::pushShaderStages(shader, ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   EXPECT_GE(builder.compile().stageCount(), 1u);
+}
+
+// ---------------------------------------------------------------------------
+// SweepGradient tests
+// ---------------------------------------------------------------------------
+
+TEST(SweepGradientTest, CreateRejectsEmptyStops) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {}, SpreadMode::Pad, Transform::identity());
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(SweepGradientTest, CreateSingleStopReturnsSolidColor) {
+  const auto c = Color::fromRgba8(50, 127, 150, 200);
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {GradientStop::create(0.5f, c)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<Color>(*result));
+}
+
+TEST(SweepGradientTest, CreateRejectsInvertedAngles) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 270.0f, 90.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(SweepGradientTest, CreateRejectsNonFiniteAngles) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, INFINITY,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(SweepGradientTest, CreateValidFullCircle) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<SweepGradient>(*result));
+}
+
+TEST(SweepGradientTest, CreatePartialSweep) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 135.0f, 225.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<SweepGradient>(*result));
+}
+
+TEST(SweepGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(SweepGradientTest, PushStagesSucceeds) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = std::get<SweepGradient>(*result).pushStages(
+      ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 3u);
+}
+
+TEST(SweepGradientTest, PushStagesPartialSweepHasScaleBias) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 135.0f, 225.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = std::get<SweepGradient>(*result).pushStages(
+      ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  // Partial sweep needs XYToUnitAngle + ApplyConcentricScaleBias.
+  EXPECT_GE(builder.compile().stageCount(), 4u);
+}
+
+TEST(SweepGradientTest, ShaderVariantDispatch) {
+  const auto result = SweepGradient::create(
+      Point::fromXy(100, 100), 0.0f, 360.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
+
+  Shader shader = std::get<SweepGradient>(*result);
+  EXPECT_TRUE(tiny_skia::isShaderOpaque(shader));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  EXPECT_TRUE(tiny_skia::pushShaderStages(shader, ColorSpace::Linear, builder));
+
+  tiny_skia::transformShader(shader, Transform::fromTranslate(5.0f, 5.0f));
+  tiny_skia::applyShaderOpacity(shader, 0.5f);
+  EXPECT_FALSE(tiny_skia::isShaderOpaque(shader));
+}
+
+// ---------------------------------------------------------------------------
+// RadialGradient tests
+// ---------------------------------------------------------------------------
+
+TEST(RadialGradientTest, CreateRejectsEmptyStops) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {}, SpreadMode::Pad, Transform::identity());
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(RadialGradientTest, CreateSingleStopReturnsSolidColor) {
+  const auto c = Color::fromRgba8(50, 127, 150, 200);
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.5f, c)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<Color>(*result));
+}
+
+TEST(RadialGradientTest, CreateRejectsNegativeRadius) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), -1.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(RadialGradientTest, CreateSimpleRadial) {
+  // Simple: same center, start radius = 0.
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
+}
+
+TEST(RadialGradientTest, CreateConcentricRadial) {
+  // Concentric: same center, different non-zero radii.
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 30.0f, Point::fromXy(100, 100), 90.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
+}
+
+TEST(RadialGradientTest, CreateTwoPointConical) {
+  // Two-point conical: different centers, different radii.
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
+}
+
+TEST(RadialGradientTest, CreateStripGradient) {
+  // Strip: different centers, same radius.
+  const auto result = RadialGradient::create(
+      Point::fromXy(50, 100), 50.0f, Point::fromXy(150, 100), 50.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
+}
+
+TEST(RadialGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
+  EXPECT_FALSE(result.has_value());
+}
+
+TEST(RadialGradientTest, CreateDegenerateSameCenterSameRadius) {
+  // Both center and radii degenerate with Pad mode and radius > threshold.
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 50.0f, Point::fromXy(100, 100), 50.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  // With Pad and radius > threshold, creates a hard-stop gradient.
+  ASSERT_TRUE(result.has_value());
+  EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
+}
+
+TEST(RadialGradientTest, PushStagesSimpleRadial) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = std::get<RadialGradient>(*result).pushStages(
+      ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 3u);
+}
+
+TEST(RadialGradientTest, PushStagesTwoPointConical) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = std::get<RadialGradient>(*result).pushStages(
+      ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 4u);
+}
+
+TEST(RadialGradientTest, ShaderVariantDispatch) {
+  const auto result = RadialGradient::create(
+      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+      {GradientStop::create(0.0f, Color::white),
+       GradientStop::create(1.0f, Color::black)},
+      SpreadMode::Pad, Transform::identity());
+  ASSERT_TRUE(result.has_value());
+  ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
+
+  Shader shader = std::get<RadialGradient>(*result);
+  EXPECT_TRUE(tiny_skia::isShaderOpaque(shader));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  EXPECT_TRUE(tiny_skia::pushShaderStages(shader, ColorSpace::Linear, builder));
+
+  tiny_skia::transformShader(shader, Transform::fromTranslate(5.0f, 5.0f));
+  tiny_skia::applyShaderOpacity(shader, 0.5f);
+  EXPECT_FALSE(tiny_skia::isShaderOpaque(shader));
+}
+
+// ---------------------------------------------------------------------------
+// Pattern tests
+// ---------------------------------------------------------------------------
+
+TEST(PatternTest, CreateAndPushStagesNearest) {
+  // Create a small 4x4 pixmap for testing.
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);  // 4x4 RGBA, all white
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
+                          1.0f, Transform::identity());
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = pat.pushStages(ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 2u);
+}
+
+TEST(PatternTest, CreateAndPushStagesBilinear) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bilinear,
+                          1.0f, Transform::fromScale(2.0f, 2.0f));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = pat.pushStages(ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 3u);
+}
+
+TEST(PatternTest, CreateAndPushStagesBicubic) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bicubic,
+                          1.0f, Transform::fromScale(2.0f, 2.0f));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = pat.pushStages(ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  // Bicubic pushes Bicubic + Clamp0 + ClampA.
+  EXPECT_GE(builder.compile().stageCount(), 4u);
+}
+
+TEST(PatternTest, NonInvertibleTransformFails) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
+                          1.0f, Transform::fromScale(0.0f, 0.0f));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  EXPECT_FALSE(pat.pushStages(ColorSpace::Linear, builder));
+}
+
+TEST(PatternTest, PatternIsNeverOpaque) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
+                          1.0f, Transform::identity());
+  EXPECT_FALSE(pat.isOpaque());
+}
+
+TEST(PatternTest, OpacityAppliesScale1FloatStage) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
+                          0.5f, Transform::identity());
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = pat.pushStages(ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  // With opacity < 1, adds Scale1Float.
+  EXPECT_GE(builder.compile().stageCount(), 3u);
+}
+
+TEST(PatternTest, RepeatSpreadModePushesRepeatStage) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Repeat, tiny_skia::FilterQuality::Nearest,
+                          1.0f, Transform::identity());
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  const bool ok = pat.pushStages(ColorSpace::Linear, builder);
+  EXPECT_TRUE(ok);
+  EXPECT_GE(builder.compile().stageCount(), 3u);
+}
+
+TEST(PatternTest, ShaderVariantDispatch) {
+  std::vector<std::uint8_t> data(4 * 4 * 4, 255);
+  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  ASSERT_TRUE(pixmap.has_value());
+
+  Shader shader = tiny_skia::Pattern(*pixmap, SpreadMode::Pad,
+                                      tiny_skia::FilterQuality::Nearest,
+                                      1.0f, Transform::identity());
+  EXPECT_FALSE(tiny_skia::isShaderOpaque(shader));
+
+  tiny_skia::pipeline::RasterPipelineBuilder builder;
+  EXPECT_TRUE(tiny_skia::pushShaderStages(shader, ColorSpace::Linear, builder));
+
+  tiny_skia::transformShader(shader, Transform::fromTranslate(5.0f, 5.0f));
+  tiny_skia::applyShaderOpacity(shader, 0.5f);
 }
 
 }  // namespace
