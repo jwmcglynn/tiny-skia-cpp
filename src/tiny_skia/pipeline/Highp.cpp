@@ -1047,7 +1047,6 @@ void soft_light(Pipeline& pipeline) {
     const float s = pipeline.r[i], d = pipeline.dr[i];
     const float sa = pipeline.a[i], da = pipeline.da[i];
     const float inv_sa = 1.0f - sa;
-    const float inv_da = 1.0f - da;
 
     auto soft_light_channel = [](float sc, float dc, float sca, float dca) -> float {
       const float m = (dca > 0.0f) ? dc / dca : 0.0f;

@@ -251,6 +251,7 @@ namespace {
     case Stage::XYToRadius:
       return true;
   }
+  return false;  // unreachable; satisfies -Wreturn-type
 }
 
 [[nodiscard]] constexpr bool isPipelineLowpCompatible(

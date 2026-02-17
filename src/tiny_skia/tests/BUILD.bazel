@@ -21,6 +21,8 @@ cc_test(
         "LineClipperTest.cpp",
         "MathTest.cpp",
         "MaskTest.cpp",
+        "PainterTest.cpp",
+        "PipelineStagesTest.cpp",
         "PixmapTest.cpp",
         "PathGeometryTest.cpp",
     ],
