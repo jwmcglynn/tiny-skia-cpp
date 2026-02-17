@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "tiny_skia/BlendMode.h"
 #include "tiny_skia/Mask.h"
 #include "tiny_skia/Pixmap.h"
 
@@ -49,7 +50,8 @@ TEST(PipelineBlitterTest, CreateRejectsMaskSizeMismatch) {
   ASSERT_TRUE(mask.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
-  EXPECT_THAT(tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub, mask->asSubmask()),
+  EXPECT_THAT(tiny_skia::pipeline::RasterPipelineBlitter::create(
+                  color, &sub, tiny_skia::BlendMode::SourceOver, mask->asSubmask()),
               Eq(std::nullopt));
 }
 
@@ -63,14 +65,16 @@ TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
   ASSERT_TRUE(mask.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
-  auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub, mask->asSubmask());
+  auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(
+      color, &sub, tiny_skia::BlendMode::SourceOver, mask->asSubmask());
   ASSERT_TRUE(blitter.has_value());
   EXPECT_FALSE(blitter->isMaskOnly());
 
   blitter->blitRect(tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(0u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(100u));
+  // Pipeline lowp div255 approximation: (a*b+255)/256 yields small bias vs exact a*b/255.
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(1u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(101u));
 }
 
 
@@ -89,8 +93,8 @@ TEST(PipelineBlitterTest, CreateBlitMaskWritesColorWithMaskCoverage) {
 
   blitter->blitMask(*mask, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(50u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(200u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(51u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(201u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
@@ -106,14 +110,14 @@ TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
   ASSERT_TRUE(incoming.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
-  auto blitter =
-      tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub, external->asSubmask());
+  auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(
+      color, &sub, tiny_skia::BlendMode::SourceOver, external->asSubmask());
   ASSERT_TRUE(blitter.has_value());
 
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(200u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(100u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(201u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(102u));
 }
 
 
@@ -133,7 +137,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskPartialCoverageComposesAcrossPasses) {
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 1u, 1u));
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 1u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(161u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(162u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
@@ -149,9 +153,9 @@ TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
   blitter->blitV(0, 0, 1u, 128u);
 
   EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(10u));
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 1), Eq(20u));
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 2), Eq(30u));
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(161u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 1), Eq(18u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 2), Eq(26u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(162u));
 }
 
 
@@ -167,7 +171,7 @@ TEST(PipelineBlitterTest, CreateBlitVOpaqueCoverageComposesAcrossPasses) {
   blitter->blitV(0, 0, 1u, 255u);
   blitter->blitV(0, 0, 1u, 255u);
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(243u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(244u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
@@ -181,10 +185,10 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
 
   blitter->blitAntiH2(0, 0, 64u, 200u);
 
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(10u));
-  EXPECT_THAT(channelAt(*pixmap, 1, 0, 0), Eq(10u));
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(50u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(157u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(4u));
+  EXPECT_THAT(channelAt(*pixmap, 1, 0, 0), Eq(9u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(51u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(158u));
 }
 
 
@@ -202,7 +206,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses) {
   blitter->blitAntiH2(0, 0, 255u, 255u);
 
   const auto alpha = std::vector<std::uint8_t>{alphaAt(*pixmap, 0, 0), alphaAt(*pixmap, 1, 0)};
-  EXPECT_THAT(alpha, ElementsAre(243u, 243u));
+  EXPECT_THAT(alpha, ElementsAre(244u, 244u));
 }
 
 
@@ -219,7 +223,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses) {
   blitter->blitAntiV2(0, 0, 255u, 255u);
 
   const auto alpha = std::vector<std::uint8_t>{alphaAt(*pixmap, 0, 0), alphaAt(*pixmap, 0, 1)};
-  EXPECT_THAT(alpha, ElementsAre(243u, 243u));
+  EXPECT_THAT(alpha, ElementsAre(244u, 244u));
 }
 TEST(PipelineBlitterTest, CreateMaskAndBlitRectWritesOpaqueAlphaInRegion) {
   auto pixmap = tiny_skia::Pixmap::fromSize(4, 3);
@@ -311,7 +315,7 @@ TEST(PipelineBlitterTest, PartialCoverageComposesWithExistingDestinationAlpha) {
   blitter->blitV(0, 0, 1u, 128u);
   blitter->blitV(0, 0, 1u, 128u);
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(192u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(191u));
 }
 
 
@@ -396,7 +400,7 @@ TEST(PipelineBlitterTest, BlitMaskPartialCoverageComposesAcrossPasses) {
   blitter->blitMask(*mask, *clip);
   blitter->blitMask(*mask, *clip);
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(192u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(191u));
 }
 
 TEST(PipelineBlitterTest, BlitMaskLerpsDestinationAlphaWithCoverageMap) {

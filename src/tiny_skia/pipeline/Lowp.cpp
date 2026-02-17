@@ -1,7 +1,10 @@
 #include "tiny_skia/pipeline/Lowp.h"
+#include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
+#include "tiny_skia/Pixmap.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace tiny_skia::pipeline::lowp {
 
@@ -41,22 +44,6 @@ struct Pipeline {
         ctx(&ctx_arg),
         pixmap_dst(pixmap_dst_arg) {
     (void)tail_fun;
-    (void)dx;
-    (void)dy;
-    (void)tail;
-    (void)r;
-    (void)g;
-    (void)b;
-    (void)a;
-    (void)dr;
-    (void)dg;
-    (void)db;
-    (void)da;
-    (void)rect;
-    (void)aa_mask_ctx;
-    (void)mask_ctx;
-    (void)ctx;
-    (void)pixmap_dst;
   }
 
   void nextStage() {
@@ -364,20 +351,170 @@ void null_fn(Pipeline& pipeline) {
   (void)pipeline;
 }
 
+constexpr float kInv256 = 1.0f / 256.0f;
+
+void load_8888_lowp(const std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
+                    std::size_t count,
+                    std::array<float, kStageWidth>& or_, std::array<float, kStageWidth>& og,
+                    std::array<float, kStageWidth>& ob, std::array<float, kStageWidth>& oa) {
+  const auto offset = (dy * stride + dx) * 4;
+  for (std::size_t i = 0; i < count; ++i) {
+    const auto base = offset + i * 4;
+    or_[i] = static_cast<float>(data[base + 0]);
+    og[i] = static_cast<float>(data[base + 1]);
+    ob[i] = static_cast<float>(data[base + 2]);
+    oa[i] = static_cast<float>(data[base + 3]);
+  }
+  for (std::size_t i = count; i < kStageWidth; ++i) {
+    or_[i] = 0.0f;
+    og[i] = 0.0f;
+    ob[i] = 0.0f;
+    oa[i] = 0.0f;
+  }
+}
+
+void store_8888_lowp(std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
+                     std::size_t count,
+                     const std::array<float, kStageWidth>& r,
+                     const std::array<float, kStageWidth>& g,
+                     const std::array<float, kStageWidth>& b,
+                     const std::array<float, kStageWidth>& a) {
+  const auto offset = (dy * stride + dx) * 4;
+  for (std::size_t i = 0; i < count; ++i) {
+    const auto base = offset + i * 4;
+    data[base + 0] = static_cast<std::uint8_t>(r[i]);
+    data[base + 1] = static_cast<std::uint8_t>(g[i]);
+    data[base + 2] = static_cast<std::uint8_t>(b[i]);
+    data[base + 3] = static_cast<std::uint8_t>(a[i]);
+  }
+}
+
+void load_dst(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  load_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
+                 pipeline.dx, pipeline.dy, pipeline.tail,
+                 pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  pipeline.nextStage();
+}
+
+void store(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  store_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
+                  pipeline.dx, pipeline.dy, pipeline.tail,
+                  pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  pipeline.nextStage();
+}
+
+void load_dst_u8(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+    pipeline.da[i] = static_cast<float>(pipeline.pixmap_dst->data[offset + i]);
+  }
+  for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
+    pipeline.da[i] = 0.0f;
+  }
+  pipeline.nextStage();
+}
+
+void store_u8(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+    pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(pipeline.a[i]);
+  }
+  pipeline.nextStage();
+}
+
+void load_mask_u8(Pipeline& pipeline) {
+  if (pipeline.mask_ctx == nullptr || pipeline.mask_ctx->data == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+    pipeline.a[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]);
+  }
+  for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
+    pipeline.a[i] = 0.0f;
+  }
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    pipeline.r[i] = 0.0f;
+    pipeline.g[i] = 0.0f;
+    pipeline.b[i] = 0.0f;
+  }
+  pipeline.nextStage();
+}
+
+void mask_u8(Pipeline& pipeline) {
+  if (pipeline.mask_ctx == nullptr || pipeline.mask_ctx->data == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  std::array<float, kStageWidth> c{};
+  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+    c[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]);
+  }
+  bool all_zero = true;
+  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+    if (c[i] != 0.0f) {
+      all_zero = false;
+      break;
+    }
+  }
+  if (all_zero) {
+    return;
+  }
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    pipeline.r[i] = (pipeline.r[i] * c[i] + 255.0f) * kInv256;
+    pipeline.g[i] = (pipeline.g[i] * c[i] + 255.0f) * kInv256;
+    pipeline.b[i] = (pipeline.b[i] * c[i] + 255.0f) * kInv256;
+    pipeline.a[i] = (pipeline.a[i] * c[i] + 255.0f) * kInv256;
+  }
+  pipeline.nextStage();
+}
+
+void source_over_rgba(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  load_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
+                 pipeline.dx, pipeline.dy, pipeline.tail,
+                 pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float inv_sa = 255.0f - pipeline.a[i];
+    pipeline.r[i] = pipeline.r[i] + (pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.g[i] = pipeline.g[i] + (pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.b[i] = pipeline.b[i] + (pipeline.db[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.a[i] = pipeline.a[i] + (pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+  }
+  store_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
+                  pipeline.dx, pipeline.dy, pipeline.tail,
+                  pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  pipeline.nextStage();
+}
+
 #define STAGE_FN(name) void name(Pipeline& pipeline) { pipeline.nextStage(); }
-STAGE_FN(load_dst)
-STAGE_FN(store)
-STAGE_FN(load_dst_u8)
-STAGE_FN(store_u8)
-STAGE_FN(load_mask_u8)
-STAGE_FN(mask_u8)
 STAGE_FN(darken)
 STAGE_FN(difference)
 STAGE_FN(exclusion)
 STAGE_FN(hard_light)
 STAGE_FN(lighten)
 STAGE_FN(overlay)
-STAGE_FN(source_over_rgba)
 STAGE_FN(transform)
 STAGE_FN(pad_x1)
 STAGE_FN(reflect_x1)

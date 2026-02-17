@@ -7,49 +7,41 @@ namespace {
 
 constexpr std::size_t kBytesPerPixel = 4;
 
-[[nodiscard]] std::size_t alphaOffset(const SubPixmapMut& pixmap, std::size_t x, std::size_t y) {
-  return (y * pixmap.real_width + x) * kBytesPerPixel + 3;
-}
-
-[[nodiscard]] AlphaU8 lerpMaskAlpha(AlphaU8 dst, AlphaU8 coverage) {
-  const auto inv = static_cast<std::uint32_t>(255u - dst);
-  const auto scaled = (inv * static_cast<std::uint32_t>(coverage) + 127u) / 255u;
-  return static_cast<AlphaU8>(dst + scaled);
-}
-
-
-[[nodiscard]] AlphaU8 externalMaskCoverage(const std::optional<SubMaskRef>& mask,
-                                           std::size_t x,
-                                           std::size_t y) {
+[[nodiscard]] MaskCtx makeMaskCtx(const std::optional<SubMaskRef>& mask) {
   if (!mask.has_value()) {
-    return 255u;
+    return MaskCtx{};
   }
-
-  if (x >= mask->size.width() || y >= mask->size.height()) {
-    return 0u;
-  }
-
-  const auto offset = y * static_cast<std::size_t>(mask->realWidth) + x;
-  return mask->data[offset];
+  return MaskCtx{mask->data, mask->realWidth};
 }
 
-[[nodiscard]] AlphaU8 combineCoverage(AlphaU8 coverage, AlphaU8 maskCoverage) {
-  const auto scaled =
-      static_cast<std::uint32_t>(coverage) * static_cast<std::uint32_t>(maskCoverage);
-  return static_cast<AlphaU8>((scaled + 127u) / 255u);
+[[nodiscard]] Pixmap makeDummyPixmapSrc() {
+  auto p = Pixmap::fromSize(1, 1);
+  return p.has_value() ? std::move(*p) : Pixmap{};
 }
 
 }  // namespace
 
 RasterPipelineBlitter::RasterPipelineBlitter(SubPixmapMut* pixmap,
                                              bool isMaskOnly,
-                                             PremultipliedColorU8 memsetColor,
-                                             std::optional<SubMaskRef> mask)
-    : pixmap_(pixmap), is_mask_only_(isMaskOnly), memset_color_(memsetColor), mask_(mask) {}
+                                             std::optional<PremultipliedColorU8> memsetColor,
+                                             std::optional<SubMaskRef> mask,
+                                             Pixmap pixmapSrcStorage,
+                                             RasterPipeline blitAntiHRp,
+                                             RasterPipeline blitRectRp,
+                                             RasterPipeline blitMaskRp)
+    : pixmap_(pixmap),
+      is_mask_only_(isMaskOnly),
+      memset_color_(memsetColor),
+      mask_(mask),
+      pixmap_src_storage_(std::move(pixmapSrcStorage)),
+      blit_anti_h_rp_(blitAntiHRp),
+      blit_rect_rp_(blitRectRp),
+      blit_mask_rp_(blitMaskRp) {}
 
 std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(
     PremultipliedColorU8 color,
     SubPixmapMut* pixmap,
+    BlendMode blendMode,
     std::optional<SubMaskRef> mask) {
   if (pixmap == nullptr) {
     return std::nullopt;
@@ -61,7 +53,107 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(
     }
   }
 
-  return RasterPipelineBlitter(pixmap, false, color, mask);
+  // Fast-reject: Destination keeps the pixmap unchanged.
+  if (blendMode == BlendMode::Destination) {
+    return std::nullopt;
+  }
+
+  // Strength-reduce SourceOver to Source when opaque and no mask.
+  if (color.alpha() == 255u && blendMode == BlendMode::SourceOver && !mask.has_value()) {
+    blendMode = BlendMode::Source;
+  }
+
+  // Compute memset2d_color for Source mode with no mask.
+  std::optional<PremultipliedColorU8> memsetColor;
+  if (blendMode == BlendMode::Source && !mask.has_value()) {
+    memsetColor = color;
+  }
+
+  // Clear is transparent memset (when no mask).
+  if (blendMode == BlendMode::Clear && !mask.has_value()) {
+    blendMode = BlendMode::Source;
+    memsetColor = PremultipliedColorU8::fromRgbaUnchecked(0, 0, 0, 0);
+  }
+
+  // Convert color to premultiplied float for pipeline.
+  const auto premultColor = PremultipliedColor{
+      NormalizedF32::newClamped(static_cast<float>(color.red()) / 255.0f),
+      NormalizedF32::newClamped(static_cast<float>(color.green()) / 255.0f),
+      NormalizedF32::newClamped(static_cast<float>(color.blue()) / 255.0f),
+      NormalizedF32::newClamped(static_cast<float>(color.alpha()) / 255.0f)};
+
+  // Build blit_anti_h pipeline.
+  auto blitAntiHRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(premultColor);
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (shouldPreScaleCoverage(blendMode)) {
+      p.push(Stage::Scale1Float);
+      p.push(Stage::LoadDestination);
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+    } else {
+      p.push(Stage::LoadDestination);
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+      p.push(Stage::Lerp1Float);
+    }
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+
+  // Build blit_rect pipeline.
+  auto blitRectRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(premultColor);
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (blendMode == BlendMode::SourceOver && !mask.has_value()) {
+      p.push(Stage::SourceOverRgba);
+    } else {
+      if (blendMode != BlendMode::Source) {
+        p.push(Stage::LoadDestination);
+        if (const auto stage = toStage(blendMode)) {
+          p.push(*stage);
+        }
+      }
+      p.push(Stage::Store);
+    }
+    return p.compile();
+  }();
+
+  // Build blit_mask pipeline.
+  auto blitMaskRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(premultColor);
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (shouldPreScaleCoverage(blendMode)) {
+      p.push(Stage::ScaleU8);
+      p.push(Stage::LoadDestination);
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+    } else {
+      p.push(Stage::LoadDestination);
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+      p.push(Stage::LerpU8);
+    }
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+
+  return RasterPipelineBlitter(pixmap, false, memsetColor, mask,
+                               makeDummyPixmapSrc(),
+                               blitAntiHRp, blitRectRp, blitMaskRp);
 }
 
 std::optional<RasterPipelineBlitter> RasterPipelineBlitter::createMask(SubPixmapMut* pixmap) {
@@ -69,7 +161,40 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::createMask(SubPixmap
     return std::nullopt;
   }
 
-  return RasterPipelineBlitter(pixmap, true, Color::white.premultiply().toColorU8(), std::nullopt);
+  const auto color = Color::white.premultiply();
+  const auto memsetColor = color.toColorU8();
+
+  // Build blit_anti_h pipeline (mask mode: lerp dest with coverage).
+  auto blitAntiHRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(color);
+    p.push(Stage::LoadDestination);
+    p.push(Stage::Lerp1Float);
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+
+  // Build blit_rect pipeline (mask mode: overwrite).
+  auto blitRectRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(color);
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+
+  // Build blit_mask pipeline (mask mode: lerp dest with mask coverage).
+  auto blitMaskRp = [&]() {
+    RasterPipelineBuilder p;
+    p.pushUniformColor(color);
+    p.push(Stage::LoadDestination);
+    p.push(Stage::LerpU8);
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+
+  return RasterPipelineBlitter(pixmap, true, memsetColor, std::nullopt,
+                               makeDummyPixmapSrc(),
+                               blitAntiHRp, blitRectRp, blitMaskRp);
 }
 
 void RasterPipelineBlitter::blitH(std::uint32_t x, std::uint32_t y, LengthU32 width) {
@@ -84,6 +209,9 @@ void RasterPipelineBlitter::blitAntiH(std::uint32_t x,
     return;
   }
 
+  const auto mask_ctx = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+
   std::size_t aa_offset = 0;
   std::size_t run_offset = 0;
   while (run_offset < runs.size() && runs[run_offset].has_value()) {
@@ -96,7 +224,10 @@ void RasterPipelineBlitter::blitAntiH(std::uint32_t x,
     if (coverage == 255u) {
       blitH(x, y, run);
     } else if (coverage != 0u) {
-      blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x, y, run, 1u), coverage);
+      blit_anti_h_rp_.ctx().current_coverage =
+          static_cast<float>(coverage) * (1.0f / 255.0f);
+      const auto rect = ScreenIntRect::fromXYWHSafe(x, y, run, 1u);
+      blit_anti_h_rp_.run(rect, AAMaskCtx{}, mask_ctx, pixmap_src_ref, pixmap_);
     }
 
     x += run;
@@ -113,31 +244,48 @@ void RasterPipelineBlitter::blitV(std::uint32_t x,
     return;
   }
 
-  blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x, y, 1u, height), alpha);
+  const auto bounds = ScreenIntRect::fromXYWHSafe(x, y, 1u, height);
+  const AAMaskCtx aa_mask_ctx{
+      {alpha, alpha},
+      0u,  // row_bytes=0: reuse same data for all rows
+      static_cast<std::size_t>(bounds.x())};
+  const auto mask_ctx = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+  blit_mask_rp_.run(bounds, aa_mask_ctx, mask_ctx, pixmap_src_ref, pixmap_);
 }
 
 void RasterPipelineBlitter::blitAntiH2(std::uint32_t x,
                                        std::uint32_t y,
                                        AlphaU8 alpha0,
                                        AlphaU8 alpha1) {
-  if (alpha0 != 0u) {
-    blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x, y, 1u, 1u), alpha0);
+  const auto bounds = ScreenIntRect::fromXYWH(x, y, 2, 1);
+  if (!bounds.has_value()) {
+    return;
   }
-  if (alpha1 != 0u) {
-    blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x + 1u, y, 1u, 1u), alpha1);
-  }
+  const AAMaskCtx aa_mask_ctx{
+      {alpha0, alpha1},
+      2u,
+      static_cast<std::size_t>(bounds->x() + bounds->y() * 2)};
+  const auto mask_ctx = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+  blit_mask_rp_.run(*bounds, aa_mask_ctx, mask_ctx, pixmap_src_ref, pixmap_);
 }
 
 void RasterPipelineBlitter::blitAntiV2(std::uint32_t x,
                                        std::uint32_t y,
                                        AlphaU8 alpha0,
                                        AlphaU8 alpha1) {
-  if (alpha0 != 0u) {
-    blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x, y, 1u, 1u), alpha0);
+  const auto bounds = ScreenIntRect::fromXYWH(x, y, 1, 2);
+  if (!bounds.has_value()) {
+    return;
   }
-  if (alpha1 != 0u) {
-    blendMaskRectConstant(ScreenIntRect::fromXYWHSafe(x, y + 1u, 1u, 1u), alpha1);
-  }
+  const AAMaskCtx aa_mask_ctx{
+      {alpha0, alpha1},
+      1u,
+      static_cast<std::size_t>(bounds->x() + bounds->y() * 1)};
+  const auto mask_ctx = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+  blit_mask_rp_.run(*bounds, aa_mask_ctx, mask_ctx, pixmap_src_ref, pixmap_);
 }
 
 void RasterPipelineBlitter::blitRect(const ScreenIntRect& rect) {
@@ -145,29 +293,36 @@ void RasterPipelineBlitter::blitRect(const ScreenIntRect& rect) {
     return;
   }
 
-  if (is_mask_only_) {
-    fillMaskRect(rect, memset_color_.alpha());
+  if (memset_color_.has_value()) {
+    const auto c = *memset_color_;
+    const auto maxX = std::min<std::size_t>(pixmap_->width(), rect.x() + rect.width());
+    const auto maxY = std::min<std::size_t>(pixmap_->height(), rect.y() + rect.height());
+    auto* data = pixmap_->data;
+
+    if (is_mask_only_) {
+      for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
+        for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
+          const auto offset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
+          data[offset + 3] = c.alpha();
+        }
+      }
+    } else {
+      for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
+        for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
+          const auto offset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
+          data[offset + 0] = c.red();
+          data[offset + 1] = c.green();
+          data[offset + 2] = c.blue();
+          data[offset + 3] = c.alpha();
+        }
+      }
+    }
     return;
   }
 
-  auto bytes = pixmap_->dataMut();
-  const auto maxX = std::min<std::size_t>(pixmap_->width(), rect.x() + rect.width());
-  const auto maxY = std::min<std::size_t>(pixmap_->height(), rect.y() + rect.height());
-
-  for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
-    for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-      const auto offset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
-      const auto maskCoverage = externalMaskCoverage(mask_, xx, yy);
-      if (maskCoverage == 0u) {
-        continue;
-      }
-
-      bytes[offset + 0] = memset_color_.red();
-      bytes[offset + 1] = memset_color_.green();
-      bytes[offset + 2] = memset_color_.blue();
-      bytes[offset + 3] = combineCoverage(memset_color_.alpha(), maskCoverage);
-    }
-  }
+  const auto mask_ctx = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+  blit_rect_rp_.run(rect, AAMaskCtx{}, mask_ctx, pixmap_src_ref, pixmap_);
 }
 
 void RasterPipelineBlitter::blitMask(const Mask& mask, const ScreenIntRect& clip) {
@@ -180,82 +335,46 @@ void RasterPipelineBlitter::blitMask(const Mask& mask, const ScreenIntRect& clip
   const auto maxHeight = std::min<std::size_t>(clip.height(), mask.height());
   const auto maxX = std::min<std::size_t>(pixmap_->width(), clip.x() + maxWidth);
   const auto maxY = std::min<std::size_t>(pixmap_->height(), clip.y() + maxHeight);
-  auto bytes = pixmap_->dataMut();
 
+  const auto mask_ctx_external = makeMaskCtx(mask_);
+  const auto pixmap_src_ref = pixmap_src_storage_.asRef();
+
+  // Process row by row, 2 pixels at a time through the pipeline.
   for (std::size_t yy = clip.y(); yy < maxY; ++yy) {
     const auto maskY = yy - clip.y();
-    for (std::size_t xx = clip.x(); xx < maxX; ++xx) {
+    std::size_t xx = clip.x();
+    while (xx < maxX) {
       const auto maskX = xx - clip.x();
-      const auto coverage = maskData[maskY * mask.width() + maskX];
-      if (coverage == 0u) {
+      const auto remaining = maxX - xx;
+      const auto count = std::min<std::size_t>(remaining, 2u);
+
+      const auto c0 = maskData[maskY * mask.width() + maskX];
+      const auto c1 =
+          (count > 1 && maskX + 1 < mask.width())
+              ? maskData[maskY * mask.width() + maskX + 1]
+              : static_cast<std::uint8_t>(0u);
+
+      if (c0 == 0u && c1 == 0u) {
+        xx += count;
         continue;
       }
 
-      const auto externalCoverage = externalMaskCoverage(mask_, xx, yy);
-      const auto combinedCoverage = combineCoverage(coverage, externalCoverage);
-      if (combinedCoverage == 0u) {
+      const auto chunkWidth = static_cast<std::uint32_t>(count);
+      const auto chunkRect =
+          ScreenIntRect::fromXYWH(static_cast<std::uint32_t>(xx),
+                                  static_cast<std::uint32_t>(yy), chunkWidth, 1u);
+      if (!chunkRect.has_value()) {
+        xx += count;
         continue;
       }
 
-      const auto offset = alphaOffset(*pixmap_, xx, yy);
-      if (is_mask_only_) {
-        bytes[offset] = lerpMaskAlpha(bytes[offset], combinedCoverage);
-        continue;
-      }
-
-      const auto pixelOffset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
-      bytes[pixelOffset + 0] = memset_color_.red();
-      bytes[pixelOffset + 1] = memset_color_.green();
-      bytes[pixelOffset + 2] = memset_color_.blue();
-      const auto srcAlpha = combineCoverage(memset_color_.alpha(), combinedCoverage);
-      bytes[offset] = lerpMaskAlpha(bytes[offset], srcAlpha);
-    }
-  }
-}
-
-void RasterPipelineBlitter::fillMaskRect(const ScreenIntRect& rect, AlphaU8 alpha) {
-  auto bytes = pixmap_->dataMut();
-  const auto maxX = std::min<std::size_t>(pixmap_->width(), rect.x() + rect.width());
-  const auto maxY = std::min<std::size_t>(pixmap_->height(), rect.y() + rect.height());
-
-  for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
-    for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-      const auto maskCoverage = externalMaskCoverage(mask_, xx, yy);
-      const auto coverage = combineCoverage(alpha, maskCoverage);
-      bytes[alphaOffset(*pixmap_, xx, yy)] = coverage;
-    }
-  }
-}
-
-void RasterPipelineBlitter::blendMaskRectConstant(const ScreenIntRect& rect, AlphaU8 alpha) {
-  if (pixmap_ == nullptr || alpha == 0u) {
-    return;
-  }
-
-  auto bytes = pixmap_->dataMut();
-  const auto maxX = std::min<std::size_t>(pixmap_->width(), rect.x() + rect.width());
-  const auto maxY = std::min<std::size_t>(pixmap_->height(), rect.y() + rect.height());
-
-  for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
-    for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-      const auto maskCoverage = externalMaskCoverage(mask_, xx, yy);
-      const auto coverage = combineCoverage(alpha, maskCoverage);
-      if (coverage == 0u) {
-        continue;
-      }
-
-      const auto offset = alphaOffset(*pixmap_, xx, yy);
-      if (is_mask_only_) {
-        bytes[offset] = lerpMaskAlpha(bytes[offset], coverage);
-        continue;
-      }
-
-      const auto pixelOffset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
-      bytes[pixelOffset + 0] = memset_color_.red();
-      bytes[pixelOffset + 1] = memset_color_.green();
-      bytes[pixelOffset + 2] = memset_color_.blue();
-      const auto srcAlpha = combineCoverage(memset_color_.alpha(), coverage);
-      bytes[offset] = lerpMaskAlpha(bytes[offset], srcAlpha);
+      const AAMaskCtx aa_mask_ctx{
+          {c0, c1},
+          chunkWidth,
+          static_cast<std::size_t>(chunkRect->x() + chunkRect->y() * chunkWidth)};
+      blit_mask_rp_.run(*chunkRect, aa_mask_ctx, mask_ctx_external,
+                        pixmap_src_ref, pixmap_);
+      xx += count;
     }
   }
 }
