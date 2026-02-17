@@ -143,18 +143,18 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/geom.rs` | `src/tiny_skia/Geom.cpp` + `src/tiny_skia/Geom.h` | ✅ |
 | `third_party/tiny-skia/src/line_clipper.rs` | `src/tiny_skia/LineClipper.cpp` + `src/tiny_skia/LineClipper.h` | ✅ |
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
-| `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | 🟡 |
+| `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `MaskOps.cpp` + `src/tiny_skia/Mask.h` | ✅ |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
-| `third_party/tiny-skia/path/src/stroker.rs` | `src/tiny_skia/Stroker.cpp` + `src/tiny_skia/Stroker.h` | 🟡 |
-| `third_party/tiny-skia/path/src/dash.rs` | `src/tiny_skia/Dash.cpp` + `src/tiny_skia/Dash.h` | 🟡 |
-| `third_party/tiny-skia/path/src/path_builder.rs` | `src/tiny_skia/PathBuilder.cpp` + `src/tiny_skia/PathBuilder.h` | 🟡 |
+| `third_party/tiny-skia/path/src/stroker.rs` | `src/tiny_skia/Stroker.cpp` + `src/tiny_skia/Stroker.h` | ✅ |
+| `third_party/tiny-skia/path/src/dash.rs` | `src/tiny_skia/Dash.cpp` + `src/tiny_skia/Dash.h` | ✅ |
+| `third_party/tiny-skia/path/src/path_builder.rs` | `src/tiny_skia/PathBuilder.cpp` + `src/tiny_skia/PathBuilder.h` | ✅ |
 | `third_party/tiny-skia/path/src/scalar.rs` | `src/tiny_skia/Scalar.h` | 🟡 |
-| `third_party/tiny-skia/path/src/path.rs` | `src/tiny_skia/Path.h` (PathSegmentsIter.cpp) | 🟡 |
-| `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | 🟡 |
-| `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | 🟡 |
-| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🟡 |
-| `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | 🟡 |
-| `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | 🟡 |
+| `third_party/tiny-skia/path/src/path.rs` | `src/tiny_skia/Path.h` (PathSegmentsIter.cpp) | ✅ |
+| `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ✅ |
+| `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ✅ |
+| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | ✅ |
+| `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | ✅ |
+| `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | ✅ |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/scan/hairline.rs` | `src/tiny_skia/scan/Hairline.cpp` + `src/tiny_skia/scan/Hairline.h` | ✅ |
 | `third_party/tiny-skia/src/scan/hairline_aa.rs` | `src/tiny_skia/scan/HairlineAa.cpp` + `src/tiny_skia/scan/HairlineAa.h` | ✅ |
@@ -166,18 +166,18 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/path64/mod.rs` | `src/tiny_skia/path64/Mod.cpp` + `src/tiny_skia/path64/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/path64/point64.rs` | `src/tiny_skia/path64/Point64.cpp` + `src/tiny_skia/path64/Point64.h` | ✅ |
 | `third_party/tiny-skia/src/path64/quad64.rs` | `src/tiny_skia/path64/Quad64.cpp` + `src/tiny_skia/path64/Quad64.h` | ✅ |
-| `third_party/tiny-skia/src/shaders/gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/linear_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/mod.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/shaders/gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
+| `third_party/tiny-skia/src/shaders/linear_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
+| `third_party/tiny-skia/src/shaders/mod.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
+| `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
+| `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
+| `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/wide/f32x16_t.rs` | `src/tiny_skia/wide/F32x16T.cpp` + `src/tiny_skia/wide/F32x16T.h` | ☐ |
 | `third_party/tiny-skia/src/wide/f32x4_t.rs` | `src/tiny_skia/wide/F32x4T.cpp` + `src/tiny_skia/wide/F32x4T.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/f32x8_t.rs` | `src/tiny_skia/wide/F32x8T.cpp` + `src/tiny_skia/wide/F32x8T.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/i32x4_t.rs` | `src/tiny_skia/wide/I32x4T.cpp` + `src/tiny_skia/wide/I32x4T.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/i32x8_t.rs` | `src/tiny_skia/wide/I32x8T.cpp` + `src/tiny_skia/wide/I32x8T.h` | 🟡 |
-| `third_party/tiny-skia/src/wide/mod.rs` | `src/tiny_skia/wide/Mod.cpp` + `src/tiny_skia/wide/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/wide/mod.rs` | `src/tiny_skia/wide/Mod.cpp` + `src/tiny_skia/wide/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/wide/u16x16_t.rs` | `src/tiny_skia/wide/U16x16T.cpp` + `src/tiny_skia/wide/U16x16T.h` | ☐ |
 | `third_party/tiny-skia/src/wide/u32x4_t.rs` | `src/tiny_skia/wide/U32x4T.cpp` + `src/tiny_skia/wide/U32x4T.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/u32x8_t.rs` | `src/tiny_skia/wide/U32x8T.cpp` + `src/tiny_skia/wide/U32x8T.h` | 🟡 |
@@ -299,8 +299,20 @@ This ordering is now the gate used when selecting the next implementation batch.
   - TwoPointConicalGradientCtx::mask changed from float to std::array<float, 8>
     to match highp kStageWidth usage.
   - 28 pipeline stage tests + 35 painter tests all passing (63 total).
-- **Next track:** Port `Path::stroke()` and `Path::dash()` from tiny-skia-path
-  (stroker.rs/dash.rs) to enable `strokePath()` in painter.
+- **Stroker/Dash ported at `✅`:**
+  - `Path::stroke()` and `Path::dash()` fully ported from tiny-skia-path.
+  - `strokePath()` in painter now functional with hairline/thick stroke support.
+- **Mask drawing operations at `✅`:**
+  - `Mask::fillPath()`, `Mask::intersectPath()`, `Mask::invert()`, `Mask::clear()`.
+  - `MaskOps.cpp` lives in painter target to avoid scan↔core circular dependency.
+- **Path completeness at `✅`:**
+  - `Path::computeTightBounds()` — exact extrema computation for quad/cubic curves.
+  - `Path::clear()` — reuse allocations via PathBuilder.
+  - `PathGeometry::findCubicExtremaT()` — cubic extrema helper.
+- **Remaining work:**
+  - Wide SIMD: F32x16T and U16x16T not started; other types missing some operators.
+  - Scalar: utility trait helpers (half, ave, sqr, etc.) not ported.
+  - PNG I/O: Pixmap/Mask PNG encode/decode not ported (optional feature).
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
 ## Security / Privacy

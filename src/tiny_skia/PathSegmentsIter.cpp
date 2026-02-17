@@ -1,6 +1,110 @@
 #include "tiny_skia/Path.h"
 
+#include <algorithm>
+
+#include "tiny_skia/PathBuilder.h"
+#include "tiny_skia/PathGeometry.h"
+
 namespace tiny_skia {
+
+namespace {
+
+std::size_t computeQuadExtremas(Point p0, Point p1, Point p2,
+                                Point extremas[5]) {
+  std::size_t idx = 0;
+  if (auto t = path_geometry::findQuadExtrema(p0.x, p1.x, p2.x)) {
+    const Point src[3] = {p0, p1, p2};
+    extremas[idx++] = path_geometry::evalQuadAt(src, t->toNormalized());
+  }
+  if (auto t = path_geometry::findQuadExtrema(p0.y, p1.y, p2.y)) {
+    const Point src[3] = {p0, p1, p2};
+    extremas[idx++] = path_geometry::evalQuadAt(src, t->toNormalized());
+  }
+  extremas[idx] = p2;
+  return idx + 1;
+}
+
+std::size_t computeCubicExtremas(Point p0, Point p1, Point p2, Point p3,
+                                 Point extremas[5]) {
+  auto ts0 = path_geometry::newTValues();
+  auto ts1 = path_geometry::newTValues();
+  const auto n0 =
+      path_geometry::findCubicExtremaT(p0.x, p1.x, p2.x, p3.x, ts0.data());
+  const auto n1 =
+      path_geometry::findCubicExtremaT(p0.y, p1.y, p2.y, p3.y, ts1.data());
+  const auto totalLen = n0 + n1;
+
+  const Point src[4] = {p0, p1, p2, p3};
+  std::size_t idx = 0;
+  for (std::size_t i = 0; i < n0; ++i) {
+    extremas[idx++] =
+        path_geometry::evalCubicPosAt(src, ts0[i].toNormalized());
+  }
+  for (std::size_t i = 0; i < n1; ++i) {
+    extremas[idx++] =
+        path_geometry::evalCubicPosAt(src, ts1[i].toNormalized());
+  }
+  extremas[totalLen] = p3;
+  return totalLen + 1;
+}
+
+}  // namespace
+
+std::optional<Rect> Path::computeTightBounds() const {
+  if (points_.empty()) {
+    return std::nullopt;
+  }
+
+  Point extremas[5] = {};
+  auto minPt = points_[0];
+  auto maxPt = points_[0];
+
+  PathSegmentsIter iter(*this);
+  Point lastPt = Point::zero();
+  while (auto seg = iter.next()) {
+    std::size_t count = 0;
+    switch (seg->kind) {
+      case PathSegment::Kind::MoveTo:
+        extremas[0] = seg->pts[0];
+        count = 1;
+        break;
+      case PathSegment::Kind::LineTo:
+        extremas[0] = seg->pts[0];
+        count = 1;
+        break;
+      case PathSegment::Kind::QuadTo:
+        count = computeQuadExtremas(lastPt, seg->pts[0], seg->pts[1],
+                                    extremas);
+        break;
+      case PathSegment::Kind::CubicTo:
+        count = computeCubicExtremas(lastPt, seg->pts[0], seg->pts[1],
+                                     seg->pts[2], extremas);
+        break;
+      case PathSegment::Kind::Close:
+        break;
+    }
+
+    lastPt = iter.lastPoint();
+    for (std::size_t i = 0; i < count; ++i) {
+      minPt.x = std::min(minPt.x, extremas[i].x);
+      minPt.y = std::min(minPt.y, extremas[i].y);
+      maxPt.x = std::max(maxPt.x, extremas[i].x);
+      maxPt.y = std::max(maxPt.y, extremas[i].y);
+    }
+  }
+
+  return Rect::fromLtrb(minPt.x, minPt.y, maxPt.x, maxPt.y);
+}
+
+PathBuilder Path::clear() {
+  verbs_.clear();
+  points_.clear();
+  bounds_.reset();
+  PathBuilder builder(verbs_.capacity(), points_.capacity());
+  return builder;
+}
+
+
 
 PathSegment PathSegmentsIter::autoClose() {
   if (isAutoClose_ && lastPoint_ != lastMoveTo_) {

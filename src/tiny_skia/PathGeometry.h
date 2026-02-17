@@ -80,6 +80,11 @@ NormalizedF32 findQuadMaxCurvature(const Point src[3]);
 std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b,
                                                       float c);
 
+/// Find extrema of a cubic component. Matches Rust find_cubic_extrema.
+/// Returns the number of extrema found (0..3), stored in tValues.
+std::size_t findCubicExtremaT(float a, float b, float c, float d,
+                              NormalizedF32Exclusive tValues[3]);
+
 /// Find t values of cubic inflection points.
 std::size_t findCubicInflections(const Point src[4],
                                  NormalizedF32Exclusive tValues[3]);

@@ -632,6 +632,15 @@ std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b,
   return validUnitDivideF32(a - b, a - b - b + c);
 }
 
+std::size_t findCubicExtremaT(float a, float b, float c, float d,
+                              NormalizedF32Exclusive tValues[3]) {
+  // We divide A, B, C by 3 to simplify (matches Rust find_cubic_extrema).
+  const float aa = d - a + 3.0f * (b - c);
+  const float bb = 2.0f * (a - b - b + c);
+  const float cc = b - a;
+  return findUnitQuadRoots(aa, bb, cc, tValues);
+}
+
 std::size_t findCubicInflections(const Point src[4],
                                  NormalizedF32Exclusive tValues[3]) {
   float ax = src[1].x - src[0].x;

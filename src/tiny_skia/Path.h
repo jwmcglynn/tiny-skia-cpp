@@ -98,6 +98,15 @@ class Path {
     return Path(verbs_, std::move(pts));
   }
 
+  /// Computes tight bounds by finding curve extrema.
+  /// Unlike bounds() which uses control points, this finds exact extrema.
+  /// Matches Rust `Path::compute_tight_bounds`.
+  [[nodiscard]] std::optional<Rect> computeTightBounds() const;
+
+  /// Clears the path and returns a PathBuilder reusing the allocations.
+  /// Matches Rust `Path::clear`. Consumes (moves from) this path.
+  [[nodiscard]] PathBuilder clear();
+
   /// Stroke this path. Returns a filled path representing the stroke outline.
   [[nodiscard]] std::optional<Path> stroke(const Stroke& stroke,
                                             float resScale) const;

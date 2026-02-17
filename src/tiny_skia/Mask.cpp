@@ -135,4 +135,14 @@ std::vector<std::uint8_t> Mask::take() {
   return std::move(data_);
 }
 
+void Mask::invert() {
+  for (auto& a : data_) {
+    a = static_cast<std::uint8_t>(255 - a);
+  }
+}
+
+void Mask::clear() {
+  std::fill(data_.begin(), data_.end(), static_cast<std::uint8_t>(0));
+}
+
 }  // namespace tiny_skia

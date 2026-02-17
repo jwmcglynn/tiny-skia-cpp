@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <cstdint>
+#include <numeric>
 #include <optional>
 #include <span>
 #include <vector>
@@ -8,7 +10,10 @@
 
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Mask.h"
+#include "tiny_skia/Path.h"
+#include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
+#include "tiny_skia/pipeline/Mod.h"
 #include "tiny_skia/tests/test_utils/PixmapMaskMatchers.h"
 
 using ::testing::Each;
@@ -126,4 +131,112 @@ TEST(MaskTest, SubpixmapComputesIntersectedMutableView) {
 
   sub->data[0] = 99u;
   EXPECT_EQ(mask.data()[11], 99u);
+}
+
+// ---- invert tests ----
+
+TEST(MaskTest, InvertFlipsAllBytes) {
+  auto mask = tiny_skia::Mask::fromSize(3, 1);
+  ASSERT_THAT(mask, Optional(testing::_));
+  auto data = mask->dataMut();
+  data[0] = 0;
+  data[1] = 128;
+  data[2] = 255;
+
+  mask->invert();
+  EXPECT_THAT(mask->data(), ElementsAre(255u, 127u, 0u));
+}
+
+// ---- clear tests ----
+
+TEST(MaskTest, ClearZerosAllData) {
+  auto mask = tiny_skia::Mask::fromSize(2, 2);
+  ASSERT_THAT(mask, Optional(testing::_));
+  auto data = mask->dataMut();
+  data[0] = 10;
+  data[1] = 20;
+  data[2] = 30;
+  data[3] = 40;
+
+  mask->clear();
+  EXPECT_THAT(mask->data(), Each(0u));
+}
+
+// ---- fillPath tests ----
+
+TEST(MaskTest, FillPathDrawsOntoMask) {
+  auto mask = tiny_skia::Mask::fromSize(10, 10);
+  ASSERT_THAT(mask, Optional(testing::_));
+
+  // Build a rectangular path covering part of the mask.
+  tiny_skia::PathBuilder builder;
+  builder.moveTo(2.0f, 2.0f);
+  builder.lineTo(8.0f, 2.0f);
+  builder.lineTo(8.0f, 8.0f);
+  builder.lineTo(2.0f, 8.0f);
+  builder.close();
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
+
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, false,
+                 tiny_skia::Transform::identity());
+
+  // Interior pixels should be non-zero (filled).
+  // Check a pixel well inside the rectangle.
+  const auto rowStride = mask->width();
+  // Row 5, col 5 should be inside the filled rect.
+  EXPECT_GT(mask->data()[5 * rowStride + 5], 0u);
+  // Corner at (0,0) should still be zero (outside the path).
+  EXPECT_EQ(mask->data()[0], 0u);
+}
+
+TEST(MaskTest, FillPathWithTransformOffsetsPath) {
+  auto mask = tiny_skia::Mask::fromSize(10, 10);
+  ASSERT_THAT(mask, Optional(testing::_));
+
+  tiny_skia::PathBuilder builder;
+  builder.moveTo(0.0f, 0.0f);
+  builder.lineTo(4.0f, 0.0f);
+  builder.lineTo(4.0f, 4.0f);
+  builder.lineTo(0.0f, 4.0f);
+  builder.close();
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
+
+  // Translate path to center of mask.
+  auto ts = tiny_skia::Transform::fromTranslate(3.0f, 3.0f);
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, false, ts);
+
+  // (0,0) should be zero (path was translated away).
+  EXPECT_EQ(mask->data()[0], 0u);
+  // (5,5) should be inside the translated rect (3..7, 3..7).
+  EXPECT_GT(mask->data()[5 * mask->width() + 5], 0u);
+}
+
+// ---- intersectPath tests ----
+
+TEST(MaskTest, IntersectPathMultipliesMasks) {
+  auto mask = tiny_skia::Mask::fromSize(10, 10);
+  ASSERT_THAT(mask, Optional(testing::_));
+  // Fill entire mask with 255.
+  std::fill(mask->dataMut().begin(), mask->dataMut().end(),
+            static_cast<std::uint8_t>(255));
+
+  // Intersect with a small rect: only the rect area should remain.
+  tiny_skia::PathBuilder builder;
+  builder.moveTo(2.0f, 2.0f);
+  builder.lineTo(5.0f, 2.0f);
+  builder.lineTo(5.0f, 5.0f);
+  builder.lineTo(2.0f, 5.0f);
+  builder.close();
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
+
+  mask->intersectPath(*path, tiny_skia::FillRule::Winding, false,
+                      tiny_skia::Transform::identity());
+
+  // Outside the rect should be 0 (255 * 0 / 255 = 0).
+  EXPECT_EQ(mask->data()[0], 0u);
+  // Inside should remain 255 (255 * 255 / 255 = 255).
+  EXPECT_EQ(mask->data()[3 * mask->width() + 3], 255u);
 }
