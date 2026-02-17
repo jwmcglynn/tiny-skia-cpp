@@ -16,12 +16,21 @@ constexpr AlphaU8 kAlphaU8Opaque = 0xFF;
 
 class NormalizedF32 {
  public:
+  static const NormalizedF32 ZERO;
+  static const NormalizedF32 ONE;
+
   constexpr NormalizedF32() = default;
   explicit constexpr NormalizedF32(float value) : value_(value) {}
 
   static constexpr NormalizedF32 newUnchecked(float value) {
     return NormalizedF32(value);
   }
+
+  /// Creates a NormalizedF32 if value is in [0, 1]. Alias for newFloat().
+  [[nodiscard]] static std::optional<NormalizedF32> create(float value) {
+    return newFloat(value);
+  }
+
   static std::optional<NormalizedF32> newFloat(float value);
   static NormalizedF32 newClamped(float value);
   static NormalizedF32 fromU8(AlphaU8 value);
@@ -30,6 +39,18 @@ class NormalizedF32 {
     return value_;
   }
   constexpr bool operator==(const NormalizedF32&) const = default;
+  constexpr bool operator<(const NormalizedF32& o) const {
+    return value_ < o.value_;
+  }
+  constexpr bool operator<=(const NormalizedF32& o) const {
+    return value_ <= o.value_;
+  }
+  constexpr bool operator>(const NormalizedF32& o) const {
+    return value_ > o.value_;
+  }
+  constexpr bool operator>=(const NormalizedF32& o) const {
+    return value_ >= o.value_;
+  }
 
   static constexpr NormalizedF32 zero() {
     return NormalizedF32(0.0f);
@@ -41,6 +62,9 @@ class NormalizedF32 {
  private:
   float value_ = 0.0f;
 };
+
+inline constexpr NormalizedF32 NormalizedF32::ZERO = NormalizedF32(0.0f);
+inline constexpr NormalizedF32 NormalizedF32::ONE = NormalizedF32(1.0f);
 
 class Color;
 class PremultipliedColor;

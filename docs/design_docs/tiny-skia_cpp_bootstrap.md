@@ -145,6 +145,11 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | 🟡 |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
+| `third_party/tiny-skia/path/src/stroker.rs` | `src/tiny_skia/Stroker.cpp` + `src/tiny_skia/Stroker.h` | 🟡 |
+| `third_party/tiny-skia/path/src/dash.rs` | `src/tiny_skia/Dash.cpp` + `src/tiny_skia/Dash.h` | 🟡 |
+| `third_party/tiny-skia/path/src/path_builder.rs` | `src/tiny_skia/PathBuilder.cpp` + `src/tiny_skia/PathBuilder.h` | 🟡 |
+| `third_party/tiny-skia/path/src/scalar.rs` | `src/tiny_skia/Scalar.h` | 🟡 |
+| `third_party/tiny-skia/path/src/path.rs` | `src/tiny_skia/Path.h` (PathSegmentsIter.cpp) | 🟡 |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | 🟡 |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🟡 |

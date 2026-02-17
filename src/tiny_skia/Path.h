@@ -7,6 +7,7 @@
 #include <optional>
 #include <span>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "tiny_skia/Edge.h"
@@ -29,6 +30,18 @@ enum class LineCap : std::uint8_t {
   Square,
 };
 
+// Forward declarations for stroke/dash.
+class PathBuilder;
+struct Stroke;
+struct StrokeDash;
+
+/// A path segment for iteration. Matches Rust `PathSegment`.
+struct PathSegment {
+  enum class Kind : std::uint8_t { MoveTo, LineTo, QuadTo, CubicTo, Close };
+  Kind kind;
+  Point pts[3] = {};  // up to 3 points depending on kind
+};
+
 class Path {
  public:
   Path() = default;
@@ -36,6 +49,9 @@ class Path {
       : verbs_(std::move(verbs)), points_(std::move(points)) {
     recomputeBounds();
   }
+
+  [[nodiscard]] std::size_t len() const { return verbs_.size(); }
+  [[nodiscard]] bool isEmpty() const { return verbs_.empty(); }
 
   [[nodiscard]] std::span<const PathVerb> verbs() const {
     return verbs_;
@@ -82,6 +98,14 @@ class Path {
     return Path(verbs_, std::move(pts));
   }
 
+  /// Stroke this path. Returns a filled path representing the stroke outline.
+  [[nodiscard]] std::optional<Path> stroke(const Stroke& stroke,
+                                            float resScale) const;
+
+  /// Dash this path. Returns a new path with dash pattern applied.
+  [[nodiscard]] std::optional<Path> dash(const StrokeDash& dash,
+                                          float resScale) const;
+
  private:
   void recomputeBounds() {
     if (points_.empty()) {
@@ -127,5 +151,42 @@ inline Path pathFromRect(const Rect& rect) {
       Point{rect.left(), rect.bottom()}};
   return Path(std::move(verbs), std::move(points));
 }
+
+/// Path segments iterator. Matches Rust `PathSegmentsIter`.
+class PathSegmentsIter {
+ public:
+  explicit PathSegmentsIter(const Path& path)
+      : path_(&path) {}
+
+  void setAutoClose(bool flag) { isAutoClose_ = flag; }
+
+  std::optional<PathSegment> next();
+
+  [[nodiscard]] Point lastPoint() const { return lastPoint_; }
+  [[nodiscard]] Point lastMoveTo() const { return lastMoveTo_; }
+
+  [[nodiscard]] PathVerb currVerb() const {
+    return path_->verbs()[verbIndex_ - 1];
+  }
+
+  [[nodiscard]] std::optional<PathVerb> nextVerb() const {
+    if (verbIndex_ < path_->verbs().size()) {
+      return path_->verbs()[verbIndex_];
+    }
+    return std::nullopt;
+  }
+
+  [[nodiscard]] bool hasValidTangent() const;
+
+ private:
+  PathSegment autoClose();
+
+  const Path* path_;
+  std::size_t verbIndex_ = 0;
+  std::size_t pointsIndex_ = 0;
+  bool isAutoClose_ = false;
+  Point lastMoveTo_ = Point::zero();
+  Point lastPoint_ = Point::zero();
+};
 
 }  // namespace tiny_skia

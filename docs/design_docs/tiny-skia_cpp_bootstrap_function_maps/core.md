@@ -275,3 +275,89 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `PixmapRef::from_bytes_mut` | `PixmapMut::fromBytes` | 🟢 | Line-by-line audited: mutable-byte constructor validates size and minimum byte length; matcher diagnostics upgraded in `PixmapTest.PixmapMutFromBytesAndSubpixmapProvideMutableSubview` |
 | `PixmapMut::as_subpixmap` | `PixmapMut::asSubpixmap` | 🟢 | Line-by-line audited: full mutable subview with real-width stride parity |
 | `PixmapMut::subpixmap` | `PixmapMut::subpixmap` | 🟢 | Line-by-line audited: intersected mutable subview + byte-offset parity |
+
+### `third_party/tiny-skia/path/src/stroker.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `PathStroker::new` | `PathStroker::PathStroker` | 🟡 | Constructor initializes stroke parameters, cap/join procs |
+| `PathStroker::stroke` | `PathStroker::stroke` | 🟡 | Main entry: iterates path segments, dispatches to line/quad/cubic/close |
+| `PathStroker::stroke_line` | `PathStroker::strokeLine` | 🟡 | Handles degenerate + normal lines |
+| `PathStroker::stroke_quad` | `PathStroker::strokeQuad` | 🟡 | Recursive quad subdivision with linearity check |
+| `PathStroker::stroke_cubic` | `PathStroker::strokeCubic` | 🟡 | Recursive cubic subdivision, cusp/inflection handling |
+| `PathStroker::stroke_close` | `PathStroker::strokeClose` | 🟡 | Close contour with join to start |
+| `PathStroker::finish` | `PathStroker::finish` | 🟡 | Finalizes inner/outer paths, returns finished Path |
+| `PathStroker::cap` | `PathStroker::cap` | 🟡 | Delegates to CapProc (butt/round/square) |
+| `PathStroker::join` | `PathStroker::join` | 🟡 | Delegates to JoinProc (miter/round/bevel) |
+| `PathStroker::pre_join_to` | `PathStroker::preJoinTo` | 🟡 | Computes unit normal for next segment |
+| `PathStroker::post_join_to` | `PathStroker::postJoinTo` | 🟡 | Applies join at segment boundary |
+| `PathStroker::init_quad` | `PathStroker::initQuad` | 🟡 | Sets up QuadConstruct for subdivision |
+| `PathStroker::init_cubic` | `PathStroker::initCubic` | 🟡 | Sets up QuadConstruct for cubic subdivision |
+| `PathStroker::quad_stroke` | `PathStroker::quadStroke` | 🟡 | Computes perpendicular rays for quad segment |
+| `PathStroker::cubic_stroke` | `PathStroker::cubicStroke` | 🟡 | Computes perpendicular rays for cubic segment |
+| `PathStroker::check_quad_linear` | `checkQuadLinear` | 🟡 | Tests if quad stroke is nearly linear |
+| `PathStroker::check_cubic_linear` | `checkCubicLinear` | 🟡 | Tests if cubic stroke is nearly linear |
+| `butt_capper` | `buttCapper` | 🟡 | Flat cap: extends by nothing |
+| `round_capper` | `roundCapper` | 🟡 | Semicircle cap via conic arcs |
+| `square_capper` | `squareCapper` | 🟡 | Extends endpoint by half stroke width |
+| `bevel_joiner` | `bevelJoiner` | 🟡 | Simple bevel: straight line between offset points |
+| `round_joiner` | `roundJoiner` | 🟡 | Circular arc join via conic |
+| `miter_joiner` | `miterJoiner` | 🟡 | Miter join with limit fallback to bevel |
+| `miter_clip_joiner` | `miterClipJoiner` | 🟡 | Miter join with clip at miter limit |
+| `Path::stroke` | `Path::stroke` | 🟡 | Entry point: creates PathStroker and calls stroke() |
+
+### `third_party/tiny-skia/path/src/dash.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `StrokeDash` struct | `StrokeDash` (Stroke.h) | 🟡 | Holds dash array + offset |
+| `StrokeDash::new` | `StrokeDash::create` | 🟡 | Validates even entry count, all positive, finite values |
+| `ContourMeasure` struct | `ContourMeasure` (Dash.h) | 🟡 | Stores segments with distance/t-value pairs |
+| `ContourMeasureIter` struct | `ContourMeasureIter` (Dash.h) | 🟡 | Iterates path contours, computing cumulative lengths |
+| `ContourMeasureIter::next` | `ContourMeasureIter::next` | 🟡 | Returns next contour's ContourMeasure |
+| `ContourMeasure::length` | `ContourMeasure::length` | 🟡 | Total arc length of contour |
+| `ContourMeasure::segment_to` | `ContourMeasure::segmentTo` | 🟡 | Extracts sub-path between two distance values |
+| `Path::dash` | `Path::dash` | 🟡 | Entry point: applies dash pattern using ContourMeasureIter |
+
+### `third_party/tiny-skia/path/src/path_builder.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `PathBuilder::new` | `PathBuilder::PathBuilder` | 🟡 | Default constructor |
+| `PathBuilder::with_capacity` | `PathBuilder::PathBuilder(verbs, points)` | 🟡 | Reserve capacity variant |
+| `PathBuilder::move_to` | `PathBuilder::moveTo` | 🟡 | Starts new contour |
+| `PathBuilder::line_to` | `PathBuilder::lineTo` | 🟡 | Appends line segment |
+| `PathBuilder::quad_to` | `PathBuilder::quadTo` | 🟡 | Appends quadratic bezier |
+| `PathBuilder::cubic_to` | `PathBuilder::cubicTo` | 🟡 | Appends cubic bezier |
+| `PathBuilder::conic_to` | `PathBuilder::conicTo` | 🟡 | Converts conic to quads via autoConicToQuads |
+| `PathBuilder::close` | `PathBuilder::close` | 🟡 | Closes current contour |
+| `PathBuilder::push_rect` | `PathBuilder::pushRect` | 🟡 | Adds rectangle contour |
+| `PathBuilder::push_oval` | `PathBuilder::pushOval` | 🟡 | Adds oval contour via conics |
+| `PathBuilder::push_circle` | `PathBuilder::pushCircle` | 🟡 | Adds circle via pushOval |
+| `PathBuilder::push_path` | `PathBuilder::pushPath` | 🟡 | Appends existing Path |
+| `PathBuilder::reverse_path_to` | `PathBuilder::reversePathTo` | 🟡 | Appends path in reverse |
+| `PathBuilder::finish` | `PathBuilder::finish` | 🟡 | Returns optional Path, resets builder |
+
+### `third_party/tiny-skia/path/src/scalar.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `NormalizedF32` | `NormalizedF32` (Color.h) | 🟡 | Float in [0,1]. Added ZERO/ONE/create() to existing type. |
+| `NormalizedF32Exclusive` | `NormalizedF32Exclusive` (Scalar.h) | 🟡 | Float in (0,1) exclusive. With HALF constant. |
+| `NonZeroPositiveF32` | `NonZeroPositiveF32` (Scalar.h) | 🟡 | Positive finite float. |
+| `FiniteF32` | `FiniteF32` (Scalar.h) | 🟡 | Finite float. |
+
+### `third_party/tiny-skia/path/src/path_geometry.rs` (additions)
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `chop_quad_at` (NormalizedF32Exclusive) | `chopQuadAtT` | 🟡 | Single-t quad chop variant |
+| `chop_cubic_at2` (NormalizedF32Exclusive) | `chopCubicAt2` | 🟡 | Two-t cubic chop variant |
+| `eval_quad_at` | `evalQuadAt` | 🟡 | Evaluate quad at parameter t |
+| `eval_quad_tangent_at` | `evalQuadTangentAt` | 🟡 | Evaluate quad tangent at t |
+| `eval_cubic_pos_at` | `evalCubicPosAt` | 🟡 | Evaluate cubic position at t |
+| `eval_cubic_tangent_at` | `evalCubicTangentAt` | 🟡 | Evaluate cubic tangent at t |
+| `find_quad_max_curvature` | `findQuadMaxCurvature` | 🟡 | Returns t of maximum curvature |
+| `find_quad_extrema` | `findQuadExtrema` | 🟡 | Returns t of extremum in quad |
+| `find_cubic_inflections` | `findCubicInflections` | 🟡 | Returns inflection t-values |
+| `find_cubic_max_curvature_ts` | `findCubicMaxCurvatureTs` | 🟡 | Returns t-values of max curvature |
+| `find_cubic_cusp` | `findCubicCusp` | 🟡 | Returns cusp t-value if any |
+| `find_unit_quad_roots` | `findUnitQuadRoots` | 🟡 | Finds roots of quadratic in [0,1] |
+| `Conic::build_unit_arc` | `Conic::buildUnitArc` | 🟡 | Builds unit arc as conic spans |
+| `Conic::chop_into_quads_pow2` | `Conic::chopIntoQuadsPow2` | 🟡 | Converts conic to quadratic approximations |
+| `auto_conic_to_quads` | `autoConicToQuads` | 🟡 | Auto-determines power-of-2 subdivision for conic→quad |

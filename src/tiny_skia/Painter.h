@@ -9,6 +9,7 @@
 #include "tiny_skia/Mask.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/Pixmap.h"
+#include "tiny_skia/Stroke.h"
 #include "tiny_skia/shaders/Mod.h"
 
 namespace tiny_skia {
@@ -138,6 +139,12 @@ void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y,
 /// Applies a mask to already-drawn content.
 /// Matches Rust `PixmapMut::apply_mask`.
 void applyMask(PixmapMut& pixmap, const Mask& mask);
+
+/// Strokes a path onto the pixmap.
+/// Matches Rust `PixmapMut::stroke_path`.
+void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
+                const Stroke& stroke, Transform transform,
+                const Mask* mask = nullptr);
 
 /// Strokes a path with a hairline (subpixel width).
 /// Private helper. Matches Rust `PixmapMut::stroke_hairline`.

@@ -4,6 +4,7 @@
 #include <limits>
 
 #include "tiny_skia/Math.h"
+#include "tiny_skia/Stroker.h"
 #include "tiny_skia/pipeline/Blitter.h"
 #include "tiny_skia/scan/Hairline.h"
 #include "tiny_skia/scan/HairlineAa.h"
@@ -239,6 +240,109 @@ void applyMask(PixmapMut& pixmap, const Mask& mask) {
   const auto maskCtx =
       pipeline::MaskCtx{submask.data, submask.realWidth};
   rp.run(rect, pipeline::AAMaskCtx{}, maskCtx, *pixmapSrc, &subpix);
+}
+
+void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
+                const Stroke& stroke, Transform transform, const Mask* mask) {
+  if (stroke.width < 0.0f) {
+    return;
+  }
+
+  float resScale = PathStroker::computeResolutionScale(transform);
+
+  // Apply dashing if needed.
+  std::optional<Path> dashPath;
+  const Path* pathPtr = &path;
+  if (stroke.dash.has_value()) {
+    dashPath = path.dash(*stroke.dash, resScale);
+    if (!dashPath.has_value()) {
+      return;
+    }
+    pathPtr = &(*dashPath);
+  }
+
+  auto coverage = treatAsHairline(paint, stroke.width, transform);
+  if (coverage.has_value()) {
+    // Hairline path.
+    auto paintCopy = paint;
+    if (*coverage == 1.0f) {
+      // No changes to paint.
+    } else if (shouldPreScaleCoverage(paintCopy.blend_mode)) {
+      auto scale = static_cast<std::int32_t>(*coverage * 256.0f);
+      auto newAlpha = (255 * scale) >> 8;
+      applyShaderOpacity(paintCopy.shader,
+                         static_cast<float>(newAlpha) / 255.0f);
+    }
+
+    if (auto tiler =
+            DrawTiler::create(pixmap.width(), pixmap.height())) {
+      auto pathCopy = *pathPtr;
+
+      if (!transform.isIdentity()) {
+        transformShader(paintCopy.shader, transform);
+        auto transformed = pathCopy.transform(transform);
+        if (!transformed.has_value()) {
+          return;
+        }
+        pathCopy = std::move(*transformed);
+      }
+
+      while (auto tile = tiler->next()) {
+        const auto ts = Transform::fromTranslate(
+            -static_cast<float>(tile->x()),
+            -static_cast<float>(tile->y()));
+        auto transformed = pathCopy.transform(ts);
+        if (!transformed.has_value()) {
+          return;
+        }
+        pathCopy = std::move(*transformed);
+        transformShader(paintCopy.shader, ts);
+
+        auto subpix = pixmap.subpixmap(tile->toIntRect());
+        if (!subpix.has_value()) {
+          continue;
+        }
+        auto submaskOpt =
+            mask ? mask->submask(tile->toIntRect()) : std::nullopt;
+
+        strokeHairline(pathCopy, paintCopy, stroke.line_cap, submaskOpt,
+                       *subpix);
+
+        const auto tsBack = Transform::fromTranslate(
+            static_cast<float>(tile->x()),
+            static_cast<float>(tile->y()));
+        auto untransformed = pathCopy.transform(tsBack);
+        if (!untransformed.has_value()) {
+          return;
+        }
+        pathCopy = std::move(*untransformed);
+        transformShader(paintCopy.shader, tsBack);
+      }
+    } else {
+      auto subpix = pixmap.asSubpixmap();
+      auto submaskOpt =
+          mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
+      if (!transform.isIdentity()) {
+        transformShader(paintCopy.shader, transform);
+        auto transformed = pathPtr->transform(transform);
+        if (!transformed.has_value()) {
+          return;
+        }
+        strokeHairline(*transformed, paintCopy, stroke.line_cap, submaskOpt,
+                       subpix);
+      } else {
+        strokeHairline(*pathPtr, paintCopy, stroke.line_cap, submaskOpt,
+                       subpix);
+      }
+    }
+  } else {
+    // Thick stroke: stroke the path into a filled outline, then fill it.
+    auto strokedPath = pathPtr->stroke(stroke, resScale);
+    if (!strokedPath.has_value()) {
+      return;
+    }
+    fillPath(pixmap, *strokedPath, paint, FillRule::Winding, transform, mask);
+  }
 }
 
 void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,

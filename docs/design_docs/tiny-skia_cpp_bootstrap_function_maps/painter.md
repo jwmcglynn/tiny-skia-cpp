@@ -20,7 +20,7 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `treat_as_hairline` | `treatAsHairline()` | 🟡 | Zero-width → 1.0, non-AA → None, fastLen + ave. Covered by `PainterHelpersTest.TreatAsHairline*` (4 tests). |
 | `PixmapMut::fill_rect` | `fillRect()` | 🟡 | Identity fast path with scan::fillRect{Aa}, transform path delegates to fillPath. Covered by `FillRectTest.*` (4 tests). |
 | `PixmapMut::fill_path` | `fillPath()` | 🟡 | Identity path with tiling support, transform path with path/shader transform. Covered by `FillPathTest.*` (3 tests). |
-| `PixmapMut::stroke_path` | — | ⏸ | Blocked on `Path::stroke()` and `Path::dash()` from tiny-skia-path (stroker.rs/dash.rs). |
+| `PixmapMut::stroke_path` | `strokePath()` | 🟡 | Implemented: dash, hairline detect, thick stroke via fill. Depends on Stroker/Dash. |
 | `PixmapMut::stroke_hairline` | `strokeHairline()` | 🟡 | Dispatches to scan::hairline{_aa}::strokePath. Covered by `StrokeHairlineTest.BasicStroke`. |
 | `PixmapMut::draw_pixmap` | `drawPixmap()` | 🟡 | Creates Pattern shader + fillRect. Smoke test only (needs Gather stage). Covered by `DrawPixmapTest.DrawOntoPixmapDoesNotCrash`. |
 | `PixmapMut::apply_mask` | `applyMask()` | 🟡 | LoadMaskU8 → LoadDestination → DestinationIn → Store pipeline. Covered by `ApplyMaskTest.*` (2 tests). |
