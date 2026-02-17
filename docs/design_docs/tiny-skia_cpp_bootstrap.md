@@ -147,7 +147,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | 🟡 |
-| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🧩 |
+| `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/lowp.rs` | `src/tiny_skia/pipeline/Lowp.cpp` + `src/tiny_skia/pipeline/Lowp.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/mod.rs` | `src/tiny_skia/pipeline/Mod.cpp` + `src/tiny_skia/pipeline/Mod.h` | ✅ |
@@ -161,9 +161,9 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/path64/mod.rs` | `src/tiny_skia/path64/Mod.cpp` + `src/tiny_skia/path64/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/path64/point64.rs` | `src/tiny_skia/path64/Point64.cpp` + `src/tiny_skia/path64/Point64.h` | ✅ |
 | `third_party/tiny-skia/src/path64/quad64.rs` | `src/tiny_skia/path64/Quad64.cpp` + `src/tiny_skia/path64/Quad64.h` | ✅ |
-| `third_party/tiny-skia/src/shaders/gradient.rs` | `src/tiny_skia/shaders/Gradient.cpp` + `src/tiny_skia/shaders/Gradient.h` | ☐ |
-| `third_party/tiny-skia/src/shaders/linear_gradient.rs` | `src/tiny_skia/shaders/LinearGradient.cpp` + `src/tiny_skia/shaders/LinearGradient.h` | ☐ |
-| `third_party/tiny-skia/src/shaders/mod.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ☐ |
+| `third_party/tiny-skia/src/shaders/gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/shaders/linear_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/shaders/mod.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
 | `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Pattern.cpp` + `src/tiny_skia/shaders/Pattern.h` | ☐ |
 | `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/RadialGradient.cpp` + `src/tiny_skia/shaders/RadialGradient.h` | ☐ |
 | `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/SweepGradient.cpp` + `src/tiny_skia/shaders/SweepGradient.h` | ☐ |
@@ -251,16 +251,24 @@ This section defines the cross-module ordering constraints used for deterministi
 This ordering is now the gate used when selecting the next implementation batch.
 
 ### Next implementation batch gate (current)
-- Keep using `pipeline/blitter.rs` as the immediate execution track and finish constructor/factory
-  parity (`new`, `new_mask`) before opening new shader translation files.
-- Treat BCR availability as an external-consumer constraint: preserve Bzlmod-first module surfaces
-  while advancing blitter internals so downstream users can consume incremental updates cleanly.
-- Track `pipeline/blitter.rs` function-level status in
-  `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/pipeline.md` as the source of truth
-  for unblock decisions.
-- Keep shader module rows blocked (`☐`) until shared `pipeline/*` plumbing used by shader stages is
-  at least `🟡` and covered by parity tests.
-- After blitter reaches `🟡`, start `shaders/mod.rs` as the entry point for gradient specializations.
+- `pipeline/blitter.rs` has reached `🟡` — constructor/factory parity (`new`, `new_mask`) and
+  all blit methods are pipeline-driven with 23 passing tests.
+- `shaders/mod.rs`, `shaders/gradient.rs`, and `shaders/linear_gradient.rs` have reached `🟡`:
+  - `Gradient` base class: construction with dummy endpoint insertion, monotonic position
+    enforcement, uniform-stop detection, full `pushStages` with two-stop optimization and
+    multi-stop `GradientCtx`, opacity tracking.
+  - `LinearGradient`: `create()` with degenerate handling (Pad→last color,
+    Repeat/Reflect→average), non-invertible transform rejection, `pushStages()` integration.
+  - `Shader` variant (`std::variant<Color, LinearGradient>`) with free function dispatch:
+    `isShaderOpaque`, `pushShaderStages`, `transformShader`, `applyShaderOpacity`.
+  - Infrastructure: full `Transform` class (20+ methods, f64-precision inversion),
+    `Point` arithmetic, scalar utilities in `Math.h`.
+  - 40 shader tests + 23 blitter tests all passing.
+- **Current track:** Port remaining shader specializations (`radial_gradient`,
+  `sweep_gradient`, `pattern`) to complete shader module coverage.
+- After shaders reach `🟡`, advance to `painter.rs` orchestration layer.
+- Track shader function-level status in
+  `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
 ## Security / Privacy
 - Inputs are repository-local source files and compiler/runtime dependencies.
 - Trust boundary is local workspace state only; no user-provided binary assets are executed during bootstrap.
