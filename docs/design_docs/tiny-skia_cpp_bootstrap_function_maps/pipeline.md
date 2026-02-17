@@ -48,6 +48,10 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `xor` | `highp::x_or` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `color_burn` | `highp::color_burn` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `color_dodge` | `highp::color_dodge` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
+| `load_dst` | `highp::load_dst` | 🟡 | Pixel I/O: loads RGBA destination via load_8888 helper (byte→float [0,1]). Exercised through blitter pipeline tests. |
+| `store` | `highp::store` | 🟡 | Pixel I/O: stores RGBA via store_8888 helper (float [0,1]→byte with lround). Exercised through blitter pipeline tests. |
+| `mask_u8` | `highp::mask_u8` | 🟡 | Reads external mask coverage, scales source channels. Early-returns if all-zero. Exercised through blitter pipeline tests. |
+| `source_over_rgba` | `highp::source_over_rgba` | 🟡 | Combined load+SourceOver+store in one stage. Exercised through blitter pipeline tests. |
 | `STAGES` | `highp::STAGES` | 🟢 | Line-by-line audited: Covered by stage-table execution in `ColorTest.PipelineHighpStartUsesFullAndTailChunks` |
 
 ### `third_party/tiny-skia/src/pipeline/lowp.rs`
@@ -73,20 +77,27 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `plus` | `lowp::plus` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `screen` | `lowp::screen` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
 | `xor` | `lowp::x_or` | 🟢 | Line-by-line audited: Covered by `ColorTest.PipelineHighpLowpFunctionsHaveExpectedSignaturesAndDefaults` |
+| `load_dst` | `lowp::load_dst` | 🟡 | Pixel I/O: loads RGBA destination via load_8888_lowp (byte→float [0,255]). Exercised through blitter pipeline tests. |
+| `store` | `lowp::store` | 🟡 | Pixel I/O: stores RGBA via store_8888_lowp (float [0,255]→byte truncation). Exercised through blitter pipeline tests. |
+| `load_dst_u8` | `lowp::load_dst_u8` | 🟡 | Loads single-byte mask destination into da. Exercised through createMask blitter tests. |
+| `store_u8` | `lowp::store_u8` | 🟡 | Stores alpha channel as single byte. Exercised through createMask blitter tests. |
+| `load_mask_u8` | `lowp::load_mask_u8` | 🟡 | Reads mask coverage into source alpha, zeros RGB. Exercised through blitter pipeline tests. |
+| `mask_u8` | `lowp::mask_u8` | 🟡 | Reads external mask coverage, scales source channels with lowp div255. Early-returns if all-zero. Exercised through blitter pipeline tests. |
+| `source_over_rgba` | `lowp::source_over_rgba` | 🟡 | Combined load+SourceOver+store in lowp [0,255] range. Exercised through blitter pipeline tests. |
 | `STAGES` | `lowp::STAGES` | 🟢 | Line-by-line audited: Covered by stage-table execution in `ColorTest.PipelineLowpStartUsesFullAndTailChunks` |
 
 
 ### `third_party/tiny-skia/src/pipeline/blitter.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `RasterPipelineBlitter` | `pipeline::RasterPipelineBlitter` | 🧩 | Stub scaffold added in `src/tiny_skia/pipeline/Blitter.cpp/.h`; full Rust parity pending. |
-| `RasterPipelineBlitter::new` | `RasterPipelineBlitter::create` | 🧩 | Factory skeleton with optional `SubMaskRef` validation added; covered by `PipelineBlitterTest.CreateRejectsNullPixmap`, `CreateRejectsMaskSizeMismatch`, and `CreateWithExternalMaskModulatesRectAlpha`. |
-| `RasterPipelineBlitter::new_mask` | `RasterPipelineBlitter::createMask` | 🧩 | Stub implemented + covered by `PipelineBlitterTest.CreateMaskRejectsNullPixmap`. |
-| `Blitter::blit_h` | `RasterPipelineBlitter::blitH` | 🧩 | Stub delegates to rect path; full run-loop parity pending. |
-| `Blitter::blit_anti_h` | `RasterPipelineBlitter::blitAntiH` | 🧩 | Run-walk + transparent/partial/opaque coverage branches stubbed; covered by `PipelineBlitterTest.BlitAntiHRespectsRunsAndCoverageKinds` and `BlitAntiHStopsAtRunSentinel`. |
-| `Blitter::blit_v` | `RasterPipelineBlitter::blitV` | 🧩 | Constant-coverage vertical blend path implemented; covered by `PipelineBlitterTest.BlitVHandlesTransparentPartialAndOpaqueCoverage`, `PartialCoverageComposesWithExistingDestinationAlpha`, `CreateBlitVPartialCoverageSetsColorAndComposesAlpha`, and `CreateBlitVOpaqueCoverageComposesAcrossPasses`. |
-| `Blitter::blit_anti_h2` | `RasterPipelineBlitter::blitAntiH2` | 🧩 | Two-pixel horizontal coverage application implemented; covered by `PipelineBlitterTest.BlitAntiH2WritesPerPixelCoverage`, `CreateBlitAntiH2PartialCoverageSetsColorAndAlpha`, and `CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses`. |
-| `Blitter::blit_anti_v2` | `RasterPipelineBlitter::blitAntiV2` | 🧩 | Two-pixel vertical coverage application covered by `PipelineBlitterTest.BlitAntiV2WritesSeparatePixelCoverages` and `CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses`. |
-| `Blitter::blit_rect` | `RasterPipelineBlitter::blitRect` | 🧩 | Mask-only alpha fill + external-mask modulation path covered by `PipelineBlitterTest.CreateMaskAndBlitRectWritesOpaqueAlphaInRegion`, `BlitRectClipsToPixmapBounds`, and `CreateWithExternalMaskModulatesRectAlpha`. |
-| `Blitter::blit_mask` | `RasterPipelineBlitter::blitMask` | 🧩 | Mask-data coverage path implemented for mask-only and create-color modes (including optional external mask modulation); covered by `PipelineBlitterTest.BlitMaskLerpsDestinationAlphaWithCoverageMap`, `BlitMaskClipsWhenClipExceedsMaskDimensions`, `BlitMaskPartialCoverageComposesAcrossPasses`, `CreateBlitMaskWritesColorWithMaskCoverage`, `CreateBlitMaskCombinesWithExternalMaskCoverage`, and `CreateBlitMaskPartialCoverageComposesAcrossPasses`. |
+| `RasterPipelineBlitter` | `pipeline::RasterPipelineBlitter` | 🟡 | Pipeline-driven blitter with 3 compiled RasterPipelines (blit_anti_h_rp, blit_rect_rp, blit_mask_rp). Holds optional memset_color, external mask, and pixmap_src_storage matching Rust struct layout. |
+| `RasterPipelineBlitter::new` | `RasterPipelineBlitter::create` | 🟡 | Builds 3 pipelines with blend mode selection (SourceOver→Source strength reduction, Clear→Source, memset optimization). Takes BlendMode parameter (default SourceOver). Covered by `PipelineBlitterTest.CreateRejectsNullPixmap`, `CreateRejectsMaskSizeMismatch`, `CreateWithExternalMaskModulatesRectAlpha`, and all `Create*` blitting tests. |
+| `RasterPipelineBlitter::new_mask` | `RasterPipelineBlitter::createMask` | 🟡 | Builds 3 pipelines for mask mode (UniformColor(white) + Lerp1Float/LerpU8 + Store). Covered by `PipelineBlitterTest.CreateMaskRejectsNullPixmap` and all mask-mode blitting tests. |
+| `Blitter::blit_h` | `RasterPipelineBlitter::blitH` | 🟡 | Delegates to blitRect; matches Rust. |
+| `Blitter::blit_anti_h` | `RasterPipelineBlitter::blitAntiH` | 🟡 | Run-walk with transparent/partial/opaque coverage branches. Partial coverage uses blit_anti_h_rp_ with Scale1Float. Covered by `PipelineBlitterTest.BlitAntiHRespectsRunsAndCoverageKinds` and `BlitAntiHStopsAtRunSentinel`. |
+| `Blitter::blit_v` | `RasterPipelineBlitter::blitV` | 🟡 | Uses blit_mask_rp_ with AAMaskCtx (row_bytes=0 for uniform coverage). Covered by `PipelineBlitterTest.BlitVHandlesTransparentPartialAndOpaqueCoverage`, `PartialCoverageComposesWithExistingDestinationAlpha`, `CreateBlitVPartialCoverageSetsColorAndComposesAlpha`, and `CreateBlitVOpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_anti_h2` | `RasterPipelineBlitter::blitAntiH2` | 🟡 | Uses blit_mask_rp_ with AAMaskCtx for 2-pixel horizontal coverage. Covered by `PipelineBlitterTest.BlitAntiH2WritesPerPixelCoverage`, `CreateBlitAntiH2PartialCoverageSetsColorAndAlpha`, and `CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_anti_v2` | `RasterPipelineBlitter::blitAntiV2` | 🟡 | Uses blit_mask_rp_ with AAMaskCtx for 2-pixel vertical coverage. Covered by `PipelineBlitterTest.BlitAntiV2WritesSeparatePixelCoverages` and `CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses`. |
+| `Blitter::blit_rect` | `RasterPipelineBlitter::blitRect` | 🟡 | memset fast path for Source mode + pipeline fallback. Covered by `PipelineBlitterTest.CreateMaskAndBlitRectWritesOpaqueAlphaInRegion`, `BlitRectClipsToPixmapBounds`, and `CreateWithExternalMaskModulatesRectAlpha`. |
+| `Blitter::blit_mask` | `RasterPipelineBlitter::blitMask` | 🟡 | Iterates mask data 2 pixels at a time through blit_mask_rp_ via AAMaskCtx. Covered by `PipelineBlitterTest.BlitMaskLerpsDestinationAlphaWithCoverageMap`, `BlitMaskClipsWhenClipExceedsMaskDimensions`, `BlitMaskPartialCoverageComposesAcrossPasses`, `CreateBlitMaskWritesColorWithMaskCoverage`, `CreateBlitMaskCombinesWithExternalMaskCoverage`, and `CreateBlitMaskPartialCoverageComposesAcrossPasses`. |
 
