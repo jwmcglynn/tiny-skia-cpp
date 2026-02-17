@@ -148,7 +148,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/path/src/stroker.rs` | `src/tiny_skia/Stroker.cpp` + `src/tiny_skia/Stroker.h` | ✅ |
 | `third_party/tiny-skia/path/src/dash.rs` | `src/tiny_skia/Dash.cpp` + `src/tiny_skia/Dash.h` | ✅ |
 | `third_party/tiny-skia/path/src/path_builder.rs` | `src/tiny_skia/PathBuilder.cpp` + `src/tiny_skia/PathBuilder.h` | ✅ |
-| `third_party/tiny-skia/path/src/scalar.rs` | `src/tiny_skia/Scalar.h` | 🟡 |
+| `third_party/tiny-skia/path/src/scalar.rs` | `src/tiny_skia/Scalar.h` | ✅ |
 | `third_party/tiny-skia/path/src/path.rs` | `src/tiny_skia/Path.h` (PathSegmentsIter.cpp) | ✅ |
 | `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ✅ |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | ✅ |
@@ -172,15 +172,15 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
 | `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | ✅ |
-| `third_party/tiny-skia/src/wide/f32x16_t.rs` | `src/tiny_skia/wide/F32x16T.cpp` + `src/tiny_skia/wide/F32x16T.h` | ☐ |
-| `third_party/tiny-skia/src/wide/f32x4_t.rs` | `src/tiny_skia/wide/F32x4T.cpp` + `src/tiny_skia/wide/F32x4T.h` | 🟡 |
-| `third_party/tiny-skia/src/wide/f32x8_t.rs` | `src/tiny_skia/wide/F32x8T.cpp` + `src/tiny_skia/wide/F32x8T.h` | 🟡 |
-| `third_party/tiny-skia/src/wide/i32x4_t.rs` | `src/tiny_skia/wide/I32x4T.cpp` + `src/tiny_skia/wide/I32x4T.h` | 🟡 |
-| `third_party/tiny-skia/src/wide/i32x8_t.rs` | `src/tiny_skia/wide/I32x8T.cpp` + `src/tiny_skia/wide/I32x8T.h` | 🟡 |
+| `third_party/tiny-skia/src/wide/f32x16_t.rs` | `src/tiny_skia/wide/F32x16T.cpp` + `src/tiny_skia/wide/F32x16T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/f32x4_t.rs` | `src/tiny_skia/wide/F32x4T.cpp` + `src/tiny_skia/wide/F32x4T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/f32x8_t.rs` | `src/tiny_skia/wide/F32x8T.cpp` + `src/tiny_skia/wide/F32x8T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/i32x4_t.rs` | `src/tiny_skia/wide/I32x4T.cpp` + `src/tiny_skia/wide/I32x4T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/i32x8_t.rs` | `src/tiny_skia/wide/I32x8T.cpp` + `src/tiny_skia/wide/I32x8T.h` | ✅ |
 | `third_party/tiny-skia/src/wide/mod.rs` | `src/tiny_skia/wide/Mod.cpp` + `src/tiny_skia/wide/Mod.h` | ✅ |
-| `third_party/tiny-skia/src/wide/u16x16_t.rs` | `src/tiny_skia/wide/U16x16T.cpp` + `src/tiny_skia/wide/U16x16T.h` | ☐ |
-| `third_party/tiny-skia/src/wide/u32x4_t.rs` | `src/tiny_skia/wide/U32x4T.cpp` + `src/tiny_skia/wide/U32x4T.h` | 🟡 |
-| `third_party/tiny-skia/src/wide/u32x8_t.rs` | `src/tiny_skia/wide/U32x8T.cpp` + `src/tiny_skia/wide/U32x8T.h` | 🟡 |
+| `third_party/tiny-skia/src/wide/u16x16_t.rs` | `src/tiny_skia/wide/U16x16T.cpp` + `src/tiny_skia/wide/U16x16T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/u32x4_t.rs` | `src/tiny_skia/wide/U32x4T.cpp` + `src/tiny_skia/wide/U32x4T.h` | ✅ |
+| `third_party/tiny-skia/src/wide/u32x8_t.rs` | `src/tiny_skia/wide/U32x8T.cpp` + `src/tiny_skia/wide/U32x8T.h` | ✅ |
 
 ### Naming rule
 - `snake_case.rs` -> `UpperCamel.cpp` and `UpperCamel.h`
@@ -309,9 +309,13 @@ This ordering is now the gate used when selecting the next implementation batch.
   - `Path::computeTightBounds()` — exact extrema computation for quad/cubic curves.
   - `Path::clear()` — reuse allocations via PathBuilder.
   - `PathGeometry::findCubicExtremaT()` — cubic extrema helper.
+- **Wide SIMD types at `✅`:**
+  - F32x4T completed with all missing operators (floor, fract, normalize, round, etc.).
+  - F32x16T and U16x16T fully ported as scalar fallback implementations.
+  - All wide types (F32x4T, F32x8T, F32x16T, I32x4T, I32x8T, U16x16T, U32x4T, U32x8T) complete.
+- **Scalar utilities at `✅`:**
+  - scalarHalf, scalarAve, scalarSqr, scalarInvert, scalarBound added to Scalar.h.
 - **Remaining work:**
-  - Wide SIMD: F32x16T and U16x16T not started; other types missing some operators.
-  - Scalar: utility trait helpers (half, ave, sqr, etc.) not ported.
   - PNG I/O: Pixmap/Mask PNG encode/decode not ported (optional feature).
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.

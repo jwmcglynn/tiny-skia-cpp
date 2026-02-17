@@ -7,6 +7,8 @@
 
 namespace tiny_skia::wide {
 
+class I32x4T;
+
 class F32x4T {
  public:
   F32x4T() = default;
@@ -32,6 +34,34 @@ class F32x4T {
   [[nodiscard]] F32x4T cmpLt(const F32x4T& rhs) const;
 
   [[nodiscard]] F32x4T blend(const F32x4T& t, const F32x4T& f) const;
+
+  [[nodiscard]] F32x4T floor() const;
+  [[nodiscard]] F32x4T fract() const;
+  [[nodiscard]] F32x4T normalize() const;
+  [[nodiscard]] F32x4T round() const;
+  [[nodiscard]] I32x4T roundInt() const;
+  [[nodiscard]] I32x4T truncInt() const;
+
+  [[nodiscard]] I32x4T toI32x4Bitcast() const;
+
+  [[nodiscard]] F32x4T recipFast() const;
+  [[nodiscard]] F32x4T recipSqrt() const;
+  [[nodiscard]] F32x4T sqrt() const;
+
+  [[nodiscard]] F32x4T operator+(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator-(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator*(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator/(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator&(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator|(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator^(const F32x4T& rhs) const;
+  [[nodiscard]] F32x4T operator-() const;
+  [[nodiscard]] F32x4T operator~() const;
+
+  F32x4T& operator+=(const F32x4T& rhs);
+  F32x4T& operator*=(const F32x4T& rhs);
+
+  [[nodiscard]] bool operator==(const F32x4T& rhs) const;
 
  private:
   static constexpr float kTrueMask = std::bit_cast<float>(0xFFFFFFFFu);
