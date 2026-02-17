@@ -15,3 +15,29 @@ single_version_override(
     patches = ["//:googletest.patch"],
     patch_strip = 1,
 )
+
+###############################################################################
+# Rust toolchain & crate_universe – used for cross-validation tests that
+# render scenes through the original Rust tiny-skia and compare pixel output
+# against the C++ port.
+###############################################################################
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "rules_rust", version = "0.56.0")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2021",
+    versions = ["1.82.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//tests/rust_ffi:Cargo.lock",
+    manifests = ["//tests/rust_ffi:Cargo.toml"],
+)
+use_repo(crate, "crates")

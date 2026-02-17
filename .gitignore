@@ -9,3 +9,6 @@
 
 # Bzlmod lockfile
 MODULE.bazel.lock
+
+# Cargo build artifacts (Rust FFI crate)
+tests/rust_ffi/target/

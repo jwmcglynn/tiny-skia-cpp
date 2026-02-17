@@ -103,3 +103,16 @@ cc_test(
     data = _GOLDEN_IMAGES,
     deps = _COMMON_DEPS,
 )
+
+cc_test(
+    name = "cross_validation_test",
+    srcs = ["CrossValidationTest.cpp"],
+    copts = _COMMON_COPTS,
+    deps = [
+        "//src:tiny_skia_lib",
+        "//tests/test_utils:cross_validator",
+        "//tests/test_utils:rust_reference",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
