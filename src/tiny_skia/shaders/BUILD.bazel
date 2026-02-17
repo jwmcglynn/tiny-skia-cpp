@@ -1,0 +1,17 @@
+"""tiny_skia shader source groups."""
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "Mod.cpp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "hdrs",
+    srcs = [
+        "Mod.h",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -568,7 +568,7 @@ TEST(ColorTest, RasterPipelineBuilderPushTransformSkipsIdentity) {
 
 TEST(ColorTest, RasterPipelineBuilderPushTransformStoresNonIdentityTransform) {
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  tiny_skia::Transform ts{true, false};
+  auto ts = tiny_skia::Transform::fromTranslate(10.0f, 20.0f);
   builder.pushTransform(ts);
 
   const auto pipeline = builder.compile();
