@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -10,6 +11,7 @@
 
 #include "tiny_skia/Edge.h"
 #include "tiny_skia/Geom.h"
+#include "tiny_skia/pipeline/Mod.h"
 
 namespace tiny_skia {
 
@@ -67,6 +69,19 @@ class Path {
     return bounds_.value_or(Rect::fromLtrb(0.0f, 0.0f, 0.0f, 0.0f).value());
   }
 
+  /// Returns a new Path with all points transformed.
+  /// Returns nullopt if the transform produces non-finite values.
+  [[nodiscard]] std::optional<Path> transform(const Transform& ts) const {
+    auto pts = points_;
+    ts.mapPoints(pts);
+    for (const auto& p : pts) {
+      if (!std::isfinite(p.x) || !std::isfinite(p.y)) {
+        return std::nullopt;
+      }
+    }
+    return Path(verbs_, std::move(pts));
+  }
+
  private:
   void recomputeBounds() {
     if (points_.empty()) {
@@ -98,5 +113,19 @@ enum class FillRule : std::uint8_t {
   Winding = 0,
   EvenOdd = 1,
 };
+
+/// Creates a rectangular path from a Rect.
+/// Matches Rust `PathBuilder::from_rect`.
+inline Path pathFromRect(const Rect& rect) {
+  std::vector<PathVerb> verbs = {
+      PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
+      PathVerb::Close};
+  std::vector<Point> points = {
+      Point{rect.left(), rect.top()},
+      Point{rect.right(), rect.top()},
+      Point{rect.right(), rect.bottom()},
+      Point{rect.left(), rect.bottom()}};
+  return Path(std::move(verbs), std::move(points));
+}
 
 }  // namespace tiny_skia

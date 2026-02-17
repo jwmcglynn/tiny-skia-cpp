@@ -2,6 +2,9 @@
 
 #include <algorithm>
 
+#include "tiny_skia/Painter.h"
+#include "tiny_skia/shaders/Mod.h"
+
 namespace tiny_skia::pipeline {
 namespace {
 
@@ -154,6 +157,189 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(
   return RasterPipelineBlitter(pixmap, false, memsetColor, mask,
                                makeDummyPixmapSrc(),
                                blitAntiHRp, blitRectRp, blitMaskRp);
+}
+
+std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(
+    const tiny_skia::Paint& paint,
+    std::optional<SubMaskRef> mask,
+    SubPixmapMut* pixmap) {
+  if (pixmap == nullptr) {
+    return std::nullopt;
+  }
+
+  // Validate mask size matches pixmap.
+  if (mask.has_value()) {
+    if (mask->size.width() != pixmap->width() ||
+        mask->size.height() != pixmap->height()) {
+      return std::nullopt;
+    }
+  }
+
+  // Fast-reject: Destination keeps the pixmap unchanged.
+  if (paint.blend_mode == BlendMode::Destination) {
+    return std::nullopt;
+  }
+
+  // Fast-reject: DestinationIn with opaque solid color is a no-op.
+  if (paint.blend_mode == BlendMode::DestinationIn &&
+      isShaderOpaque(paint.shader) && paint.isSolidColor()) {
+    return std::nullopt;
+  }
+
+  // Strength-reduce SourceOver to Source when opaque and no mask.
+  auto blendMode = paint.blend_mode;
+  if (isShaderOpaque(paint.shader) && blendMode == BlendMode::SourceOver &&
+      !mask.has_value()) {
+    blendMode = BlendMode::Source;
+  }
+
+  // When drawing a constant color in Source mode with no mask, use memset.
+  std::optional<PremultipliedColorU8> memsetColor;
+  if (paint.isSolidColor() && blendMode == BlendMode::Source &&
+      !mask.has_value()) {
+    const auto& color = std::get<Color>(paint.shader);
+    memsetColor = color.premultiply().toColorU8();
+  }
+
+  // Clear is just a transparent color memset (when not anti-aliased and no mask).
+  if (blendMode == BlendMode::Clear && !paint.anti_alias && !mask.has_value()) {
+    blendMode = BlendMode::Source;
+    memsetColor = PremultipliedColorU8::fromRgbaUnchecked(0, 0, 0, 0);
+  }
+
+  // Build blit_anti_h pipeline.
+  auto blitAntiHRp = [&]() -> std::optional<RasterPipeline> {
+    RasterPipelineBuilder p;
+    p.setForceHqPipeline(paint.force_hq_pipeline);
+    if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
+      return std::nullopt;
+    }
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (shouldPreScaleCoverage(blendMode)) {
+      p.push(Stage::Scale1Float);
+      p.push(Stage::LoadDestination);
+      if (const auto stage = expandDestStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+    } else {
+      p.push(Stage::LoadDestination);
+      if (const auto stage = expandDestStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+      p.push(Stage::Lerp1Float);
+    }
+    if (const auto stage = compressStage(paint.colorspace)) {
+      p.push(*stage);
+    }
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+  if (!blitAntiHRp.has_value()) {
+    return std::nullopt;
+  }
+
+  // Build blit_rect pipeline.
+  auto blitRectRp = [&]() -> std::optional<RasterPipeline> {
+    RasterPipelineBuilder p;
+    p.setForceHqPipeline(paint.force_hq_pipeline);
+    if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
+      return std::nullopt;
+    }
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (blendMode == BlendMode::SourceOver && !mask.has_value()) {
+      if (const auto stage = compressStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      p.push(Stage::SourceOverRgba);
+    } else {
+      if (blendMode != BlendMode::Source) {
+        p.push(Stage::LoadDestination);
+        if (const auto blendStage = toStage(blendMode)) {
+          if (const auto stage = expandDestStage(paint.colorspace)) {
+            p.push(*stage);
+          }
+          p.push(*blendStage);
+        }
+      }
+      if (const auto stage = compressStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      p.push(Stage::Store);
+    }
+    return p.compile();
+  }();
+  if (!blitRectRp.has_value()) {
+    return std::nullopt;
+  }
+
+  // Build blit_mask pipeline.
+  auto blitMaskRp = [&]() -> std::optional<RasterPipeline> {
+    RasterPipelineBuilder p;
+    p.setForceHqPipeline(paint.force_hq_pipeline);
+    if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
+      return std::nullopt;
+    }
+    if (mask.has_value()) {
+      p.push(Stage::MaskU8);
+    }
+    if (shouldPreScaleCoverage(blendMode)) {
+      p.push(Stage::ScaleU8);
+      p.push(Stage::LoadDestination);
+      if (const auto stage = expandDestStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+    } else {
+      p.push(Stage::LoadDestination);
+      if (const auto stage = expandDestStage(paint.colorspace)) {
+        p.push(*stage);
+      }
+      if (const auto stage = toStage(blendMode)) {
+        p.push(*stage);
+      }
+      p.push(Stage::LerpU8);
+    }
+    if (const auto stage = compressStage(paint.colorspace)) {
+      p.push(*stage);
+    }
+    p.push(Stage::Store);
+    return p.compile();
+  }();
+  if (!blitMaskRp.has_value()) {
+    return std::nullopt;
+  }
+
+  // Get the pixmap source from the shader.
+  // Pattern shaders need the actual pixmap data; others use a dummy.
+  Pixmap pixmapSrcStorage;
+  if (std::holds_alternative<Pattern>(paint.shader)) {
+    const auto& patt = std::get<Pattern>(paint.shader);
+    auto cloned = patt.pixmap_.cloneRect(
+        *IntRect::fromXYWH(0, 0, patt.pixmap_.width(), patt.pixmap_.height()));
+    if (cloned.has_value()) {
+      pixmapSrcStorage = std::move(*cloned);
+    } else {
+      pixmapSrcStorage = makeDummyPixmapSrc();
+    }
+  } else {
+    pixmapSrcStorage = makeDummyPixmapSrc();
+  }
+
+  return RasterPipelineBlitter(pixmap, false, memsetColor, mask,
+                               std::move(pixmapSrcStorage),
+                               *blitAntiHRp, *blitRectRp, *blitMaskRp);
 }
 
 std::optional<RasterPipelineBlitter> RasterPipelineBlitter::createMask(SubPixmapMut* pixmap) {

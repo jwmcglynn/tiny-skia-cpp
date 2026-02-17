@@ -9,15 +9,28 @@
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/pipeline/Mod.h"
 
+namespace tiny_skia {
+struct Paint;
+}
+
 namespace tiny_skia::pipeline {
 
 class RasterPipelineBlitter final : public tiny_skia::Blitter {
  public:
+  /// Creates a blitter from a solid color.
   static std::optional<RasterPipelineBlitter> create(
       PremultipliedColorU8 color,
       SubPixmapMut* pixmap,
       BlendMode blendMode = BlendMode::SourceOver,
       std::optional<SubMaskRef> mask = std::nullopt);
+
+  /// Creates a blitter from a Paint (with Shader support).
+  /// Matches Rust `RasterPipelineBlitter::new(paint, mask, pixmap)`.
+  static std::optional<RasterPipelineBlitter> create(
+      const tiny_skia::Paint& paint,
+      std::optional<SubMaskRef> mask,
+      SubPixmapMut* pixmap);
+
   static std::optional<RasterPipelineBlitter> createMask(SubPixmapMut* pixmap);
 
   void blitH(std::uint32_t x, std::uint32_t y, LengthU32 width) override;

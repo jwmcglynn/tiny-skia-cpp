@@ -5,6 +5,7 @@
 
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Math.h"
+#include "tiny_skia/Point.h"
 #include "tiny_skia/pipeline/Highp.h"
 #include "tiny_skia/pipeline/Lowp.h"
 
@@ -146,6 +147,15 @@ Transform Transform::preTranslate(float tx, float ty) const {
 
 Transform Transform::postTranslate(float tx, float ty) const {
   return postConcat(fromTranslate(tx, ty));
+}
+
+void Transform::mapPoints(std::span<Point> points) const {
+  for (auto& p : points) {
+    const float nx = sx * p.x + kx * p.y + tx;
+    const float ny = ky * p.x + sy * p.y + ty;
+    p.x = nx;
+    p.y = ny;
+  }
 }
 
 }  // namespace tiny_skia
