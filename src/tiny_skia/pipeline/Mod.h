@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace tiny_skia {
@@ -13,6 +14,7 @@ class PremultipliedColor;
 class NormalizedF32;
 class PixmapRef;
 class ScreenIntRect;
+struct Point;
 struct SubPixmapMut;
 
 /// Affine transformation matrix [sx kx tx; ky sy ty; 0 0 1].
@@ -60,6 +62,9 @@ class Transform {
   [[nodiscard]] Transform postScale(float sx, float sy) const;
   [[nodiscard]] Transform preTranslate(float tx, float ty) const;
   [[nodiscard]] Transform postTranslate(float tx, float ty) const;
+
+  /// Maps an array of points through the transform.
+  void mapPoints(std::span<Point> points) const;
 
   constexpr bool operator==(const Transform&) const = default;
 };

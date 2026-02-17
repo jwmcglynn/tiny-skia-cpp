@@ -145,7 +145,7 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/math.rs` | `src/tiny_skia/Math.cpp` + `src/tiny_skia/Math.h` | ✅ |
 | `third_party/tiny-skia/src/mask.rs` | `src/tiny_skia/Mask.cpp` + `src/tiny_skia/Mask.h` | 🟡 |
 | `third_party/tiny-skia/src/path_geometry.rs` | `src/tiny_skia/PathGeometry.cpp` + `src/tiny_skia/PathGeometry.h` | ✅ |
-| `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | ☐ |
+| `third_party/tiny-skia/src/painter.rs` | `src/tiny_skia/Painter.cpp` + `src/tiny_skia/Painter.h` | 🟡 |
 | `third_party/tiny-skia/src/pixmap.rs` | `src/tiny_skia/Pixmap.cpp` + `src/tiny_skia/Pixmap.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/blitter.rs` | `src/tiny_skia/pipeline/Blitter.cpp` + `src/tiny_skia/pipeline/Blitter.h` | 🟡 |
 | `third_party/tiny-skia/src/pipeline/highp.rs` | `src/tiny_skia/pipeline/Highp.cpp` + `src/tiny_skia/pipeline/Highp.h` | 🟡 |
@@ -193,6 +193,7 @@ this bootstrap design compact and easier to review.
 - `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/pipeline.md`
 - `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/path64.md`
 - `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`
+- `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/painter.md`
 - `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/wide.md`
 
 Add or update per-file tables in the split mapping docs as implementation progresses.
@@ -251,19 +252,29 @@ This section defines the cross-module ordering constraints used for deterministi
 This ordering is now the gate used when selecting the next implementation batch.
 
 ### Next implementation batch gate (current)
-- All shader modules have reached `🟡`:
-  - `Gradient` base class, `LinearGradient`, `SweepGradient`, `RadialGradient`, `Pattern`.
-  - `Shader` variant: `std::variant<Color, LinearGradient, SweepGradient, RadialGradient, Pattern>`
-    with full free-function dispatch for all 5 types.
-  - `RadialGradient` includes FocalData, GradientType (Radial/Strip/Focal), two-point conical
-    gradient logic with all pipeline stage paths (XYToRadius, XYTo2PtConical*, Strip, etc.).
-  - `SweepGradient` with XYToUnitAngle + ApplyConcentricScaleBias pipeline integration.
-  - `Pattern` with FilterQuality (Nearest/Bilinear/Bicubic), spread mode, opacity, and
-    quality-downgrade optimizations for identity/translate transforms.
-  - Infrastructure: full Transform class, Point arithmetic, scalar utilities.
-  - 70 shader tests + 23 blitter tests all passing (93 total).
-- **Current track:** Advance to `painter.rs` orchestration layer — the final integration
-  layer that ties scan, pipeline, shaders, pixmap, mask, and blend behavior together.
+- **Painter orchestration layer at `🟡`:**
+  - `Paint` struct with Shader variant, BlendMode, anti_alias, colorspace, force_hq_pipeline.
+  - `DrawTiler` class for splitting large pixmaps (>8191px) into tiles.
+  - `fillRect()` — solid-color fill with identity fast path, delegates to `fillPath` for transforms.
+  - `fillPath()` — full path filling with tiling support, transform handling, AA/non-AA dispatch.
+  - `drawPixmap()` — composite pixmap-on-pixmap via Pattern shader + fillRect.
+  - `applyMask()` — post-draw mask application using DestinationIn pipeline.
+  - `strokeHairline()` — hairline stroke dispatch through scan::hairline{_aa}.
+  - `treatAsHairline()` — stroke width classification via Transform::mapPoints.
+  - `isTooBigForMath()` — path bounds validation for fixed-point safety.
+  - Paint-aware `RasterPipelineBlitter::create(Paint, mask, pixmap)` factory with full shader
+    pipeline construction (blit_anti_h, blit_rect, blit_mask), blend mode optimization,
+    memset2d fast path, and Pattern pixmap source handling.
+  - Infrastructure additions: `Rect::width()/height()`, `IntSize::toIntRect()/toRect()`,
+    `Transform::mapPoints()`, `Path::transform()`, `pathFromRect()`.
+  - 35 painter tests + 70 shader tests + 23 blitter tests all passing (128 total).
+- **Remaining for full painter parity:**
+  - `strokePath()` requires `Path::stroke()` and `Path::dash()` from tiny-skia-path
+    (stroker.rs/dash.rs) which are not yet ported.
+  - Full pixel-accurate rendering requires implementing pipeline stage stubs in
+    Highp.cpp/Lowp.cpp (Gather, Transform, Gradient, Bilinear, Bicubic, etc.).
+- **Next track:** Implement pipeline stage internals in Highp.cpp/Lowp.cpp to enable
+  pattern, gradient, and transform-based rendering with pixel-accurate output.
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
 ## Security / Privacy

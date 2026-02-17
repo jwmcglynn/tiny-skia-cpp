@@ -30,6 +30,8 @@ class IntSize {
     return height_;
   }
   [[nodiscard]] ScreenIntRect toScreenIntRect(std::uint32_t x, std::uint32_t y) const;
+  [[nodiscard]] std::optional<IntRect> toIntRect(std::int32_t x, std::int32_t y) const;
+  [[nodiscard]] Rect toRect() const;
 
   constexpr bool operator==(const IntSize&) const = default;
 
@@ -159,6 +161,13 @@ class Rect {
   }
   constexpr float bottom() const {
     return bottom_;
+  }
+
+  constexpr float width() const {
+    return right_ - left_;
+  }
+  constexpr float height() const {
+    return bottom_ - top_;
   }
 
   constexpr bool operator==(const Rect&) const = default;
