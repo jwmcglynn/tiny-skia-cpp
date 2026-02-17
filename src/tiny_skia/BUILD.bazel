@@ -28,7 +28,6 @@ tiny_skia_cc_library(
         "LineClipper.cpp",
         "Math.cpp",
         "Mask.cpp",
-        "Painter.cpp",
         "Pixmap.cpp",
         "PathGeometry.cpp",
         "//src/tiny_skia/pipeline:srcs",
@@ -58,6 +57,22 @@ tiny_skia_cc_library(
     deps = [
         "//src/tiny_skia:tiny_skia_point",
         "//src/tiny_skia/path64:tiny_skia_path64",
+    ],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
+    include_prefix = "tiny_skia",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)
+
+tiny_skia_cc_library(
+    name = "tiny_skia_painter",
+    srcs = [
+        "Painter.cpp",
+    ],
+    hdrs = [],
+    deps = [
+        "//src/tiny_skia:tiny_skia_core",
+        "//src/tiny_skia/scan:tiny_skia_scan",
     ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     include_prefix = "tiny_skia",

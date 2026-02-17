@@ -167,6 +167,7 @@ NormalizedF32 expandChannel(ColorSpace colorSpace, NormalizedF32 x) {
       return NormalizedF32::newClamped(approxPowf((xValue + 0.055f) / 1.055f, 2.4f));
     }
   }
+  return x;  // unreachable; satisfies -Wreturn-type
 }
 
 Color expandColor(ColorSpace colorSpace, Color color) {
@@ -192,6 +193,7 @@ NormalizedF32 compressChannel(ColorSpace colorSpace, NormalizedF32 x) {
       return NormalizedF32::newClamped(approxPowf(xValue, 1.0f / 2.4f) * 1.055f - 0.055f);
     }
   }
+  return x;  // unreachable; satisfies -Wreturn-type
 }
 
 std::optional<pipeline::Stage> expandStage(ColorSpace colorSpace) {
@@ -205,6 +207,7 @@ std::optional<pipeline::Stage> expandStage(ColorSpace colorSpace) {
     case ColorSpace::FullSRGBGamma:
       return pipeline::Stage::GammaExpandSrgb;
   }
+  return std::nullopt;  // unreachable; satisfies -Wreturn-type
 }
 
 std::optional<pipeline::Stage> expandDestStage(ColorSpace colorSpace) {
@@ -218,6 +221,7 @@ std::optional<pipeline::Stage> expandDestStage(ColorSpace colorSpace) {
     case ColorSpace::FullSRGBGamma:
       return pipeline::Stage::GammaExpandDestinationSrgb;
   }
+  return std::nullopt;  // unreachable; satisfies -Wreturn-type
 }
 
 std::optional<pipeline::Stage> compressStage(ColorSpace colorSpace) {
@@ -231,6 +235,7 @@ std::optional<pipeline::Stage> compressStage(ColorSpace colorSpace) {
     case ColorSpace::FullSRGBGamma:
       return pipeline::Stage::GammaCompressSrgb;
   }
+  return std::nullopt;  // unreachable; satisfies -Wreturn-type
 }
 
 }  // namespace tiny_skia
