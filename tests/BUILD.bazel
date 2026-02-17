@@ -1,0 +1,3 @@
+"""Top-level test package."""
+
+package(default_visibility = ["//visibility:public"])

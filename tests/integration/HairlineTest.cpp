@@ -1,0 +1,324 @@
+#include <gtest/gtest.h>
+#include "GoldenTestHelper.h"
+#include "tiny_skia/Color.h"
+#include "tiny_skia/Geom.h"
+#include "tiny_skia/Painter.h"
+#include "tiny_skia/Path.h"
+#include "tiny_skia/PathBuilder.h"
+#include "tiny_skia/Pixmap.h"
+#include "tiny_skia/Stroke.h"
+
+using namespace tiny_skia;
+
+namespace {
+
+// ---------------------------------------------------------------------------
+// Helper: draw a single line segment and return the resulting pixmap.
+// Mirrors the Rust `draw_line` helper.
+// ---------------------------------------------------------------------------
+Pixmap drawLine(float x0, float y0, float x1, float y1,
+                bool antiAlias, float width, LineCap lineCap) {
+    auto pixmap = Pixmap::fromSize(100, 100);
+    EXPECT_TRUE(pixmap.has_value());
+
+    PathBuilder pb;
+    pb.moveTo(x0, y0);
+    pb.lineTo(x1, y1);
+    auto path = pb.finish();
+    EXPECT_TRUE(path.has_value());
+
+    Paint paint;
+    paint.setColorRgba8(50, 127, 150, 200);
+    paint.anti_alias = antiAlias;
+
+    Stroke stroke;
+    stroke.width = width;
+    stroke.line_cap = lineCap;
+
+    auto mut = pixmap->asMut();
+    strokePath(mut, *path, paint, stroke, Transform::identity());
+
+    return std::move(*pixmap);
+}
+
+// ---------------------------------------------------------------------------
+// Helper: draw a single quadratic curve and return the resulting pixmap.
+// Mirrors the Rust `draw_quad` helper.
+// ---------------------------------------------------------------------------
+Pixmap drawQuad(bool antiAlias, float width, LineCap lineCap) {
+    auto pixmap = Pixmap::fromSize(200, 100);
+    EXPECT_TRUE(pixmap.has_value());
+
+    PathBuilder pb;
+    pb.moveTo(25.0f, 80.0f);
+    pb.quadTo(155.0f, 75.0f, 175.0f, 20.0f);
+    auto path = pb.finish();
+    EXPECT_TRUE(path.has_value());
+
+    Paint paint;
+    paint.setColorRgba8(50, 127, 150, 200);
+    paint.anti_alias = antiAlias;
+
+    Stroke stroke;
+    stroke.width = width;
+    stroke.line_cap = lineCap;
+
+    auto mut = pixmap->asMut();
+    strokePath(mut, *path, paint, stroke, Transform::identity());
+
+    return std::move(*pixmap);
+}
+
+// ---------------------------------------------------------------------------
+// Helper: draw a single cubic curve and return the resulting pixmap.
+// Mirrors the Rust `draw_cubic` helper.
+// ---------------------------------------------------------------------------
+Pixmap drawCubic(const float (&points)[8], bool antiAlias, float width,
+                 LineCap lineCap) {
+    auto pixmap = Pixmap::fromSize(200, 100);
+    EXPECT_TRUE(pixmap.has_value());
+
+    PathBuilder pb;
+    pb.moveTo(points[0], points[1]);
+    pb.cubicTo(points[2], points[3], points[4], points[5],
+               points[6], points[7]);
+    auto path = pb.finish();
+    EXPECT_TRUE(path.has_value());
+
+    Paint paint;
+    paint.setColorRgba8(50, 127, 150, 200);
+    paint.anti_alias = antiAlias;
+
+    Stroke stroke;
+    stroke.width = width;
+    stroke.line_cap = lineCap;
+
+    auto mut = pixmap->asMut();
+    strokePath(mut, *path, paint, stroke, Transform::identity());
+
+    return std::move(*pixmap);
+}
+
+}  // namespace
+
+// ===========================================================================
+// Line tests
+// ===========================================================================
+
+TEST(Hairline, hline_05) {
+    auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
+                           false, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05.png");
+}
+
+TEST(Hairline, hline_05_aa) {
+    auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
+                           true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05-aa.png");
+}
+
+TEST(Hairline, hline_05_aa_round) {
+    auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
+                           true, 0.5f, LineCap::Round);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05-aa-round.png");
+}
+
+TEST(Hairline, vline_05) {
+    auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
+                           false, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05.png");
+}
+
+TEST(Hairline, vline_05_aa) {
+    auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
+                           true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05-aa.png");
+}
+
+TEST(Hairline, vline_05_aa_round) {
+    auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
+                           true, 0.5f, LineCap::Round);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05-aa-round.png");
+}
+
+TEST(Hairline, horish_05_aa) {
+    auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 70.0f,
+                           true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/horish-05-aa.png");
+}
+
+TEST(Hairline, vertish_05_aa) {
+    auto pixmap = drawLine(10.0f, 10.0f, 70.0f, 90.0f,
+                           true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/vertish-05-aa.png");
+}
+
+TEST(Hairline, clip_line_05_aa) {
+    auto pixmap = drawLine(-10.0f, 10.0f, 110.0f, 70.0f,
+                           true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-line-05-aa.png");
+}
+
+TEST(Hairline, clip_line_00) {
+    auto pixmap = drawLine(-10.0f, 10.0f, 110.0f, 70.0f,
+                           false, 0.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-line-00.png");
+}
+
+TEST(Hairline, clip_line_00_v2) {
+    auto pixmap = Pixmap::fromSize(512, 512);
+    ASSERT_TRUE(pixmap.has_value());
+
+    Paint paint;
+    paint.setColorRgba8(50, 127, 150, 200);
+    paint.anti_alias = false;
+
+    Stroke stroke;
+    stroke.width = 0.0f;
+
+    PathBuilder builder;
+    builder.moveTo(369.26462f, 577.8069f);
+    builder.lineTo(488.0846f, 471.04388f);
+    auto path = builder.finish();
+    ASSERT_TRUE(path.has_value());
+
+    auto mut = pixmap->asMut();
+    strokePath(mut, *path, paint, stroke, Transform::identity());
+
+    EXPECT_GOLDEN_MATCH(*pixmap, "hairline/clip-line-00-v2.png");
+}
+
+TEST(Hairline, clip_hline_top_aa) {
+    auto pixmap = drawLine(-1.0f, 0.0f, 101.0f, 0.0f,
+                           true, 1.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-hline-top-aa.png");
+}
+
+TEST(Hairline, clip_hline_bottom_aa) {
+    auto pixmap = drawLine(-1.0f, 100.0f, 101.0f, 100.0f,
+                           true, 1.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-hline-bottom-aa.png");
+}
+
+TEST(Hairline, clip_vline_left_aa) {
+    auto pixmap = drawLine(0.0f, -1.0f, 0.0f, 101.0f,
+                           true, 1.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-vline-left-aa.png");
+}
+
+TEST(Hairline, clip_vline_right_aa) {
+    auto pixmap = drawLine(100.0f, -1.0f, 100.0f, 101.0f,
+                           true, 1.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-vline-right-aa.png");
+}
+
+// ===========================================================================
+// Quad tests
+// ===========================================================================
+
+TEST(Hairline, quad_width_05_aa) {
+    auto pixmap = drawQuad(true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-05-aa.png");
+}
+
+TEST(Hairline, quad_width_05_aa_round) {
+    auto pixmap = drawQuad(true, 0.5f, LineCap::Round);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-05-aa-round.png");
+}
+
+TEST(Hairline, quad_width_00) {
+    auto pixmap = drawQuad(false, 0.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-00.png");
+}
+
+// ===========================================================================
+// Cubic tests
+// ===========================================================================
+
+TEST(Hairline, cubic_width_10_aa) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, true, 1.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-10-aa.png");
+}
+
+TEST(Hairline, cubic_width_05_aa) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-05-aa.png");
+}
+
+TEST(Hairline, cubic_width_00_aa) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, true, 0.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00-aa.png");
+}
+
+TEST(Hairline, cubic_width_00) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00.png");
+}
+
+TEST(Hairline, cubic_width_05_aa_round) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Round);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-05-aa-round.png");
+}
+
+TEST(Hairline, cubic_width_00_round) {
+    const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Round);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00-round.png");
+}
+
+TEST(Hairline, chop_cubic_01) {
+    // This curve invokes the chop_cubic_at_max_curvature branch of hair_cubic.
+    const float pts[] = {57.0f, 13.0f, 17.0f, 15.0f,
+                         55.0f, 97.0f, 89.0f, 62.0f};
+    auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/chop-cubic-01.png");
+}
+
+TEST(Hairline, clip_cubic_05_aa) {
+    const float pts[] = {-25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-cubic-05-aa.png");
+}
+
+TEST(Hairline, clip_cubic_00) {
+    const float pts[] = {-25.0f, 80.0f, 55.0f, 25.0f,
+                         155.0f, 75.0f, 175.0f, 20.0f};
+    auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Butt);
+    EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-cubic-00.png");
+}
+
+// ===========================================================================
+// Circle test
+// ===========================================================================
+
+TEST(Hairline, clipped_circle_aa) {
+    auto pixmap = Pixmap::fromSize(100, 100);
+    ASSERT_TRUE(pixmap.has_value());
+
+    Paint paint;
+    paint.setColorRgba8(50, 127, 150, 200);
+    paint.anti_alias = true;
+
+    Stroke stroke;
+    stroke.width = 0.5f;
+
+    auto path = PathBuilder::fromCircle(50.0f, 50.0f, 55.0f);
+    ASSERT_TRUE(path.has_value());
+
+    auto mut = pixmap->asMut();
+    strokePath(mut, *path, paint, stroke, Transform::identity());
+
+    EXPECT_GOLDEN_MATCH(*pixmap, "hairline/clipped-circle-aa.png");
+}

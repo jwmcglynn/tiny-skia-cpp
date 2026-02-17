@@ -319,6 +319,69 @@ This ordering is now the gate used when selecting the next implementation batch.
   - PNG I/O: Pixmap/Mask PNG encode/decode not ported (optional feature).
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
+
+### Milestone 6: Comparison test suite and Rust test porting
+
+Validate rendering parity between the C++ port and the Rust reference by comparing
+C++-rendered output against the Rust golden images using pixelmatch-cpp17.
+Port **all** Rust integration and inline unit tests to C++.
+
+#### 6a. Test infrastructure
+- [ ] Add `pixelmatch-cpp17` (v1.0.3) and `zlib` to `MODULE.bazel` as bzlmod deps.
+- [ ] Create `tests/test_utils/PngDecoder.h/.cpp` — PNG-to-RGBA loader using zlib inflate.
+- [ ] Create `tests/test_utils/GoldenTestHelper.h` — gtest helper that renders a scene,
+  loads a golden PNG from `third_party/tiny-skia/tests/images/`, premultiplies it, and
+  asserts zero pixel difference via `pixelmatch::pixelmatch()`.
+- [ ] Create `tests/integration/BUILD.bazel` with `cc_test` targets depending on
+  `//src:tiny_skia_lib`, `@pixelmatch-cpp17`, `@zlib`, and golden image data deps.
+
+#### 6b. Port Rust integration tests (golden image comparison)
+Each Rust integration test file maps to a C++ `*Test.cpp` file in `tests/integration/`.
+Tests render the same scene as the Rust version, then use pixelmatch to validate the
+output against the pre-existing golden PNGs (zero-tolerance pixel match).
+
+| Rust test file | C++ test file | Tests | Status |
+| --- | --- | --- | --- |
+| `tests/integration/fill.rs` | `tests/integration/FillTest.cpp` | 32 | ☐ |
+| `tests/integration/hairline.rs` | `tests/integration/HairlineTest.cpp` | 27 | ☐ |
+| `tests/integration/gradients.rs` | `tests/integration/GradientsTest.cpp` | 21 | ☐ |
+| `tests/integration/mask.rs` | `tests/integration/MaskTest.cpp` | 12 | ☐ |
+| `tests/integration/pattern.rs` | `tests/integration/PatternTest.cpp` | 10 | ☐ |
+| `tests/integration/pixmap.rs` | `tests/integration/PixmapTest.cpp` | 7 | ☐ |
+| `tests/integration/dash.rs` | `tests/integration/DashTest.cpp` | 7 | ☐ |
+| `tests/integration/stroke.rs` | `tests/integration/StrokeTest.cpp` | 6 | ☐ |
+| `tests/integration/path.rs` | `tests/integration/PathTest.cpp` | 22 | ☐ |
+| `tests/integration/gamma.rs` | `tests/integration/GammaTest.cpp` | 1 | ☐ |
+| `tests/integration/skia_dash.rs` | `tests/integration/SkiaDashTest.cpp` | 3 | ☐ |
+| `tests/integration/png.rs` | — (skip, requires PNG I/O feature) | 4 | ⏸ |
+| **Total** | | **152** | |
+
+#### 6c. Port remaining Rust inline unit tests
+Rust source files contain `#[cfg(test)]` inline tests. Many are already covered by
+existing C++ unit tests; remaining gaps must be filled.
+
+| Rust source file | Inline tests | C++ coverage | Status |
+| --- | --- | --- | --- |
+| `src/color.rs` | 6 tests (premultiply, demultiply, bytemuck) | Partial (ColorTest.cpp) | ☐ |
+| `src/geom.rs` | 1 test (ScreenIntRect) | Covered (GeomTest.cpp) | ✅ |
+| `src/painter.rs` | 4 tests (DrawTiler) | Covered (PainterTest.cpp) | ✅ |
+| `src/path_geometry.rs` | 1 test (chop_cubic_at_y_extrema) | Covered (PathGeometryTest.cpp) | ✅ |
+| `src/pipeline/mod.rs` | blend tests (macro-generated) | Covered (PipelineStagesTest.cpp) | ✅ |
+| `path/src/dash.rs` | 2 tests (validation, bug_26) | Partial | ☐ |
+| `path/src/path_geometry.rs` | 2 tests (eval_cubic, max_curvature) | Covered (PathGeometryTest.cpp) | ✅ |
+| `path/src/rect.rs` | 3 test groups (IntRect, Rect, transform) | Covered (GeomTest.cpp) | ✅ |
+| `path/src/scalar.rs` | 1 test (bound) | Covered (MathTest.cpp) | ✅ |
+| `path/src/size.rs` | 1 test (IntSize) | Covered (GeomTest.cpp) | ✅ |
+| `path/src/stroker.rs` | 6 tests (auto_close, cubic, big, one_off) | Partial | ☐ |
+| `path/src/transform.rs` | 2 tests (transform, concat) | Covered (PainterTest.cpp) | ✅ |
+
+#### 6d. Acceptance criteria
+- `bazel test //tests/...` passes all integration tests with 0-pixel-diff threshold.
+- Every Rust integration test (excluding `png.rs`) has a corresponding C++ test.
+- Every Rust inline unit test is either confirmed covered or explicitly ported.
+- pixelmatch diff images are optionally writable to a debug output directory for
+  investigating any future regressions.
+
 ## Security / Privacy
 - Inputs are repository-local source files and compiler/runtime dependencies.
 - Trust boundary is local workspace state only; no user-provided binary assets are executed during bootstrap.

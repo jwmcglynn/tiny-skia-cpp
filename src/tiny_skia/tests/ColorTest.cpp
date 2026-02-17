@@ -576,6 +576,27 @@ TEST(ColorTest, RasterPipelineBuilderPushTransformStoresNonIdentityTransform) {
   EXPECT_FALSE(pipeline.ctx().transform.isIdentity());
 }
 
+// Ported from Rust color.rs: bytemuck_casts_rgba
+// Verifies that PremultipliedColorU8 has RGBA byte layout (R at offset 0, A at offset 3).
+TEST(ColorTest, PremultipliedColorU8HasRGBAByteLayout) {
+  const std::array<tiny_skia::PremultipliedColorU8, 2> slice = {
+      tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(0, 1, 2, 3),
+      tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10, 11, 12, 13),
+  };
+  // Reinterpret the array as raw bytes; the Rust bytemuck test expects
+  // [0, 1, 2, 3, 10, 11, 12, 13] in RGBA order.
+  static_assert(sizeof(slice) == 8, "two PremultipliedColorU8 should be 8 bytes");
+  const auto* bytes = reinterpret_cast<const std::uint8_t*>(slice.data());
+  EXPECT_EQ(bytes[0], 0);
+  EXPECT_EQ(bytes[1], 1);
+  EXPECT_EQ(bytes[2], 2);
+  EXPECT_EQ(bytes[3], 3);
+  EXPECT_EQ(bytes[4], 10);
+  EXPECT_EQ(bytes[5], 11);
+  EXPECT_EQ(bytes[6], 12);
+  EXPECT_EQ(bytes[7], 13);
+}
+
 TEST(ColorTest, RasterPipelineBuilderCompileStageOverflowSkipsBeyondCapacitySafely) {
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   for (std::size_t i = 0; i < tiny_skia::pipeline::kMaxStages + 1; ++i) {
