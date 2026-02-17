@@ -236,7 +236,8 @@ struct EvenlySpaced2StopGradientCtx {
 
 struct TwoPointConicalGradientCtx {
   // This context is used only in high precision.
-  std::uint32_t mask = 0;
+  // Per-lane mask (8 lanes to match highp kStageWidth).
+  std::array<std::uint32_t, 8> mask = {};
   float p0 = 0.0f;
   float p1 = 0.0f;
 };

@@ -273,8 +273,29 @@ This ordering is now the gate used when selecting the next implementation batch.
     (stroker.rs/dash.rs) which are not yet ported.
   - Full pixel-accurate rendering requires implementing pipeline stage stubs in
     Highp.cpp/Lowp.cpp (Gather, Transform, Gradient, Bilinear, Bicubic, etc.).
-- **Next track:** Implement pipeline stage internals in Highp.cpp/Lowp.cpp to enable
-  pattern, gradient, and transform-based rendering with pixel-accurate output.
+- **Pipeline stage internals at `🟡`:**
+  - All ~45 highp stage stubs in Highp.cpp replaced with full implementations:
+    blend modes (darken, lighten, difference, exclusion, hard_light, overlay,
+    soft_light, hue, saturation, color, luminosity), texture sampling (gather,
+    bilinear, bicubic with SamplerCtx tiling), coordinate transforms (transform,
+    reflect, repeat), gradient evaluation (gradient, evenly_spaced_2_stop_gradient),
+    tile modes (pad_x1, reflect_x1, repeat_x1), radial/sweep/2pt-conical
+    coordinate mapping (xy_to_unit_angle, xy_to_radius, xy_to_2pt_conical_*),
+    2pt-conical masking/compensation stages, gamma expand/compress stages
+    (2.0, 2.2, sRGB for src/dst), and vector mask stages.
+  - All ~13 lowp stage stubs in Lowp.cpp replaced with full implementations:
+    blend modes (darken, lighten, difference, exclusion, hard_light, overlay),
+    coordinate stages (transform, pad_x1, reflect_x1, repeat_x1), gradient
+    evaluation (gradient, evenly_spaced_2_stop_gradient, xy_to_radius).
+  - Fixed missing Luminosity entry in lowp STAGES array that caused off-by-one
+    shift for all stages after enum index 43, silently aborting lowp pipelines.
+  - Fixed undefined behavior in lowp store_8888_lowp for negative float→uint8
+    casts (caused by div255 approximation bias in blend modes).
+  - TwoPointConicalGradientCtx::mask changed from float to std::array<float, 8>
+    to match highp kStageWidth usage.
+  - 28 pipeline stage tests + 35 painter tests all passing (63 total).
+- **Next track:** Port `Path::stroke()` and `Path::dash()` from tiny-skia-path
+  (stroker.rs/dash.rs) to enable `strokePath()` in painter.
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
 ## Security / Privacy
