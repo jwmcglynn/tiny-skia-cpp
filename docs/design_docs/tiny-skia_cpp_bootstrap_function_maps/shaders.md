@@ -51,20 +51,37 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Transform::pre_translate` | `Transform::preTranslate()` | 🟡 | Covered by `TransformTest.PreTranslate`. |
 | `Transform::post_translate` | `Transform::postTranslate()` | 🟡 | Covered by `TransformTest.PostTranslate`. |
 
-### `third_party/tiny-skia/src/shaders/radial_gradient.rs`
-| Rust function/item | C++ function/item | Status | Evidence / Notes |
-| --- | --- | --- | --- |
-| `RadialGradient` | — | ☐ | Not yet ported. |
-
 ### `third_party/tiny-skia/src/shaders/sweep_gradient.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `SweepGradient` | — | ☐ | Not yet ported. |
+| `SweepGradient` struct | `SweepGradient` class | 🟡 | Contains Gradient base + t0/t1 angle parameters. Covered by `SweepGradientTest.*` (10 tests). |
+| `SweepGradient::new` | `SweepGradient::create()` | 🟡 | Factory returns `optional<variant<Color, SweepGradient>>`. Handles empty/single stops, inverted/non-finite angles, degenerate (nearly-equal angles with hard-stop fallback), full-circle→Pad optimization. Covered by `SweepGradientTest.Create*`. |
+| `SweepGradient::is_opaque` | `SweepGradient::isOpaque()` | 🟡 | Delegates to base Gradient. |
+| `SweepGradient::push_stages` | `SweepGradient::pushStages()` | 🟡 | XYToUnitAngle + optional ApplyConcentricScaleBias (when partial sweep). Uses two_point_conical_gradient context for scale/bias. Covered by `SweepGradientTest.PushStages*`. |
+
+### `third_party/tiny-skia/src/shaders/radial_gradient.rs`
+| Rust function/item | C++ function/item | Status | Evidence / Notes |
+| --- | --- | --- | --- |
+| `FocalData` struct | `FocalData` struct | 🟡 | r1, focal_x, is_swapped fields. Methods: isFocalOnCircle, isWellBehaved, isNativelyFocal, set. |
+| `FocalData::set` | `FocalData::set()` | 🟡 | Maps focal point to origin with tsFromPolyToPoly, applies scale for acceleration. Handles focal_x=1 edge case. |
+| `GradientType` enum | `GradientType` (`variant<RadialType, StripType, FocalData>`) | 🟡 | Radial (simple/concentric), Strip (equal radii), Focal (two-point conical). |
+| `RadialGradient` struct | `RadialGradient` class | 🟡 | Contains Gradient base + GradientType. Covered by `RadialGradientTest.*` (12 tests). |
+| `RadialGradient::new` | `RadialGradient::create()` | 🟡 | Factory returns `optional<variant<Color, RadialGradient>>`. Handles empty/single stops, negative radii, non-invertible transform, degenerate same-center (→simple radial or hard-stop), same-center same-radii, different-center (→two-point conical or strip). Covered by `RadialGradientTest.Create*`. |
+| `RadialGradient::new_radial_unchecked` | `RadialGradient::createRadialUnchecked()` | 🟡 | Optimized path for simple radial (center → radius). |
+| `create` (module fn) | `RadialGradient::createTwoPoint()` | 🟡 | Full two-point conical logic: concentric, strip, and focal gradient type selection. |
+| `RadialGradient::push_stages` | `RadialGradient::pushStages()` | 🟡 | Dispatches pre/post closures by GradientType: Radial→XYToRadius, Strip→XYTo2PtConicalStrip+masks, Focal→XYTo2PtConical{FocalOnCircle,WellBehaved,Smaller,Greater}+masks+compensate+unswap. Covered by `RadialGradientTest.PushStages*`. |
+| `map_to_unit_x` | `mapToUnitX()` (anon namespace) | 🟡 | Internal helper mapping origin→x_is_one to unit X. |
+| `ts_from_poly_to_poly` | `tsFromPolyToPoly()` | 🟡 | Transform mapping between two point pairs. Used by FocalData::set and mapToUnitX. |
+| `from_poly2` | `fromPoly2()` (anon namespace) | 🟡 | Creates affine transform from two points. |
 
 ### `third_party/tiny-skia/src/shaders/pattern.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `Pattern` | — | ☐ | Not yet ported. |
+| `FilterQuality` enum | `FilterQuality` enum | 🟡 | Nearest, Bilinear, Bicubic. |
+| `PixmapPaint` struct | `PixmapPaint` struct | 🟡 | opacity, blend_mode, quality fields with defaults. |
+| `Pattern` struct | `Pattern` class | 🟡 | pixmap, quality, spread_mode, opacity, transform. Covered by `PatternTest.*` (8 tests). |
+| `Pattern::new` | `Pattern()` constructor | 🟡 | Takes PixmapRef, SpreadMode, FilterQuality, opacity, Transform. |
+| `Pattern::push_stages` | `Pattern::pushStages()` | 🟡 | SeedShader → Transform → quality dispatch (Nearest: TileCtx+Gather, Bilinear: SamplerCtx+Bilinear, Bicubic: SamplerCtx+Bicubic+Clamp0+ClampA) → Scale1Float (if opacity<1) → expand stage. Quality downgrade for identity/translate transforms. Covered by `PatternTest.CreateAndPushStages*`. |
 
 ### `third_party/tiny-skia/path/src/scalar.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |

@@ -164,9 +164,9 @@ Legend: `✅` Ported, `🟡` In progress, `⏸` Blocked, `☐` Not started.
 | `third_party/tiny-skia/src/shaders/gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
 | `third_party/tiny-skia/src/shaders/linear_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
 | `third_party/tiny-skia/src/shaders/mod.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
-| `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Pattern.cpp` + `src/tiny_skia/shaders/Pattern.h` | ☐ |
-| `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/RadialGradient.cpp` + `src/tiny_skia/shaders/RadialGradient.h` | ☐ |
-| `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/SweepGradient.cpp` + `src/tiny_skia/shaders/SweepGradient.h` | ☐ |
+| `third_party/tiny-skia/src/shaders/pattern.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/shaders/radial_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
+| `third_party/tiny-skia/src/shaders/sweep_gradient.rs` | `src/tiny_skia/shaders/Mod.cpp` + `src/tiny_skia/shaders/Mod.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/f32x16_t.rs` | `src/tiny_skia/wide/F32x16T.cpp` + `src/tiny_skia/wide/F32x16T.h` | ☐ |
 | `third_party/tiny-skia/src/wide/f32x4_t.rs` | `src/tiny_skia/wide/F32x4T.cpp` + `src/tiny_skia/wide/F32x4T.h` | 🟡 |
 | `third_party/tiny-skia/src/wide/f32x8_t.rs` | `src/tiny_skia/wide/F32x8T.cpp` + `src/tiny_skia/wide/F32x8T.h` | 🟡 |
@@ -251,22 +251,19 @@ This section defines the cross-module ordering constraints used for deterministi
 This ordering is now the gate used when selecting the next implementation batch.
 
 ### Next implementation batch gate (current)
-- `pipeline/blitter.rs` has reached `🟡` — constructor/factory parity (`new`, `new_mask`) and
-  all blit methods are pipeline-driven with 23 passing tests.
-- `shaders/mod.rs`, `shaders/gradient.rs`, and `shaders/linear_gradient.rs` have reached `🟡`:
-  - `Gradient` base class: construction with dummy endpoint insertion, monotonic position
-    enforcement, uniform-stop detection, full `pushStages` with two-stop optimization and
-    multi-stop `GradientCtx`, opacity tracking.
-  - `LinearGradient`: `create()` with degenerate handling (Pad→last color,
-    Repeat/Reflect→average), non-invertible transform rejection, `pushStages()` integration.
-  - `Shader` variant (`std::variant<Color, LinearGradient>`) with free function dispatch:
-    `isShaderOpaque`, `pushShaderStages`, `transformShader`, `applyShaderOpacity`.
-  - Infrastructure: full `Transform` class (20+ methods, f64-precision inversion),
-    `Point` arithmetic, scalar utilities in `Math.h`.
-  - 40 shader tests + 23 blitter tests all passing.
-- **Current track:** Port remaining shader specializations (`radial_gradient`,
-  `sweep_gradient`, `pattern`) to complete shader module coverage.
-- After shaders reach `🟡`, advance to `painter.rs` orchestration layer.
+- All shader modules have reached `🟡`:
+  - `Gradient` base class, `LinearGradient`, `SweepGradient`, `RadialGradient`, `Pattern`.
+  - `Shader` variant: `std::variant<Color, LinearGradient, SweepGradient, RadialGradient, Pattern>`
+    with full free-function dispatch for all 5 types.
+  - `RadialGradient` includes FocalData, GradientType (Radial/Strip/Focal), two-point conical
+    gradient logic with all pipeline stage paths (XYToRadius, XYTo2PtConical*, Strip, etc.).
+  - `SweepGradient` with XYToUnitAngle + ApplyConcentricScaleBias pipeline integration.
+  - `Pattern` with FilterQuality (Nearest/Bilinear/Bicubic), spread mode, opacity, and
+    quality-downgrade optimizations for identity/translate transforms.
+  - Infrastructure: full Transform class, Point arithmetic, scalar utilities.
+  - 70 shader tests + 23 blitter tests all passing (93 total).
+- **Current track:** Advance to `painter.rs` orchestration layer — the final integration
+  layer that ties scan, pipeline, shaders, pixmap, mask, and blend behavior together.
 - Track shader function-level status in
   `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
 ## Security / Privacy
