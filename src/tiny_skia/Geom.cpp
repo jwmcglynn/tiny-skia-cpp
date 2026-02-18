@@ -88,21 +88,18 @@ std::optional<IntRect> IntRect::fromXYWH(std::int32_t x,
     return std::nullopt;
   }
 
-  if (x < 0 || y < 0) {
-    return std::nullopt;
-  }
-
   const auto widthSafe = checkDimension(width);
   const auto heightSafe = checkDimension(height);
   if (!widthSafe || !heightSafe) {
     return std::nullopt;
   }
 
-  const auto x_u32 = static_cast<std::uint32_t>(x);
-  const auto y_u32 = static_cast<std::uint32_t>(y);
-  const auto right = x_u32 + widthSafe.value();
-  const auto bottom = y_u32 + heightSafe.value();
-  if (right > kMaxCoord || bottom > kMaxCoord) {
+  // Check that right = x + width and bottom = y + height don't overflow int32.
+  // Matches Rust's checked_add: i32::try_from(width).ok()?.checked_add(x)?
+  const auto right = static_cast<std::int64_t>(x) + static_cast<std::int64_t>(width);
+  const auto bottom = static_cast<std::int64_t>(y) + static_cast<std::int64_t>(height);
+  if (right > static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::max()) ||
+      bottom > static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::max())) {
     return std::nullopt;
   }
 

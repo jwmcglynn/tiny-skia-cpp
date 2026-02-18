@@ -43,6 +43,14 @@ class PathBuilder {
 
   [[nodiscard]] bool isZeroLengthSincePoint(std::size_t startPtIndex) const;
 
+  /// Creates a new Path from a circle. Matches Rust `PathBuilder::from_circle`.
+  [[nodiscard]] static std::optional<Path> fromCircle(float cx, float cy,
+                                                       float radius) {
+    PathBuilder b;
+    b.pushCircle(cx, cy, radius);
+    return b.finish();
+  }
+
   void pushRect(const Rect& rect);
   void pushOval(const Rect& oval);
   void pushCircle(float x, float y, float r);
