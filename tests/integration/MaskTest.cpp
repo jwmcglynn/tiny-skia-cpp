@@ -67,7 +67,7 @@ TEST(MaskTest, RectTs) {
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = pathFromRect(*clipRect);
-    auto transformedPath = clipPath.transform(Transform::fromRow(1.0f, 0.0f, -0.3f, 1.0f, 0.0f, 15.0f));
+    auto transformedPath = clipPath.transform(Transform::fromRow(1.0f, -0.3f, 0.0f, 1.0f, 0.0f, 15.0f));
     ASSERT_TRUE(transformedPath.has_value());
 
     auto mask = Mask::fromSize(100, 100);

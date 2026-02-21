@@ -124,7 +124,7 @@ TEST(PatternTest, PadBicubic) {
         SpreadMode::Pad,
         FilterQuality::Bicubic,
         1.0f,
-        Transform::fromRow(1.1f, 0.0f, 0.3f, 1.4f, 0.0f, 0.0f)
+        Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
@@ -150,7 +150,7 @@ TEST(PatternTest, RepeatBicubic) {
         SpreadMode::Repeat,
         FilterQuality::Bicubic,
         1.0f,
-        Transform::fromRow(1.1f, 0.0f, 0.3f, 1.4f, 0.0f, 0.0f)
+        Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
@@ -176,7 +176,7 @@ TEST(PatternTest, ReflectBicubic) {
         SpreadMode::Reflect,
         FilterQuality::Bicubic,
         1.0f,
-        Transform::fromRow(1.1f, 0.0f, 0.3f, 1.4f, 0.0f, 0.0f)
+        Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
@@ -229,7 +229,7 @@ TEST(PatternTest, FilterNearest) {
         SpreadMode::Repeat,
         FilterQuality::Nearest,
         1.0f,
-        Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f)
+        Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
@@ -255,7 +255,7 @@ TEST(PatternTest, FilterBilinear) {
         SpreadMode::Repeat,
         FilterQuality::Bilinear,
         1.0f,
-        Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f)
+        Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
@@ -281,7 +281,7 @@ TEST(PatternTest, FilterBicubic) {
         SpreadMode::Repeat,
         FilterQuality::Bicubic,
         1.0f,
-        Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f)
+        Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);

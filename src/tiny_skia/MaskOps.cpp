@@ -8,11 +8,53 @@
 #include "tiny_skia/Math.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
+#include "tiny_skia/Pixmap.h"
 #include "tiny_skia/pipeline/Blitter.h"
 #include "tiny_skia/scan/Path.h"
 #include "tiny_skia/scan/PathAa.h"
 
 namespace tiny_skia {
+
+namespace {
+
+// Fill into a temporary RGBA pixmap and extract the alpha channel back to mask data.
+// The RasterPipelineBlitter operates on RGBA (4 bytes per pixel), but Mask stores
+// 1 byte per pixel.  Wrapping the mask buffer directly would cause a buffer overflow.
+void fillMaskRegion(const Path& path, FillRule fillRule, bool antiAlias,
+                    const ScreenIntRect& clipRect,
+                    std::uint8_t* maskData, std::size_t maskStride,
+                    std::uint32_t regionWidth, std::uint32_t regionHeight) {
+  // Create a temporary RGBA pixmap for the fill.
+  auto tempPixmap = Pixmap::fromSize(regionWidth, regionHeight);
+  if (!tempPixmap) {
+    return;
+  }
+  auto tempMut = tempPixmap->asMut();
+  auto subpix = tempMut.asSubpixmap();
+
+  auto blitter = pipeline::RasterPipelineBlitter::createMask(&subpix);
+  if (!blitter.has_value()) {
+    return;
+  }
+
+  if (antiAlias) {
+    scan::path_aa::fillPath(path, fillRule, clipRect, *blitter);
+  } else {
+    scan::fillPath(path, fillRule, clipRect, *blitter);
+  }
+
+  // Extract alpha channel from RGBA back to mask (1 byte per pixel).
+  const auto* rgba = tempPixmap->data().data();
+  for (std::uint32_t y = 0; y < regionHeight; ++y) {
+    for (std::uint32_t x = 0; x < regionWidth; ++x) {
+      const auto srcOffset = (y * regionWidth + x) * 4;
+      const auto dstOffset = y * maskStride + x;
+      maskData[dstOffset] = rgba[srcOffset + 3];
+    }
+  }
+}
+
+}  // namespace
 
 void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
                     Transform transform) {
@@ -47,22 +89,9 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
           continue;
         }
 
-        // Convert SubMaskMut to SubPixmapMut for the pipeline blitter.
-        SubPixmapMut pix{};
-        pix.size = subpix->size;
-        pix.real_width = static_cast<std::size_t>(subpix->realWidth);
-        pix.data = subpix->data;
-
-        auto blitter = pipeline::RasterPipelineBlitter::createMask(&pix);
-        if (!blitter.has_value()) {
-          continue;
-        }
-
-        if (antiAlias) {
-          scan::path_aa::fillPath(pathCopy, fillRule, clipRect, *blitter);
-        } else {
-          scan::fillPath(pathCopy, fillRule, clipRect, *blitter);
-        }
+        fillMaskRegion(pathCopy, fillRule, antiAlias, clipRect,
+                       subpix->data, subpix->realWidth,
+                       subpix->size.width(), subpix->size.height());
 
         const auto tsBack =
             Transform::fromTranslate(static_cast<float>(tile->x()),
@@ -75,23 +104,9 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
       }
     } else {
       const auto clipRect = size_.toScreenIntRect(0, 0);
-
-      // Convert full mask to SubPixmapMut.
-      SubPixmapMut pix{};
-      pix.size = size_;
-      pix.real_width = static_cast<std::size_t>(width());
-      pix.data = data_.data();
-
-      auto blitter = pipeline::RasterPipelineBlitter::createMask(&pix);
-      if (!blitter.has_value()) {
-        return;
-      }
-
-      if (antiAlias) {
-        scan::path_aa::fillPath(path, fillRule, clipRect, *blitter);
-      } else {
-        scan::fillPath(path, fillRule, clipRect, *blitter);
-      }
+      fillMaskRegion(path, fillRule, antiAlias, clipRect,
+                     data_.data(), width(),
+                     width(), height());
     }
   } else {
     auto transformed = path.transform(transform);

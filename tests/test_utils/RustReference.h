@@ -177,11 +177,12 @@ class PathBuilder {
 namespace detail {
 
 inline void writeTransform(const Transform& ts, float out[6]) {
+  // Transform::from_row expects (sx, ky, kx, sy, tx, ty) order.
   out[0] = ts.sx;
-  out[1] = ts.kx;
-  out[2] = ts.tx;
-  out[3] = ts.ky;
-  out[4] = ts.sy;
+  out[1] = ts.ky;
+  out[2] = ts.kx;
+  out[3] = ts.sy;
+  out[4] = ts.tx;
   out[5] = ts.ty;
 }
 

@@ -1,13 +1,12 @@
 #include "tiny_skia/EdgeBuilder.h"
 
 #include "tiny_skia/EdgeClipper.h"
+#include "tiny_skia/PathGeometry.h"
 
 #include <algorithm>
 #include <cmath>
 #include <array>
 #include <limits>
-
-#include "tiny_skia/path64/Cubic64.h"
 
 namespace tiny_skia {
 
@@ -59,8 +58,8 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
     const auto t = numerator / denominator;
     if (t > 0.0 && t < 1.0) {
       chopQuadAt(src, static_cast<float>(t), dst);
-      dst[1].x = dst[2].x;
-      dst[3].x = dst[2].x;
+      dst[1].y = dst[2].y;
+      dst[3].y = dst[2].y;
       return 1;
     }
   }
@@ -127,6 +126,10 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
     dst[offset + 3] = split[3];
 
     if (i + 1 == tValues.size()) {
+      // Copy remaining points for the last segment
+      dst[offset + 4] = split[4];
+      dst[offset + 5] = split[5];
+      dst[offset + 6] = split[6];
       break;
     }
 
@@ -147,13 +150,14 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
 }
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
-  const auto axis = std::array<double, 8>{
-      static_cast<double>(src[0].y), 0.0, static_cast<double>(src[1].y), 0.0,
-      static_cast<double>(src[2].y), 0.0, static_cast<double>(src[3].y), 0.0};
+  auto tValuesF = path_geometry::newTValues();
+  auto rawCount = path_geometry::findCubicExtremaT(
+      src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
 
-  auto tValues = std::array<double, 6>{};
-  auto rawCount = tiny_skia::path64::cubic64::findExtrema(axis, tValues);
-  std::sort(tValues.begin(), tValues.begin() + static_cast<long>(rawCount));
+  auto tValues = std::array<double, 3>{};
+  for (std::size_t i = 0; i < rawCount; ++i) {
+    tValues[i] = static_cast<double>(tValuesF[i].get());
+  }
   auto count = chopCubicAt(src, std::span<const double>{tValues.data(), rawCount}, dst);
 
   if (count > 0) {

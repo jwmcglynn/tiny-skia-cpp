@@ -179,13 +179,15 @@ void doScanline(FDot8 l, std::int32_t top, FDot8 r, AlphaU8 alpha, Blitter& blit
   const auto y = yOpt.value();
 
   const auto left = l >> 8;
-  const auto right = r >> 8;
-  if (left == right - 1) {
+  if (left == ((r - 1) >> 8)) {
+    // Both edges fall within the same pixel column.
     if (auto leftX = toU32(left)) {
       blitter.blitV(leftX.value(), y, kLengthU32One, alphaMul(alpha, r - l));
     }
     return;
   }
+
+  const auto right = r >> 8;
 
   auto x = left;
   if ((l & 0xFF) != 0) {
@@ -624,7 +626,7 @@ void doAntiHairline(std::int32_t x0,
     } else {
       slope = fdot16::fastDiv(y1 - y0, x1 - x0);
       fStart +=
-          static_cast<std::int64_t>(slope) * (32 - (x0 & 63) + 32) >> 6;
+          (static_cast<std::int64_t>(slope) * (32 - (x0 & 63)) + 32) >> 6;
       blitterKind = BlitterKind::Horish;
     }
 
@@ -661,21 +663,19 @@ void doAntiHairline(std::int32_t x0,
         return;
       }
 
-      auto top = (slope >= 0)
-                     ? (fdot16::floorToI32(fStart - fdot16::half) -
-                        (slope * 0 + fdot16::half > 0 ? 1 : 0))
-                     : (fdot16::floorToI32(fStart - fdot16::half * 2));
-      auto bottom = (slope >= 0)
-                        ? (fdot16::ceilToI32(
-                              fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-                              fdot16::half))
-                        : (fdot16::ceilToI32(fStart + fdot16::half));
-      if (slope < 0) {
-        bottom = fdot16::ceilToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-                                   fdot16::half);
-        top = fdot16::floorToI32(fStart +
-                                 static_cast<std::int64_t>(iStop - iStart - 1) * slope -
-                                 fdot16::half);
+      std::int32_t top, bottom;
+      if (slope >= 0) {
+        // T2B
+        top = fdot16::floorToI32(fStart - fdot16::half);
+        bottom = fdot16::ceilToI32(
+            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
+            fdot16::half);
+      } else {
+        // B2T
+        bottom = fdot16::ceilToI32(fStart + fdot16::half);
+        top = fdot16::floorToI32(
+            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
+            fdot16::half);
       }
       top -= 1;
       bottom += 1;
@@ -704,7 +704,7 @@ void doAntiHairline(std::int32_t x0,
       blitterKind = BlitterKind::VLine;
     } else {
       slope = fdot16::fastDiv(x1 - x0, y1 - y0);
-      fStart += static_cast<std::int64_t>(slope) * (32 - (y0 & 63) + 32) >> 6;
+      fStart += (static_cast<std::int64_t>(slope) * (32 - (y0 & 63)) + 32) >> 6;
       blitterKind = BlitterKind::Vertish;
     }
 
@@ -739,18 +739,19 @@ void doAntiHairline(std::int32_t x0,
         return;
       }
 
-      auto left = (slope >= 0) ? fdot16::floorToI32(fStart - fdot16::half)
-                               : fdot16::floorToI32(fStart - fdot16::half * 2);
-      auto right = (slope >= 0)
-                       ? (fdot16::ceilToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-                                          fdot16::half))
-                       : (fdot16::ceilToI32(fStart + fdot16::half));
-      if (slope < 0) {
-        right = fdot16::ceilToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-                                  fdot16::half);
-        left = fdot16::floorToI32(fStart +
-                                  static_cast<std::int64_t>(iStop - iStart - 1) * slope -
-                                  fdot16::half);
+      std::int32_t left, right;
+      if (slope >= 0) {
+        // L2R
+        left = fdot16::floorToI32(fStart - fdot16::half);
+        right = fdot16::ceilToI32(
+            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
+            fdot16::half);
+      } else {
+        // R2L
+        right = fdot16::ceilToI32(fStart + fdot16::half);
+        left = fdot16::floorToI32(
+            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
+            fdot16::half);
       }
       left -= 1;
       right += 1;
@@ -876,16 +877,11 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
         continue;
       }
 
-      const auto irScreen = ir.value().toScreenIntRect();
-      if (!irScreen.has_value()) {
-        return;
-      }
-
-      if (!clip->contains(irScreen.value())) {
-        if (auto sub = ir.value().intersect(clipInt); sub.has_value()) {
-          const auto clippedToScreen = sub.value().toScreenIntRect();
-          if (clippedToScreen.has_value()) {
-            doAntiHairline(x0, y0, x1, y1, clippedToScreen, blitter);
+      if (!(clipInt.left() <= ir->left() && clipInt.top() <= ir->top() &&
+            clipInt.right() >= ir->right() && clipInt.bottom() >= ir->bottom())) {
+        if (auto sub = ir->intersect(clipInt); sub.has_value()) {
+          if (auto subclip = sub->toScreenIntRect(); subclip.has_value()) {
+            doAntiHairline(x0, y0, x1, y1, subclip, blitter);
           }
         }
         continue;

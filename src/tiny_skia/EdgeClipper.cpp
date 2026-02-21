@@ -122,38 +122,42 @@ void chopCubicInY(const Rect& clip, std::array<Point, 4>& pts) {
 }
 
 double monoCubicClosestT(std::array<float, 4> src, float target) {
-  auto t = 0.5;
-  auto lastT = t;
-  auto bestT = t;
-  auto step = 0.25;
-  auto x = static_cast<double>(target) - static_cast<double>(src[0]);
-  const auto a = static_cast<double>(src[3] + 3.0f * (src[1] - src[2]) - src[0]);
-  const auto b = 3.0 * static_cast<double>(src[2] - src[1] - src[1] + src[0]);
-  const auto c = 3.0 * static_cast<double>(src[1] - src[0]);
-  auto closest = std::numeric_limits<double>::max();
+  // Use float arithmetic to match Rust semantics — using double causes
+  // the binary search to never converge when the target is outside the
+  // curve's range, because double denormals extend much further than float.
+  float t = 0.5f;
+  float lastT = t;
+  float bestT = t;
+  float step = 0.25f;
+  const float d = src[0];
+  const float a = src[3] + 3.0f * (src[1] - src[2]) - d;
+  const float b = 3.0f * (src[2] - src[1] - src[1] + d);
+  const float c = 3.0f * (src[1] - d);
+  float x = target - d;
+  float closest = std::numeric_limits<float>::max();
 
   for (;;) {
-    const auto loc = ((a * t + b) * t + c) * t;
-    const auto dist = std::abs(loc - x);
+    const float loc = ((a * t + b) * t + c) * t;
+    const float dist = std::abs(loc - x);
     if (closest > dist) {
       closest = dist;
       bestT = t;
     }
     lastT = t;
     t += (loc < x) ? step : -step;
-    step *= 0.5;
-    if (!(closest > 0.25 && lastT != t)) {
+    step *= 0.5f;
+    if (!(closest > 0.25f && lastT != t)) {
       break;
     }
   }
 
-  if (bestT <= 0.0) {
+  if (bestT <= 0.0f) {
     return std::numeric_limits<double>::epsilon();
   }
-  if (bestT >= 1.0) {
+  if (bestT >= 1.0f) {
     return 1.0 - std::numeric_limits<double>::epsilon();
   }
-  return bestT;
+  return static_cast<double>(bestT);
 }
 
 void chopMonoCubicAtXFallback(const std::array<Point, 4>& src, float x, std::array<Point, 7>& dst) {

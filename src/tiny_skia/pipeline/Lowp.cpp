@@ -1,3 +1,7 @@
+// Disable FMA contraction to match Rust's lowp pipeline, which uses software
+// SIMD wrappers (f32x16/f32x8) that prevent LLVM from fusing multiply-add.
+#pragma clang fp contract(off)
+
 #include "tiny_skia/pipeline/Lowp.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
@@ -63,6 +67,22 @@ const void* fnPtr(StageFn fn) {
 
 namespace {
 
+// Matches Rust lowp: (v + 255) >> 8
+// Truncates to integer to avoid float fraction accumulation across stages.
+inline float div255(float v) {
+  return std::floor((v + 255.0f) * (1.0f / 256.0f));
+}
+
+// Matches Rust lowp: from_float(f) = (f * 255.0 + 0.5) as u16
+inline float fromFloat(float f) {
+  return std::floor(f * 255.0f + 0.5f);
+}
+
+// Matches Rust normalize(): clamp to [0, 1]
+inline float normalize(float f) {
+  return std::max(0.0f, std::min(1.0f, f));
+}
+
 void move_source_to_destination(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.dr[i] = pipeline.r[i];
@@ -84,11 +104,10 @@ void move_destination_to_source(Pipeline& pipeline) {
 }
 
 void premultiply(Pipeline& pipeline) {
-  constexpr float kInv255 = 1.0f / 255.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.r[i] * pipeline.a[i] * kInv255;
-    pipeline.g[i] = pipeline.g[i] * pipeline.a[i] * kInv255;
-    pipeline.b[i] = pipeline.b[i] * pipeline.a[i] * kInv255;
+    pipeline.r[i] = div255(pipeline.r[i] * pipeline.a[i]);
+    pipeline.g[i] = div255(pipeline.g[i] * pipeline.a[i]);
+    pipeline.b[i] = div255(pipeline.b[i] * pipeline.a[i]);
   }
   pipeline.nextStage();
 }
@@ -119,59 +138,47 @@ void seed_shader(Pipeline& pipeline) {
 }
 
 void scale_u8(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto c = static_cast<float>(i < 2 ? data[i] : 0u);
-    pipeline.r[i] = (pipeline.r[i] * c + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * c + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * c + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * c + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * c);
+    pipeline.g[i] = div255(pipeline.g[i] * c);
+    pipeline.b[i] = div255(pipeline.b[i] * c);
+    pipeline.a[i] = div255(pipeline.a[i] * c);
   }
   pipeline.nextStage();
 }
 
 void lerp_u8(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto c = static_cast<float>(i < 2 ? data[i] : 0u);
-    pipeline.r[i] =
-        (pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c + 255.0f) * kInv256;
-    pipeline.g[i] =
-        (pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c + 255.0f) * kInv256;
-    pipeline.b[i] =
-        (pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c + 255.0f) * kInv256;
-    pipeline.a[i] =
-        (pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c);
+    pipeline.g[i] = div255(pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c);
+    pipeline.b[i] = div255(pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c);
+    pipeline.a[i] = div255(pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c);
   }
   pipeline.nextStage();
 }
 
 void scale_1_float(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
-  const auto c = pipeline.ctx->current_coverage * 255.0f + 0.5f;
+  const auto c = fromFloat(pipeline.ctx->current_coverage);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = (pipeline.r[i] * c + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * c + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * c + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * c + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * c);
+    pipeline.g[i] = div255(pipeline.g[i] * c);
+    pipeline.b[i] = div255(pipeline.b[i] * c);
+    pipeline.a[i] = div255(pipeline.a[i] * c);
   }
   pipeline.nextStage();
 }
 
 void lerp_1_float(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
-  const auto c = pipeline.ctx->current_coverage * 255.0f + 0.5f;
+  const auto c = fromFloat(pipeline.ctx->current_coverage);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] =
-        (pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c + 255.0f) * kInv256;
-    pipeline.g[i] =
-        (pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c + 255.0f) * kInv256;
-    pipeline.b[i] =
-        (pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c + 255.0f) * kInv256;
-    pipeline.a[i] =
-        (pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c);
+    pipeline.g[i] = div255(pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c);
+    pipeline.b[i] = div255(pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c);
+    pipeline.a[i] = div255(pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c);
   }
   pipeline.nextStage();
 }
@@ -187,128 +194,114 @@ void clear(Pipeline& pipeline) {
 }
 
 void destination_atop(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto s = pipeline.r[i];
     const auto d = pipeline.dr[i];
     const auto sa = pipeline.a[i];
     const auto da = pipeline.da[i];
-    pipeline.r[i] = (d * sa + s * (255.0f - da) + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * sa + pipeline.dg[i] * (255.0f - da) + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * sa + pipeline.db[i] * (255.0f - da) + 255.0f) * kInv256;
-    pipeline.a[i] = (da * sa + sa * (255.0f - da) + 255.0f) * kInv256;
+    pipeline.r[i] = div255(d * sa + s * (255.0f - da));
+    pipeline.g[i] = div255(pipeline.g[i] * sa + pipeline.dg[i] * (255.0f - da));
+    pipeline.b[i] = div255(pipeline.b[i] * sa + pipeline.db[i] * (255.0f - da));
+    pipeline.a[i] = div255(da * sa + sa * (255.0f - da));
   }
   pipeline.nextStage();
 }
 
 void destination_in(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto sa = pipeline.a[i];
-    pipeline.r[i] = (pipeline.dr[i] * sa + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.dg[i] * sa + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.db[i] * sa + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.da[i] * sa + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.dr[i] * sa);
+    pipeline.g[i] = div255(pipeline.dg[i] * sa);
+    pipeline.b[i] = div255(pipeline.db[i] * sa);
+    pipeline.a[i] = div255(pipeline.da[i] * sa);
   }
   pipeline.nextStage();
 }
 
 void destination_out(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = (pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.db[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.dr[i] * inv_sa);
+    pipeline.g[i] = div255(pipeline.dg[i] * inv_sa);
+    pipeline.b[i] = div255(pipeline.db[i] * inv_sa);
+    pipeline.a[i] = div255(pipeline.da[i] * inv_sa);
   }
   pipeline.nextStage();
 }
 
 void source_atop(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = (pipeline.r[i] * pipeline.da[i] + pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * pipeline.da[i] + pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * pipeline.da[i] + pipeline.db[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.da[i] * pipeline.a[i] + pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * pipeline.da[i] + pipeline.dr[i] * inv_sa);
+    pipeline.g[i] = div255(pipeline.g[i] * pipeline.da[i] + pipeline.dg[i] * inv_sa);
+    pipeline.b[i] = div255(pipeline.b[i] * pipeline.da[i] + pipeline.db[i] * inv_sa);
+    pipeline.a[i] = div255(pipeline.da[i] * pipeline.a[i] + pipeline.da[i] * inv_sa);
   }
   pipeline.nextStage();
 }
 
 void source_in(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto da = pipeline.da[i];
-    pipeline.r[i] = (pipeline.r[i] * da + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * da + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * da + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * da + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * da);
+    pipeline.g[i] = div255(pipeline.g[i] * da);
+    pipeline.b[i] = div255(pipeline.b[i] * da);
+    pipeline.a[i] = div255(pipeline.a[i] * da);
   }
   pipeline.nextStage();
 }
 
 void source_out(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_da = 255.0f - pipeline.da[i];
-    pipeline.r[i] = (pipeline.r[i] * inv_da + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * inv_da + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * inv_da + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * inv_da + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * inv_da);
+    pipeline.g[i] = div255(pipeline.g[i] * inv_da);
+    pipeline.b[i] = div255(pipeline.b[i] * inv_da);
+    pipeline.a[i] = div255(pipeline.a[i] * inv_da);
   }
   pipeline.nextStage();
 }
 
 void source_over(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = pipeline.r[i] + (pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.g[i] = pipeline.g[i] + (pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.b[i] = pipeline.b[i] + (pipeline.db[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.a[i] = pipeline.a[i] + (pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.r[i] = pipeline.r[i] + div255(pipeline.dr[i] * inv_sa);
+    pipeline.g[i] = pipeline.g[i] + div255(pipeline.dg[i] * inv_sa);
+    pipeline.b[i] = pipeline.b[i] + div255(pipeline.db[i] * inv_sa);
+    pipeline.a[i] = pipeline.a[i] + div255(pipeline.da[i] * inv_sa);
   }
   pipeline.nextStage();
 }
 
 void destination_over(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_da = 255.0f - pipeline.da[i];
-    pipeline.r[i] = pipeline.dr[i] + (pipeline.r[i] * inv_da + 255.0f) * kInv256;
-    pipeline.g[i] = pipeline.dg[i] + (pipeline.g[i] * inv_da + 255.0f) * kInv256;
-    pipeline.b[i] = pipeline.db[i] + (pipeline.b[i] * inv_da + 255.0f) * kInv256;
-    pipeline.a[i] = pipeline.da[i] + (pipeline.a[i] * inv_da + 255.0f) * kInv256;
+    pipeline.r[i] = pipeline.dr[i] + div255(pipeline.r[i] * inv_da);
+    pipeline.g[i] = pipeline.dg[i] + div255(pipeline.g[i] * inv_da);
+    pipeline.b[i] = pipeline.db[i] + div255(pipeline.b[i] * inv_da);
+    pipeline.a[i] = pipeline.da[i] + div255(pipeline.a[i] * inv_da);
   }
   pipeline.nextStage();
 }
 
 void modulate(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = (pipeline.r[i] * pipeline.dr[i] + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * pipeline.dg[i] + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * pipeline.db[i] + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * pipeline.da[i] + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * pipeline.dr[i]);
+    pipeline.g[i] = div255(pipeline.g[i] * pipeline.dg[i]);
+    pipeline.b[i] = div255(pipeline.b[i] * pipeline.db[i]);
+    pipeline.a[i] = div255(pipeline.a[i] * pipeline.da[i]);
   }
   pipeline.nextStage();
 }
 
 void multiply(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_da = 255.0f - pipeline.da[i];
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = (pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + pipeline.r[i] * pipeline.dr[i] + 255.0f) *
-                   kInv256;
-    pipeline.g[i] = (pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + pipeline.g[i] * pipeline.dg[i] + 255.0f) *
-                   kInv256;
-    pipeline.b[i] = (pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + pipeline.b[i] * pipeline.db[i] + 255.0f) *
-                   kInv256;
-    pipeline.a[i] = (pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + pipeline.a[i] * pipeline.da[i] + 255.0f) *
-                   kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + pipeline.r[i] * pipeline.dr[i]);
+    pipeline.g[i] = div255(pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + pipeline.g[i] * pipeline.dg[i]);
+    pipeline.b[i] = div255(pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + pipeline.b[i] * pipeline.db[i]);
+    pipeline.a[i] = div255(pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + pipeline.a[i] * pipeline.da[i]);
   }
   pipeline.nextStage();
 }
@@ -324,25 +317,23 @@ void plus(Pipeline& pipeline) {
 }
 
 void screen(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] - (pipeline.r[i] * pipeline.dr[i] + 255.0f) * kInv256;
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] - (pipeline.g[i] * pipeline.dg[i] + 255.0f) * kInv256;
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] - (pipeline.b[i] * pipeline.db[i] + 255.0f) * kInv256;
-    pipeline.a[i] = pipeline.a[i] + pipeline.da[i] - (pipeline.a[i] * pipeline.da[i] + 255.0f) * kInv256;
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] - div255(pipeline.r[i] * pipeline.dr[i]);
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] - div255(pipeline.g[i] * pipeline.dg[i]);
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] - div255(pipeline.b[i] * pipeline.db[i]);
+    pipeline.a[i] = pipeline.a[i] + pipeline.da[i] - div255(pipeline.a[i] * pipeline.da[i]);
   }
   pipeline.nextStage();
 }
 
 void x_or(Pipeline& pipeline) {
-  constexpr float kInv256 = 1.0f / 256.0f;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_da = 255.0f - pipeline.da[i];
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = (pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa);
+    pipeline.g[i] = div255(pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa);
+    pipeline.b[i] = div255(pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa);
+    pipeline.a[i] = div255(pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa);
   }
   pipeline.nextStage();
 }
@@ -351,7 +342,6 @@ void null_fn(Pipeline& pipeline) {
   (void)pipeline;
 }
 
-constexpr float kInv256 = 1.0f / 256.0f;
 
 void load_8888_lowp(const std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
                     std::size_t count,
@@ -482,10 +472,10 @@ void mask_u8(Pipeline& pipeline) {
     return;
   }
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = (pipeline.r[i] * c[i] + 255.0f) * kInv256;
-    pipeline.g[i] = (pipeline.g[i] * c[i] + 255.0f) * kInv256;
-    pipeline.b[i] = (pipeline.b[i] * c[i] + 255.0f) * kInv256;
-    pipeline.a[i] = (pipeline.a[i] * c[i] + 255.0f) * kInv256;
+    pipeline.r[i] = div255(pipeline.r[i] * c[i]);
+    pipeline.g[i] = div255(pipeline.g[i] * c[i]);
+    pipeline.b[i] = div255(pipeline.b[i] * c[i]);
+    pipeline.a[i] = div255(pipeline.a[i] * c[i]);
   }
   pipeline.nextStage();
 }
@@ -500,10 +490,10 @@ void source_over_rgba(Pipeline& pipeline) {
                  pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = pipeline.r[i] + (pipeline.dr[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.g[i] = pipeline.g[i] + (pipeline.dg[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.b[i] = pipeline.b[i] + (pipeline.db[i] * inv_sa + 255.0f) * kInv256;
-    pipeline.a[i] = pipeline.a[i] + (pipeline.da[i] * inv_sa + 255.0f) * kInv256;
+    pipeline.r[i] = pipeline.r[i] + div255(pipeline.dr[i] * inv_sa);
+    pipeline.g[i] = pipeline.g[i] + div255(pipeline.dg[i] * inv_sa);
+    pipeline.b[i] = pipeline.b[i] + div255(pipeline.db[i] * inv_sa);
+    pipeline.a[i] = pipeline.a[i] + div255(pipeline.da[i] * inv_sa);
   }
   store_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
                   pipeline.dx, pipeline.dy, pipeline.tail,
@@ -517,13 +507,13 @@ void darken(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i], da = pipeline.da[i];
     pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        (std::max(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+        div255(std::max(pipeline.r[i] * da, pipeline.dr[i] * sa));
     pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        (std::max(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+        div255(std::max(pipeline.g[i] * da, pipeline.dg[i] * sa));
     pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        (std::max(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+        div255(std::max(pipeline.b[i] * da, pipeline.db[i] * sa));
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -532,13 +522,13 @@ void lighten(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i], da = pipeline.da[i];
     pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        (std::min(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+        div255(std::min(pipeline.r[i] * da, pipeline.dr[i] * sa));
     pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        (std::min(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+        div255(std::min(pipeline.g[i] * da, pipeline.dg[i] * sa));
     pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        (std::min(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+        div255(std::min(pipeline.b[i] * da, pipeline.db[i] * sa));
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -547,13 +537,13 @@ void difference(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i], da = pipeline.da[i];
     pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        2.0f * (std::min(pipeline.r[i] * da, pipeline.dr[i] * sa) + 255.0f) * kInv256;
+        2.0f * div255(std::min(pipeline.r[i] * da, pipeline.dr[i] * sa));
     pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        2.0f * (std::min(pipeline.g[i] * da, pipeline.dg[i] * sa) + 255.0f) * kInv256;
+        2.0f * div255(std::min(pipeline.g[i] * da, pipeline.dg[i] * sa));
     pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        2.0f * (std::min(pipeline.b[i] * da, pipeline.db[i] * sa) + 255.0f) * kInv256;
+        2.0f * div255(std::min(pipeline.b[i] * da, pipeline.db[i] * sa));
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -561,13 +551,13 @@ void difference(Pipeline& pipeline) {
 void exclusion(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        2.0f * (pipeline.r[i] * pipeline.dr[i] + 255.0f) * kInv256;
+        2.0f * div255(pipeline.r[i] * pipeline.dr[i]);
     pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        2.0f * (pipeline.g[i] * pipeline.dg[i] + 255.0f) * kInv256;
+        2.0f * div255(pipeline.g[i] * pipeline.dg[i]);
     pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        2.0f * (pipeline.b[i] * pipeline.db[i] + 255.0f) * kInv256;
+        2.0f * div255(pipeline.b[i] * pipeline.db[i]);
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -580,13 +570,13 @@ void hard_light(Pipeline& pipeline) {
       const float body = (2.0f * s <= sa)
           ? (2.0f * s * d)
           : (sa * da - 2.0f * (sa - s) * (da - d));
-      return (s * inv_da + d * inv_sa + body + 255.0f) * kInv256;
+      return div255(s * inv_da + d * inv_sa + body);
     };
     pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
     pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
     pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -599,13 +589,13 @@ void overlay(Pipeline& pipeline) {
       const float body = (2.0f * d <= da)
           ? (2.0f * s * d)
           : (sa * da - 2.0f * (sa - s) * (da - d));
-      return (s * inv_da + d * inv_sa + body + 255.0f) * kInv256;
+      return div255(s * inv_da + d * inv_sa + body);
     };
     pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
     pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
     pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
     pipeline.a[i] = pipeline.a[i] +
-        (pipeline.da[i] * (255.0f - pipeline.a[i]) + 255.0f) * kInv256;
+        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
   }
   pipeline.nextStage();
 }
@@ -617,8 +607,9 @@ void transform(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float x = pipeline.r[i];
     const float y = pipeline.g[i];
-    pipeline.r[i] = x * ts.sx + y * ts.kx + ts.tx;
-    pipeline.g[i] = x * ts.ky + y * ts.sy + ts.ty;
+    // Match Rust's nested mad: x * sx + (y * kx + tx)
+    pipeline.r[i] = x * ts.sx + (y * ts.kx + ts.tx);
+    pipeline.g[i] = x * ts.ky + (y * ts.sy + ts.ty);
   }
   pipeline.nextStage();
 }
@@ -651,10 +642,10 @@ void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
   const auto& ctx = pipeline.ctx->evenly_spaced_2_stop_gradient;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float t = pipeline.r[i];
-    pipeline.r[i] = std::round((t * ctx.factor.r + ctx.bias.r) * 255.0f);
-    pipeline.g[i] = std::round((t * ctx.factor.g + ctx.bias.g) * 255.0f);
-    pipeline.b[i] = std::round((t * ctx.factor.b + ctx.bias.b) * 255.0f);
-    pipeline.a[i] = std::round((t * ctx.factor.a + ctx.bias.a) * 255.0f);
+    pipeline.r[i] = fromFloat(normalize(t * ctx.factor.r + ctx.bias.r));
+    pipeline.g[i] = fromFloat(normalize(t * ctx.factor.g + ctx.bias.g));
+    pipeline.b[i] = fromFloat(normalize(t * ctx.factor.b + ctx.bias.b));
+    pipeline.a[i] = fromFloat(t * ctx.factor.a + ctx.bias.a);
   }
   pipeline.nextStage();
 }
@@ -671,10 +662,10 @@ void gradient(Pipeline& pipeline) {
     }
     const auto& factor = ctx.factors[idx];
     const auto& bias = ctx.biases[idx];
-    pipeline.r[i] = std::round((t * factor.r + bias.r) * 255.0f);
-    pipeline.g[i] = std::round((t * factor.g + bias.g) * 255.0f);
-    pipeline.b[i] = std::round((t * factor.b + bias.b) * 255.0f);
-    pipeline.a[i] = std::round((t * factor.a + bias.a) * 255.0f);
+    pipeline.r[i] = fromFloat(normalize(t * factor.r + bias.r));
+    pipeline.g[i] = fromFloat(normalize(t * factor.g + bias.g));
+    pipeline.b[i] = fromFloat(normalize(t * factor.b + bias.b));
+    pipeline.a[i] = fromFloat(t * factor.a + bias.a);
   }
   pipeline.nextStage();
 }

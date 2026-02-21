@@ -200,7 +200,7 @@ std::size_t Cubic64::searchRoots(std::size_t extrema,
 
   std::size_t validCount = 0;
   std::size_t index = 0;
-  while (index < extrema) {
+  while (index + 1 < extrema) {
     const auto min = extremeTs[index];
     ++index;
     const auto max = extremeTs[index];

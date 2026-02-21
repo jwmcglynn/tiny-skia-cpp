@@ -1,3 +1,7 @@
+// Disable FMA contraction to match Rust's highp pipeline, which uses software
+// SIMD wrappers (f32x8) that prevent LLVM from fusing multiply-add.
+#pragma clang fp contract(off)
+
 #include "tiny_skia/pipeline/Highp.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
@@ -462,6 +466,14 @@ void load_8888(const std::uint8_t* data, std::size_t stride, std::size_t dx, std
   (void)p;
 }
 
+// Matches Rust's unnorm: clamp to [0,1], multiply by 255, round-to-nearest-even.
+// Uses std::nearbyintf which follows the current rounding mode (FE_TONEAREST by default),
+// matching ARM NEON vcvtnq_s32_f32 used by Rust's round_int().
+inline std::uint8_t unnorm(float v) {
+  float clamped = std::max(0.0f, std::min(1.0f, v));
+  return static_cast<std::uint8_t>(std::nearbyintf(clamped * 255.0f));
+}
+
 void store_8888(std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
                 std::size_t count,
                 const std::array<float, kStageWidth>& r,
@@ -471,10 +483,10 @@ void store_8888(std::uint8_t* data, std::size_t stride, std::size_t dx, std::siz
   const auto offset = (dy * stride + dx) * 4;
   for (std::size_t i = 0; i < count; ++i) {
     const auto base = offset + i * 4;
-    data[base + 0] = static_cast<std::uint8_t>(std::lround(r[i] * 255.0f));
-    data[base + 1] = static_cast<std::uint8_t>(std::lround(g[i] * 255.0f));
-    data[base + 2] = static_cast<std::uint8_t>(std::lround(b[i] * 255.0f));
-    data[base + 3] = static_cast<std::uint8_t>(std::lround(a[i] * 255.0f));
+    data[base + 0] = unnorm(r[i]);
+    data[base + 1] = unnorm(g[i]);
+    data[base + 2] = unnorm(b[i]);
+    data[base + 3] = unnorm(a[i]);
   }
 }
 

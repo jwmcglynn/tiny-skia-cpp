@@ -102,6 +102,8 @@ std::optional<DecodedPng> decodePng(const std::string& path) {
   std::uint8_t colorType = 0;
   bool hasIhdr = false;
   std::vector<std::uint8_t> compressedData;
+  std::vector<std::uint8_t> palette;   // PLTE chunk: R,G,B triples
+  std::vector<std::uint8_t> trnsData;  // tRNS chunk: alpha per palette entry
 
   std::size_t pos = 8;
   while (pos + 12 <= fileData.size()) {
@@ -121,18 +123,30 @@ std::optional<DecodedPng> decodePng(const std::string& path) {
       std::uint8_t filter = chunkData[11];
       std::uint8_t interlace = chunkData[12];
 
-      // Only support 8-bit, no interlacing.
-      if (bitDepth != 8 || compression != 0 || filter != 0 ||
-          interlace != 0) {
+      if (compression != 0 || filter != 0 || interlace != 0) {
         return std::nullopt;
       }
-      // Only support RGB (2) and RGBA (6), plus grayscale (0) and
-      // grayscale+alpha (4).
-      if (colorType != 0 && colorType != 2 && colorType != 4 &&
-          colorType != 6) {
+      // Support grayscale (0), RGB (2), indexed (3), grayscale+alpha (4),
+      // RGBA (6). For non-indexed types require 8-bit depth; for indexed
+      // allow 1, 2, 4, or 8.
+      if (colorType == 3) {
+        if (bitDepth != 1 && bitDepth != 2 && bitDepth != 4 &&
+            bitDepth != 8) {
+          return std::nullopt;
+        }
+      } else if (colorType == 0 || colorType == 2 || colorType == 4 ||
+                 colorType == 6) {
+        if (bitDepth != 8) {
+          return std::nullopt;
+        }
+      } else {
         return std::nullopt;
       }
       hasIhdr = true;
+    } else if (std::memcmp(chunkType, "PLTE", 4) == 0) {
+      palette.assign(chunkData, chunkData + chunkLen);
+    } else if (std::memcmp(chunkType, "tRNS", 4) == 0) {
+      trnsData.assign(chunkData, chunkData + chunkLen);
     } else if (std::memcmp(chunkType, "IDAT", 4) == 0) {
       compressedData.insert(compressedData.end(), chunkData,
                             chunkData + chunkLen);
@@ -146,29 +160,41 @@ std::optional<DecodedPng> decodePng(const std::string& path) {
   if (!hasIhdr || width == 0 || height == 0 || compressedData.empty()) {
     return std::nullopt;
   }
+  if (colorType == 3 && palette.empty()) {
+    return std::nullopt;
+  }
 
-  // Determine bytes per pixel for the raw image.
-  std::uint32_t srcBpp;
-  switch (colorType) {
-    case 0:
-      srcBpp = 1;
-      break;  // Grayscale
-    case 2:
-      srcBpp = 3;
-      break;  // RGB
-    case 4:
-      srcBpp = 2;
-      break;  // Grayscale + Alpha
-    case 6:
-      srcBpp = 4;
-      break;  // RGBA
-    default:
-      return std::nullopt;
+  // Determine bytes per pixel for the raw (filtered) scanline data.
+  // For sub-byte indexed images, pixels are packed into bytes; the stride
+  // is ceil(width * bitDepth / 8).  For filtering, bpp = max(1, ...).
+  std::uint32_t srcBpp;      // bytes per pixel (for filter; min 1)
+  std::uint32_t srcStride;   // bytes per scanline (excluding filter byte)
+  if (colorType == 3) {
+    srcBpp = 1;  // sub-byte pixels: filter operates on bytes, bpp=1
+    srcStride = (width * bitDepth + 7) / 8;
+  } else {
+    switch (colorType) {
+      case 0:
+        srcBpp = 1;
+        break;  // Grayscale
+      case 2:
+        srcBpp = 3;
+        break;  // RGB
+      case 4:
+        srcBpp = 2;
+        break;  // Grayscale + Alpha
+      case 6:
+        srcBpp = 4;
+        break;  // RGBA
+      default:
+        return std::nullopt;
+    }
+    srcStride = width * srcBpp;
   }
 
   // Decompress.
   std::size_t rawSize =
-      static_cast<std::size_t>(height) * (1 + static_cast<std::size_t>(width) * srcBpp);
+      static_cast<std::size_t>(height) * (1 + static_cast<std::size_t>(srcStride));
   std::vector<std::uint8_t> raw(rawSize);
 
   uLongf destLen = static_cast<uLongf>(rawSize);
@@ -179,7 +205,6 @@ std::optional<DecodedPng> decodePng(const std::string& path) {
   }
 
   // Unfilter scanlines and convert to RGBA.
-  std::uint32_t srcStride = width * srcBpp;
   std::vector<std::uint8_t> prevRow(srcStride, 0);
   std::vector<std::uint8_t> rgba(static_cast<std::size_t>(width) * height * 4);
 
@@ -195,32 +220,57 @@ std::optional<DecodedPng> decodePng(const std::string& path) {
 
     // Convert to RGBA.
     std::uint8_t* dst = &rgba[static_cast<std::size_t>(y) * width * 4];
-    for (std::uint32_t x = 0; x < width; ++x) {
-      switch (colorType) {
-        case 0:  // Grayscale → RGBA
-          dst[x * 4 + 0] = rowData[x];
-          dst[x * 4 + 1] = rowData[x];
-          dst[x * 4 + 2] = rowData[x];
+    if (colorType == 3) {
+      // Indexed: unpack sub-byte pixels and look up palette.
+      std::uint32_t paletteEntries = static_cast<std::uint32_t>(palette.size() / 3);
+      for (std::uint32_t x = 0; x < width; ++x) {
+        // Extract the palette index from packed bits.
+        std::uint32_t bitOffset = x * bitDepth;
+        std::uint32_t byteIdx = bitOffset / 8;
+        std::uint32_t bitShift = 8 - bitDepth - (bitOffset % 8);
+        std::uint8_t mask = static_cast<std::uint8_t>((1u << bitDepth) - 1);
+        std::uint8_t idx = (rowData[byteIdx] >> bitShift) & mask;
+
+        if (idx < paletteEntries) {
+          dst[x * 4 + 0] = palette[idx * 3 + 0];
+          dst[x * 4 + 1] = palette[idx * 3 + 1];
+          dst[x * 4 + 2] = palette[idx * 3 + 2];
+          dst[x * 4 + 3] = (idx < trnsData.size()) ? trnsData[idx] : 255;
+        } else {
+          dst[x * 4 + 0] = 0;
+          dst[x * 4 + 1] = 0;
+          dst[x * 4 + 2] = 0;
           dst[x * 4 + 3] = 255;
-          break;
-        case 2:  // RGB → RGBA
-          dst[x * 4 + 0] = rowData[x * 3 + 0];
-          dst[x * 4 + 1] = rowData[x * 3 + 1];
-          dst[x * 4 + 2] = rowData[x * 3 + 2];
-          dst[x * 4 + 3] = 255;
-          break;
-        case 4:  // Grayscale+Alpha → RGBA
-          dst[x * 4 + 0] = rowData[x * 2];
-          dst[x * 4 + 1] = rowData[x * 2];
-          dst[x * 4 + 2] = rowData[x * 2];
-          dst[x * 4 + 3] = rowData[x * 2 + 1];
-          break;
-        case 6:  // RGBA → RGBA (direct copy)
-          dst[x * 4 + 0] = rowData[x * 4 + 0];
-          dst[x * 4 + 1] = rowData[x * 4 + 1];
-          dst[x * 4 + 2] = rowData[x * 4 + 2];
-          dst[x * 4 + 3] = rowData[x * 4 + 3];
-          break;
+        }
+      }
+    } else {
+      for (std::uint32_t x = 0; x < width; ++x) {
+        switch (colorType) {
+          case 0:  // Grayscale -> RGBA
+            dst[x * 4 + 0] = rowData[x];
+            dst[x * 4 + 1] = rowData[x];
+            dst[x * 4 + 2] = rowData[x];
+            dst[x * 4 + 3] = 255;
+            break;
+          case 2:  // RGB -> RGBA
+            dst[x * 4 + 0] = rowData[x * 3 + 0];
+            dst[x * 4 + 1] = rowData[x * 3 + 1];
+            dst[x * 4 + 2] = rowData[x * 3 + 2];
+            dst[x * 4 + 3] = 255;
+            break;
+          case 4:  // Grayscale+Alpha -> RGBA
+            dst[x * 4 + 0] = rowData[x * 2];
+            dst[x * 4 + 1] = rowData[x * 2];
+            dst[x * 4 + 2] = rowData[x * 2];
+            dst[x * 4 + 3] = rowData[x * 2 + 1];
+            break;
+          case 6:  // RGBA -> RGBA (direct copy)
+            dst[x * 4 + 0] = rowData[x * 4 + 0];
+            dst[x * 4 + 1] = rowData[x * 4 + 1];
+            dst[x * 4 + 2] = rowData[x * 4 + 2];
+            dst[x * 4 + 3] = rowData[x * 4 + 3];
+            break;
+        }
       }
     }
 

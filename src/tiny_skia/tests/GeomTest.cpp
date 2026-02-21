@@ -57,8 +57,10 @@ TEST(GeomTest, IntSizeFromWhRejectsZero) {
 }
 
 TEST(GeomTest, IntRectFromXYWHRejectsInvalidInputs) {
-  EXPECT_THAT(tiny_skia::IntRect::fromXYWH(-1, 0, 1, 1), testing::Eq(std::nullopt));
-  EXPECT_THAT(tiny_skia::IntRect::fromXYWH(0, -1, 1, 1), testing::Eq(std::nullopt));
+  // Negative x/y are valid (IntRect uses int32_t), matching Rust semantics.
+  EXPECT_THAT(tiny_skia::IntRect::fromXYWH(-1, 0, 1, 1), testing::Ne(std::nullopt));
+  EXPECT_THAT(tiny_skia::IntRect::fromXYWH(0, -1, 1, 1), testing::Ne(std::nullopt));
+  // Zero width/height are rejected.
   EXPECT_THAT(tiny_skia::IntRect::fromXYWH(0, 0, 0, 1), testing::Eq(std::nullopt));
   EXPECT_THAT(tiny_skia::IntRect::fromXYWH(0, 0, 1, 0), testing::Eq(std::nullopt));
 }

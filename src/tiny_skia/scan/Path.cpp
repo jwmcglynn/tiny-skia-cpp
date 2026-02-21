@@ -154,7 +154,6 @@ void walkEdges(FillRule fillRule,
                Blitter& blitter) {
   auto currY = startY;
   const auto windingMask = fillRule == FillRule::EvenOdd ? 1 : -1;
-
   while (true) {
     auto winding = 0;
     auto left = 0u;

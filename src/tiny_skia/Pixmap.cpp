@@ -74,11 +74,16 @@ std::optional<PremultipliedColorU8> PixmapRef::pixel(std::uint32_t x, std::uint3
 
 std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
   const auto full = IntRect::fromXYWH(0, 0, width(), height());
-  if (!full.has_value() || !containsRect(full.value(), rect)) {
+  if (!full.has_value()) {
     return std::nullopt;
   }
 
-  auto out = Pixmap::fromSize(rect.width(), rect.height());
+  const auto clipped = full->intersect(rect);
+  if (!clipped.has_value()) {
+    return std::nullopt;
+  }
+
+  auto out = Pixmap::fromSize(clipped->width(), clipped->height());
   if (!out.has_value()) {
     return std::nullopt;
   }
@@ -87,10 +92,10 @@ std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
   auto dstBytes = out->dataMut();
 
   const auto srcWidth = static_cast<std::size_t>(width());
-  const auto rowBytes = static_cast<std::size_t>(rect.width()) * kBytesPerPixel;
-  for (std::uint32_t y = 0; y < rect.height(); ++y) {
-    const auto srcOffset = (static_cast<std::size_t>(rect.top()) + y) * srcWidth * kBytesPerPixel +
-                           static_cast<std::size_t>(rect.left()) * kBytesPerPixel;
+  const auto rowBytes = static_cast<std::size_t>(clipped->width()) * kBytesPerPixel;
+  for (std::uint32_t y = 0; y < clipped->height(); ++y) {
+    const auto srcOffset = (static_cast<std::size_t>(clipped->top()) + y) * srcWidth * kBytesPerPixel +
+                           static_cast<std::size_t>(clipped->left()) * kBytesPerPixel;
     const auto dstOffset = static_cast<std::size_t>(y) * rowBytes;
     std::copy_n(srcBytes.data() + srcOffset, rowBytes, dstBytes.data() + dstOffset);
   }

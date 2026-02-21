@@ -81,6 +81,18 @@ struct SuperBlitter final : public Blitter {
       x -= base_.superLeft;
     }
 
+    // Clamp right edge to prevent out-of-bounds access in AlphaRuns.
+    const auto maxSuperWidth = base_.width << kSuperSampleShift;
+    if (x >= maxSuperWidth) {
+      return;
+    }
+    if (x + width > maxSuperWidth) {
+      width = maxSuperWidth - x;
+    }
+    if (width == 0) {
+      return;
+    }
+
     if (static_cast<std::int32_t>(y) != base_.currY) {
       offsetX_ = 0;
       base_.currY = static_cast<std::int32_t>(y);

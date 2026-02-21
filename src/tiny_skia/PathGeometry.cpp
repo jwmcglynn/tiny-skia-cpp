@@ -173,8 +173,8 @@ std::size_t chopQuadAtXExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
       double t = 0.0;
       if (validUnitDivide(numerator, denominator, t)) {
         chopQuadAt(src, t, dst);
-        dst[1].y = dst[2].y;
-        dst[3].y = dst[2].y;
+        dst[1].x = dst[2].x;
+        dst[3].x = dst[2].x;
         return 1;
       }
     }
@@ -201,8 +201,8 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
       double t = 0.0;
       if (validUnitDivide(numerator, denominator, t)) {
         chopQuadAt(src, t, dst);
-        dst[1].x = dst[2].x;
-        dst[3].x = dst[2].x;
+        dst[1].y = dst[2].y;
+        dst[3].y = dst[2].y;
         return 1;
       }
     }
@@ -262,11 +262,15 @@ std::size_t chopCubicAt(std::span<const Point> src,
 }
 
 std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
+  auto tValuesF = newTValues();
+  const auto rawCount =
+      findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValuesF.data());
   auto tValues = std::array<double, 3>{};
-  const auto count =
-      findCubicExtrema(std::array<float, 4>{src[0].x, src[1].x, src[2].x, src[3].x}, tValues);
+  for (std::size_t i = 0; i < rawCount; ++i) {
+    tValues[i] = static_cast<double>(tValuesF[i].get());
+  }
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const double>(tValues.data(), count),
+                                std::span<const double>(tValues.data(), rawCount),
                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].x = dst[3].x;
@@ -280,11 +284,15 @@ std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>&
 }
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
+  auto tValuesF = newTValues();
+  const auto rawCount =
+      findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
   auto tValues = std::array<double, 3>{};
-  const auto count =
-      findCubicExtrema(std::array<float, 4>{src[0].y, src[1].y, src[2].y, src[3].y}, tValues);
+  for (std::size_t i = 0; i < rawCount; ++i) {
+    tValues[i] = static_cast<double>(tValuesF[i].get());
+  }
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const double>(tValues.data(), count),
+                                std::span<const double>(tValues.data(), rawCount),
                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].y = dst[3].y;
@@ -778,42 +786,84 @@ std::optional<std::uint8_t> Conic::computeQuadPow2(float tolerance) const {
 
   float error = std::sqrt(x * x + y * y);
   std::uint8_t pow2 = 0;
-  for (; pow2 < 5; ++pow2) {
+  for (; pow2 < 4; ++pow2) {
     if (error <= tolerance) break;
     error *= 0.25f;
   }
-  return pow2;
+  return std::max(pow2, static_cast<std::uint8_t>(1));
 }
 
-std::uint8_t Conic::chopIntoQuadsPow2(std::uint8_t pow2,
-                                       Point dst[]) const {
-  if (pow2 == 0) {
-    dst[0] = points[0];
-    dst[1] = points[1];
-    dst[2] = points[2];
-    return 1;
+namespace {
+
+// Returns true if (a <= b <= c) || (a >= b >= c)
+bool between(float a, float b, float c) {
+  return (a - b) * (c - b) <= 0.0f;
+}
+
+// Recursive conic subdivision with Y-monotonicity preservation.
+// Matches Rust's subdivide() in path_geometry.rs.
+Point* subdivideRecursive(const Conic& src, Point* points, std::uint8_t level) {
+  if (level == 0) {
+    points[0] = src.points[1];
+    points[1] = src.points[2];
+    return points + 2;
   }
 
-  Conic src = *this;
-  // Max pow2 is 5, so max conics is 32, needing 33 Conics for temp storage
-  Conic tmp[33];
-  tmp[0] = src;
+  Conic dst[2];
+  src.chop(dst);
 
-  for (std::uint8_t i = 0; i < pow2; ++i) {
-    std::size_t count = static_cast<std::size_t>(1) << i;
-    for (std::size_t j = count; j > 0; --j) {
-      tmp[j - 1].chop(&tmp[2 * (j - 1)]);
+  const float startY = src.points[0].y;
+  const float endY = src.points[2].y;
+  if (between(startY, src.points[1].y, endY)) {
+    // If the input is monotonic and the output is not, the scan converter hangs.
+    // Ensure that the chopped conics maintain their y-order.
+    float midY = dst[0].points[2].y;
+    if (!between(startY, midY, endY)) {
+      float closerY = (std::abs(midY - startY) < std::abs(midY - endY))
+                           ? startY : endY;
+      dst[0].points[2].y = closerY;
+      dst[1].points[0].y = closerY;
+    }
+
+    if (!between(startY, dst[0].points[1].y, dst[0].points[2].y)) {
+      dst[0].points[1].y = startY;
+    }
+
+    if (!between(dst[1].points[0].y, dst[1].points[1].y, endY)) {
+      dst[1].points[1].y = endY;
     }
   }
 
-  std::size_t quadCount = static_cast<std::size_t>(1) << pow2;
-  dst[0] = tmp[0].points[0];
-  for (std::size_t i = 0; i < quadCount; ++i) {
-    dst[2 * i + 1] = tmp[i].points[1];
-    dst[2 * i + 2] = tmp[i].points[2];
+  --level;
+  points = subdivideRecursive(dst[0], points, level);
+  return subdivideRecursive(dst[1], points, level);
+}
+
+}  // namespace
+
+std::uint8_t Conic::chopIntoQuadsPow2(std::uint8_t pow2,
+                                       Point dst[]) const {
+  dst[0] = points[0];
+  subdivideRecursive(*this, dst + 1, pow2);
+
+  const auto quadCount = static_cast<std::size_t>(1) << pow2;
+  const auto ptCount = 2 * quadCount + 1;
+
+  // If we generated a non-finite point, pin to the middle of the hull.
+  bool hasNonFinite = false;
+  for (std::size_t i = 0; i < ptCount; ++i) {
+    if (!std::isfinite(dst[i].x) || !std::isfinite(dst[i].y)) {
+      hasNonFinite = true;
+      break;
+    }
+  }
+  if (hasNonFinite) {
+    for (std::size_t i = 1; i < ptCount - 1; ++i) {
+      dst[i] = points[1];
+    }
   }
 
-  return static_cast<std::uint8_t>(quadCount);
+  return static_cast<std::uint8_t>(1 << pow2);
 }
 
 std::optional<std::span<const Conic>> Conic::buildUnitArc(
@@ -878,22 +928,16 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
     }
   }
 
-  // Transform: rotate by uStart, optionally flip for CCW, then apply user
-  // transform
-  float sinVal = uStart.y;
-  float cosVal = uStart.x;
+  // Compose transform: rotate by uStart, optionally pre-scale for CCW,
+  // then post-concat user transform.  Matches Rust's transform composition.
+  auto transform = Transform::fromRow(uStart.x, uStart.y, -uStart.y, uStart.x, 0.0f, 0.0f);
+  if (dir == PathDirection::CCW) {
+    transform = transform.preScale(1.0f, -1.0f);
+  }
+  transform = transform.postConcat(userTransform);
 
   for (std::size_t i = 0; i < conicCount; ++i) {
-    for (auto& pt : dst[i].points) {
-      float rx = pt.x * cosVal - pt.y * sinVal;
-      float ry = pt.x * sinVal + pt.y * cosVal;
-      if (dir == PathDirection::CCW) {
-        ry = -ry;
-      }
-      // Apply userTransform
-      pt.x = userTransform.sx * rx + userTransform.kx * ry + userTransform.tx;
-      pt.y = userTransform.ky * rx + userTransform.sy * ry + userTransform.ty;
-    }
+    transform.mapPoints(dst[i].points);
   }
 
   if (conicCount == 0) return std::nullopt;

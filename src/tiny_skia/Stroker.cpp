@@ -1426,4 +1426,13 @@ bool PathStroker::isCurrentContourEmpty() const {
            outer_.isZeroLengthSincePoint(firstOuterPtIndexInContour_);
 }
 
+// ---------------------------------------------------------------------------
+// Path::stroke
+// ---------------------------------------------------------------------------
+
+std::optional<Path> Path::stroke(const Stroke& stroke, float resScale) const {
+  PathStroker stroker;
+  return stroker.stroke(*this, stroke, resScale);
+}
+
 }  // namespace tiny_skia
