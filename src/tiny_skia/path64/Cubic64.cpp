@@ -63,7 +63,7 @@ std::size_t rootsReal(double a,
 
   if (r2MinusQ3 < 0.0) {
     // we have 3 real roots
-    const auto theta = std::acos(bound(r / std::sqrt(q3), -1.0, 1.0));
+    const auto theta = std::acos(bound(-1.0, r / std::sqrt(q3), 1.0));
     const auto neg2RootQ = -2.0 * std::sqrt(q);
 
     auto root = neg2RootQ * std::cos(theta / 3.0) - aDiv3;
@@ -232,7 +232,7 @@ std::size_t Cubic64::findInflections(std::span<double> tValues) const {
       points[3].y + 3.0 * (points[1].y - points[2].y) - points[0].y;
 
   auto values = std::array<double, 3>{};
-  const auto count = quad64::rootsValidT(ax * cy - by * cx, ax * cy - ay * cx, ax * by - ay * bx, values);
+  const auto count = quad64::rootsValidT(bx * cy - by * cx, ax * cy - ay * cx, ax * by - ay * bx, values);
   std::copy(values.begin(), values.begin() + static_cast<long>(count), tValues.begin());
   return count;
 }
@@ -243,6 +243,9 @@ double Cubic64::binarySearch(double min, double max, double axisIntercept, Searc
   auto cubicAtT = pointAtT(t);
   auto calcPos = cubicAtT.axisCoord(axis);
   auto calcDist = calcPos - axisIntercept;
+  if (approximatelyEqual(calcPos, axisIntercept)) {
+    return t;
+  }
   while (true) {
     const auto priorT = std::max(min, t - step);
     const auto lessPt = pointAtT(priorT);
@@ -255,7 +258,9 @@ double Cubic64::binarySearch(double min, double max, double axisIntercept, Searc
     const auto lastStep = step;
     step /= 2.0;
     auto ok = calcDist > 0.0 ? calcDist > lessDist : calcDist < lessDist;
-    if (!ok) {
+    if (ok) {
+      t = priorT;
+    } else {
       const auto nextT = t + lastStep;
       if (nextT > max) {
         return -1.0;

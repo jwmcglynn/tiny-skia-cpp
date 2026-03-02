@@ -70,6 +70,7 @@ namespace {
 // Matches Rust lowp: (v + 255) >> 8
 // Truncates to integer to avoid float fraction accumulation across stages.
 inline float div255(float v) {
+  // Match Rust lowp: (v + 255) >> 8, i.e. integer floor((v + 255) / 256).
   return std::floor((v + 255.0f) * (1.0f / 256.0f));
 }
 

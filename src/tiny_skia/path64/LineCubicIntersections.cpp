@@ -17,7 +17,7 @@ std::size_t horizontalIntersect(const cubic64::Cubic64& cubic,
     const auto calcPt = cubic.pointAtT(roots[index]);
     if (!approximatelyEqual(calcPt.y, axisIntercept)) {
       std::array<double, 6> extremeTs{};
-      const auto extrema = cubic64::findExtrema(cubic.asF64Slice(), extremeTs);
+      const auto extrema = cubic64::findExtrema(coords, extremeTs);
       return cubic.searchRoots(extrema, axisIntercept, SearchAxis::Y, extremeTs, roots);
     }
     ++index;

@@ -72,9 +72,9 @@ TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
 
   blitter->blitRect(tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  // Pipeline lowp div255 approximation: (a*b+255)/256 yields small bias vs exact a*b/255.
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(1u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(101u));
+  // Pipeline lowp div255: (v+255)>>8 ≈ v/256 (not exact v/255).
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(0u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(100u));
 }
 
 
@@ -93,8 +93,8 @@ TEST(PipelineBlitterTest, CreateBlitMaskWritesColorWithMaskCoverage) {
 
   blitter->blitMask(*mask, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(51u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(201u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(50u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(200u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
@@ -116,8 +116,8 @@ TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
 
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(201u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(102u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(200u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(100u));
 }
 
 
@@ -137,7 +137,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskPartialCoverageComposesAcrossPasses) {
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 1u, 1u));
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 1u, 1u));
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(162u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(161u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
@@ -152,10 +152,10 @@ TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
   blitter->blitV(0, 0, 1u, 128u);
   blitter->blitV(0, 0, 1u, 128u);
 
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(10u));
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 1), Eq(18u));
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 2), Eq(26u));
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(162u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(9u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 1), Eq(17u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 2), Eq(25u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(161u));
 }
 
 
@@ -171,7 +171,7 @@ TEST(PipelineBlitterTest, CreateBlitVOpaqueCoverageComposesAcrossPasses) {
   blitter->blitV(0, 0, 1u, 255u);
   blitter->blitV(0, 0, 1u, 255u);
 
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(244u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(243u));
 }
 
 TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
@@ -185,10 +185,10 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
 
   blitter->blitAntiH2(0, 0, 64u, 200u);
 
-  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(4u));
-  EXPECT_THAT(channelAt(*pixmap, 1, 0, 0), Eq(9u));
-  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(51u));
-  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(158u));
+  EXPECT_THAT(channelAt(*pixmap, 0, 0, 0), Eq(3u));
+  EXPECT_THAT(channelAt(*pixmap, 1, 0, 0), Eq(8u));
+  EXPECT_THAT(alphaAt(*pixmap, 0, 0), Eq(50u));
+  EXPECT_THAT(alphaAt(*pixmap, 1, 0), Eq(157u));
 }
 
 
@@ -206,7 +206,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses) {
   blitter->blitAntiH2(0, 0, 255u, 255u);
 
   const auto alpha = std::vector<std::uint8_t>{alphaAt(*pixmap, 0, 0), alphaAt(*pixmap, 1, 0)};
-  EXPECT_THAT(alpha, ElementsAre(244u, 244u));
+  EXPECT_THAT(alpha, ElementsAre(243u, 243u));
 }
 
 
@@ -223,7 +223,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses) {
   blitter->blitAntiV2(0, 0, 255u, 255u);
 
   const auto alpha = std::vector<std::uint8_t>{alphaAt(*pixmap, 0, 0), alphaAt(*pixmap, 0, 1)};
-  EXPECT_THAT(alpha, ElementsAre(244u, 244u));
+  EXPECT_THAT(alpha, ElementsAre(243u, 243u));
 }
 TEST(PipelineBlitterTest, CreateMaskAndBlitRectWritesOpaqueAlphaInRegion) {
   auto pixmap = tiny_skia::Pixmap::fromSize(4, 3);

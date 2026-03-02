@@ -51,7 +51,7 @@ constexpr bool approximatelyZeroCubed(double value) {
 };
 
 constexpr bool approximatelyZeroHalf(double value) {
-  return std::abs(value) < kFloatEpsilonHalf;
+  return value < kFloatEpsilonHalf;
 }
 
 constexpr bool approximatelyZeroWhenComparedTo(double value, double other) {
@@ -65,7 +65,7 @@ constexpr bool approximatelyEqual(double value, double other) {
 }
 
 constexpr bool approximatelyEqualHalf(double value, double other) {
-  return std::abs(value - other) < kFloatEpsilonHalf;
+  return (value - other) < kFloatEpsilonHalf;
 }
 
 inline bool almostDequalUlps(double value, double other) {

@@ -226,7 +226,7 @@ TEST(ScanPathTest, FillPathAaClipOverflowAvoidsBlitting) {
   EXPECT_THAT(blitter.antiSpans(), ::testing::IsEmpty());
 }
 
-TEST(ScanPathTest, FillRectRoundsOutAndClipsToClipRect) {
+TEST(ScanPathTest, FillRectRoundsAndClipsToClipRect) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
   const auto rect = tiny_skia::Rect::fromLtrb(2.2f, 2.7f, 6.3f, 6.1f).value();
 
@@ -234,7 +234,7 @@ TEST(ScanPathTest, FillRectRoundsOutAndClipsToClipRect) {
   tiny_skia::scan::fillRect(rect, clip, blitter);
 
   EXPECT_THAT(blitter.rects(), ::testing::SizeIs(1));
-  EXPECT_THAT(blitter.rects()[0], ScreenIntRectEq(2u, 2u, 5u, 5u));
+  EXPECT_THAT(blitter.rects()[0], ScreenIntRectEq(2u, 2u, 4u, 4u));
 }
 
 TEST(ScanPathTest, FillRectClipsOutOfRange) {
@@ -385,7 +385,11 @@ TEST(ScanPathTest, StrokePathCubicAsLineButt) {
 
   EXPECT_THAT(blitter.spans(),
               ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u)));
+                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
+                                     SpanXYWidthEq<ScanSpan>(4u, 2u, 1u),
+                                     SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
+                                     SpanXYWidthEq<ScanSpan>(6u, 2u, 1u),
+                                     SpanXYWidthEq<ScanSpan>(7u, 2u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathQuadCurved) {

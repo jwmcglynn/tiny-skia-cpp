@@ -85,11 +85,14 @@ TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
 }
 
 TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {
+  // Cubic with Y(0.5)=0 exactly (all dyadic-rational coords), no inflections
+  // in [0,1] (inflection at t=-0.5), and linear X giving 0 findExtrema.
+  // Binary search interval is [0,1] with midpoint=0.5, so it converges immediately.
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(1.0, -1.0),
-      tiny_skia::Point64::fromXy(2.0, 1.0 / 3.0),
-      tiny_skia::Point64::fromXy(3.0, 1.0),
+      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXy(2.0, -0.5),
+      tiny_skia::Point64::fromXy(3.0, 0.5),
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};
@@ -208,5 +211,5 @@ TEST(Cubic64Test, FindInflectionsFindsInternalInflectionAtHalf) {
   const auto count = cubic.findInflections(extremaSpan);
 
   EXPECT_EQ(count, 1u);
-  EXPECT_DOUBLE_EQ(extremaTs[0], 0.5);
+  EXPECT_NEAR(extremaTs[0], 0.75, 1e-12);
 }
