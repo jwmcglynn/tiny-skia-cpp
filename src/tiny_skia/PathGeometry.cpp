@@ -13,20 +13,12 @@
 
 namespace tiny_skia::path_geometry {
 
+// Forward declarations for functions defined later in this file.
+std::size_t findUnitQuadRoots(float a, float b, float c,
+                               NormalizedF32Exclusive roots[3]);
+std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer, float denom);
+
 namespace {
-
-bool validUnitDivide(double numerator, double denominator, double& normalized) {
-  if (numerator < 0.0) {
-    numerator = -numerator;
-    denominator = -denominator;
-  }
-
-  if (denominator <= 0.0 || numerator == 0.0) {
-    return false;
-  }
-  normalized = numerator / denominator;
-  return normalized > 0.0 && normalized < 1.0;
-}
 
 bool isNotMonotonic(float a, float b, float c) {
   auto ab = a - b;
@@ -84,22 +76,38 @@ void interpCubicAt(std::span<const Point, 4> src, double t, std::span<Point, 7> 
   dst[6] = src[3];
 }
 
-void chopCubicAt2(std::span<const Point, 4> src, double t, std::span<Point> dst) {
-  if (dst.size() < 7 || t <= 0.0 || t >= 1.0) {
+// Matches Rust's chop_cubic_at2: pure f32 de Casteljau's algorithm.
+// Uses interp(v0, v1, t) = v0 + (v1 - v0) * t in f32 precision.
+void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) {
+  if (dst.size() < 7 || t <= 0.0f || t >= 1.0f) {
     std::fill_n(dst.data(), dst.size(), Point{});
     return;
   }
 
-  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      Point64::fromPoint(src[0]),
-      Point64::fromPoint(src[1]),
-      Point64::fromPoint(src[2]),
-      Point64::fromPoint(src[3]),
-  });
-  const auto pair = cubic.chopAt(t);
-  for (std::size_t i = 0; i < pair.points.size(); ++i) {
-    dst[i] = pair.points[i].toPoint();
-  }
+  auto interp = [](float v0, float v1, float tt) -> float {
+    return v0 + (v1 - v0) * tt;
+  };
+
+  const float abx = interp(src[0].x, src[1].x, t);
+  const float aby = interp(src[0].y, src[1].y, t);
+  const float bcx = interp(src[1].x, src[2].x, t);
+  const float bcy = interp(src[1].y, src[2].y, t);
+  const float cdx = interp(src[2].x, src[3].x, t);
+  const float cdy = interp(src[2].y, src[3].y, t);
+  const float abcx = interp(abx, bcx, t);
+  const float abcy = interp(aby, bcy, t);
+  const float bcdx = interp(bcx, cdx, t);
+  const float bcdy = interp(bcy, cdy, t);
+  const float abcdx = interp(abcx, bcdx, t);
+  const float abcdy = interp(abcy, bcdy, t);
+
+  dst[0] = src[0];
+  dst[1] = Point::fromXy(abx, aby);
+  dst[2] = Point::fromXy(abcx, abcy);
+  dst[3] = Point::fromXy(abcdx, abcdy);
+  dst[4] = Point::fromXy(bcdx, bcdy);
+  dst[5] = Point::fromXy(cdx, cdy);
+  dst[6] = src[3];
 }
 
 bool chopMonoCubicAt(std::array<Point, 4> src,
@@ -126,17 +134,19 @@ bool chopMonoCubicAt(std::array<Point, 4> src,
   return false;
 }
 
-bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, double& t) {
+bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, float& t) {
+  // Match Rust: use f32 find_unit_quad_roots (not double quad64::rootsValidT).
   const auto c0 = isVertical ? src[0].x : src[0].y;
   const auto c1 = isVertical ? src[1].x : src[1].y;
   const auto c2 = isVertical ? src[2].x : src[2].y;
-  const auto a = static_cast<double>(c0 - c1 - c1 + c2);
-  const auto b = static_cast<double>(2.0f * (c1 - c0));
-  const auto c = static_cast<double>(c0 - intercept);
-  auto roots = std::array<double, 3>{};
-  const auto count = tiny_skia::path64::quad64::rootsValidT(a, b, c, roots);
+  const auto a = c0 - c1 - c1 + c2;
+  const auto b = 2.0f * (c1 - c0);
+  const auto c = c0 - intercept;
+  NormalizedF32Exclusive roots[3] = {
+      NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
+  const auto count = findUnitQuadRoots(a, b, c, roots);
   if (count > 0) {
-    t = roots[0];
+    t = roots[0].get();
     return true;
   }
   return false;
@@ -144,13 +154,17 @@ bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, 
 
 }  // namespace
 
-std::size_t chopQuadAt(std::array<Point, 3> src, double t, std::array<Point, 5>& dst) {
-  const auto p01 = Point{src[0].x + static_cast<float>((src[1].x - src[0].x) * t),
-                         src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
-  const auto p12 = Point{src[1].x + static_cast<float>((src[2].x - src[1].x) * t),
-                         src[1].y + static_cast<float>((src[2].y - src[1].y) * t)};
-  const auto p012 = Point{p01.x + static_cast<float>((p12.x - p01.x) * t),
-                         p01.y + static_cast<float>((p12.y - p01.y) * t)};
+std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
+  // Match Rust: pure f32 interpolation via interp(v0, v1, t) = v0 + (v1 - v0) * t
+  auto interp = [](float v0, float v1, float tt) -> float {
+    return v0 + (v1 - v0) * tt;
+  };
+  const auto p01 = Point{interp(src[0].x, src[1].x, t),
+                         interp(src[0].y, src[1].y, t)};
+  const auto p12 = Point{interp(src[1].x, src[2].x, t),
+                         interp(src[1].y, src[2].y, t)};
+  const auto p012 = Point{interp(p01.x, p12.x, t),
+                          interp(p01.y, p12.y, t)};
 
   dst[0] = src[0];
   dst[1] = p01;
@@ -166,25 +180,20 @@ std::size_t chopQuadAtXExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   const auto c = src[2].x;
 
   if (isNotMonotonic(a, b, c)) {
-    const auto numerator = static_cast<double>(a - b);
-    const auto denominator = static_cast<double>(a - b - b + c);
-    if (!std::isinf(denominator) &&
-        std::abs(denominator) >= std::numeric_limits<float>::epsilon()) {
-      double t = 0.0;
-      if (validUnitDivide(numerator, denominator, t)) {
-        chopQuadAt(src, t, dst);
-        dst[1].x = dst[2].x;
-        dst[3].x = dst[2].x;
-        return 1;
-      }
+    // Match Rust: use f32 valid_unit_divide (not double).
+    if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
+      chopQuadAt(src, tOpt->get(), dst);
+      dst[1].x = dst[2].x;
+      dst[3].x = dst[2].x;
+      return 1;
     }
 
     b = std::abs(a - b) < std::abs(b - c) ? a : c;
   }
 
-  dst[0] = src[0];
+  dst[0] = Point{a, src[0].y};
   dst[1] = Point{b, src[1].y};
-  dst[2] = src[2];
+  dst[2] = Point{c, src[2].y};
   return 0;
 }
 
@@ -194,30 +203,39 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   const auto c = src[2].y;
 
   if (isNotMonotonic(a, b, c)) {
-    const auto numerator = static_cast<double>(a - b);
-    const auto denominator = static_cast<double>(a - b - b + c);
-    if (!std::isinf(denominator) &&
-        std::abs(denominator) >= std::numeric_limits<float>::epsilon()) {
-      double t = 0.0;
-      if (validUnitDivide(numerator, denominator, t)) {
-        chopQuadAt(src, t, dst);
-        dst[1].y = dst[2].y;
-        dst[3].y = dst[2].y;
-        return 1;
-      }
+    // Match Rust: use f32 valid_unit_divide (not double).
+    if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
+      chopQuadAt(src, tOpt->get(), dst);
+      dst[1].y = dst[2].y;
+      dst[3].y = dst[2].y;
+      return 1;
     }
 
     b = std::abs(a - b) < std::abs(b - c) ? a : c;
   }
 
-  dst[0] = src[0];
+  dst[0] = Point{src[0].x, a};
   dst[1] = Point{src[1].x, b};
-  dst[2] = src[2];
+  dst[2] = Point{src[2].x, c};
   return 0;
 }
 
+std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer,
+                                                         float denom) {
+  if (numer < 0.0f) {
+    numer = -numer;
+    denom = -denom;
+  }
+  if (denom == 0.0f || numer == 0.0f || numer >= denom) {
+    return std::nullopt;
+  }
+  float r = numer / denom;
+  return NormalizedF32Exclusive::create(r);
+}
+
+// Matches Rust's chop_cubic_at: uses f32 t values and pure f32 de Casteljau's.
 std::size_t chopCubicAt(std::span<const Point> src,
-                        std::span<const double> tValues,
+                        std::span<const NormalizedF32Exclusive> tValues,
                         std::span<Point> dst) {
   if (src.size() != 4 || dst.size() < 4) {
     return 0;
@@ -232,45 +250,44 @@ std::size_t chopCubicAt(std::span<const Point> src,
   }
 
   auto srcWork = std::array<Point, 4>{src[0], src[1], src[2], src[3]};
+  auto t = tValues[0];
   std::size_t offset = 0;
-  double nextT = tValues[0];
   for (std::size_t i = 0; i < tValues.size(); ++i) {
-    auto split = std::array<Point, 7>{};
-    interpCubicAt(std::span<const Point, 4>(srcWork), nextT, std::span<Point, 7>(split));
     if (offset + 7 > dst.size()) {
       return tValues.size();
     }
-    chopCubicAt2(std::span<const Point, 4>(srcWork), nextT, dst.subspan(offset));
+    chopCubicAt2(std::span<const Point, 4>(srcWork), t.get(), dst.subspan(offset));
 
     if (i + 1 == tValues.size()) {
       break;
     }
 
     offset += 3;
-    double normalized = 0.0;
-    if (!validUnitDivide(tValues[i + 1] - tValues[i], 1.0 - tValues[i], normalized)) {
-      dst[offset + 4] = split[6];
-      dst[offset + 5] = split[6];
-      dst[offset + 6] = split[6];
+    // Use output from chopCubicAt2 as next iteration's source (matches Rust).
+    srcWork = {dst[offset + 0], dst[offset + 1], dst[offset + 2], dst[offset + 3]};
+
+    // Renormalize t using f32 valid_unit_divide (matches Rust).
+    auto nextT = validUnitDivideF32(
+        tValues[i + 1].get() - tValues[i].get(),
+        1.0f - tValues[i].get());
+    if (!nextT.has_value()) {
+      dst[offset + 4] = srcWork[3];
+      dst[offset + 5] = srcWork[3];
+      dst[offset + 6] = srcWork[3];
       break;
     }
-    nextT = normalized;
-    srcWork = {split[3], split[4], split[5], split[6]};
+    t = *nextT;
   }
 
   return tValues.size();
 }
 
 std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
-  auto tValuesF = newTValues();
+  auto tValues = newTValues();
   const auto rawCount =
-      findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValuesF.data());
-  auto tValues = std::array<double, 3>{};
-  for (std::size_t i = 0; i < rawCount; ++i) {
-    tValues[i] = static_cast<double>(tValuesF[i].get());
-  }
+      findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const double>(tValues.data(), rawCount),
+                                std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].x = dst[3].x;
@@ -284,15 +301,11 @@ std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>&
 }
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
-  auto tValuesF = newTValues();
+  auto tValues = newTValues();
   const auto rawCount =
-      findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
-  auto tValues = std::array<double, 3>{};
-  for (std::size_t i = 0; i < rawCount; ++i) {
-    tValues[i] = static_cast<double>(tValuesF[i].get());
-  }
+      findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const double>(tValues.data(), rawCount),
+                                std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].y = dst[3].y;
@@ -306,18 +319,21 @@ std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>&
 }
 
 std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
-                                    std::array<double, 3>& tValues,
+                                    std::array<NormalizedF32Exclusive, 3>& tValues,
                                     std::span<Point> dst) {
   if (dst.size() < 4) {
     return 0;
   }
 
-  auto roots = std::array<double, 3>{};
-  const auto rootCount = findMaxCurvatureRoots(src, roots);
+  // Match Rust: use f32 root-finding (findCubicMaxCurvatureTs / solve_cubic_poly)
+  // NOT the f64 findMaxCurvatureRoots / cubic64::rootsValidT path.
+  auto roots = std::array<NormalizedF32, 3>{
+      NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
+  const auto rootCount = findCubicMaxCurvatureTs(src.data(), roots.data());
   std::size_t count = 0;
   for (std::size_t i = 0; i < rootCount; ++i) {
-    if (roots[i] > 0.0 && roots[i] < 1.0) {
-      tValues[count] = roots[i];
+    if (roots[i].get() > 0.0f && roots[i].get() < 1.0f) {
+      tValues[count] = NormalizedF32Exclusive::newBounded(roots[i].get());
       ++count;
     }
   }
@@ -331,15 +347,15 @@ std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
   }
 
   return 1 + chopCubicAt(std::span<const Point, 4>(src),
-                         std::span<const double>(tValues.data(), count),
+                         std::span<const NormalizedF32Exclusive>(tValues.data(), count),
                          dst);
 }
 
-bool chopMonoQuadAtX(std::array<Point, 3> src, float x, double& t) {
+bool chopMonoQuadAtX(std::array<Point, 3> src, float x, float& t) {
   return chopMonoQuadAt(src, x, true, t);
 }
 
-bool chopMonoQuadAtY(std::array<Point, 3> src, float y, double& t) {
+bool chopMonoQuadAtY(std::array<Point, 3> src, float y, float& t) {
   return chopMonoQuadAt(src, y, false, t);
 }
 
@@ -412,13 +428,11 @@ struct CubicCoeff {
 };
 
 Point evalCubicDerivative(const Point src[4], NormalizedF32 t) {
-  // Derivative: 3[(b-a) + 2(a-2b+c)t + (d+3(b-c)-a)t^2]
   float p0x = src[0].x, p0y = src[0].y;
   float p1x = src[1].x, p1y = src[1].y;
   float p2x = src[2].x, p2y = src[2].y;
   float p3x = src[3].x, p3y = src[3].y;
 
-  // Use QuadCoeff for derivative
   float ax = p3x + 3.0f * (p1x - p2x) - p0x;
   float ay = p3y + 3.0f * (p1y - p2y) - p0y;
   float bx = 2.0f * (p2x - 2.0f * p1x + p0x);
@@ -428,19 +442,6 @@ Point evalCubicDerivative(const Point src[4], NormalizedF32 t) {
 
   float tv = t.get();
   return Point::fromXy((ax * tv + bx) * tv + cx, (ay * tv + by) * tv + cy);
-}
-
-std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer,
-                                                         float denom) {
-  if (numer < 0.0f) {
-    numer = -numer;
-    denom = -denom;
-  }
-  if (denom == 0.0f || numer == 0.0f || numer >= denom) {
-    return std::nullopt;
-  }
-  float r = numer / denom;
-  return NormalizedF32Exclusive::create(r);
 }
 
 // formulate_f1_dot_f2 (float variant for cubic max curvature)
@@ -755,10 +756,25 @@ void Conic::chop(Conic dst[2]) const {
   float newW = std::sqrt(0.5f + weight * 0.5f);
 
   Point wp1 = points[1].scaled(weight);
-  Point m = Point::fromXy((points[0].x + 2.0f * wp1.x + points[2].x) * scale *
+  Point m = Point::fromXy((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale *
                                0.5f,
-                           (points[0].y + 2.0f * wp1.y + points[2].y) * scale *
+                           (points[0].y + (wp1.y + wp1.y) + points[2].y) * scale *
                                0.5f);
+
+  // Match Rust: if m is not finite, recompute using f64 for precision.
+  if (!std::isfinite(m.x) || !std::isfinite(m.y)) {
+    double wD = static_cast<double>(weight);
+    double w2 = wD * 2.0;
+    double scaleHalf = 1.0 / (1.0 + wD) * 0.5;
+    m.x = static_cast<float>(
+        (static_cast<double>(points[0].x) + w2 * static_cast<double>(points[1].x) +
+         static_cast<double>(points[2].x)) *
+        scaleHalf);
+    m.y = static_cast<float>(
+        (static_cast<double>(points[0].y) + w2 * static_cast<double>(points[1].y) +
+         static_cast<double>(points[2].y)) *
+        scaleHalf);
+  }
 
   dst[0].points[0] = points[0];
   dst[0].points[1] = Point::fromXy((points[0].x + wp1.x) * scale,
@@ -776,8 +792,11 @@ void Conic::chop(Conic dst[2]) const {
 std::optional<std::uint8_t> Conic::computeQuadPow2(float tolerance) const {
   if (tolerance < 0.0f || !std::isfinite(tolerance)) return std::nullopt;
 
-  if (!(weight > 0.0f)) return std::nullopt;
-  if (!std::isfinite(weight)) return std::nullopt;
+  if (!std::isfinite(points[0].x) || !std::isfinite(points[0].y) ||
+      !std::isfinite(points[1].x) || !std::isfinite(points[1].y) ||
+      !std::isfinite(points[2].x) || !std::isfinite(points[2].y)) {
+    return std::nullopt;
+  }
 
   float a = weight - 1.0f;
   float k = a / (4.0f * (2.0f + a));
@@ -916,12 +935,14 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
   if (dotVal < 1.0f) {
     Point offCurve = Point::fromXy(lastQ.x + x, lastQ.y + y);
     float cosThetaOver2 = std::sqrt((1.0f + dotVal) / 2.0f);
-    if (cosThetaOver2 > 0.0f) {
-      offCurve.setLength(1.0f / cosThetaOver2);
-    }
-    // Check if lastQ and offCurve are not almost equal
-    if (std::abs(lastQ.x - offCurve.x) > kNearlyZero ||
-        std::abs(lastQ.y - offCurve.y) > kNearlyZero) {
+    offCurve.setLength(1.0f / cosThetaOver2);
+    // Match Rust: !last_q.almost_equal(off_curve)
+    // almost_equal returns true when the diff vector can't normalize
+    // (both components zero or non-finite). We add conic when NOT almost_equal.
+    Point diff = Point::fromXy(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
+    bool canNormalize = std::isfinite(diff.x) && std::isfinite(diff.y) &&
+                        (diff.x != 0.0f || diff.y != 0.0f);
+    if (canNormalize) {
       dst[conicCount] =
           Conic::create(lastQ, offCurve, finalPt, cosThetaOver2);
       conicCount++;

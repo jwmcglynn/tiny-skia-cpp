@@ -5,6 +5,7 @@
 #include "tiny_skia/pipeline/Highp.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
+#include "tiny_skia/Math.h"
 #include "tiny_skia/Pixmap.h"
 
 #include <algorithm>
@@ -712,7 +713,7 @@ inline float srgb_expand_scalar(float x) {
   if (x <= 0.04045f) {
     return x / 12.92f;
   }
-  return std::pow((x + 0.055f) / 1.055f, 2.4f);
+  return approxPowf((x + 0.055f) / 1.055f, 2.4f);
 }
 
 /// sRGB compress: sRGB -> linear
@@ -720,7 +721,7 @@ inline float srgb_compress_scalar(float x) {
   if (x <= 0.0031308f) {
     return x * 12.92f;
   }
-  return std::pow(x, 1.0f / 2.4f) * 1.055f - 0.055f;
+  return approxPowf(x, 0.416666666f) * 1.055f - 0.055f;
 }
 
 /// Bitwise AND a float with a uint32 mask (reinterpret cast).
@@ -1306,27 +1307,27 @@ void gamma_compress_2(Pipeline& pipeline) {
 
 void gamma_expand_22(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = std::pow(pipeline.r[i], 2.2f);
-    pipeline.g[i] = std::pow(pipeline.g[i], 2.2f);
-    pipeline.b[i] = std::pow(pipeline.b[i], 2.2f);
+    pipeline.r[i] = approxPowf(pipeline.r[i], 2.2f);
+    pipeline.g[i] = approxPowf(pipeline.g[i], 2.2f);
+    pipeline.b[i] = approxPowf(pipeline.b[i], 2.2f);
   }
   pipeline.nextStage();
 }
 
 void gamma_expand_dst_22(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.dr[i] = std::pow(pipeline.dr[i], 2.2f);
-    pipeline.dg[i] = std::pow(pipeline.dg[i], 2.2f);
-    pipeline.db[i] = std::pow(pipeline.db[i], 2.2f);
+    pipeline.dr[i] = approxPowf(pipeline.dr[i], 2.2f);
+    pipeline.dg[i] = approxPowf(pipeline.dg[i], 2.2f);
+    pipeline.db[i] = approxPowf(pipeline.db[i], 2.2f);
   }
   pipeline.nextStage();
 }
 
 void gamma_compress_22(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = std::pow(pipeline.r[i], 0.45454545f);
-    pipeline.g[i] = std::pow(pipeline.g[i], 0.45454545f);
-    pipeline.b[i] = std::pow(pipeline.b[i], 0.45454545f);
+    pipeline.r[i] = approxPowf(pipeline.r[i], 0.45454545f);
+    pipeline.g[i] = approxPowf(pipeline.g[i], 0.45454545f);
+    pipeline.b[i] = approxPowf(pipeline.b[i], 0.45454545f);
   }
   pipeline.nextStage();
 }

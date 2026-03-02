@@ -5,7 +5,7 @@
 namespace tiny_skia::scan {
 
 void fillRect(const Rect& rect, const ScreenIntRect& clip, Blitter& blitter) {
-  const auto rounded = rect.roundOut();
+  const auto rounded = rect.round();
   if (!rounded.has_value()) {
     return;
   }

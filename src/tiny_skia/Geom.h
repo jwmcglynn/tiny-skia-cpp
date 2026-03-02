@@ -179,6 +179,9 @@ class Rect {
   constexpr bool operator==(const Rect&) const = default;
 
   [[nodiscard]] std::optional<IntRect> roundOut() const;
+  /// Rounds to nearest integer using Rust's saturate_round semantics:
+  /// floor(x) + 0.5, then truncate to int.
+  [[nodiscard]] std::optional<IntRect> round() const;
 
  private:
   constexpr Rect(float left, float top, float right, float bottom)

@@ -24,15 +24,20 @@ struct Point {
   }
 
   [[nodiscard]] float length() const {
-    return std::sqrt(x * x + y * y);
+    // Match Rust: use f32 normally, fall back to f64 only on overflow.
+    float mag2 = x * x + y * y;
+    if (std::isfinite(mag2)) {
+      return std::sqrt(mag2);
+    }
+    double xx = x, yy = y;
+    return static_cast<float>(std::sqrt(xx * xx + yy * yy));
   }
 
   [[nodiscard]] float lengthSqd() const { return x * x + y * y; }
 
   [[nodiscard]] float distance(const Point& other) const {
-    float dx = x - other.x;
-    float dy = y - other.y;
-    return std::sqrt(dx * dx + dy * dy);
+    // Match Rust: subtract in f32, then call length().
+    return Point{x - other.x, y - other.y}.length();
   }
 
   [[nodiscard]] float distanceToSqd(const Point& other) const {
@@ -64,14 +69,18 @@ struct Point {
   }
 
   bool setLength(float len) {
-    float mag = length();
-    if (mag <= 0.0f || !std::isfinite(mag)) {
+    // Match Rust set_point_length: use f64 for the scale computation.
+    double xx = x, yy = y;
+    double dmag = std::sqrt(xx * xx + yy * yy);
+    double dscale = static_cast<double>(len) / dmag;
+    x *= static_cast<float>(dscale);
+    y *= static_cast<float>(dscale);
+    if (!std::isfinite(x) || !std::isfinite(y) || (x == 0.0f && y == 0.0f)) {
+      x = 0.0f;
+      y = 0.0f;
       return false;
     }
-    float scale = len / mag;
-    x *= scale;
-    y *= scale;
-    return std::isfinite(x) && std::isfinite(y);
+    return true;
   }
 
   void scale(float factor) {

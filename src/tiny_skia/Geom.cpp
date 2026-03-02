@@ -187,6 +187,31 @@ std::optional<IntRect> Rect::roundOut() const {
       static_cast<std::uint32_t>(height));
 }
 
+std::optional<IntRect> Rect::round() const {
+  // Match Rust's saturate_round: (floor(x) + 0.5) as i32 (truncation toward zero).
+  auto saturateRound = [](float x) -> std::int32_t {
+    return static_cast<std::int32_t>(std::floor(x) + 0.5f);
+  };
+
+  const auto left = saturateRound(left_);
+  const auto top = saturateRound(top_);
+  const auto right = saturateRound(right_);
+  const auto bottom = saturateRound(bottom_);
+
+  const auto width = std::max<std::int64_t>(1, static_cast<std::int64_t>(right - left));
+  const auto height = std::max<std::int64_t>(1, static_cast<std::int64_t>(bottom - top));
+  if (width > std::numeric_limits<std::uint32_t>::max() ||
+      height > std::numeric_limits<std::uint32_t>::max()) {
+    return std::nullopt;
+  }
+
+  return IntRect::fromXYWH(
+      left,
+      top,
+      static_cast<std::uint32_t>(width),
+      static_cast<std::uint32_t>(height));
+}
+
 std::optional<ScreenIntRect> intRectToScreen(const IntRect& rect) {
   return rect.toScreenIntRect();
 }

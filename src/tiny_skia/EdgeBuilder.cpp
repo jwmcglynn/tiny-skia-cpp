@@ -26,12 +26,15 @@ bool isNotMonotonic(float a, float b, float c) {
 }
 
 void chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
-  const auto p01 = Point{src[0].x + (src[1].x - src[0].x) * t,
-                         src[0].y + (src[1].y - src[0].y) * t};
-  const auto p12 = Point{src[1].x + (src[2].x - src[1].x) * t,
-                         src[1].y + (src[2].y - src[1].y) * t};
-  const auto p012 = Point{
-      p01.x + (p12.x - p01.x) * t, p01.y + (p12.y - p01.y) * t};
+  auto interp = [](float v0, float v1, float tt) -> float {
+    return v0 + (v1 - v0) * tt;
+  };
+  const auto p01 = Point{interp(src[0].x, src[1].x, t),
+                         interp(src[0].y, src[1].y, t)};
+  const auto p12 = Point{interp(src[1].x, src[2].x, t),
+                         interp(src[1].y, src[2].y, t)};
+  const auto p012 = Point{interp(p01.x, p12.x, t),
+                          interp(p01.y, p12.y, t)};
 
   dst[0] = src[0];
   dst[1] = p01;
@@ -42,69 +45,85 @@ void chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
 
 std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& dst) {
   const auto a = src[0].y;
-  const auto b = src[1].y;
+  auto b = src[1].y;
   const auto c = src[2].y;
 
-  if (!isNotMonotonic(a, b, c)) {
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    return 0;
-  }
-
-  const auto numerator = static_cast<double>(a - b);
-  const auto denominator = static_cast<double>(a - b - b + c);
-  if (!std::isinf(denominator) && std::abs(denominator) >= std::numeric_limits<float>::epsilon()) {
-    const auto t = numerator / denominator;
-    if (t > 0.0 && t < 1.0) {
-      chopQuadAt(src, static_cast<float>(t), dst);
-      dst[1].y = dst[2].y;
-      dst[3].y = dst[2].y;
-      return 1;
+  if (isNotMonotonic(a, b, c)) {
+    // Match Rust: use f32 valid_unit_divide (not double).
+    float numer = a - b;
+    float denom = a - b - b + c;
+    if (numer < 0.0f) {
+      numer = -numer;
+      denom = -denom;
     }
+    if (denom != 0.0f && numer != 0.0f && numer < denom) {
+      float t = numer / denom;
+      if (t > 0.0f && t < 1.0f) {
+        chopQuadAt(src, t, dst);
+        dst[1].y = dst[2].y;
+        dst[3].y = dst[2].y;
+        return 1;
+      }
+    }
+
+    // Match Rust: only modify Y coordinate, not X.
+    b = std::abs(a - b) < std::abs(b - c) ? a : c;
   }
 
-  const auto bIsFirst = std::abs(a - b) < std::abs(b - c);
-  src[1] = bIsFirst ? src[0] : src[2];
-  dst[0] = src[0];
-  dst[1] = src[1];
-  dst[2] = src[2];
+  dst[0] = Point{src[0].x, a};
+  dst[1] = Point{src[1].x, b};
+  dst[2] = Point{src[2].x, c};
   return 0;
 }
 
-void interpCubicAt(std::array<Point, 4> src, double t, std::array<Point, 7>& dst) {
-  const auto ab = Point{src[0].x + static_cast<float>((src[1].x - src[0].x) * t),
-                       src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
-  const auto bc = Point{src[1].x + static_cast<float>((src[2].x - src[1].x) * t),
-                       src[1].y + static_cast<float>((src[2].y - src[1].y) * t)};
-  const auto cd = Point{src[2].x + static_cast<float>((src[3].x - src[2].x) * t),
-                       src[2].y + static_cast<float>((src[3].y - src[2].y) * t)};
-  const auto abc = Point{ab.x + static_cast<float>((bc.x - ab.x) * t),
-                        ab.y + static_cast<float>((bc.y - ab.y) * t)};
-  const auto bcd = Point{bc.x + static_cast<float>((cd.x - bc.x) * t),
-                        bc.y + static_cast<float>((cd.y - bc.y) * t)};
-  const auto abcd = Point{abc.x + static_cast<float>((bcd.x - abc.x) * t),
-                         abc.y + static_cast<float>((bcd.y - abc.y) * t)};
+// Pure f32 de Casteljau's, matching Rust's chop_cubic_at2.
+void chopCubicAt2Local(std::array<Point, 4> src, float t, std::array<Point, 7>& dst) {
+  auto interp = [](float v0, float v1, float tt) -> float {
+    return v0 + (v1 - v0) * tt;
+  };
+  float abx = interp(src[0].x, src[1].x, t);
+  float aby = interp(src[0].y, src[1].y, t);
+  float bcx = interp(src[1].x, src[2].x, t);
+  float bcy = interp(src[1].y, src[2].y, t);
+  float cdx = interp(src[2].x, src[3].x, t);
+  float cdy = interp(src[2].y, src[3].y, t);
+  float abcx = interp(abx, bcx, t);
+  float abcy = interp(aby, bcy, t);
+  float bcdx = interp(bcx, cdx, t);
+  float bcdy = interp(bcy, cdy, t);
+  float abcdx = interp(abcx, bcdx, t);
+  float abcdy = interp(abcy, bcdy, t);
 
   dst[0] = src[0];
-  dst[1] = ab;
-  dst[2] = abc;
-  dst[3] = abcd;
-  dst[4] = bcd;
-  dst[5] = cd;
+  dst[1] = Point{abx, aby};
+  dst[2] = Point{abcx, abcy};
+  dst[3] = Point{abcdx, abcdy};
+  dst[4] = Point{bcdx, bcdy};
+  dst[5] = Point{cdx, cdy};
   dst[6] = src[3];
 }
 
-bool validUnitDivide(double numerator, double denominator, double& normalized) {
-  if (denominator <= 0.0) {
+bool validUnitDivideF32Local(float numer, float denom) {
+  if (numer < 0.0f) {
+    numer = -numer;
+    denom = -denom;
+  }
+  if (denom == 0.0f || numer == 0.0f || numer >= denom) {
     return false;
   }
-  normalized = numerator / denominator;
-  return normalized > 0.0 && normalized < 1.0;
+  return true;
+}
+
+float validUnitDivideF32Value(float numer, float denom) {
+  if (numer < 0.0f) {
+    numer = -numer;
+    denom = -denom;
+  }
+  return numer / denom;
 }
 
 std::size_t chopCubicAt(std::array<Point, 4> src,
-                        std::span<const double> tValues,
+                        std::span<const float> tValues,
                         std::array<Point, 10>& dst) {
   if (tValues.empty()) {
     dst[0] = src[0];
@@ -114,11 +133,11 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
     return 0;
   }
 
+  auto t = tValues[0];
   std::size_t offset = 0;
-  auto nextT = tValues[0];
   for (std::size_t i = 0; i < tValues.size(); ++i) {
     auto split = std::array<Point, 7>{};
-    interpCubicAt(src, nextT, split);
+    chopCubicAt2Local(src, t, split);
 
     dst[offset] = split[0];
     dst[offset + 1] = split[1];
@@ -126,7 +145,6 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
     dst[offset + 3] = split[3];
 
     if (i + 1 == tValues.size()) {
-      // Copy remaining points for the last segment
       dst[offset + 4] = split[4];
       dst[offset + 5] = split[5];
       dst[offset + 6] = split[6];
@@ -134,16 +152,18 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
     }
 
     offset += 3;
-    const auto diff = tValues[i + 1] - tValues[i];
-    const auto base = 1.0 - tValues[i];
-    if (!validUnitDivide(diff, base, nextT)) {
+    // Use output from chop as next iteration's source (matches Rust).
+    src = {split[3], split[4], split[5], split[6]};
+
+    float diff = tValues[i + 1] - tValues[i];
+    float base = 1.0f - tValues[i];
+    if (!validUnitDivideF32Local(diff, base)) {
       dst[offset + 4] = split[6];
       dst[offset + 5] = split[6];
       dst[offset + 6] = split[6];
       break;
     }
-
-    src = {split[3], split[4], split[5], split[6]};
+    t = validUnitDivideF32Value(diff, base);
   }
 
   return tValues.size();
@@ -154,11 +174,11 @@ std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>&
   auto rawCount = path_geometry::findCubicExtremaT(
       src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
 
-  auto tValues = std::array<double, 3>{};
+  auto tValues = std::array<float, 3>{};
   for (std::size_t i = 0; i < rawCount; ++i) {
-    tValues[i] = static_cast<double>(tValuesF[i].get());
+    tValues[i] = tValuesF[i].get();
   }
-  auto count = chopCubicAt(src, std::span<const double>{tValues.data(), rawCount}, dst);
+  auto count = chopCubicAt(src, std::span<const float>{tValues.data(), rawCount}, dst);
 
   if (count > 0) {
     dst[2].y = dst[3].y;

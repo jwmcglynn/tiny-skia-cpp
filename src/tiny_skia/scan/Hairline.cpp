@@ -210,13 +210,26 @@ std::uint32_t computeCubicSegments(const std::array<Point, 4>& points) {
   return 1u << kMaxCubicSubdivideLevel;
 }
 
-Point evaluateQuad(const std::array<Point, 3>& points, float t) {
-  const auto oneMinusT = 1.0f - t;
-  return {oneMinusT * oneMinusT * points[0].x + 2.0f * oneMinusT * t * points[1].x +
-              t * t * points[2].x,
-          oneMinusT * oneMinusT * points[0].y + 2.0f * oneMinusT * t * points[1].y +
-              t * t * points[2].y};
-}
+// Quad coefficient representation matching Rust's QuadCoeff.
+struct QuadCoeffLocal {
+  float ax, ay, bx, by, cx, cy;
+
+  static QuadCoeffLocal fromPoints(const std::array<Point, 3>& pts) {
+    return {
+        pts[2].x - 2.0f * pts[1].x + pts[0].x,
+        pts[2].y - 2.0f * pts[1].y + pts[0].y,
+        2.0f * (pts[1].x - pts[0].x),
+        2.0f * (pts[1].y - pts[0].y),
+        pts[0].x,
+        pts[0].y,
+    };
+  }
+
+  Point eval(float t) const {
+    return Point::fromXy((ax * t + bx) * t + cx,
+                         (ay * t + by) * t + cy);
+  }
+};
 
 std::optional<Rect> intRectToRect(const IntRect& rect) {
   return Rect::fromLtrb(static_cast<float>(rect.x()),
@@ -225,15 +238,28 @@ std::optional<Rect> intRectToRect(const IntRect& rect) {
                         static_cast<float>(rect.y()) + rect.height());
 }
 
-Point evaluateCubic(const std::array<Point, 4>& points, float t) {
-  const auto oneMinusT = 1.0f - t;
-  return {oneMinusT * oneMinusT * oneMinusT * points[0].x +
-              3.0f * oneMinusT * oneMinusT * t * points[1].x +
-              3.0f * oneMinusT * t * t * points[2].x + t * t * t * points[3].x,
-          oneMinusT * oneMinusT * oneMinusT * points[0].y +
-              3.0f * oneMinusT * oneMinusT * t * points[1].y +
-              3.0f * oneMinusT * t * t * points[2].y + t * t * t * points[3].y};
-}
+// Cubic coefficient representation matching Rust's CubicCoeff.
+struct CubicCoeffLocal {
+  float ax, ay, bx, by, cx, cy, dx, dy;
+
+  static CubicCoeffLocal fromPoints(const std::array<Point, 4>& pts) {
+    return {
+        pts[3].x + 3.0f * (pts[1].x - pts[2].x) - pts[0].x,
+        pts[3].y + 3.0f * (pts[1].y - pts[2].y) - pts[0].y,
+        3.0f * (pts[2].x - 2.0f * pts[1].x + pts[0].x),
+        3.0f * (pts[2].y - 2.0f * pts[1].y + pts[0].y),
+        3.0f * (pts[1].x - pts[0].x),
+        3.0f * (pts[1].y - pts[0].y),
+        pts[0].x,
+        pts[0].y,
+    };
+  }
+
+  Point eval(float t) const {
+    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx,
+                         ((ay * t + by) * t + cy) * t + dy);
+  }
+};
 
 bool lt90(const Point& left, const Point& pivot, const Point& right) {
   const auto leftVector = subtract(left, pivot);
@@ -283,17 +309,18 @@ void hairQuad2(const std::array<Point, 3>& points,
     return;
   }
 
+  // Match Rust: use coefficient-based evaluation with incremental t.
+  const auto coeff = QuadCoeffLocal::fromPoints(points);
+  const float dt = 1.0f / static_cast<float>(lines);
+  float t = 0.0f;
+
   auto output = std::array<Point, kMaxPoints>{};
   output[0] = points[0];
   for (std::uint32_t i = 1; i < lines; ++i) {
-    const auto t = static_cast<float>(i) / static_cast<float>(lines);
-    output[i] = evaluateQuad(points, t);
+    t += dt;
+    output[i] = coeff.eval(t);
   }
   output[lines] = points[2];
-
-  if (!pointsFinite(std::span<const Point>{output.data(), lines + 1})) {
-    return;
-  }
 
   lineProc(std::span<const Point>{output.data(), lines + 1}, clip, blitter);
 }
@@ -304,7 +331,9 @@ void hairCubic2(const std::array<Point, 4>& points,
                Blitter& blitter) {
   const auto lines = computeCubicSegments(points);
   if (lines == 1u) {
-    lineProc(std::span<const Point>{points.data(), 2}, clip, blitter);
+    // Draw line from start to END point (not control point 1).
+    const auto line = std::array<Point, 2>{points[0], points[3]};
+    lineProc(std::span<const Point>{line.data(), 2}, clip, blitter);
     return;
   }
 
@@ -313,18 +342,23 @@ void hairCubic2(const std::array<Point, 4>& points,
     return;
   }
 
+  // Match Rust: use coefficient-based evaluation with incremental t.
+  const auto coeff = CubicCoeffLocal::fromPoints(points);
+  const float dt = 1.0f / static_cast<float>(lines);
+  float t = 0.0f;
+
   auto output = std::array<Point, kMaxPoints>{};
   output[0] = points[0];
   for (std::uint32_t i = 1; i < lines; ++i) {
-    const auto t = static_cast<float>(i) / static_cast<float>(lines);
-    output[i] = evaluateCubic(points, t);
+    t += dt;
+    output[i] = coeff.eval(t);
   }
-  output[lines] = points[3];
 
-  if (!pointsFinite(std::span<const Point>{output.data(), lines + 1})) {
+  if (!pointsFinite(std::span<const Point>{output.data(), lines})) {
     return;
   }
 
+  output[lines] = points[3];
   lineProc(std::span<const Point>{output.data(), lines + 1}, clip, blitter);
 }
 
@@ -375,7 +409,8 @@ void hairCubic(std::array<Point, 4> points,
   }
 
   auto split = std::array<Point, 13>{};
-  auto tValues = std::array<double, 3>{};
+  auto tValues = std::array<NormalizedF32Exclusive, 3>{
+      NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
   const auto count =
       path_geometry::chopCubicAtMaxCurvature(points, tValues, std::span<Point>{split});
   for (std::size_t i = 0; i < count; ++i) {

@@ -18,7 +18,7 @@ namespace tiny_skia::path_geometry {
 
 // --- Existing functions (used by edge builder / scan) ---
 
-std::size_t chopQuadAt(std::array<Point, 3> src, double t,
+std::size_t chopQuadAt(std::array<Point, 3> src, float t,
                        std::array<Point, 5>& dst);
 
 std::size_t chopQuadAtXExtrema(std::array<Point, 3> src,
@@ -28,7 +28,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src,
                                std::array<Point, 5>& dst);
 
 std::size_t chopCubicAt(std::span<const Point> src,
-                        std::span<const double> tValues,
+                        std::span<const NormalizedF32Exclusive> tValues,
                         std::span<Point> dst);
 
 std::size_t chopCubicAtXExtrema(std::array<Point, 4> src,
@@ -38,12 +38,12 @@ std::size_t chopCubicAtYExtrema(std::array<Point, 4> src,
                                 std::array<Point, 10>& dst);
 
 std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
-                                    std::array<double, 3>& tValues,
+                                    std::array<NormalizedF32Exclusive, 3>& tValues,
                                     std::span<Point> dst);
 
-bool chopMonoQuadAtX(std::array<Point, 3> src, float x, double& t);
+bool chopMonoQuadAtX(std::array<Point, 3> src, float x, float& t);
 
-bool chopMonoQuadAtY(std::array<Point, 3> src, float y, double& t);
+bool chopMonoQuadAtY(std::array<Point, 3> src, float y, float& t);
 
 bool chopMonoCubicAtX(std::array<Point, 4> src, float x,
                       std::array<Point, 7>& dst);

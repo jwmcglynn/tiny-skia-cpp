@@ -53,7 +53,7 @@ std::optional<Rect> boundsFromPoints(const std::array<Point, N>& points) {
 }
 
 void chopQuadInY(const Rect& clip, std::array<Point, 3>& pts) {
-  double t = 0.0;
+  float t = 0.0f;
   auto tmp = std::array<Point, 5>{};
 
   if (pts[0].y < clip.top()) {
@@ -165,11 +165,9 @@ void chopMonoCubicAtXFallback(const std::array<Point, 4>& src, float x, std::arr
     return;
   }
 
-  const auto tValues = std::array<double, 1>{
-      monoCubicClosestT(std::array<float, 4>{src[0].x, src[1].x, src[2].x, src[3].x}, x)};
-  path_geometry::chopCubicAt(std::span<const Point, 4>(src),
-                             std::span<const double>(tValues.data(), tValues.size()),
-                             std::span<Point, 7>(dst));
+  const auto t = NormalizedF32Exclusive::newBounded(static_cast<float>(
+      monoCubicClosestT(std::array<float, 4>{src[0].x, src[1].x, src[2].x, src[3].x}, x)));
+  path_geometry::chopCubicAt2(src.data(), t, dst.data());
 }
 
 void chopMonoCubicAtYFallback(const std::array<Point, 4>& src, float y, std::array<Point, 7>& dst) {
@@ -177,11 +175,9 @@ void chopMonoCubicAtYFallback(const std::array<Point, 4>& src, float y, std::arr
     return;
   }
 
-  const auto tValues = std::array<double, 1>{
-      monoCubicClosestT(std::array<float, 4>{src[0].y, src[1].y, src[2].y, src[3].y}, y)};
-  path_geometry::chopCubicAt(std::span<const Point, 4>(src),
-                             std::span<const double>(tValues.data(), tValues.size()),
-                             std::span<Point, 7>(dst));
+  const auto t = NormalizedF32Exclusive::newBounded(static_cast<float>(
+      monoCubicClosestT(std::array<float, 4>{src[0].y, src[1].y, src[2].y, src[3].y}, y)));
+  path_geometry::chopCubicAt2(src.data(), t, dst.data());
 }
 
 }  // namespace
@@ -279,7 +275,7 @@ void EdgeClipper::clipMonoQuad(const std::array<Point, 3>& src) {
     return;
   }
 
-  auto t = 0.0;
+  auto t = 0.0f;
   auto tmp = std::array<Point, 5>{};
   if (pts[0].x < clip_.left()) {
     if (path_geometry::chopMonoQuadAtX(pts, clip_.left(), t)) {
