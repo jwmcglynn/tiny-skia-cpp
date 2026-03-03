@@ -1,16 +1,20 @@
 """Helpers for generating paired native/scalar cc_test targets."""
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//:bazel/simd_transition.bzl", "simd_mode_dep")
 
 
-def _rewrite_dep(dep, mode):
-    if dep == "//src:tiny_skia_lib" or dep == "@//src:tiny_skia_lib":
-        return "//src:tiny_skia_lib_%s" % mode
-    return dep
-
-
-def _rewrite_deps(deps, mode):
-    return [_rewrite_dep(dep, mode) for dep in deps]
+def _transition_deps(name, deps, mode):
+    transitioned = []
+    for i, dep in enumerate(deps):
+        transition_name = "%s_%s_dep_%d" % (name, mode, i)
+        simd_mode_dep(
+            name = transition_name,
+            dep = dep,
+            simd_mode = mode,
+        )
+        transitioned.append(":" + transition_name)
+    return transitioned
 
 
 def tiny_skia_dual_mode_cc_test(
@@ -27,7 +31,7 @@ def tiny_skia_dual_mode_cc_test(
     cc_test(
         name = native_name,
         srcs = srcs,
-        deps = _rewrite_deps(deps, "native"),
+        deps = _transition_deps(name, deps, "native"),
         copts = copts,
         data = data,
         tags = tags + ["simd_mode=native"],
@@ -37,7 +41,7 @@ def tiny_skia_dual_mode_cc_test(
     cc_test(
         name = scalar_name,
         srcs = srcs,
-        deps = _rewrite_deps(deps, "scalar"),
+        deps = _transition_deps(name, deps, "scalar"),
         copts = copts,
         data = data,
         tags = tags + ["simd_mode=scalar"],

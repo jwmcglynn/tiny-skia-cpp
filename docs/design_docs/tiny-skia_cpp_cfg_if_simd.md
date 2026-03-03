@@ -85,6 +85,8 @@ M3 host complete)
 - [ ] Milestone 3: Add dual-mode tests and gate them
   - [x] Step 1: Add a macro/rule to generate paired test targets (`_native`, `_scalar`) from
     one test definition using transitioned deps.
+  - [x] Step 1a: Transition dual-mode direct dep edges so each test target resolves one SIMD
+    configuration and avoids mixed-config link edges.
   - [x] Step 2a: Apply dual-mode coverage to wide tests.
   - [x] Step 2b: Extend dual-mode coverage to pipeline/core integration tests.
   - [ ] Step 3: Add native/scalar test suites for host toolchains and wasm-target test suite
@@ -171,6 +173,18 @@ to `x86_64` and `aarch64`.
   - `bazel test //...`
   - `bazel test //tests:tiny_skia_dual_mode_suite`
   - `bazel test //tests:tiny_skia_wasm_simd_suite`
+
+## Recent Update: 2026-03-03 (Dual-Mode Transition Linkage Hardening)
+
+- Fixed a Bazel analysis failure where dual-mode scalar/native tests linked the same C++ and
+  gtest dynamic libraries from mixed configurations (`k8-fastbuild-ST-*` and `k8-fastbuild`).
+- Simplified dual-mode test wiring by transitioning every direct `dep` edge in
+  `bazel/simd_test.bzl` for both `native` and `scalar` targets.
+- Removed special-case label rewrites and no longer require dedicated transitioned wrappers for
+  `gtest`, `gtest_main`, or test-utils helper libraries.
+- Validation run after this update:
+  - `bazel build //...` passed
+  - `bazel test //...` passed
 
 ## Recent Update: 2026-03-02 (AArch64 NEON Materialization Audit)
 
