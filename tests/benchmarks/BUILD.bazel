@@ -28,3 +28,19 @@ cc_binary(
     copts = ["-std=c++20"],
     deps = _COMMON_DEPS + ["//src:tiny_skia_lib_scalar"],
 )
+
+sh_test(
+    name = "render_perf_regression_test",
+    srcs = ["run_render_perf_regression_test.sh"],
+    args = [
+        "$(COMPILATION_MODE)",
+        "$(location :render_perf_bench_native)",
+        "$(location :render_perf_bench_scalar)",
+    ],
+    data = [
+        ":render_perf_bench_native",
+        ":render_perf_bench_scalar",
+    ],
+    size = "large",
+    tags = ["perf_regression"],
+)

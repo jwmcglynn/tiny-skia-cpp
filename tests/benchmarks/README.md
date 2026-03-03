@@ -26,3 +26,20 @@ bazel run -c opt //tests/benchmarks:render_perf_bench_scalar
 This executes both benchmark binaries, writes CSV artifacts under `.benchmarks/`,
 and prints speedup ratios for `FillPath(512x512)` and `FillRect(512x512)`.
 The script runs `bazel run -c opt` by default.
+
+## Run regression guard test
+
+```bash
+bazel test -c opt //tests/benchmarks:render_perf_regression_test
+```
+
+This test uses Google Benchmark binaries as the measurement source and enforces
+architecture-specific low/high watermarks for the same derived ratios that
+`run_render_perf_compare.sh` prints:
+
+- `simd_over_scalar` (`scalar_cpp_ns / native_cpp_ns`)
+- `simd_over_rust` (`rust_avg_ns / native_cpp_ns`)
+
+The guard validates both metrics for `FillPath(512x512)` and `FillRect(512x512)`,
+with architecture-specific watermarks (`arm64`, `x86`) set to a tight ±25% band
+around calibrated baselines.

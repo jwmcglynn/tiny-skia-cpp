@@ -102,6 +102,8 @@ M3 host complete)
     for `simd128` parity checks.
   - [x] Step 4a: Wire host dual-mode suites into regular local validation commands.
   - [ ] Step 4b: Wire wasm SIMD suite into regular CI/local validation commands.
+  - [x] Step 5: Add architecture-aware performance regression guard test with low/high
+    watermarks for native and scalar modes.
 
 ## Requirements and Constraints
 
@@ -334,6 +336,20 @@ to `x86_64` and `aarch64`.
 - Validation run after fix:
   - `bazel build //...` passed
   - `bazel test //...` passed
+
+## Recent Update: 2026-03-03 (Google Benchmark Regression Guard with Relative Watermarks)
+
+- Added benchmark-driven regression guard target
+  `//tests/benchmarks:render_perf_regression_test` backed by
+  `tests/benchmarks/run_render_perf_regression_test.sh`.
+- The guard test runs the same benchmark points and aggregation model as
+  `tests/benchmarks/run_render_perf_compare.sh` (`FillPath/FillRect`, native + scalar + Rust).
+- It validates the same derived ratios for each workload:
+  - `simd_over_scalar = scalar_cpp_ns / native_cpp_ns`
+  - `simd_over_rust = rust_avg_ns / native_cpp_ns`
+- Uses architecture-specific (`arm64`, `x86`) low/high watermarks with a tighter ±25% band
+  around calibrated baselines.
+- Enforced in optimized builds (`-c opt`); non-opt executions are skipped.
 
 ## Alternatives Considered
 
