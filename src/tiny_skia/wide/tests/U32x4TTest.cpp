@@ -34,4 +34,48 @@ TEST(U32x4TTest, BitwiseAndAddOpsArePerLane) {
   EXPECT_THAT((lhs | rhs).lanes(), ElementsAre(0xFFFFFFFFu, 0xFFFFFFFFu, 3u, 30u));
 }
 
+TEST(U32x4TTest, BitwiseXorIsPerLane) {
+  const U32x4T lhs({0xFFFFFFFFu, 0x0F0F0F0Fu, 1u, 10u});
+  const U32x4T rhs({1u, 0xF0F0F0F0u, 2u, 20u});
+
+  EXPECT_THAT((lhs ^ rhs).lanes(),
+              ElementsAre(0xFFFFFFFEu, 0xFFFFFFFFu, 3u, 30u));
+}
+
+TEST(U32x4TTest, CmpNeProducesAllOnesMaskPerLane) {
+  const U32x4T lhs({1, 2, 3, 4});
+  const U32x4T rhs({1, 9, 3, 0});
+
+  EXPECT_THAT(lhs.cmpNe(rhs).lanes(), ElementsAre(0u, UINT32_MAX, 0u, UINT32_MAX));
+}
+
+TEST(U32x4TTest, CmpLtProducesAllOnesMaskPerLane) {
+  const U32x4T lhs({1, 9, 3, 4});
+  const U32x4T rhs({2, 5, 3, 10});
+
+  EXPECT_THAT(lhs.cmpLt(rhs).lanes(), ElementsAre(UINT32_MAX, 0u, 0u, UINT32_MAX));
+}
+
+TEST(U32x4TTest, CmpLeProducesAllOnesMaskPerLane) {
+  const U32x4T lhs({1, 9, 3, 4});
+  const U32x4T rhs({2, 5, 3, 10});
+
+  EXPECT_THAT(lhs.cmpLe(rhs).lanes(),
+              ElementsAre(UINT32_MAX, 0u, UINT32_MAX, UINT32_MAX));
+}
+
+TEST(U32x4TTest, CmpGtProducesAllOnesMaskPerLane) {
+  const U32x4T lhs({1, 9, 3, 4});
+  const U32x4T rhs({2, 5, 3, 10});
+
+  EXPECT_THAT(lhs.cmpGt(rhs).lanes(), ElementsAre(0u, UINT32_MAX, 0u, 0u));
+}
+
+TEST(U32x4TTest, CmpGeProducesAllOnesMaskPerLane) {
+  const U32x4T lhs({1, 9, 3, 4});
+  const U32x4T rhs({2, 5, 3, 10});
+
+  EXPECT_THAT(lhs.cmpGe(rhs).lanes(), ElementsAre(0u, UINT32_MAX, UINT32_MAX, 0u));
+}
+
 }  // namespace

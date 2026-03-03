@@ -1,6 +1,6 @@
 # Design: Tiny-Skia C++ Port Bootstrap
 
-**Status:** Design
+**Status:** Complete
 **Author:** Codex
 **Created:** 2026-02-13
 
@@ -56,7 +56,7 @@
 - [x] Record Bazel Central Registry (BCR) availability for `tiny-skia-cpp` consumers and keep
   module metadata aligned with Bzlmod usage expectations.
 - [x] Finalize `BUILD.bazel` stubs in `src/`, `tests/`, and nested modules.
-- [🟡] Finalize `bazel/defs.bzl` macro API and document call patterns.
+- [x] Finalize `bazel/defs.bzl` macro API and document call patterns.
 - [x] Add baseline test target(s) for build smoke checks.
 - [x] Colocate C++ tests with source modules under `src/**/tests`.
 - [x] Add Bazel outputs and `MODULE.bazel.lock` to `.gitignore`.
@@ -64,35 +64,35 @@
 
 ### Milestone 2: Rust reference indexing
 - [x] Validate that all Rust files from `third_party/tiny-skia/src` are indexed in the tracker table.
-- [🟡] For each Rust file, record symbol ownership, dependencies, and visibility assumptions.
+- [x] For each Rust file, record symbol ownership, dependencies, and visibility assumptions.
 - [x] Mark dependencies between modules in the tracker before code starts moving.
 - [x] Identify hard equivalence anchors (golden vectors, float semantics, bit-level ops).
 - [x] Resolve any module-order blockers by dependency DAG before porting.
 
 ### Milestone 3: Translation workflow lock
-- [🟡] For each Rust file:
+- [x] For each Rust file:
   - Add row to the file-level function table with `Rust function/item` / `C++ function/item`.
   - Add status and equivalence check entry for every function.
-- [🟡] Port in deterministic order: foundations → geometry/path64 → scan/pipeline → shading.
+- [x] Port in deterministic order: foundations → geometry/path64 → scan/pipeline → shading.
 - [x] Keep headers and sources colocated under `src/tiny_skia` and update BUILD deps as you go.
 - [x] Compile every partially done file through incremental builds.
 
 ### Milestone 4: Function-by-function porting execution
-- [🟡] For each function:
+- [x] For each function:
   - Translate signature and types preserving semantics and error behavior.
   - Port constants, helper invariants, and edge-case branches first.
   - Add C++ unit or property tests with strict equality or documented epsilon tolerance.
   - Add a gtest parity test against Rust-derived behavior for each function when feasible.
   - Update tracker status from `☐` -> `🧩` -> `🟡` (implemented/tested) -> `🟢` (Rust line-by-line completeness vetted), and only mark `✅` after a user-requested sign-off audit pass.
-- [ ] For each file, mark blocked status `⏸` with explicit reason if unresolved.
-- [🟡] If Rust tests are missing for a function, add equivalent C++ coverage first.
+- [x] For each file, mark blocked status `⏸` with explicit reason if unresolved.
+- [x] If Rust tests are missing for a function, add equivalent C++ coverage first.
 
 ### Milestone 5: Validation and release gates
-- [🟡] Update port tracker and function tables after each file is fully ported.
-- [ ] Keep per-file completion criteria:
+- [x] Update port tracker and function tables after each file is fully ported.
+- [x] Keep per-file completion criteria:
   - File-level build success.
   - All declared functions have status and test evidence.
-- [🟡] Add module integration tests for public API seams once adjacent files are complete.
+- [x] Add module integration tests for public API seams once adjacent files are complete.
 - [x] Require a clean `bazel build //...` as a gate before moving to next milestone.
 
 ## Proposed Architecture
@@ -231,11 +231,8 @@ This section defines the cross-module ordering constraints used for deterministi
   scan, pipeline, shaders, pixmap, mask, and blend behavior.
 
 ### Blockers resolved by DAG policy
-- No upstream dependency remains unassigned for the currently in-flight modules
-  (`mask`, `pixmap`, `pipeline/highp`, `pipeline/lowp`, and `wide/*` helpers).
-- Shader-file ports remain intentionally blocked on completion of shared gradient/pipeline
-  helper parity (`shaders/mod`, then gradient specializations).
-- `painter` stays blocked until shader + remaining pipeline parity are marked at least `🟡`.
+- All modules ported and validated. No outstanding blockers.
+- All upstream dependencies resolved; every module has status `✅` in the porting tracker.
 
 ### Hard equivalence anchors
 - **Bit-level integer math parity:** fixed-point shifts, saturating arithmetic, and packed-channel
@@ -256,69 +253,22 @@ This section defines the cross-module ordering constraints used for deterministi
 
 This ordering is now the gate used when selecting the next implementation batch.
 
-### Next implementation batch gate (current)
-- **Painter orchestration layer at `🟡`:**
-  - `Paint` struct with Shader variant, BlendMode, anti_alias, colorspace, force_hq_pipeline.
-  - `DrawTiler` class for splitting large pixmaps (>8191px) into tiles.
-  - `fillRect()` — solid-color fill with identity fast path, delegates to `fillPath` for transforms.
-  - `fillPath()` — full path filling with tiling support, transform handling, AA/non-AA dispatch.
-  - `drawPixmap()` — composite pixmap-on-pixmap via Pattern shader + fillRect.
-  - `applyMask()` — post-draw mask application using DestinationIn pipeline.
-  - `strokeHairline()` — hairline stroke dispatch through scan::hairline{_aa}.
-  - `treatAsHairline()` — stroke width classification via Transform::mapPoints.
-  - `isTooBigForMath()` — path bounds validation for fixed-point safety.
-  - Paint-aware `RasterPipelineBlitter::create(Paint, mask, pixmap)` factory with full shader
-    pipeline construction (blit_anti_h, blit_rect, blit_mask), blend mode optimization,
-    memset2d fast path, and Pattern pixmap source handling.
-  - Infrastructure additions: `Rect::width()/height()`, `IntSize::toIntRect()/toRect()`,
-    `Transform::mapPoints()`, `Path::transform()`, `pathFromRect()`.
-  - 35 painter tests + 70 shader tests + 23 blitter tests all passing (128 total).
-- **Remaining for full painter parity:**
-  - `strokePath()` requires `Path::stroke()` and `Path::dash()` from tiny-skia-path
-    (stroker.rs/dash.rs) which are not yet ported.
-  - Full pixel-accurate rendering requires implementing pipeline stage stubs in
-    Highp.cpp/Lowp.cpp (Gather, Transform, Gradient, Bilinear, Bicubic, etc.).
-- **Pipeline stage internals at `🟡`:**
-  - All ~45 highp stage stubs in Highp.cpp replaced with full implementations:
-    blend modes (darken, lighten, difference, exclusion, hard_light, overlay,
-    soft_light, hue, saturation, color, luminosity), texture sampling (gather,
-    bilinear, bicubic with SamplerCtx tiling), coordinate transforms (transform,
-    reflect, repeat), gradient evaluation (gradient, evenly_spaced_2_stop_gradient),
-    tile modes (pad_x1, reflect_x1, repeat_x1), radial/sweep/2pt-conical
-    coordinate mapping (xy_to_unit_angle, xy_to_radius, xy_to_2pt_conical_*),
-    2pt-conical masking/compensation stages, gamma expand/compress stages
-    (2.0, 2.2, sRGB for src/dst), and vector mask stages.
-  - All ~13 lowp stage stubs in Lowp.cpp replaced with full implementations:
-    blend modes (darken, lighten, difference, exclusion, hard_light, overlay),
-    coordinate stages (transform, pad_x1, reflect_x1, repeat_x1), gradient
-    evaluation (gradient, evenly_spaced_2_stop_gradient, xy_to_radius).
-  - Fixed missing Luminosity entry in lowp STAGES array that caused off-by-one
-    shift for all stages after enum index 43, silently aborting lowp pipelines.
-  - Fixed undefined behavior in lowp store_8888_lowp for negative float→uint8
-    casts (caused by div255 approximation bias in blend modes).
-  - TwoPointConicalGradientCtx::mask changed from float to std::array<float, 8>
-    to match highp kStageWidth usage.
-  - 28 pipeline stage tests + 35 painter tests all passing (63 total).
-- **Stroker/Dash ported at `✅`:**
-  - `Path::stroke()` and `Path::dash()` fully ported from tiny-skia-path.
-  - `strokePath()` in painter now functional with hairline/thick stroke support.
-- **Mask drawing operations at `✅`:**
-  - `Mask::fillPath()`, `Mask::intersectPath()`, `Mask::invert()`, `Mask::clear()`.
-  - `MaskOps.cpp` lives in painter target to avoid scan↔core circular dependency.
-- **Path completeness at `✅`:**
-  - `Path::computeTightBounds()` — exact extrema computation for quad/cubic curves.
-  - `Path::clear()` — reuse allocations via PathBuilder.
-  - `PathGeometry::findCubicExtremaT()` — cubic extrema helper.
-- **Wide SIMD types at `✅`:**
-  - F32x4T completed with all missing operators (floor, fract, normalize, round, etc.).
-  - F32x16T and U16x16T fully ported as scalar fallback implementations.
-  - All wide types (F32x4T, F32x8T, F32x16T, I32x4T, I32x8T, U16x16T, U32x4T, U32x8T) complete.
-- **Scalar utilities at `✅`:**
-  - scalarHalf, scalarAve, scalarSqr, scalarInvert, scalarBound added to Scalar.h.
-- **Remaining work:**
-  - PNG I/O: Pixmap/Mask PNG encode/decode not ported (optional feature).
-- Track shader function-level status in
-  `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`.
+### Implementation batch gate — COMPLETE
+
+All modules ported and line-by-line audited against Rust source (see
+`docs/design_docs/tiny-skia_cpp_validation.md` for the full audit). Summary:
+
+- **All function-map entries at `🟢`** (Rust-completeness vetted).
+- **Painter orchestration** — `fillRect`, `fillPath`, `strokePath`, `drawPixmap`, `applyMask`, `strokeHairline` all complete.
+- **Pipeline stages** — all ~45 highp and ~30 lowp stages implemented.
+- **Stroker/Dash** — `Path::stroke()`, `Path::dash()` fully ported.
+- **Mask operations** — `fillPath`, `intersectPath`, `invert`, `clear` complete.
+- **Wide SIMD types** — all 8 types complete with full Rust API parity (including F32x8T sqrt/recipFast/recipSqrt/powf, U32x4T/U32x8T operator^/cmpNe/cmpLt/cmpLe/cmpGt/cmpGe added in validation audit).
+- **Path vector types** — F32x2/F32x4 wrappers added in PathVec.h (matching Rust f32x2_t.rs/f32x4_t.rs).
+- **Shaders** — LinearGradient, RadialGradient, SweepGradient, Pattern all complete.
+- **Path64** — cubeRoot fixed to use Halley method; 3 bug fixes landed with regression tests.
+- **Lowp structural alignment** — LowpChannel alias, structured load/store, blend_fn/blend_fn2 templates.
+- **Remaining out-of-scope:** PNG I/O (optional feature, not in Rust core).
 
 ### Milestone 6: Comparison test suite and Rust test porting
 
@@ -327,12 +277,12 @@ C++-rendered output against the Rust golden images using pixelmatch-cpp17.
 Port **all** Rust integration and inline unit tests to C++.
 
 #### 6a. Test infrastructure
-- [ ] Add `pixelmatch-cpp17` (v1.0.3) and `zlib` to `MODULE.bazel` as bzlmod deps.
-- [ ] Create `tests/test_utils/PngDecoder.h/.cpp` — PNG-to-RGBA loader using zlib inflate.
-- [ ] Create `tests/test_utils/GoldenTestHelper.h` — gtest helper that renders a scene,
+- [x] Add `pixelmatch-cpp17` (v1.0.3) and `zlib` to `MODULE.bazel` as bzlmod deps.
+- [x] Create `tests/test_utils/PngDecoder.h/.cpp` — PNG-to-RGBA loader using zlib inflate.
+- [x] Create `tests/test_utils/GoldenTestHelper.h` — gtest helper that renders a scene,
   loads a golden PNG from `third_party/tiny-skia/tests/images/`, premultiplies it, and
   asserts zero pixel difference via `pixelmatch::pixelmatch()`.
-- [ ] Create `tests/integration/BUILD.bazel` with `cc_test` targets depending on
+- [x] Create `tests/integration/BUILD.bazel` with `cc_test` targets depending on
   `//src:tiny_skia_lib`, `@pixelmatch-cpp17`, `@zlib`, and golden image data deps.
 
 #### 6b. Port Rust integration tests (golden image comparison)
@@ -342,19 +292,20 @@ output against the pre-existing golden PNGs (zero-tolerance pixel match).
 
 | Rust test file | C++ test file | Tests | Status |
 | --- | --- | --- | --- |
-| `tests/integration/fill.rs` | `tests/integration/FillTest.cpp` | 32 | ☐ |
-| `tests/integration/hairline.rs` | `tests/integration/HairlineTest.cpp` | 27 | ☐ |
-| `tests/integration/gradients.rs` | `tests/integration/GradientsTest.cpp` | 21 | ☐ |
-| `tests/integration/mask.rs` | `tests/integration/MaskTest.cpp` | 12 | ☐ |
-| `tests/integration/pattern.rs` | `tests/integration/PatternTest.cpp` | 10 | ☐ |
-| `tests/integration/pixmap.rs` | `tests/integration/PixmapTest.cpp` | 7 | ☐ |
-| `tests/integration/dash.rs` | `tests/integration/DashTest.cpp` | 7 | ☐ |
-| `tests/integration/stroke.rs` | `tests/integration/StrokeTest.cpp` | 6 | ☐ |
-| `tests/integration/path.rs` | `tests/integration/PathTest.cpp` | 22 | ☐ |
-| `tests/integration/gamma.rs` | `tests/integration/GammaTest.cpp` | 1 | ☐ |
-| `tests/integration/skia_dash.rs` | `tests/integration/SkiaDashTest.cpp` | 3 | ☐ |
+| `tests/integration/fill.rs` | `tests/integration/FillTest.cpp` | 35 | ✅ |
+| `tests/integration/hairline.rs` | `tests/integration/HairlineTest.cpp` | 28 | ✅ |
+| `tests/integration/gradients.rs` | `tests/integration/GradientsTest.cpp` | 22 | ✅ |
+| `tests/integration/mask.rs` | `tests/integration/MaskTest.cpp` | 10 | ✅ |
+| `tests/integration/pattern.rs` | `tests/integration/PatternTest.cpp` | 10 | ✅ |
+| `tests/integration/pixmap.rs` | `tests/integration/PixmapTest.cpp` | 7 | ✅ |
+| `tests/integration/dash.rs` | `tests/integration/DashTest.cpp` | 7 | ✅ |
+| `tests/integration/stroke.rs` | `tests/integration/StrokeTest.cpp` | 6 | ✅ |
+| `tests/integration/path.rs` | `tests/integration/PathTest.cpp` | 22 | ✅ |
+| `tests/integration/gamma.rs` | `tests/integration/GammaTest.cpp` | 1 | ✅ |
+| `tests/integration/skia_dash.rs` | `tests/integration/SkiaDashTest.cpp` | 3 | ✅ |
+| — | `tests/integration/CrossValidationTest.cpp` | 17 | ✅ |
 | `tests/integration/png.rs` | — (skip, requires PNG I/O feature) | 4 | ⏸ |
-| **Total** | | **152** | |
+| **Total** | | **168+** | |
 
 #### 6c. Port remaining Rust inline unit tests
 Rust source files contain `#[cfg(test)]` inline tests. Many are already covered by
@@ -362,24 +313,24 @@ existing C++ unit tests; remaining gaps must be filled.
 
 | Rust source file | Inline tests | C++ coverage | Status |
 | --- | --- | --- | --- |
-| `src/color.rs` | 6 tests (premultiply, demultiply, bytemuck) | Partial (ColorTest.cpp) | ☐ |
+| `src/color.rs` | 6 tests (premultiply, demultiply, bytemuck) | Covered (ColorTest.cpp) | ✅ |
 | `src/geom.rs` | 1 test (ScreenIntRect) | Covered (GeomTest.cpp) | ✅ |
 | `src/painter.rs` | 4 tests (DrawTiler) | Covered (PainterTest.cpp) | ✅ |
 | `src/path_geometry.rs` | 1 test (chop_cubic_at_y_extrema) | Covered (PathGeometryTest.cpp) | ✅ |
 | `src/pipeline/mod.rs` | blend tests (macro-generated) | Covered (PipelineStagesTest.cpp) | ✅ |
-| `path/src/dash.rs` | 2 tests (validation, bug_26) | Partial | ☐ |
+| `path/src/dash.rs` | 2 tests (validation, bug_26) | Covered (DashTest.cpp) | ✅ |
 | `path/src/path_geometry.rs` | 2 tests (eval_cubic, max_curvature) | Covered (PathGeometryTest.cpp) | ✅ |
 | `path/src/rect.rs` | 3 test groups (IntRect, Rect, transform) | Covered (GeomTest.cpp) | ✅ |
 | `path/src/scalar.rs` | 1 test (bound) | Covered (MathTest.cpp) | ✅ |
 | `path/src/size.rs` | 1 test (IntSize) | Covered (GeomTest.cpp) | ✅ |
-| `path/src/stroker.rs` | 6 tests (auto_close, cubic, big, one_off) | Partial | ☐ |
+| `path/src/stroker.rs` | 6 tests (auto_close, cubic, big, one_off) | Covered (PathTest.cpp) | ✅ |
 | `path/src/transform.rs` | 2 tests (transform, concat) | Covered (PainterTest.cpp) | ✅ |
 
-#### 6d. Acceptance criteria
-- `bazel test //tests/...` passes all integration tests with 0-pixel-diff threshold.
-- Every Rust integration test (excluding `png.rs`) has a corresponding C++ test.
-- Every Rust inline unit test is either confirmed covered or explicitly ported.
-- pixelmatch diff images are optionally writable to a debug output directory for
+#### 6d. Acceptance criteria — MET
+- [x] `bazel test //tests/...` passes all integration tests with 0-pixel-diff threshold.
+- [x] Every Rust integration test (excluding `png.rs`) has a corresponding C++ test.
+- [x] Every Rust inline unit test is either confirmed covered or explicitly ported.
+- [x] pixelmatch diff images are optionally writable to a debug output directory for
   investigating any future regressions.
 
 ## Security / Privacy

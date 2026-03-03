@@ -152,9 +152,37 @@ TEST(PathTest, StrokeDashBug26DashingRegressionProducesValidPath) {
 
 // ---- Stroker tests (ported from Rust stroker.rs) ----
 
+namespace {
+
+// Helper to assert a PathSegment is a MoveTo with the given coordinates.
+void expectMoveTo(const std::optional<tiny_skia::PathSegment>& seg, float x, float y,
+                  const char* context) {
+  ASSERT_TRUE(seg.has_value()) << context << ": expected MoveTo but got end of segments";
+  EXPECT_EQ(seg->kind, tiny_skia::PathSegment::Kind::MoveTo) << context;
+  EXPECT_NEAR(seg->pts[0].x, x, 1e-4f) << context << " x";
+  EXPECT_NEAR(seg->pts[0].y, y, 1e-4f) << context << " y";
+}
+
+// Helper to assert a PathSegment is a LineTo with the given coordinates.
+void expectLineTo(const std::optional<tiny_skia::PathSegment>& seg, float x, float y,
+                  const char* context) {
+  ASSERT_TRUE(seg.has_value()) << context << ": expected LineTo but got end of segments";
+  EXPECT_EQ(seg->kind, tiny_skia::PathSegment::Kind::LineTo) << context;
+  EXPECT_NEAR(seg->pts[0].x, x, 1e-4f) << context << " x";
+  EXPECT_NEAR(seg->pts[0].y, y, 1e-4f) << context << " y";
+}
+
+// Helper to assert a PathSegment is a Close.
+void expectClose(const std::optional<tiny_skia::PathSegment>& seg, const char* context) {
+  ASSERT_TRUE(seg.has_value()) << context << ": expected Close but got end of segments";
+  EXPECT_EQ(seg->kind, tiny_skia::PathSegment::Kind::Close) << context;
+}
+
+}  // namespace
+
 // Ported from Rust stroker.rs: auto_close
-// Tests that stroking a closed triangle produces expected segment iteration
-// with auto_close enabled. This is a segment-level verification test.
+// Exact segment-level verification of stroking a closed triangle with auto_close.
+// This mirrors the Rust test which checks every segment's coordinates in order.
 TEST(PathTest, StrokerAutoCloseTriangleProducesExpectedSegments) {
   // A triangle.
   tiny_skia::PathBuilder pb;
@@ -172,32 +200,30 @@ TEST(PathTest, StrokerAutoCloseTriangleProducesExpectedSegments) {
   tiny_skia::PathSegmentsIter iter(*strokePath);
   iter.setAutoClose(true);
 
-  // Verify key segments from the stroked result.
-  // The Rust test checks every segment in order; here we verify the path
-  // is non-empty and contains at least a MoveTo and Close among the segments.
-  std::size_t moveCount = 0;
-  std::size_t closeCount = 0;
-  std::size_t lineCount = 0;
-  while (auto seg = iter.next()) {
-    switch (seg->kind) {
-      case tiny_skia::PathSegment::Kind::MoveTo:
-        ++moveCount;
-        break;
-      case tiny_skia::PathSegment::Kind::Close:
-        ++closeCount;
-        break;
-      case tiny_skia::PathSegment::Kind::LineTo:
-        ++lineCount;
-        break;
-      default:
-        break;
-    }
-  }
+  // Outer sub-path (Rust exact values from stroker.rs auto_close test).
+  expectMoveTo(iter.next(), 10.485071f, 9.878732f, "outer[0] MoveTo");
+  expectLineTo(iter.next(), 20.485071f, 49.878731f, "outer[1] LineTo");
+  expectLineTo(iter.next(), 20.0f, 50.0f, "outer[2] LineTo");
+  expectLineTo(iter.next(), 19.514929f, 49.878731f, "outer[3] LineTo");
+  expectLineTo(iter.next(), 29.514929f, 9.878732f, "outer[4] LineTo");
+  expectLineTo(iter.next(), 30.0f, 10.0f, "outer[5] LineTo");
+  expectLineTo(iter.next(), 30.0f, 10.5f, "outer[6] LineTo");
+  expectLineTo(iter.next(), 10.0f, 10.5f, "outer[7] LineTo");
+  expectLineTo(iter.next(), 10.0f, 10.0f, "outer[8] LineTo");
+  expectLineTo(iter.next(), 10.485071f, 9.878732f, "outer[9] LineTo (auto-close)");
+  expectClose(iter.next(), "outer[10] Close");
 
-  // The Rust test expects 2 MoveTo, 2 Close, and multiple LineTo segments.
-  EXPECT_EQ(moveCount, 2u) << "stroked triangle should have 2 sub-paths (outer + inner)";
-  EXPECT_EQ(closeCount, 2u) << "both sub-paths should be closed";
-  EXPECT_GT(lineCount, 0u) << "stroked path should have line segments";
+  // Inner sub-path.
+  expectMoveTo(iter.next(), 9.3596115f, 9.5f, "inner[0] MoveTo");
+  expectLineTo(iter.next(), 30.640388f, 9.5f, "inner[1] LineTo");
+  expectLineTo(iter.next(), 20.485071f, 50.121269f, "inner[2] LineTo");
+  expectLineTo(iter.next(), 19.514929f, 50.121269f, "inner[3] LineTo");
+  expectLineTo(iter.next(), 9.514929f, 10.121268f, "inner[4] LineTo");
+  expectLineTo(iter.next(), 9.3596115f, 9.5f, "inner[5] LineTo (auto-close)");
+  expectClose(iter.next(), "inner[6] Close");
+
+  // No more segments.
+  EXPECT_FALSE(iter.next().has_value()) << "should have no more segments after both sub-paths";
 }
 
 // Ported from Rust stroker.rs: cubic_1

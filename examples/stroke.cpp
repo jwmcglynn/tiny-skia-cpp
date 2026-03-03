@@ -1,0 +1,53 @@
+/// Port of third_party/tiny-skia/examples/stroke.rs
+///
+/// Build and run:
+///   bazel run //examples:stroke
+
+#include <cmath>
+#include <cstdio>
+
+#include "tiny_skia/Painter.h"
+#include "tiny_skia/PathBuilder.h"
+#include "tiny_skia/Pixmap.h"
+#include "tiny_skia/Stroke.h"
+
+#include "PngEncoder.h"
+
+int main() {
+  using namespace tiny_skia;
+
+  Paint paint;
+  paint.setColorRgba8(0, 127, 0, 200);
+  paint.anti_alias = true;
+
+  // Build a star-like polyline path.
+  constexpr float kRadius = 250.0f;
+  constexpr float kCenter = 250.0f;
+
+  PathBuilder pb;
+  pb.moveTo(kCenter + kRadius, kCenter);
+  for (int i = 1; i < 8; ++i) {
+    const float a = 2.6927937f * static_cast<float>(i);
+    pb.lineTo(kCenter + kRadius * std::cos(a),
+              kCenter + kRadius * std::sin(a));
+  }
+  auto path = pb.finish();
+
+  Stroke stroke;
+  stroke.width = 6.0f;
+  stroke.line_cap = LineCap::Round;
+  stroke.dash = StrokeDash::create({20.0f, 40.0f}, 0.0f);
+
+  auto pixmap = Pixmap::fromSize(500, 500);
+  auto mut = pixmap->asMut();
+  strokePath(mut, *path, paint, stroke, Transform::identity());
+
+  auto data = pixmap->takeDemultiplied();
+  if (examples::writePng("stroke.png", data.data(), 500, 500)) {
+    std::printf("Wrote stroke.png (500x500)\n");
+  } else {
+    std::fprintf(stderr, "Failed to write stroke.png\n");
+    return 1;
+  }
+  return 0;
+}

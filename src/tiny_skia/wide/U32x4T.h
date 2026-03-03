@@ -19,6 +19,11 @@ class U32x4T {
   }
 
   [[nodiscard]] U32x4T cmpEq(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T cmpNe(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T cmpLt(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T cmpLe(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T cmpGt(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T cmpGe(const U32x4T& rhs) const;
 
   template <int Rhs>
   [[nodiscard]] U32x4T shl() const {
@@ -42,6 +47,7 @@ class U32x4T {
   [[nodiscard]] U32x4T operator+(const U32x4T& rhs) const;
   [[nodiscard]] U32x4T operator&(const U32x4T& rhs) const;
   [[nodiscard]] U32x4T operator|(const U32x4T& rhs) const;
+  [[nodiscard]] U32x4T operator^(const U32x4T& rhs) const;
 
  private:
   std::array<std::uint32_t, 4> lanes_{};

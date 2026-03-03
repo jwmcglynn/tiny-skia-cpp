@@ -9,18 +9,23 @@
 
 #include <algorithm>
 #include <cmath>
+#include <span>
 
 namespace tiny_skia::pipeline::lowp {
 
+// Maps to Rust's u16x16 — a 16-element channel of lowp pixel values in [0, 255].
+// C++ uses float rather than u16, but the value range and lane count are identical.
+using LowpChannel = std::array<float, kStageWidth>;
+
 struct Pipeline {
-  std::array<float, kStageWidth> r{};
-  std::array<float, kStageWidth> g{};
-  std::array<float, kStageWidth> b{};
-  std::array<float, kStageWidth> a{};
-  std::array<float, kStageWidth> dr{};
-  std::array<float, kStageWidth> dg{};
-  std::array<float, kStageWidth> db{};
-  std::array<float, kStageWidth> da{};
+  LowpChannel r{};
+  LowpChannel g{};
+  LowpChannel b{};
+  LowpChannel a{};
+  LowpChannel dr{};
+  LowpChannel dg{};
+  LowpChannel db{};
+  LowpChannel da{};
 
   const std::array<StageFn, tiny_skia::pipeline::kMaxStages>* functions = nullptr;
   std::size_t index = 0;
@@ -184,159 +189,118 @@ void lerp_1_float(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void clear(Pipeline& pipeline) {
+// --- Blend-mode helpers (mirrors Rust's blend_fn! / blend_fn2! macros) ---
+//
+// blend_fn:  applies F(s, d, sa, da) uniformly to all four channels (r, g, b, a).
+// blend_fn2: applies F(s, d, sa, da) to r, g, b only; alpha uses source_over:
+//            a' = sa + div255(da * (255 - sa)).
+
+template <typename F>
+void blend_fn(Pipeline& pipeline, F&& f) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = 0.0f;
-    pipeline.g[i] = 0.0f;
-    pipeline.b[i] = 0.0f;
-    pipeline.a[i] = 0.0f;
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    pipeline.r[i] = f(pipeline.r[i], pipeline.dr[i], sa, da);
+    pipeline.g[i] = f(pipeline.g[i], pipeline.dg[i], sa, da);
+    pipeline.b[i] = f(pipeline.b[i], pipeline.db[i], sa, da);
+    pipeline.a[i] = f(sa, da, sa, da);
   }
   pipeline.nextStage();
+}
+
+template <typename F>
+void blend_fn2(Pipeline& pipeline, F&& f) {
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
+    const float sa = pipeline.a[i], da = pipeline.da[i];
+    pipeline.r[i] = f(pipeline.r[i], pipeline.dr[i], sa, da);
+    pipeline.g[i] = f(pipeline.g[i], pipeline.dg[i], sa, da);
+    pipeline.b[i] = f(pipeline.b[i], pipeline.db[i], sa, da);
+    pipeline.a[i] = sa + div255(da * (255.0f - sa));
+  }
+  pipeline.nextStage();
+}
+
+void clear(Pipeline& pipeline) {
+  blend_fn(pipeline, [](float /*s*/, float /*d*/, float /*sa*/, float /*da*/) {
+    return 0.0f;
+  });
 }
 
 void destination_atop(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const auto s = pipeline.r[i];
-    const auto d = pipeline.dr[i];
-    const auto sa = pipeline.a[i];
-    const auto da = pipeline.da[i];
-    pipeline.r[i] = div255(d * sa + s * (255.0f - da));
-    pipeline.g[i] = div255(pipeline.g[i] * sa + pipeline.dg[i] * (255.0f - da));
-    pipeline.b[i] = div255(pipeline.b[i] * sa + pipeline.db[i] * (255.0f - da));
-    pipeline.a[i] = div255(da * sa + sa * (255.0f - da));
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float sa, float da) {
+    return div255(d * sa + s * (255.0f - da));
+  });
 }
 
 void destination_in(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const auto sa = pipeline.a[i];
-    pipeline.r[i] = div255(pipeline.dr[i] * sa);
-    pipeline.g[i] = div255(pipeline.dg[i] * sa);
-    pipeline.b[i] = div255(pipeline.db[i] * sa);
-    pipeline.a[i] = div255(pipeline.da[i] * sa);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float /*s*/, float d, float sa, float /*da*/) {
+    return div255(d * sa);
+  });
 }
 
 void destination_out(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = div255(pipeline.dr[i] * inv_sa);
-    pipeline.g[i] = div255(pipeline.dg[i] * inv_sa);
-    pipeline.b[i] = div255(pipeline.db[i] * inv_sa);
-    pipeline.a[i] = div255(pipeline.da[i] * inv_sa);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float /*s*/, float d, float sa, float /*da*/) {
+    return div255(d * (255.0f - sa));
+  });
 }
 
 void source_atop(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = div255(pipeline.r[i] * pipeline.da[i] + pipeline.dr[i] * inv_sa);
-    pipeline.g[i] = div255(pipeline.g[i] * pipeline.da[i] + pipeline.dg[i] * inv_sa);
-    pipeline.b[i] = div255(pipeline.b[i] * pipeline.da[i] + pipeline.db[i] * inv_sa);
-    pipeline.a[i] = div255(pipeline.da[i] * pipeline.a[i] + pipeline.da[i] * inv_sa);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float sa, float da) {
+    return div255(s * da + d * (255.0f - sa));
+  });
 }
 
 void source_in(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const auto da = pipeline.da[i];
-    pipeline.r[i] = div255(pipeline.r[i] * da);
-    pipeline.g[i] = div255(pipeline.g[i] * da);
-    pipeline.b[i] = div255(pipeline.b[i] * da);
-    pipeline.a[i] = div255(pipeline.a[i] * da);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float /*d*/, float /*sa*/, float da) {
+    return div255(s * da);
+  });
 }
 
 void source_out(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_da = 255.0f - pipeline.da[i];
-    pipeline.r[i] = div255(pipeline.r[i] * inv_da);
-    pipeline.g[i] = div255(pipeline.g[i] * inv_da);
-    pipeline.b[i] = div255(pipeline.b[i] * inv_da);
-    pipeline.a[i] = div255(pipeline.a[i] * inv_da);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float /*d*/, float /*sa*/, float da) {
+    return div255(s * (255.0f - da));
+  });
 }
 
 void source_over(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = pipeline.r[i] + div255(pipeline.dr[i] * inv_sa);
-    pipeline.g[i] = pipeline.g[i] + div255(pipeline.dg[i] * inv_sa);
-    pipeline.b[i] = pipeline.b[i] + div255(pipeline.db[i] * inv_sa);
-    pipeline.a[i] = pipeline.a[i] + div255(pipeline.da[i] * inv_sa);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float sa, float /*da*/) {
+    return s + div255(d * (255.0f - sa));
+  });
 }
 
 void destination_over(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_da = 255.0f - pipeline.da[i];
-    pipeline.r[i] = pipeline.dr[i] + div255(pipeline.r[i] * inv_da);
-    pipeline.g[i] = pipeline.dg[i] + div255(pipeline.g[i] * inv_da);
-    pipeline.b[i] = pipeline.db[i] + div255(pipeline.b[i] * inv_da);
-    pipeline.a[i] = pipeline.da[i] + div255(pipeline.a[i] * inv_da);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float /*sa*/, float da) {
+    return d + div255(s * (255.0f - da));
+  });
 }
 
 void modulate(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = div255(pipeline.r[i] * pipeline.dr[i]);
-    pipeline.g[i] = div255(pipeline.g[i] * pipeline.dg[i]);
-    pipeline.b[i] = div255(pipeline.b[i] * pipeline.db[i]);
-    pipeline.a[i] = div255(pipeline.a[i] * pipeline.da[i]);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+    return div255(s * d);
+  });
 }
 
 void multiply(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_da = 255.0f - pipeline.da[i];
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = div255(pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + pipeline.r[i] * pipeline.dr[i]);
-    pipeline.g[i] = div255(pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + pipeline.g[i] * pipeline.dg[i]);
-    pipeline.b[i] = div255(pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + pipeline.b[i] * pipeline.db[i]);
-    pipeline.a[i] = div255(pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + pipeline.a[i] * pipeline.da[i]);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float sa, float da) {
+    return div255(s * (255.0f - da) + d * (255.0f - sa) + s * d);
+  });
 }
 
 void plus(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = std::min(255.0f, pipeline.r[i] + pipeline.dr[i]);
-    pipeline.g[i] = std::min(255.0f, pipeline.g[i] + pipeline.dg[i]);
-    pipeline.b[i] = std::min(255.0f, pipeline.b[i] + pipeline.db[i]);
-    pipeline.a[i] = std::min(255.0f, pipeline.a[i] + pipeline.da[i]);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+    return std::min(255.0f, s + d);
+  });
 }
 
 void screen(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] - div255(pipeline.r[i] * pipeline.dr[i]);
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] - div255(pipeline.g[i] * pipeline.dg[i]);
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] - div255(pipeline.b[i] * pipeline.db[i]);
-    pipeline.a[i] = pipeline.a[i] + pipeline.da[i] - div255(pipeline.a[i] * pipeline.da[i]);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+    return s + d - div255(s * d);
+  });
 }
 
 void x_or(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_da = 255.0f - pipeline.da[i];
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = div255(pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa);
-    pipeline.g[i] = div255(pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa);
-    pipeline.b[i] = div255(pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa);
-    pipeline.a[i] = div255(pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa);
-  }
-  pipeline.nextStage();
+  blend_fn(pipeline, [](float s, float d, float sa, float da) {
+    return div255(s * (255.0f - da) + d * (255.0f - sa));
+  });
 }
 
 void null_fn(Pipeline& pipeline) {
@@ -344,17 +308,29 @@ void null_fn(Pipeline& pipeline) {
 }
 
 
-void load_8888_lowp(const std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
+// Returns a span of PremultipliedColorU8 pixels starting at (dx, dy) in the pixmap.
+// Matches Rust's pixmap.slice_at_xy(dx, dy) / pixmap.slice16_at_xy(dx, dy).
+inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
+                                                  std::size_t dx,
+                                                  std::size_t dy) {
+  const auto pixel_offset = dy * pixmap.real_width + dx;
+  auto* pixels = reinterpret_cast<PremultipliedColorU8*>(pixmap.data);
+  const auto total_pixels = pixmap.real_width * pixmap.size.height();
+  return std::span<PremultipliedColorU8>(pixels + pixel_offset,
+                                         total_pixels - pixel_offset);
+}
+
+// Matches Rust load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...).
+// Callers compute the pixel offset and pass a span starting at the first pixel.
+void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
                     std::size_t count,
-                    std::array<float, kStageWidth>& or_, std::array<float, kStageWidth>& og,
-                    std::array<float, kStageWidth>& ob, std::array<float, kStageWidth>& oa) {
-  const auto offset = (dy * stride + dx) * 4;
+                    LowpChannel& or_, LowpChannel& og,
+                    LowpChannel& ob, LowpChannel& oa) {
   for (std::size_t i = 0; i < count; ++i) {
-    const auto base = offset + i * 4;
-    or_[i] = static_cast<float>(data[base + 0]);
-    og[i] = static_cast<float>(data[base + 1]);
-    ob[i] = static_cast<float>(data[base + 2]);
-    oa[i] = static_cast<float>(data[base + 3]);
+    or_[i] = static_cast<float>(pixels[i].red());
+    og[i] = static_cast<float>(pixels[i].green());
+    ob[i] = static_cast<float>(pixels[i].blue());
+    oa[i] = static_cast<float>(pixels[i].alpha());
   }
   for (std::size_t i = count; i < kStageWidth; ++i) {
     or_[i] = 0.0f;
@@ -364,22 +340,20 @@ void load_8888_lowp(const std::uint8_t* data, std::size_t stride, std::size_t dx
   }
 }
 
-void store_8888_lowp(std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
+// Matches Rust store_8888(&u16x16, ..., &mut [PremultipliedColorU8; STAGE_WIDTH]).
+// Callers compute the pixel offset and pass a span starting at the first pixel.
+void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
                      std::size_t count,
-                     const std::array<float, kStageWidth>& r,
-                     const std::array<float, kStageWidth>& g,
-                     const std::array<float, kStageWidth>& b,
-                     const std::array<float, kStageWidth>& a) {
-  const auto offset = (dy * stride + dx) * 4;
+                     const LowpChannel& r,
+                     const LowpChannel& g,
+                     const LowpChannel& b,
+                     const LowpChannel& a) {
   auto clamp = [](float v) -> std::uint8_t {
     return static_cast<std::uint8_t>(std::max(0.0f, std::min(255.0f, v)));
   };
   for (std::size_t i = 0; i < count; ++i) {
-    const auto base = offset + i * 4;
-    data[base + 0] = clamp(r[i]);
-    data[base + 1] = clamp(g[i]);
-    data[base + 2] = clamp(b[i]);
-    data[base + 3] = clamp(a[i]);
+    pixels[i] = PremultipliedColorU8::fromRgbaUnchecked(
+        clamp(r[i]), clamp(g[i]), clamp(b[i]), clamp(a[i]));
   }
 }
 
@@ -388,8 +362,8 @@ void load_dst(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-                 pipeline.dx, pipeline.dy, pipeline.tail,
+  const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  load_8888_lowp(pixels, pipeline.tail,
                  pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
@@ -399,8 +373,8 @@ void store(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  store_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-                  pipeline.dx, pipeline.dy, pipeline.tail,
+  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  store_8888_lowp(pixels, pipeline.tail,
                   pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
@@ -458,7 +432,7 @@ void mask_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
-  std::array<float, kStageWidth> c{};
+  LowpChannel c{};
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
     c[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]);
   }
@@ -486,8 +460,8 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-                 pipeline.dx, pipeline.dy, pipeline.tail,
+  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  load_8888_lowp(pixels, pipeline.tail,
                  pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float inv_sa = 255.0f - pipeline.a[i];
@@ -496,112 +470,69 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.b[i] = pipeline.b[i] + div255(pipeline.db[i] * inv_sa);
     pipeline.a[i] = pipeline.a[i] + div255(pipeline.da[i] * inv_sa);
   }
-  store_8888_lowp(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-                  pipeline.dx, pipeline.dy, pipeline.tail,
+  store_8888_lowp(pixels, pipeline.tail,
                   pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
-// --- Lowp blend modes (colors in [0, 255] range) ---
-
 void darken(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        div255(std::max(pipeline.r[i] * da, pipeline.dr[i] * sa));
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        div255(std::max(pipeline.g[i] * da, pipeline.dg[i] * sa));
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        div255(std::max(pipeline.b[i] * da, pipeline.db[i] * sa));
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
+    return s + d - div255(std::max(s * da, d * sa));
+  });
 }
 
 void lighten(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        div255(std::min(pipeline.r[i] * da, pipeline.dr[i] * sa));
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        div255(std::min(pipeline.g[i] * da, pipeline.dg[i] * sa));
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        div255(std::min(pipeline.b[i] * da, pipeline.db[i] * sa));
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
+    return s + d - div255(std::min(s * da, d * sa));
+  });
 }
 
 void difference(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        2.0f * div255(std::min(pipeline.r[i] * da, pipeline.dr[i] * sa));
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        2.0f * div255(std::min(pipeline.g[i] * da, pipeline.dg[i] * sa));
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        2.0f * div255(std::min(pipeline.b[i] * da, pipeline.db[i] * sa));
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
+    return s + d - 2.0f * div255(std::min(s * da, d * sa));
+  });
 }
 
 void exclusion(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-        2.0f * div255(pipeline.r[i] * pipeline.dr[i]);
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-        2.0f * div255(pipeline.g[i] * pipeline.dg[i]);
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-        2.0f * div255(pipeline.b[i] * pipeline.db[i]);
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+  blend_fn2(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+    return s + d - 2.0f * div255(s * d);
+  });
 }
 
 void hard_light(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
+  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
     const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
-    auto blend_ch = [&](float s, float d) -> float {
-      const float body = (2.0f * s <= sa)
-          ? (2.0f * s * d)
-          : (sa * da - 2.0f * (sa - s) * (da - d));
-      return div255(s * inv_da + d * inv_sa + body);
-    };
-    pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
-    pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
-    pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+    const float body = (2.0f * s <= sa)
+        ? (2.0f * s * d)
+        : (sa * da - 2.0f * (sa - s) * (da - d));
+    return div255(s * inv_da + d * inv_sa + body);
+  });
 }
 
 void overlay(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
+  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
     const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
-    auto blend_ch = [&](float s, float d) -> float {
-      const float body = (2.0f * d <= da)
-          ? (2.0f * s * d)
-          : (sa * da - 2.0f * (sa - s) * (da - d));
-      return div255(s * inv_da + d * inv_sa + body);
-    };
-    pipeline.r[i] = blend_ch(pipeline.r[i], pipeline.dr[i]);
-    pipeline.g[i] = blend_ch(pipeline.g[i], pipeline.dg[i]);
-    pipeline.b[i] = blend_ch(pipeline.b[i], pipeline.db[i]);
-    pipeline.a[i] = pipeline.a[i] +
-        div255(pipeline.da[i] * (255.0f - pipeline.a[i]));
-  }
-  pipeline.nextStage();
+    const float body = (2.0f * d <= da)
+        ? (2.0f * s * d)
+        : (sa * da - 2.0f * (sa - s) * (da - d));
+    return div255(s * inv_da + d * inv_sa + body);
+  });
 }
 
 // --- Lowp coordinate/shader stages ---
+//
+// Structural note (WI-07): Rust lowp uses split()/join() to convert between
+// f32x16 (a single 512-bit float SIMD vector used for coordinates) and pairs
+// of u16x16 (256-bit integer SIMD vectors used for pixel channels). The
+// pipeline stores coordinates by splitting one f32x16 across two u16x16
+// registers (e.g. x -> r,g and y -> b,a), then join() reconstructs the
+// f32x16 before coordinate math.
+//
+// In C++ lowp, coordinates are already stored as separate float arrays
+// (pipeline.r for x, pipeline.g for y, etc.), so no split/join conversion
+// is needed — the float arrays serve directly as both coordinate and channel
+// storage. The coordinate stages below operate on pipeline.r/g/b/a directly,
+// which is equivalent to the Rust pattern of join -> compute -> split.
 
 void transform(Pipeline& pipeline) {
   const auto& ts = pipeline.ctx->transform;

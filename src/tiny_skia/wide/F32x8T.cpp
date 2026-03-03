@@ -125,6 +125,42 @@ F32x8T F32x8T::abs() const {
   return F32x8T(out);
 }
 
+F32x8T F32x8T::sqrt() const {
+  std::array<float, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = std::sqrt(lanes_[i]);
+  }
+
+  return F32x8T(out);
+}
+
+F32x8T F32x8T::recipFast() const {
+  std::array<float, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = 1.0f / lanes_[i];
+  }
+
+  return F32x8T(out);
+}
+
+F32x8T F32x8T::recipSqrt() const {
+  std::array<float, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = 1.0f / std::sqrt(lanes_[i]);
+  }
+
+  return F32x8T(out);
+}
+
+F32x8T F32x8T::powf(float exp) const {
+  std::array<float, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = std::pow(lanes_[i], exp);
+  }
+
+  return F32x8T(out);
+}
+
 F32x8T F32x8T::max(const F32x8T& rhs) const {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
@@ -263,6 +299,11 @@ F32x8T F32x8T::operator~() const {
 
 bool F32x8T::operator==(const F32x8T& rhs) const {
   return lanes_ == rhs.lanes_;
+}
+
+F32x8T& F32x8T::operator+=(const F32x8T& rhs) {
+  *this = *this + rhs;
+  return *this;
 }
 
 }  // namespace tiny_skia::wide

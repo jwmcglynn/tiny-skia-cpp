@@ -25,6 +25,11 @@ class U32x8T {
   [[nodiscard]] F32x8T toF32x8Bitcast() const;
 
   [[nodiscard]] U32x8T cmpEq(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T cmpNe(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T cmpLt(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T cmpLe(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T cmpGt(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T cmpGe(const U32x8T& rhs) const;
 
   template <int Rhs>
   [[nodiscard]] U32x8T shl() const {
@@ -56,6 +61,7 @@ class U32x8T {
   [[nodiscard]] U32x8T operator+(const U32x8T& rhs) const;
   [[nodiscard]] U32x8T operator&(const U32x8T& rhs) const;
   [[nodiscard]] U32x8T operator|(const U32x8T& rhs) const;
+  [[nodiscard]] U32x8T operator^(const U32x8T& rhs) const;
 
  private:
   std::array<std::uint32_t, 8> lanes_{};

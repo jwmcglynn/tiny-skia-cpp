@@ -93,4 +93,63 @@ TEST(F32x8TTest, IsFiniteMatchesRustBitMaskLogic) {
   EXPECT_EQ(std::bit_cast<std::uint32_t>(mask[7]), 0xFFFFFFFFu);
 }
 
+TEST(F32x8TTest, SqrtIsPerLane) {
+  const F32x8T value({0.0f, 1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 0.25f, 100.0f});
+  EXPECT_THAT(value.sqrt().lanes(),
+              ElementsAre(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 0.5f, 10.0f));
+}
+
+TEST(F32x8TTest, RecipFastIsPerLane) {
+  const F32x8T value({1.0f, 2.0f, 4.0f, 0.5f, 8.0f, 0.25f, 10.0f, 0.1f});
+  const auto result = value.recipFast().lanes();
+  EXPECT_FLOAT_EQ(result[0], 1.0f);
+  EXPECT_FLOAT_EQ(result[1], 0.5f);
+  EXPECT_FLOAT_EQ(result[2], 0.25f);
+  EXPECT_FLOAT_EQ(result[3], 2.0f);
+  EXPECT_FLOAT_EQ(result[4], 0.125f);
+  EXPECT_FLOAT_EQ(result[5], 4.0f);
+  EXPECT_FLOAT_EQ(result[6], 0.1f);
+  EXPECT_FLOAT_EQ(result[7], 10.0f);
+}
+
+TEST(F32x8TTest, RecipSqrtIsPerLane) {
+  const F32x8T value({1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 100.0f, 0.25f, 0.01f});
+  const auto result = value.recipSqrt().lanes();
+  EXPECT_FLOAT_EQ(result[0], 1.0f);
+  EXPECT_FLOAT_EQ(result[1], 0.5f);
+  EXPECT_FLOAT_EQ(result[2], 1.0f / 3.0f);
+  EXPECT_FLOAT_EQ(result[3], 0.25f);
+  EXPECT_FLOAT_EQ(result[4], 0.2f);
+  EXPECT_FLOAT_EQ(result[5], 0.1f);
+  EXPECT_FLOAT_EQ(result[6], 2.0f);
+  EXPECT_FLOAT_EQ(result[7], 10.0f);
+}
+
+TEST(F32x8TTest, PowfIsPerLane) {
+  const F32x8T base({1.0f, 2.0f, 3.0f, 4.0f, 9.0f, 8.0f, 27.0f, 16.0f});
+  const auto squared = base.powf(2.0f).lanes();
+  EXPECT_FLOAT_EQ(squared[0], 1.0f);
+  EXPECT_FLOAT_EQ(squared[1], 4.0f);
+  EXPECT_FLOAT_EQ(squared[2], 9.0f);
+  EXPECT_FLOAT_EQ(squared[3], 16.0f);
+  EXPECT_FLOAT_EQ(squared[4], 81.0f);
+  EXPECT_FLOAT_EQ(squared[5], 64.0f);
+  EXPECT_FLOAT_EQ(squared[6], 729.0f);
+  EXPECT_FLOAT_EQ(squared[7], 256.0f);
+
+  const auto sqrtResult = base.powf(0.5f).lanes();
+  EXPECT_FLOAT_EQ(sqrtResult[0], 1.0f);
+  EXPECT_FLOAT_EQ(sqrtResult[3], 2.0f);
+  EXPECT_FLOAT_EQ(sqrtResult[4], 3.0f);
+  EXPECT_FLOAT_EQ(sqrtResult[7], 4.0f);
+}
+
+TEST(F32x8TTest, OperatorPlusEqualsIsPerLane) {
+  F32x8T value({1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f});
+  const F32x8T addend({10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f});
+  value += addend;
+  EXPECT_THAT(value.lanes(),
+              ElementsAre(11.0f, 22.0f, 33.0f, 44.0f, 55.0f, 66.0f, 77.0f, 88.0f));
+}
+
 }  // namespace

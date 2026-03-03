@@ -37,6 +37,51 @@ U32x8T U32x8T::cmpEq(const U32x8T& rhs) const {
   return U32x8T(out);
 }
 
+U32x8T U32x8T::cmpNe(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] != rhs.lanes_[i] ? UINT32_MAX : 0;
+  }
+
+  return U32x8T(out);
+}
+
+U32x8T U32x8T::cmpLt(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] < rhs.lanes_[i] ? UINT32_MAX : 0;
+  }
+
+  return U32x8T(out);
+}
+
+U32x8T U32x8T::cmpLe(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] <= rhs.lanes_[i] ? UINT32_MAX : 0;
+  }
+
+  return U32x8T(out);
+}
+
+U32x8T U32x8T::cmpGt(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] > rhs.lanes_[i] ? UINT32_MAX : 0;
+  }
+
+  return U32x8T(out);
+}
+
+U32x8T U32x8T::cmpGe(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] >= rhs.lanes_[i] ? UINT32_MAX : 0;
+  }
+
+  return U32x8T(out);
+}
+
 U32x8T U32x8T::operator~() const {
   std::array<std::uint32_t, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
@@ -68,6 +113,15 @@ U32x8T U32x8T::operator|(const U32x8T& rhs) const {
   std::array<std::uint32_t, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = lanes_[i] | rhs.lanes_[i];
+  }
+
+  return U32x8T(out);
+}
+
+U32x8T U32x8T::operator^(const U32x8T& rhs) const {
+  std::array<std::uint32_t, 8> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    out[i] = lanes_[i] ^ rhs.lanes_[i];
   }
 
   return U32x8T(out);

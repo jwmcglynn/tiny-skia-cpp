@@ -213,3 +213,40 @@ TEST(Cubic64Test, FindInflectionsFindsInternalInflectionAtHalf) {
   EXPECT_EQ(count, 1u);
   EXPECT_NEAR(extremaTs[0], 0.75, 1e-12);
 }
+
+// Regression: findInflections must use bx*cy (not ax*cy) for the first coefficient.
+// This S-curve has distinct ax and bx; using ax would produce wrong inflection t values.
+TEST(Cubic64Test, FindInflectionsUsesCorrectFirstCoefficient) {
+  // S-curve: control points chosen so that ax != bx, making the bug observable.
+  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
+      tiny_skia::Point64::fromXy(0.0, 0.0),
+      tiny_skia::Point64::fromXy(0.0, 1.0),
+      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXy(1.0, 1.0),
+  });
+  std::array<double, 6> extremaTs{};
+  auto extremaSpan = std::span<double>(extremaTs.begin(), extremaTs.end());
+  const auto count = cubic.findInflections(extremaSpan);
+
+  // The S-curve should have exactly one inflection at t=0.5.
+  EXPECT_EQ(count, 1u);
+  EXPECT_NEAR(extremaTs[0], 0.5, 1e-12);
+}
+
+// Regression: binarySearch must set t=priorT when ok is true, not when ok is false.
+// A strictly monotonic y-curve crossing y=0.5 at t=0.5 — searchRoots should find it.
+TEST(Cubic64Test, BinarySearchConvergesWhenOkSetsPriorT) {
+  const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
+      tiny_skia::Point64::fromXy(0.0, -1.0),
+      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXy(2.0, 1.0),
+      tiny_skia::Point64::fromXy(3.0, 2.0),
+  });
+  std::array<double, 6> extremeTs{};
+  std::array<double, 3> roots{};
+  const auto count = cubic.searchRoots(
+      0, 0.5, tiny_skia::SearchAxis::Y, extremeTs, roots);
+  EXPECT_GE(count, 1u);
+  const auto pt = cubic.pointAtT(roots[0]);
+  EXPECT_NEAR(pt.y, 0.5, 1e-6);
+}

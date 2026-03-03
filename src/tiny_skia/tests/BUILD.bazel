@@ -26,6 +26,7 @@ cc_test(
         "PixmapTest.cpp",
         "PathGeometryTest.cpp",
         "PathTest.cpp",
+        "PathVecTest.cpp",
     ],
     copts = ["-std=c++20"],
     deps = [

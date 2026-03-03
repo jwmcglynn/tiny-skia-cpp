@@ -12,12 +12,11 @@ std::uint64_t asBits(double value) {
 }
 
 double cbrt5d(double value) {
-  constexpr auto kCbrtBias = std::uint64_t{715094163};
+  constexpr std::uint32_t kCbrtBias = 715094163;
   const auto bits = asBits(value);
-  const auto lowBits = bits & 0xFFFFFFFFULL;
-  const auto highBits = bits >> 32;
-  const auto next = (highBits / 3u) + kCbrtBias;
-  return std::bit_cast<double>((next << 32) | lowBits);
+  const auto highBits = static_cast<std::uint32_t>(bits >> 32);
+  const auto next = static_cast<std::uint64_t>(highBits / 3u + kCbrtBias);
+  return std::bit_cast<double>(next << 32);
 }
 
 double cbrtaHalleyd(double a, double r) {

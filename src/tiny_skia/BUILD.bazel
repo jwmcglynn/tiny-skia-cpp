@@ -56,6 +56,7 @@ tiny_skia_cc_library(
         "Path.h",
         "PathBuilder.h",
         "PathGeometry.h",
+        "PathVec.h",
         "Pixmap.h",
         "Point.h",
         "Scalar.h",

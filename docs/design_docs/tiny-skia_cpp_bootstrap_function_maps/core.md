@@ -279,85 +279,85 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/path/src/stroker.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `PathStroker::new` | `PathStroker::PathStroker` | 🟡 | Constructor initializes stroke parameters, cap/join procs |
-| `PathStroker::stroke` | `PathStroker::stroke` | 🟡 | Main entry: iterates path segments, dispatches to line/quad/cubic/close |
-| `PathStroker::stroke_line` | `PathStroker::strokeLine` | 🟡 | Handles degenerate + normal lines |
-| `PathStroker::stroke_quad` | `PathStroker::strokeQuad` | 🟡 | Recursive quad subdivision with linearity check |
-| `PathStroker::stroke_cubic` | `PathStroker::strokeCubic` | 🟡 | Recursive cubic subdivision, cusp/inflection handling |
-| `PathStroker::stroke_close` | `PathStroker::strokeClose` | 🟡 | Close contour with join to start |
-| `PathStroker::finish` | `PathStroker::finish` | 🟡 | Finalizes inner/outer paths, returns finished Path |
-| `PathStroker::cap` | `PathStroker::cap` | 🟡 | Delegates to CapProc (butt/round/square) |
-| `PathStroker::join` | `PathStroker::join` | 🟡 | Delegates to JoinProc (miter/round/bevel) |
-| `PathStroker::pre_join_to` | `PathStroker::preJoinTo` | 🟡 | Computes unit normal for next segment |
-| `PathStroker::post_join_to` | `PathStroker::postJoinTo` | 🟡 | Applies join at segment boundary |
-| `PathStroker::init_quad` | `PathStroker::initQuad` | 🟡 | Sets up QuadConstruct for subdivision |
-| `PathStroker::init_cubic` | `PathStroker::initCubic` | 🟡 | Sets up QuadConstruct for cubic subdivision |
-| `PathStroker::quad_stroke` | `PathStroker::quadStroke` | 🟡 | Computes perpendicular rays for quad segment |
-| `PathStroker::cubic_stroke` | `PathStroker::cubicStroke` | 🟡 | Computes perpendicular rays for cubic segment |
-| `PathStroker::check_quad_linear` | `checkQuadLinear` | 🟡 | Tests if quad stroke is nearly linear |
-| `PathStroker::check_cubic_linear` | `checkCubicLinear` | 🟡 | Tests if cubic stroke is nearly linear |
-| `butt_capper` | `buttCapper` | 🟡 | Flat cap: extends by nothing |
-| `round_capper` | `roundCapper` | 🟡 | Semicircle cap via conic arcs |
-| `square_capper` | `squareCapper` | 🟡 | Extends endpoint by half stroke width |
-| `bevel_joiner` | `bevelJoiner` | 🟡 | Simple bevel: straight line between offset points |
-| `round_joiner` | `roundJoiner` | 🟡 | Circular arc join via conic |
-| `miter_joiner` | `miterJoiner` | 🟡 | Miter join with limit fallback to bevel |
-| `miter_clip_joiner` | `miterClipJoiner` | 🟡 | Miter join with clip at miter limit |
-| `Path::stroke` | `Path::stroke` | 🟡 | Entry point: creates PathStroker and calls stroke() |
+| `PathStroker::new` | `PathStroker::PathStroker` | 🟢 | Line-by-line audited: Constructor initializes stroke parameters, cap/join procs matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::stroke` | `PathStroker::stroke` | 🟢 | Line-by-line audited: Main entry iterates path segments, dispatches to line/quad/cubic/close matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::stroke_line` | `PathStroker::strokeLine` | 🟢 | Line-by-line audited: Degenerate + normal line handling matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::stroke_quad` | `PathStroker::strokeQuad` | 🟢 | Line-by-line audited: Recursive quad subdivision with linearity check matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::stroke_cubic` | `PathStroker::strokeCubic` | 🟢 | Line-by-line audited: Recursive cubic subdivision, cusp/inflection handling matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::stroke_close` | `PathStroker::strokeClose` | 🟢 | Line-by-line audited: Close contour with join to start matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::finish` | `PathStroker::finish` | 🟢 | Line-by-line audited: Finalizes inner/outer paths, returns finished Path matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::cap` | `PathStroker::cap` | 🟢 | Line-by-line audited: Delegates to CapProc (butt/round/square) matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::join` | `PathStroker::join` | 🟢 | Line-by-line audited: Delegates to JoinProc (miter/round/bevel) matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::pre_join_to` | `PathStroker::preJoinTo` | 🟢 | Line-by-line audited: Unit normal computation for next segment matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::post_join_to` | `PathStroker::postJoinTo` | 🟢 | Line-by-line audited: Join application at segment boundary matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::init_quad` | `PathStroker::initQuad` | 🟢 | Line-by-line audited: QuadConstruct setup for subdivision matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::init_cubic` | `PathStroker::initCubic` | 🟢 | Line-by-line audited: QuadConstruct setup for cubic subdivision matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::quad_stroke` | `PathStroker::quadStroke` | 🟢 | Line-by-line audited: Perpendicular rays for quad segment matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::cubic_stroke` | `PathStroker::cubicStroke` | 🟢 | Line-by-line audited: Perpendicular rays for cubic segment matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::check_quad_linear` | `checkQuadLinear` | 🟢 | Line-by-line audited: Quad stroke linearity test matches Rust. Validated in audit 2026-03-02. |
+| `PathStroker::check_cubic_linear` | `checkCubicLinear` | 🟢 | Line-by-line audited: Cubic stroke linearity test matches Rust. Validated in audit 2026-03-02. |
+| `butt_capper` | `buttCapper` | 🟢 | Line-by-line audited: Flat cap matches Rust. Validated in audit 2026-03-02. |
+| `round_capper` | `roundCapper` | 🟢 | Line-by-line audited: Semicircle cap via conic arcs matches Rust. Validated in audit 2026-03-02. |
+| `square_capper` | `squareCapper` | 🟢 | Line-by-line audited: Endpoint extension by half stroke width matches Rust. Validated in audit 2026-03-02. |
+| `bevel_joiner` | `bevelJoiner` | 🟢 | Line-by-line audited: Straight line bevel between offset points matches Rust. Validated in audit 2026-03-02. |
+| `round_joiner` | `roundJoiner` | 🟢 | Line-by-line audited: Circular arc join via conic matches Rust. Validated in audit 2026-03-02. |
+| `miter_joiner` | `miterJoiner` | 🟢 | Line-by-line audited: Miter join with limit fallback to bevel matches Rust. Validated in audit 2026-03-02. |
+| `miter_clip_joiner` | `miterClipJoiner` | 🟢 | Line-by-line audited: Miter join with clip at miter limit matches Rust. Validated in audit 2026-03-02. |
+| `Path::stroke` | `Path::stroke` | 🟢 | Line-by-line audited: Entry point creating PathStroker matches Rust. Validated in audit 2026-03-02. |
 
 ### `third_party/tiny-skia/path/src/dash.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `StrokeDash` struct | `StrokeDash` (Stroke.h) | 🟡 | Holds dash array + offset |
-| `StrokeDash::new` | `StrokeDash::create` | 🟡 | Validates even entry count, all positive, finite values |
-| `ContourMeasure` struct | `ContourMeasure` (Dash.h) | 🟡 | Stores segments with distance/t-value pairs |
-| `ContourMeasureIter` struct | `ContourMeasureIter` (Dash.h) | 🟡 | Iterates path contours, computing cumulative lengths |
-| `ContourMeasureIter::next` | `ContourMeasureIter::next` | 🟡 | Returns next contour's ContourMeasure |
-| `ContourMeasure::length` | `ContourMeasure::length` | 🟡 | Total arc length of contour |
-| `ContourMeasure::segment_to` | `ContourMeasure::segmentTo` | 🟡 | Extracts sub-path between two distance values |
-| `Path::dash` | `Path::dash` | 🟡 | Entry point: applies dash pattern using ContourMeasureIter |
+| `StrokeDash` struct | `StrokeDash` (Stroke.h) | 🟢 | Line-by-line audited: Dash array + offset struct matches Rust. Validated in audit 2026-03-02. |
+| `StrokeDash::new` | `StrokeDash::create` | 🟢 | Line-by-line audited: Even entry count, positive, finite validation matches Rust. Validated in audit 2026-03-02. |
+| `ContourMeasure` struct | `ContourMeasure` (Dash.h) | 🟢 | Line-by-line audited: Segment storage with distance/t-value pairs matches Rust. Validated in audit 2026-03-02. |
+| `ContourMeasureIter` struct | `ContourMeasureIter` (Dash.h) | 🟢 | Line-by-line audited: Contour iteration with cumulative lengths matches Rust. Validated in audit 2026-03-02. |
+| `ContourMeasureIter::next` | `ContourMeasureIter::next` | 🟢 | Line-by-line audited: Next contour ContourMeasure return matches Rust. Validated in audit 2026-03-02. |
+| `ContourMeasure::length` | `ContourMeasure::length` | 🟢 | Line-by-line audited: Total arc length accessor matches Rust. Validated in audit 2026-03-02. |
+| `ContourMeasure::segment_to` | `ContourMeasure::segmentTo` | 🟢 | Line-by-line audited: Sub-path extraction between distance values matches Rust. Validated in audit 2026-03-02. |
+| `Path::dash` | `Path::dash` | 🟢 | Line-by-line audited: Dash pattern application via ContourMeasureIter matches Rust. Validated in audit 2026-03-02. |
 
 ### `third_party/tiny-skia/path/src/path_builder.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `PathBuilder::new` | `PathBuilder::PathBuilder` | 🟡 | Default constructor |
-| `PathBuilder::with_capacity` | `PathBuilder::PathBuilder(verbs, points)` | 🟡 | Reserve capacity variant |
-| `PathBuilder::move_to` | `PathBuilder::moveTo` | 🟡 | Starts new contour |
-| `PathBuilder::line_to` | `PathBuilder::lineTo` | 🟡 | Appends line segment |
-| `PathBuilder::quad_to` | `PathBuilder::quadTo` | 🟡 | Appends quadratic bezier |
-| `PathBuilder::cubic_to` | `PathBuilder::cubicTo` | 🟡 | Appends cubic bezier |
-| `PathBuilder::conic_to` | `PathBuilder::conicTo` | 🟡 | Converts conic to quads via autoConicToQuads |
-| `PathBuilder::close` | `PathBuilder::close` | 🟡 | Closes current contour |
-| `PathBuilder::push_rect` | `PathBuilder::pushRect` | 🟡 | Adds rectangle contour |
-| `PathBuilder::push_oval` | `PathBuilder::pushOval` | 🟡 | Adds oval contour via conics |
-| `PathBuilder::push_circle` | `PathBuilder::pushCircle` | 🟡 | Adds circle via pushOval |
-| `PathBuilder::push_path` | `PathBuilder::pushPath` | 🟡 | Appends existing Path |
-| `PathBuilder::reverse_path_to` | `PathBuilder::reversePathTo` | 🟡 | Appends path in reverse |
-| `PathBuilder::finish` | `PathBuilder::finish` | 🟡 | Returns optional Path, resets builder |
+| `PathBuilder::new` | `PathBuilder::PathBuilder` | 🟢 | Line-by-line audited: Default constructor matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::with_capacity` | `PathBuilder::PathBuilder(verbs, points)` | 🟢 | Line-by-line audited: Reserve capacity variant matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::move_to` | `PathBuilder::moveTo` | 🟢 | Line-by-line audited: New contour start matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::line_to` | `PathBuilder::lineTo` | 🟢 | Line-by-line audited: Line segment append matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::quad_to` | `PathBuilder::quadTo` | 🟢 | Line-by-line audited: Quadratic bezier append matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::cubic_to` | `PathBuilder::cubicTo` | 🟢 | Line-by-line audited: Cubic bezier append matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::conic_to` | `PathBuilder::conicTo` | 🟢 | Line-by-line audited: Conic-to-quad conversion via autoConicToQuads matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::close` | `PathBuilder::close` | 🟢 | Line-by-line audited: Contour close matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::push_rect` | `PathBuilder::pushRect` | 🟢 | Line-by-line audited: Rectangle contour matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::push_oval` | `PathBuilder::pushOval` | 🟢 | Line-by-line audited: Oval contour via conics matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::push_circle` | `PathBuilder::pushCircle` | 🟢 | Line-by-line audited: Circle via pushOval matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::push_path` | `PathBuilder::pushPath` | 🟢 | Line-by-line audited: Existing Path append matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::reverse_path_to` | `PathBuilder::reversePathTo` | 🟢 | Line-by-line audited: Reverse path append matches Rust. Validated in audit 2026-03-02. |
+| `PathBuilder::finish` | `PathBuilder::finish` | 🟢 | Line-by-line audited: Optional Path return with builder reset matches Rust. Validated in audit 2026-03-02. |
 
 ### `third_party/tiny-skia/path/src/scalar.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `NormalizedF32` | `NormalizedF32` (Color.h) | 🟡 | Float in [0,1]. Added ZERO/ONE/create() to existing type. |
-| `NormalizedF32Exclusive` | `NormalizedF32Exclusive` (Scalar.h) | 🟡 | Float in (0,1) exclusive. With HALF constant. |
-| `NonZeroPositiveF32` | `NonZeroPositiveF32` (Scalar.h) | 🟡 | Positive finite float. |
-| `FiniteF32` | `FiniteF32` (Scalar.h) | 🟡 | Finite float. |
+| `NormalizedF32` | `NormalizedF32` (Color.h) | 🟢 | Line-by-line audited: Float in [0,1] with ZERO/ONE/create() matches Rust. Validated in audit 2026-03-02. |
+| `NormalizedF32Exclusive` | `NormalizedF32Exclusive` (Scalar.h) | 🟢 | Line-by-line audited: Float in (0,1) exclusive with HALF constant matches Rust. Validated in audit 2026-03-02. |
+| `NonZeroPositiveF32` | `NonZeroPositiveF32` (Scalar.h) | 🟢 | Line-by-line audited: Positive finite float matches Rust. Validated in audit 2026-03-02. |
+| `FiniteF32` | `FiniteF32` (Scalar.h) | 🟢 | Line-by-line audited: Finite float matches Rust. Validated in audit 2026-03-02. |
 
 ### `third_party/tiny-skia/path/src/path_geometry.rs` (additions)
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `chop_quad_at` (NormalizedF32Exclusive) | `chopQuadAtT` | 🟡 | Single-t quad chop variant |
-| `chop_cubic_at2` (NormalizedF32Exclusive) | `chopCubicAt2` | 🟡 | Two-t cubic chop variant |
-| `eval_quad_at` | `evalQuadAt` | 🟡 | Evaluate quad at parameter t |
-| `eval_quad_tangent_at` | `evalQuadTangentAt` | 🟡 | Evaluate quad tangent at t |
-| `eval_cubic_pos_at` | `evalCubicPosAt` | 🟡 | Evaluate cubic position at t |
-| `eval_cubic_tangent_at` | `evalCubicTangentAt` | 🟡 | Evaluate cubic tangent at t |
-| `find_quad_max_curvature` | `findQuadMaxCurvature` | 🟡 | Returns t of maximum curvature |
-| `find_quad_extrema` | `findQuadExtrema` | 🟡 | Returns t of extremum in quad |
-| `find_cubic_inflections` | `findCubicInflections` | 🟡 | Returns inflection t-values |
-| `find_cubic_max_curvature_ts` | `findCubicMaxCurvatureTs` | 🟡 | Returns t-values of max curvature |
-| `find_cubic_cusp` | `findCubicCusp` | 🟡 | Returns cusp t-value if any |
-| `find_unit_quad_roots` | `findUnitQuadRoots` | 🟡 | Finds roots of quadratic in [0,1] |
-| `Conic::build_unit_arc` | `Conic::buildUnitArc` | 🟡 | Builds unit arc as conic spans |
-| `Conic::chop_into_quads_pow2` | `Conic::chopIntoQuadsPow2` | 🟡 | Converts conic to quadratic approximations |
-| `auto_conic_to_quads` | `autoConicToQuads` | 🟡 | Auto-determines power-of-2 subdivision for conic→quad |
+| `chop_quad_at` (NormalizedF32Exclusive) | `chopQuadAtT` | 🟢 | Line-by-line audited: Single-t quad chop variant matches Rust. Validated in audit 2026-03-02. |
+| `chop_cubic_at2` (NormalizedF32Exclusive) | `chopCubicAt2` | 🟢 | Line-by-line audited: Two-t cubic chop variant matches Rust. Validated in audit 2026-03-02. |
+| `eval_quad_at` | `evalQuadAt` | 🟢 | Line-by-line audited: Quad evaluation at parameter t matches Rust. Validated in audit 2026-03-02. |
+| `eval_quad_tangent_at` | `evalQuadTangentAt` | 🟢 | Line-by-line audited: Quad tangent evaluation at t matches Rust. Validated in audit 2026-03-02. |
+| `eval_cubic_pos_at` | `evalCubicPosAt` | 🟢 | Line-by-line audited: Cubic position evaluation at t matches Rust. Validated in audit 2026-03-02. |
+| `eval_cubic_tangent_at` | `evalCubicTangentAt` | 🟢 | Line-by-line audited: Cubic tangent evaluation at t matches Rust. Validated in audit 2026-03-02. |
+| `find_quad_max_curvature` | `findQuadMaxCurvature` | 🟢 | Line-by-line audited: Maximum curvature t computation matches Rust. Validated in audit 2026-03-02. |
+| `find_quad_extrema` | `findQuadExtrema` | 🟢 | Line-by-line audited: Quad extremum t computation matches Rust. Validated in audit 2026-03-02. |
+| `find_cubic_inflections` | `findCubicInflections` | 🟢 | Line-by-line audited: Inflection t-values computation matches Rust. Validated in audit 2026-03-02. |
+| `find_cubic_max_curvature_ts` | `findCubicMaxCurvatureTs` | 🟢 | Line-by-line audited: Max curvature t-values computation matches Rust. Validated in audit 2026-03-02. |
+| `find_cubic_cusp` | `findCubicCusp` | 🟢 | Line-by-line audited: Cusp t-value detection matches Rust. Validated in audit 2026-03-02. |
+| `find_unit_quad_roots` | `findUnitQuadRoots` | 🟢 | Line-by-line audited: Quadratic roots in [0,1] matches Rust. Validated in audit 2026-03-02. |
+| `Conic::build_unit_arc` | `Conic::buildUnitArc` | 🟢 | Line-by-line audited: Unit arc conic construction matches Rust. Validated in audit 2026-03-02. |
+| `Conic::chop_into_quads_pow2` | `Conic::chopIntoQuadsPow2` | 🟢 | Line-by-line audited: Conic-to-quadratic approximation matches Rust. Validated in audit 2026-03-02. |
+| `auto_conic_to_quads` | `autoConicToQuads` | 🟢 | Line-by-line audited: Power-of-2 subdivision for conic-to-quad matches Rust. Validated in audit 2026-03-02. |
