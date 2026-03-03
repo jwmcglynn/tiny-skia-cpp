@@ -21,6 +21,7 @@ features.
   patterns where behavior is unchanged.
 - Remove intermediate porting artifacts from production code and docs.
 - Define release discipline: versioning, compatibility expectations, and publishing workflow.
+- Add AI-readiness documentation via `AGENTS.md` for code changes and API usage tasks.
 
 ## Non-Goals
 
@@ -56,6 +57,7 @@ The roadmap is organized into eight workstreams:
 - `security_reliability`: fuzzing, sanitizer depth, and dependency/license hygiene.
 - `performance`: benchmark baselining and optimization with regression thresholds.
 - `release_engineering`: versioning, compatibility policy, changelog, and release publish flow.
+- `ai_readiness`: agent-oriented operating guidance for code changes and API usage.
 
 All workstreams feed a final acceptance milestone with objective pass/fail criteria.
 
@@ -83,6 +85,10 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Define CI matrix with minimum targets: `wasm`, `macOS arm64`, and `x86_64`.
   - [ ] Enforce `bazel build //...` and `bazel test //...` as required CI checks.
   - [ ] Add CI validation for the CMake build path.
+  - [ ] Add dedicated warning-clean builds for both `clang` and `gcc`.
+  - [ ] Drive compiler warnings to zero (or explicitly documented allowlist) for both
+    `clang` and `gcc`.
+  - [ ] Gate CI on warning-clean status for both compilers.
   - [ ] Add sanitizer jobs (ASan/UBSan; TSan where stable) with documented scopes.
   - [ ] Add mode coverage for SIMD/scalar transitions and fallback paths.
   - [ ] Add coverage reporting and trend visibility for critical modules.
@@ -92,6 +98,10 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Add module map linking directories to ownership/responsibility boundaries.
   - [ ] Document benchmark and SIMD test workflows for contributors.
   - [ ] Include contribution workflow, toolchain versions, and troubleshooting guidance.
+  - [ ] Add repository `AGENTS.md` with explicit guidance for making codebase changes
+    (design-doc-first flow, build/test gates, coding style, and safe edit patterns).
+  - [ ] Add `AGENTS.md` section for API users (public entry points, expected usage patterns,
+    ownership/lifetime expectations, and minimal end-to-end examples).
 
 - [ ] Milestone 4: API Documentation and Doxygen Delivery
   - [ ] Add Doxygen `@file`, `@brief`, and ownership/contract comments to public headers.
@@ -132,6 +142,7 @@ inputs. These should be treated as untrusted. Production hardening includes:
 - [ ] Milestone 9: Completion Checklist and Acceptance
   - [ ] Confirm no intermediate-porting artifacts remain in production paths.
   - [ ] Confirm formatting, docs, and CI standards are stable and reproducible.
+  - [ ] Confirm `AGENTS.md` guidance is current for both code-change and API-usage workflows.
   - [ ] Confirm all roadmap checkboxes are complete with linked evidence.
   - [ ] Confirm final status reflected in validation and SIMD roadmap docs.
 
