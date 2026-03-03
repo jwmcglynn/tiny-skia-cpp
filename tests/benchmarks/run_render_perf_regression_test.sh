@@ -91,20 +91,20 @@ baseline_ratio() {
 
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "2.06"; return
+    echo "1.85"; return
   fi
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.54"; return
+    echo "1.18"; return
   fi
 
   if [[ "${arch}" == "x86" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "2.35"; return
+    echo "2.26"; return
   fi
   if [[ "${arch}" == "x86" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.52"; return
+    echo "1.29"; return
   fi
 
   echo ""

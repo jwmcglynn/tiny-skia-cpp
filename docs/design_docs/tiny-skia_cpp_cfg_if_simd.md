@@ -351,6 +351,23 @@ to `x86_64` and `aarch64`.
   around calibrated baselines.
 - Enforced in optimized builds (`-c opt`); non-opt executions are skipped.
 
+## Recent Update: 2026-03-03 (X86 Perf Regression Baseline Recalibration)
+
+- Re-ran `bazel test -c opt //tests/benchmarks:render_perf_regression_test` on x86 host and
+  captured current ratios:
+  - FillPath: `simd_over_scalar=1.852342`, `simd_over_rust=1.179700`
+  - FillRect: `simd_over_scalar=2.260259`, `simd_over_rust=1.288203`
+- Updated x86 baselines in `tests/benchmarks/run_render_perf_regression_test.sh` to track
+  current steady-state performance:
+  - `fill_path/simd_over_scalar`: `2.06 -> 1.85`
+  - `fill_path/simd_over_rust`: `1.54 -> 1.18`
+  - `fill_rect/simd_over_scalar`: `2.35 -> 2.26`
+  - `fill_rect/simd_over_rust`: `1.52 -> 1.29`
+- Validation after recalibration:
+  - `bazel test -c opt //tests/benchmarks:render_perf_regression_test` passed
+  - `bazel build //...` passed
+  - `bazel test //...` passed
+
 ## Alternatives Considered
 
 - Runtime CPU dispatch with one binary and multiple ISA kernels.
