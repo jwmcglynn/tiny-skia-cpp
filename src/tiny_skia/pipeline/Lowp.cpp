@@ -574,11 +574,11 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
     const uint16x8x2_t a16 = vld1q_u16_x2(a.lanes().data());
 
     uint8x16x4_t rgba{};
-    // Saturating narrow preserves prior clamp-to-255 semantics.
-    rgba.val[0] = vcombine_u8(vqmovn_u16(r16.val[0]), vqmovn_u16(r16.val[1]));
-    rgba.val[1] = vcombine_u8(vqmovn_u16(g16.val[0]), vqmovn_u16(g16.val[1]));
-    rgba.val[2] = vcombine_u8(vqmovn_u16(b16.val[0]), vqmovn_u16(b16.val[1]));
-    rgba.val[3] = vcombine_u8(vqmovn_u16(a16.val[0]), vqmovn_u16(a16.val[1]));
+    // Rust/scalar lowp store uses u16->u8 truncation (wrap), not saturation.
+    rgba.val[0] = vcombine_u8(vmovn_u16(r16.val[0]), vmovn_u16(r16.val[1]));
+    rgba.val[1] = vcombine_u8(vmovn_u16(g16.val[0]), vmovn_u16(g16.val[1]));
+    rgba.val[2] = vcombine_u8(vmovn_u16(b16.val[0]), vmovn_u16(b16.val[1]));
+    rgba.val[3] = vcombine_u8(vmovn_u16(a16.val[0]), vmovn_u16(a16.val[1]));
 
     auto* packed = reinterpret_cast<std::uint8_t*>(pixels.data());
     vst4q_u8(packed, rgba);
@@ -590,18 +590,28 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
   if constexpr (useX86Avx2FmaNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
-    const __m128i r8 = _mm_packus_epi16(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data())),
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data() + 8)));
-    const __m128i g8 = _mm_packus_epi16(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data())),
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data() + 8)));
-    const __m128i b8 = _mm_packus_epi16(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data())),
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data() + 8)));
-    const __m128i a8 = _mm_packus_epi16(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data())),
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data() + 8)));
+    const __m128i byte_mask = _mm_set1_epi16(0x00FF);
+    const __m128i r_lo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data())), byte_mask);
+    const __m128i r_hi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data() + 8)), byte_mask);
+    const __m128i g_lo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data())), byte_mask);
+    const __m128i g_hi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data() + 8)), byte_mask);
+    const __m128i b_lo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data())), byte_mask);
+    const __m128i b_hi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data() + 8)), byte_mask);
+    const __m128i a_lo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data())), byte_mask);
+    const __m128i a_hi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data() + 8)), byte_mask);
+
+    const __m128i r8 = _mm_packus_epi16(r_lo, r_hi);
+    const __m128i g8 = _mm_packus_epi16(g_lo, g_hi);
+    const __m128i b8 = _mm_packus_epi16(b_lo, b_hi);
+    const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
 
     const __m128i rg_lo = _mm_unpacklo_epi8(r8, g8);
     const __m128i rg_hi = _mm_unpackhi_epi8(r8, g8);
@@ -791,7 +801,7 @@ void store_u8(Pipeline& pipeline) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint16x8x2_t a16 = vld1q_u16_x2(al.data());
-    const uint8x16_t a8 = vcombine_u8(vqmovn_u16(a16.val[0]), vqmovn_u16(a16.val[1]));
+    const uint8x16_t a8 = vcombine_u8(vmovn_u16(a16.val[0]), vmovn_u16(a16.val[1]));
     vst1q_u8(pipeline.pixmap_dst->data + offset, a8);
     pipeline.nextStage();
     return;
@@ -800,9 +810,12 @@ void store_u8(Pipeline& pipeline) {
 
 #if defined(__x86_64__) || defined(__i386__)
   if constexpr (useX86Avx2FmaNative()) {
-    const __m128i a8 = _mm_packus_epi16(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())),
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)));
+    const __m128i byte_mask = _mm_set1_epi16(0x00FF);
+    const __m128i a_lo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())), byte_mask);
+    const __m128i a_hi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byte_mask);
+    const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
     _mm_storeu_si128(
         reinterpret_cast<__m128i*>(pipeline.pixmap_dst->data + offset), a8);
     pipeline.nextStage();

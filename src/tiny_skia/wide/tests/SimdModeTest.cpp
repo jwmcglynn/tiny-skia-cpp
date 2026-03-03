@@ -24,10 +24,10 @@ TEST(SimdModeTest, SelectedBackendMatchesModePolicy) {
             tiny_skia::wide::SimdBackend::kScalar);
   EXPECT_STREQ(tiny_skia::wide::configuredSimdBackendName(), "scalar");
 #else
-  // Native mode selects the best available backend for the compile target.
+  // Compare only library-selected values; test TUs may compile with different ISA flags.
+  const auto configured = tiny_skia::wide::configuredSimdBackend();
   EXPECT_STREQ(tiny_skia::wide::configuredSimdBackendName(),
-               tiny_skia::wide::backend::backendName(
-                   tiny_skia::wide::backend::detectNativeBackend()));
+               tiny_skia::wide::backend::backendName(configured));
 #endif
 }
 

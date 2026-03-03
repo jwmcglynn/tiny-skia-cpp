@@ -368,6 +368,31 @@ to `x86_64` and `aarch64`.
   - `bazel build //...` passed
   - `bazel test //...` passed
 
+## Recent Update: 2026-03-03 (Opt Native Determinism + Backend Test Parity Fixes)
+
+- Fixed an opt-mode native-vs-golden regression on x86 where a subset of integration tests
+  diverged (gradients/pattern/stroke) due to floating-point contraction:
+  - Added `-ffp-contract=off` to `tiny_skia_cc_library` in `bazel/defs.bzl` so GCC/Clang both
+    disable fused multiply-add contraction in tiny-skia translation units.
+  - This makes compiler behavior match the existing intention in `Highp.cpp`/`Lowp.cpp` comments
+    and restores deterministic pixel parity in opt mode.
+- Fixed lowp SIMD store semantics in `src/tiny_skia/pipeline/Lowp.cpp`:
+  - Rust/scalar lowp store truncates `u16 -> u8` (wrap), not saturating clamp.
+  - Replaced saturating narrow in SIMD fast paths with truncation-equivalent behavior:
+    - AArch64 NEON: `vqmovn_u16` -> `vmovn_u16` in `store_8888_lowp` and `store_u8`.
+    - x86: mask lanes with `0x00FF` before `_mm_packus_epi16` in `store_8888_lowp` and `store_u8`.
+- Fixed `SimdModeTest` native-mode assertion in
+  `src/tiny_skia/wide/tests/SimdModeTest.cpp`:
+  - Removed cross-TU compare against header constexpr `detectNativeBackend()` (which can differ
+    when test TUs compile with different ISA flags).
+  - Now validates backend name against the backend value selected by the library itself.
+- Validation after fixes:
+  - `bazel test -c opt //src/tiny_skia/wide/tests:tiny_skia_wide_tests_native //tests/integration:gradients_test_native //tests/integration:pattern_test_native //tests/integration:stroke_test_native` passed
+  - `bazel test -c opt --test_output=all //tests/benchmarks:render_perf_regression_test` passed
+  - `bazel test -c opt //...` passed
+  - `bazel build //...` passed
+  - `bazel test //...` passed
+
 ## Alternatives Considered
 
 - Runtime CPU dispatch with one binary and multiple ISA kernels.

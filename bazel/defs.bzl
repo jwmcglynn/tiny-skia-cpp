@@ -32,7 +32,7 @@ def _tiny_skia_cc_library_impl(
         srcs = srcs,
         hdrs = hdrs,
         deps = deps,
-        copts = ["-std=c++20"] + _OPT_MODE_COPTS + _SIMD_NATIVE_X86_COPTS + copts,
+        copts = ["-std=c++20", "-ffp-contract=off"] + _OPT_MODE_COPTS + _SIMD_NATIVE_X86_COPTS + copts,
         defines = defines,
         visibility = visibility,
         **kwargs,
