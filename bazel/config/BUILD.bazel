@@ -1,0 +1,28 @@
+"""SIMD build settings used by transitions and select()s."""
+
+package(default_visibility = ["//visibility:public"])
+
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+
+string_flag(
+    name = "simd_mode",
+    build_setting_default = "native",
+    values = [
+        "native",
+        "scalar",
+    ],
+)
+
+config_setting(
+    name = "simd_native",
+    flag_values = {
+        "//bazel/config:simd_mode": "native",
+    },
+)
+
+config_setting(
+    name = "simd_scalar",
+    flag_values = {
+        "//bazel/config:simd_mode": "scalar",
+    },
+)

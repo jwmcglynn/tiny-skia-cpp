@@ -1,87 +1,105 @@
 #include "tiny_skia/wide/I32x4T.h"
 
-#include <array>
-#include <bit>
-#include <cstddef>
-#include <cstdint>
-
 #include "tiny_skia/wide/F32x4T.h"
-#include "tiny_skia/wide/Mod.h"
+#include "tiny_skia/wide/backend/Aarch64NeonI32x4T.h"
+#include "tiny_skia/wide/backend/ScalarI32x4T.h"
 
 namespace tiny_skia::wide {
 
+namespace {
+
+[[nodiscard]] constexpr bool useAarch64NeonI32x4() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return true;
+#else
+  return false;
+#endif
+}
+
+}  // namespace
+
 I32x4T I32x4T::blend(const I32x4T& t, const I32x4T& f) const {
-  std::array<std::int32_t, 4> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t maskBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t tBits = std::bit_cast<std::uint32_t>(t.lanes_[i]);
-    const std::uint32_t fBits = std::bit_cast<std::uint32_t>(f.lanes_[i]);
-    out[i] = std::bit_cast<std::int32_t>(genericBitBlend(maskBits, tBits, fBits));
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4Blend(lanes_, t.lanes_, f.lanes_));
   }
 
-  return I32x4T(out);
+  return I32x4T(backend::scalar::i32x4Blend(lanes_, t.lanes_, f.lanes_));
 }
 
 I32x4T I32x4T::cmpEq(const I32x4T& rhs) const {
-  return I32x4T({cmpMask(lanes_[0] == rhs.lanes_[0]), cmpMask(lanes_[1] == rhs.lanes_[1]),
-                 cmpMask(lanes_[2] == rhs.lanes_[2]), cmpMask(lanes_[3] == rhs.lanes_[3])});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4CmpEq(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4CmpEq(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::cmpGt(const I32x4T& rhs) const {
-  return I32x4T({cmpMask(lanes_[0] > rhs.lanes_[0]), cmpMask(lanes_[1] > rhs.lanes_[1]),
-                 cmpMask(lanes_[2] > rhs.lanes_[2]), cmpMask(lanes_[3] > rhs.lanes_[3])});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4CmpGt(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4CmpGt(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::cmpLt(const I32x4T& rhs) const {
-  return I32x4T({cmpMask(lanes_[0] < rhs.lanes_[0]), cmpMask(lanes_[1] < rhs.lanes_[1]),
-                 cmpMask(lanes_[2] < rhs.lanes_[2]), cmpMask(lanes_[3] < rhs.lanes_[3])});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4CmpLt(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4CmpLt(lanes_, rhs.lanes_));
 }
 
 F32x4T I32x4T::toF32x4() const {
-  return F32x4T({static_cast<float>(lanes_[0]), static_cast<float>(lanes_[1]),
-                 static_cast<float>(lanes_[2]), static_cast<float>(lanes_[3])});
+  if constexpr (useAarch64NeonI32x4()) {
+    return F32x4T(backend::aarch64_neon::i32x4ToF32(lanes_));
+  }
+
+  return F32x4T(backend::scalar::i32x4ToF32(lanes_));
 }
 
 F32x4T I32x4T::toF32x4Bitcast() const {
-  return F32x4T({std::bit_cast<float>(lanes_[0]), std::bit_cast<float>(lanes_[1]),
-                 std::bit_cast<float>(lanes_[2]), std::bit_cast<float>(lanes_[3])});
+  return F32x4T(backend::scalar::i32x4ToF32Bitcast(lanes_));
 }
 
 I32x4T I32x4T::operator+(const I32x4T& rhs) const {
-  std::array<std::int32_t, 4> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t rhsBits = std::bit_cast<std::uint32_t>(rhs.lanes_[i]);
-    out[i] = std::bit_cast<std::int32_t>(lhsBits + rhsBits);
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4Add(lanes_, rhs.lanes_));
   }
 
-  return I32x4T(out);
+  return I32x4T(backend::scalar::i32x4Add(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::operator*(const I32x4T& rhs) const {
-  std::array<std::int32_t, 4> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t rhsBits = std::bit_cast<std::uint32_t>(rhs.lanes_[i]);
-    out[i] = std::bit_cast<std::int32_t>(lhsBits * rhsBits);
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4Mul(lanes_, rhs.lanes_));
   }
 
-  return I32x4T(out);
+  return I32x4T(backend::scalar::i32x4Mul(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::operator&(const I32x4T& rhs) const {
-  return I32x4T({lanes_[0] & rhs.lanes_[0], lanes_[1] & rhs.lanes_[1], lanes_[2] & rhs.lanes_[2],
-                 lanes_[3] & rhs.lanes_[3]});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4And(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4And(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::operator|(const I32x4T& rhs) const {
-  return I32x4T({lanes_[0] | rhs.lanes_[0], lanes_[1] | rhs.lanes_[1], lanes_[2] | rhs.lanes_[2],
-                 lanes_[3] | rhs.lanes_[3]});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4Or(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4Or(lanes_, rhs.lanes_));
 }
 
 I32x4T I32x4T::operator^(const I32x4T& rhs) const {
-  return I32x4T({lanes_[0] ^ rhs.lanes_[0], lanes_[1] ^ rhs.lanes_[1], lanes_[2] ^ rhs.lanes_[2],
-                 lanes_[3] ^ rhs.lanes_[3]});
+  if constexpr (useAarch64NeonI32x4()) {
+    return I32x4T(backend::aarch64_neon::i32x4Xor(lanes_, rhs.lanes_));
+  }
+
+  return I32x4T(backend::scalar::i32x4Xor(lanes_, rhs.lanes_));
 }
 
 }  // namespace tiny_skia::wide

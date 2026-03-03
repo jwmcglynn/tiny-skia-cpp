@@ -2,9 +2,9 @@
 
 package(default_visibility = ["//visibility:public"])
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("//:bazel/simd_test.bzl", "tiny_skia_dual_mode_cc_test")
 
-cc_test(
+tiny_skia_dual_mode_cc_test(
     name = "tiny_skia_pipeline_tests",
     srcs = [
         "BlitterTest.cpp",

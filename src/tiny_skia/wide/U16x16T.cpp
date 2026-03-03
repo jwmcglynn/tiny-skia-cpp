@@ -1,118 +1,104 @@
 #include "tiny_skia/wide/U16x16T.h"
 
-#include <algorithm>
-#include <array>
-#include <cstddef>
-#include <cstdint>
+#include "tiny_skia/wide/backend/Aarch64NeonU16x16T.h"
+#include "tiny_skia/wide/backend/ScalarU16x16T.h"
 
 namespace tiny_skia::wide {
 
+namespace {
+
+[[nodiscard]] constexpr bool useAarch64NeonU16x16() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return true;
+#else
+  return false;
+#endif
+}
+
+}  // namespace
+
 U16x16T U16x16T::min(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::min(lanes_[i], rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Min(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Min(*this, rhs);
 }
 
 U16x16T U16x16T::max(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::max(lanes_[i], rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Max(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Max(*this, rhs);
 }
 
 U16x16T U16x16T::cmpLe(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = lanes_[i] <= rhs.lanes_[i] ? UINT16_MAX : 0;
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16CmpLe(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16CmpLe(*this, rhs);
 }
 
 U16x16T U16x16T::blend(const U16x16T& t, const U16x16T& e) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = genericBitBlend(lanes_[i], t.lanes_[i], e.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Blend(*this, t, e);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Blend(*this, t, e);
 }
 
 U16x16T U16x16T::operator+(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] + rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Add(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Add(*this, rhs);
 }
 
 U16x16T U16x16T::operator-(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] - rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Sub(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Sub(*this, rhs);
 }
 
 U16x16T U16x16T::operator*(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] * rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Mul(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Mul(*this, rhs);
 }
 
 U16x16T U16x16T::operator/(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] / rhs.lanes_[i]);
-  }
-
-  return U16x16T(out);
+  return backend::scalar::u16x16Div(*this, rhs);
 }
 
 U16x16T U16x16T::operator&(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] & rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16And(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16And(*this, rhs);
 }
 
 U16x16T U16x16T::operator|(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] | rhs.lanes_[i]);
+  if constexpr (useAarch64NeonU16x16()) {
+    return backend::aarch64_neon::u16x16Or(*this, rhs);
   }
 
-  return U16x16T(out);
+  return backend::scalar::u16x16Or(*this, rhs);
 }
 
 U16x16T U16x16T::operator~() const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(~lanes_[i]);
-  }
-
-  return U16x16T(out);
+  return backend::scalar::u16x16Not(*this);
 }
 
 U16x16T U16x16T::operator>>(const U16x16T& rhs) const {
-  std::array<std::uint16_t, 16> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::uint16_t>(lanes_[i] >> rhs.lanes_[i]);
-  }
-
-  return U16x16T(out);
+  return backend::scalar::u16x16Shr(*this, rhs);
 }
 
 }  // namespace tiny_skia::wide

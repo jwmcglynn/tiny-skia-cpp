@@ -2,6 +2,12 @@
 
 load("//:bazel/defs.bzl", "tiny_skia_cc_library")
 
+_SIMD_MODE_DEFINES = select({
+    "//bazel/config:simd_native": ["TINYSKIA_CFG_IF_SIMD_NATIVE=1"],
+    "//bazel/config:simd_scalar": ["TINYSKIA_CFG_IF_SIMD_SCALAR=1"],
+    "//conditions:default": ["TINYSKIA_CFG_IF_SIMD_NATIVE=1"],
+})
+
 tiny_skia_cc_library(
     name = "tiny_skia_point",
     srcs = [],
@@ -28,8 +34,8 @@ tiny_skia_cc_library(
         "FloatingPoint.cpp",
         "Geom.cpp",
         "LineClipper.cpp",
-        "Math.cpp",
         "Mask.cpp",
+        "Math.cpp",
         "PathBuilder.cpp",
         "PathGeometry.cpp",
         "PathSegmentsIter.cpp",
@@ -55,17 +61,17 @@ tiny_skia_cc_library(
         "FloatingPoint.h",
         "Geom.h",
         "LineClipper.h",
-        "Math.h",
         "Mask.h",
+        "Math.h",
         "Painter.h",
         "Path.h",
         "PathBuilder.h",
+        "PathGeometry.h",
+        "PathGeometryCoreRs.h",
+        "PathGeometryPathRs.h",
         "PathRectRs.h",
         "PathScalarRs.h",
         "PathSizeRs.h",
-        "PathGeometryCoreRs.h",
-        "PathGeometryPathRs.h",
-        "PathGeometry.h",
         "PathVec.h",
         "Pixmap.h",
         "Point.h",
@@ -76,15 +82,15 @@ tiny_skia_cc_library(
         "//src/tiny_skia/pipeline:hdrs",
         "//src/tiny_skia/shaders:hdrs",
     ],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"] + _SIMD_MODE_DEFINES,
+    include_prefix = "tiny_skia",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
     deps = [
         "//src/tiny_skia:tiny_skia_point",
         "//src/tiny_skia/path64:tiny_skia_path64",
         "//src/tiny_skia/wide:tiny_skia_wide",
     ],
-    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
-    include_prefix = "tiny_skia",
-    strip_include_prefix = ".",
-    visibility = ["//visibility:public"],
 )
 
 tiny_skia_cc_library(
@@ -94,12 +100,12 @@ tiny_skia_cc_library(
         "Painter.cpp",
     ],
     hdrs = [],
+    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"] + _SIMD_MODE_DEFINES,
+    include_prefix = "tiny_skia",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
     deps = [
         "//src/tiny_skia:tiny_skia_core",
         "//src/tiny_skia/scan:tiny_skia_scan",
     ],
-    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
-    include_prefix = "tiny_skia",
-    strip_include_prefix = ".",
-    visibility = ["//visibility:public"],
 )

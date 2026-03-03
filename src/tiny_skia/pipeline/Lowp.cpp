@@ -9,6 +9,7 @@
 #include "tiny_skia/wide/F32x16T.h"
 #include "tiny_skia/wide/F32x8T.h"
 #include "tiny_skia/wide/U16x16T.h"
+#include "tiny_skia/wide/backend/Aarch64NeonU16x16T.h"
 
 #include <algorithm>
 #include <cmath>
@@ -97,7 +98,37 @@ inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
 
 // Matches Rust lowp: (v + 255) >> 8
 inline U16x16T div255(U16x16T v) {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return wide::backend::aarch64_neon::u16x16Div255(v);
+#else
   return (v + U16x16T::splat(255)) >> U16x16T::splat(8);
+#endif
+}
+
+inline U16x16T mulDiv255(const U16x16T& lhs, const U16x16T& rhs) {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return wide::backend::aarch64_neon::u16x16MulDiv255(lhs, rhs);
+#else
+  return div255(lhs * rhs);
+#endif
+}
+
+inline U16x16T mulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0,
+                            const U16x16T& lhs1, const U16x16T& rhs1) {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return wide::backend::aarch64_neon::u16x16MulAddDiv255(lhs0, rhs0, lhs1, rhs1);
+#else
+  return div255(lhs0 * rhs0 + lhs1 * rhs1);
+#endif
+}
+
+inline U16x16T sourceOverChannel(const U16x16T& source, const U16x16T& dest,
+                                 const U16x16T& sourceAlpha) {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return wide::backend::aarch64_neon::u16x16SourceOver(source, dest, sourceAlpha);
+#else
+  return source + div255(dest * (U16x16T::splat(255) - sourceAlpha));
+#endif
 }
 
 // Matches Rust from_float(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
@@ -135,9 +166,9 @@ void move_destination_to_source(Pipeline& pipeline) {
 }
 
 void premultiply(Pipeline& pipeline) {
-  pipeline.r = div255(pipeline.r * pipeline.a);
-  pipeline.g = div255(pipeline.g * pipeline.a);
-  pipeline.b = div255(pipeline.b * pipeline.a);
+  pipeline.r = mulDiv255(pipeline.r, pipeline.a);
+  pipeline.g = mulDiv255(pipeline.g, pipeline.a);
+  pipeline.b = mulDiv255(pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
@@ -172,10 +203,10 @@ void scale_u8(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
-  pipeline.r = div255(pipeline.r * c);
-  pipeline.g = div255(pipeline.g * c);
-  pipeline.b = div255(pipeline.b * c);
-  pipeline.a = div255(pipeline.a * c);
+  pipeline.r = mulDiv255(pipeline.r, c);
+  pipeline.g = mulDiv255(pipeline.g, c);
+  pipeline.b = mulDiv255(pipeline.b, c);
+  pipeline.a = mulDiv255(pipeline.a, c);
   pipeline.nextStage();
 }
 
@@ -187,29 +218,29 @@ void lerp_u8(Pipeline& pipeline) {
     cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
   const auto inv_c = U16x16T::splat(255) - c;
-  pipeline.r = div255(pipeline.dr * inv_c + pipeline.r * c);
-  pipeline.g = div255(pipeline.dg * inv_c + pipeline.g * c);
-  pipeline.b = div255(pipeline.db * inv_c + pipeline.b * c);
-  pipeline.a = div255(pipeline.da * inv_c + pipeline.a * c);
+  pipeline.r = mulAddDiv255(pipeline.dr, inv_c, pipeline.r, c);
+  pipeline.g = mulAddDiv255(pipeline.dg, inv_c, pipeline.g, c);
+  pipeline.b = mulAddDiv255(pipeline.db, inv_c, pipeline.b, c);
+  pipeline.a = mulAddDiv255(pipeline.da, inv_c, pipeline.a, c);
   pipeline.nextStage();
 }
 
 void scale_1_float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->current_coverage);
-  pipeline.r = div255(pipeline.r * c);
-  pipeline.g = div255(pipeline.g * c);
-  pipeline.b = div255(pipeline.b * c);
-  pipeline.a = div255(pipeline.a * c);
+  pipeline.r = mulDiv255(pipeline.r, c);
+  pipeline.g = mulDiv255(pipeline.g, c);
+  pipeline.b = mulDiv255(pipeline.b, c);
+  pipeline.a = mulDiv255(pipeline.a, c);
   pipeline.nextStage();
 }
 
 void lerp_1_float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->current_coverage);
   const auto inv_c = U16x16T::splat(255) - c;
-  pipeline.r = div255(pipeline.dr * inv_c + pipeline.r * c);
-  pipeline.g = div255(pipeline.dg * inv_c + pipeline.g * c);
-  pipeline.b = div255(pipeline.db * inv_c + pipeline.b * c);
-  pipeline.a = div255(pipeline.da * inv_c + pipeline.a * c);
+  pipeline.r = mulAddDiv255(pipeline.dr, inv_c, pipeline.r, c);
+  pipeline.g = mulAddDiv255(pipeline.dg, inv_c, pipeline.g, c);
+  pipeline.b = mulAddDiv255(pipeline.db, inv_c, pipeline.b, c);
+  pipeline.a = mulAddDiv255(pipeline.da, inv_c, pipeline.a, c);
   pipeline.nextStage();
 }
 
@@ -235,7 +266,7 @@ void blend_fn2(Pipeline& pipeline, F&& f) {
   pipeline.r = f(pipeline.r, pipeline.dr, sa, da);
   pipeline.g = f(pipeline.g, pipeline.dg, sa, da);
   pipeline.b = f(pipeline.b, pipeline.db, sa, da);
-  pipeline.a = sa + div255(da * (U16x16T::splat(255) - sa));
+  pipeline.a = sourceOverChannel(sa, da, sa);
   pipeline.nextStage();
 }
 
@@ -247,55 +278,55 @@ void clear(Pipeline& pipeline) {
 
 void destination_atop(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
-    return div255(d * sa + s * (U16x16T::splat(255) - da));
+    return mulAddDiv255(d, sa, s, U16x16T::splat(255) - da);
   });
 }
 
 void destination_in(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
-    return div255(d * sa);
+    return mulDiv255(d, sa);
   });
 }
 
 void destination_out(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
-    return div255(d * (U16x16T::splat(255) - sa));
+    return mulDiv255(d, U16x16T::splat(255) - sa);
   });
 }
 
 void source_atop(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
-    return div255(s * da + d * (U16x16T::splat(255) - sa));
+    return mulAddDiv255(s, da, d, U16x16T::splat(255) - sa);
   });
 }
 
 void source_in(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
-    return div255(s * da);
+    return mulDiv255(s, da);
   });
 }
 
 void source_out(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
-    return div255(s * (U16x16T::splat(255) - da));
+    return mulDiv255(s, U16x16T::splat(255) - da);
   });
 }
 
 void source_over(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T /*da*/) {
-    return s + div255(d * (U16x16T::splat(255) - sa));
+    return sourceOverChannel(s, d, sa);
   });
 }
 
 void destination_over(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T da) {
-    return d + div255(s * (U16x16T::splat(255) - da));
+    return sourceOverChannel(d, s, da);
   });
 }
 
 void modulate(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
-    return div255(s * d);
+    return mulDiv255(s, d);
   });
 }
 
@@ -313,13 +344,13 @@ void plus(Pipeline& pipeline) {
 
 void screen(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
-    return s + d - div255(s * d);
+    return s + d - mulDiv255(s, d);
   });
 }
 
 void x_or(Pipeline& pipeline) {
   blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
-    return div255(s * (U16x16T::splat(255) - da) + d * (U16x16T::splat(255) - sa));
+    return mulAddDiv255(s, U16x16T::splat(255) - da, d, U16x16T::splat(255) - sa);
   });
 }
 
@@ -469,10 +500,10 @@ void mask_u8(Pipeline& pipeline) {
   if (all_zero) {
     return;
   }
-  pipeline.r = div255(pipeline.r * c);
-  pipeline.g = div255(pipeline.g * c);
-  pipeline.b = div255(pipeline.b * c);
-  pipeline.a = div255(pipeline.a * c);
+  pipeline.r = mulDiv255(pipeline.r, c);
+  pipeline.g = mulDiv255(pipeline.g, c);
+  pipeline.b = mulDiv255(pipeline.b, c);
+  pipeline.a = mulDiv255(pipeline.a, c);
   pipeline.nextStage();
 }
 
@@ -484,11 +515,10 @@ void source_over_rgba(Pipeline& pipeline) {
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.tail,
                  pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
-  const auto inv_sa = U16x16T::splat(255) - pipeline.a;
-  pipeline.r = pipeline.r + div255(pipeline.dr * inv_sa);
-  pipeline.g = pipeline.g + div255(pipeline.dg * inv_sa);
-  pipeline.b = pipeline.b + div255(pipeline.db * inv_sa);
-  pipeline.a = pipeline.a + div255(pipeline.da * inv_sa);
+  pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
+  pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
+  pipeline.b = sourceOverChannel(pipeline.b, pipeline.db, pipeline.a);
+  pipeline.a = sourceOverChannel(pipeline.a, pipeline.da, pipeline.a);
   store_8888_lowp(pixels, pipeline.tail,
                   pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();

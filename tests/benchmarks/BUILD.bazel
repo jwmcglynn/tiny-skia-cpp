@@ -1,0 +1,24 @@
+"""Performance benchmarks for SIMD/scalar/Rust comparison."""
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+_COMMON_DEPS = [
+    "//tests/rust_ffi:tiny_skia_ffi",
+    "@google_benchmark//:benchmark_main",
+]
+
+cc_binary(
+    name = "render_perf_bench_native",
+    srcs = ["RenderPerfBench.cpp"],
+    copts = ["-std=c++20"],
+    deps = _COMMON_DEPS + ["//src:tiny_skia_lib_native"],
+)
+
+cc_binary(
+    name = "render_perf_bench_scalar",
+    srcs = ["RenderPerfBench.cpp"],
+    copts = ["-std=c++20"],
+    deps = _COMMON_DEPS + ["//src:tiny_skia_lib_scalar"],
+)

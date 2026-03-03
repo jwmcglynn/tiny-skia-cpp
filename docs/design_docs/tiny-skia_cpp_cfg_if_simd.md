@@ -1,6 +1,7 @@
 # Design: cfg_if SIMD Parity
 
-**Status:** Design
+**Status:** In Progress (M1 complete; M2 scalar extraction complete; M2 aarch64 complete;
+M3 host complete)
 **Author:** Codex
 **Created:** 2026-03-02
 
@@ -38,43 +39,58 @@
 
 ## Next Steps
 
-- Add Bazel SIMD mode build setting and transition wrappers for `tiny_skia_lib`.
-- Split `wide` internals into backend-specific implementation layers while preserving
-  public class APIs.
-- Add wasm-target build/test coverage in the same batch as x86/aarch64 work.
-- Stand up dual-mode test targets and make them part of the normal validation gate.
+- Complete modern x86 AVX2/FMA backend parity work.
+- Implement wasm SIMD (`simd128`, `relaxed-simd`) backend paths.
+- Wire wasm SIMD test suites into the normal validation gate.
 
 ## Implementation Plan
 
-- [ ] Milestone 1: Add Bazel SIMD mode config and transitions
-  - [ ] Step 1: Add `//bazel/config:simd_mode` build setting with values `native` and
+- [x] Milestone 1: Add Bazel SIMD mode config and transitions
+  - [x] Step 1: Add `//bazel/config:simd_mode` build setting with values `native` and
     `scalar`.
-  - [ ] Step 2: Add `config_setting` + `select()` wiring for SIMD control defines/copts in
+  - [x] Step 2: Add `config_setting` + `select()` wiring for SIMD control defines/copts in
     `src/tiny_skia/wide/BUILD.bazel` and `src/tiny_skia/BUILD.bazel`.
-  - [ ] Step 3: Add `bazel/simd_transition.bzl` with a transition rule that sets
+  - [x] Step 3: Add `bazel/simd_transition.bzl` with a transition rule that sets
     `//bazel/config:simd_mode` on a dependency edge.
-  - [ ] Step 4: Add transitioned wrapper targets for
+  - [x] Step 4: Add transitioned wrapper targets for
     `//src:tiny_skia_lib_native` and `//src:tiny_skia_lib_scalar`.
 
 - [ ] Milestone 2: Align C++ `wide` backend topology with Rust `cfg_if!`
-  - [ ] Step 1: Introduce backend-selection macros and a shared backend contract
+  - [x] Step 1: Introduce backend-selection macros and a shared backend contract
     (`scalar`, `x86`, `aarch64`, `wasm`).
-  - [ ] Step 2: Move current `std::array` implementations into explicit scalar backend files.
+  - [x] Step 2a: Move shared scalar helpers and `u16x16` operations into explicit
+    scalar backend files.
+  - [x] Step 2b.1: Move `u16x16`, `f32x4`, `i32x4`, and `u32x4` implementations into
+    explicit scalar backend files.
+  - [x] Step 2b.2: Move remaining wide-type implementations (`f32x8`, `i32x8`, `u32x8`,
+    `f32x16`) into explicit scalar backend files.
   - [ ] Step 3: Implement modern x86 intrinsics backend with AVX2/FMA baseline (policy:
     last-10-years CPUs; roughly 2016+ deployments).
-  - [ ] Step 4: Implement aarch64 NEON paths matching Rust `target_arch = "aarch64"` +
+  - [x] Step 4: Implement aarch64 NEON paths matching Rust `target_arch = "aarch64"` +
     `target_feature = "neon"`.
+    - [x] Step 4a: Implement NEON backend + native dispatch for `f32x4`, `i32x4`, `u32x4`.
+    - [x] Step 4b: Extend aarch64-native paths for `f32x8`, `i32x8`, `u32x8`, `u16x16`,
+      `f32x16` where Rust composes via x4 lanes.
+      - [x] Step 4b.1: Route `f32x8`, `i32x8`, and `u32x8` through composed x4 operations in
+        aarch64 native mode.
+      - [x] Step 4b.2: Route `f32x16` abs/sqrt through `f32x8` halves.
+      - [x] Step 4b.3: Add aarch64-native `u16x16` operations (`min`, `max`, `cmpLe`,
+        `add/sub/mul`, `and/or`) aligned with Rust neon gates.
+      - [x] Step 4b.4: Remove avoidable NEON lane materialization in lowp hot paths by
+        adding fused `u16x16` helpers (`mul+div255`, `mul+mul+add+div255`, source-over) and
+        routing lowp blend operations through them.
   - [ ] Step 5: Implement wasm SIMD backend for `simd128` and `relaxed-simd`
     (not stub-only).
 
 - [ ] Milestone 3: Add dual-mode tests and gate them
-  - [ ] Step 1: Add a macro/rule to generate paired test targets (`_native`, `_scalar`) from
+  - [x] Step 1: Add a macro/rule to generate paired test targets (`_native`, `_scalar`) from
     one test definition using transitioned deps.
-  - [ ] Step 2: Apply dual-mode coverage to wide tests first, then pipeline/core integration
-    tests.
+  - [x] Step 2a: Apply dual-mode coverage to wide tests.
+  - [x] Step 2b: Extend dual-mode coverage to pipeline/core integration tests.
   - [ ] Step 3: Add native/scalar test suites for host toolchains and wasm-target test suite
     for `simd128` parity checks.
-  - [ ] Step 4: Wire dual-mode + wasm suites into regular CI/local validation commands.
+  - [x] Step 4a: Wire host dual-mode suites into regular local validation commands.
+  - [ ] Step 4b: Wire wasm SIMD suite into regular CI/local validation commands.
 
 ## Requirements and Constraints
 
@@ -155,6 +171,24 @@ to `x86_64` and `aarch64`.
   - `bazel test //...`
   - `bazel test //tests:tiny_skia_dual_mode_suite`
   - `bazel test //tests:tiny_skia_wasm_simd_suite`
+
+## Recent Update: 2026-03-02 (AArch64 NEON Materialization Audit)
+
+- Fixed `u16x16Div255` branch inversion in
+  `src/tiny_skia/wide/backend/Aarch64NeonU16x16T.h` so native AArch64 now executes the NEON
+  path (fallback remains scalar).
+- Added fused AArch64 NEON helpers to reduce repeated load/store boundaries:
+  - `u16x16MulDiv255(lhs, rhs)`
+  - `u16x16MulAddDiv255(lhs0, rhs0, lhs1, rhs1)`
+  - `u16x16SourceOver(source, dest, source_alpha)`
+- Updated lowp pipeline call sites (`premultiply`, `scale_*`, `lerp_*`, source/destination-over
+  family, modulate/screen/xor, and `source_over_rgba`) to use fused helpers where formulas match.
+- Validation run after this update:
+  - `bazel build //...` passed
+  - `bazel test //...` passed
+- Benchmark snapshot (`tests/benchmarks/run_render_perf_compare.sh`, opt mode, Apple Silicon host):
+  - FillPath(512): native `237658 ns` vs scalar `442642 ns` (`1.863x` native/scalar)
+  - FillRect(512): native `143342 ns` vs scalar `345637 ns` (`2.411x` native/scalar)
 
 ## Alternatives Considered
 

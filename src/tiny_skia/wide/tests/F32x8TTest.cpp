@@ -102,27 +102,29 @@ TEST(F32x8TTest, SqrtIsPerLane) {
 TEST(F32x8TTest, RecipFastIsPerLane) {
   const F32x8T value({1.0f, 2.0f, 4.0f, 0.5f, 8.0f, 0.25f, 10.0f, 0.1f});
   const auto result = value.recipFast().lanes();
-  EXPECT_FLOAT_EQ(result[0], 1.0f);
-  EXPECT_FLOAT_EQ(result[1], 0.5f);
-  EXPECT_FLOAT_EQ(result[2], 0.25f);
-  EXPECT_FLOAT_EQ(result[3], 2.0f);
-  EXPECT_FLOAT_EQ(result[4], 0.125f);
-  EXPECT_FLOAT_EQ(result[5], 4.0f);
-  EXPECT_FLOAT_EQ(result[6], 0.1f);
-  EXPECT_FLOAT_EQ(result[7], 10.0f);
+  constexpr float kTolerance = 2e-5f;
+  EXPECT_NEAR(result[0], 1.0f, kTolerance);
+  EXPECT_NEAR(result[1], 0.5f, kTolerance);
+  EXPECT_NEAR(result[2], 0.25f, kTolerance);
+  EXPECT_NEAR(result[3], 2.0f, kTolerance);
+  EXPECT_NEAR(result[4], 0.125f, kTolerance);
+  EXPECT_NEAR(result[5], 4.0f, kTolerance);
+  EXPECT_NEAR(result[6], 0.1f, kTolerance);
+  EXPECT_NEAR(result[7], 10.0f, kTolerance);
 }
 
 TEST(F32x8TTest, RecipSqrtIsPerLane) {
   const F32x8T value({1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 100.0f, 0.25f, 0.01f});
   const auto result = value.recipSqrt().lanes();
-  EXPECT_FLOAT_EQ(result[0], 1.0f);
-  EXPECT_FLOAT_EQ(result[1], 0.5f);
-  EXPECT_FLOAT_EQ(result[2], 1.0f / 3.0f);
-  EXPECT_FLOAT_EQ(result[3], 0.25f);
-  EXPECT_FLOAT_EQ(result[4], 0.2f);
-  EXPECT_FLOAT_EQ(result[5], 0.1f);
-  EXPECT_FLOAT_EQ(result[6], 2.0f);
-  EXPECT_FLOAT_EQ(result[7], 10.0f);
+  constexpr float kTolerance = 2e-5f;
+  EXPECT_NEAR(result[0], 1.0f, kTolerance);
+  EXPECT_NEAR(result[1], 0.5f, kTolerance);
+  EXPECT_NEAR(result[2], 1.0f / 3.0f, kTolerance);
+  EXPECT_NEAR(result[3], 0.25f, kTolerance);
+  EXPECT_NEAR(result[4], 0.2f, kTolerance);
+  EXPECT_NEAR(result[5], 0.1f, kTolerance);
+  EXPECT_NEAR(result[6], 2.0f, kTolerance);
+  EXPECT_NEAR(result[7], 10.0f, kTolerance);
 }
 
 TEST(F32x8TTest, PowfIsPerLane) {

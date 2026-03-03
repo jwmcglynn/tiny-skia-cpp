@@ -1,27 +1,49 @@
 #include "tiny_skia/wide/F32x8T.h"
 
 #include <bit>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
 
 #include "tiny_skia/wide/I32x8T.h"
-#include "tiny_skia/wide/Mod.h"
 #include "tiny_skia/wide/U32x8T.h"
+#include "tiny_skia/wide/backend/Aarch64NeonF32x8T.h"
+#include "tiny_skia/wide/backend/ScalarF32x8T.h"
+#include "tiny_skia/wide/backend/X86Avx2FmaF32x8T.h"
 
 namespace tiny_skia::wide {
 
+namespace {
+
+[[nodiscard]] constexpr bool useX86Avx2FmaF32x8() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
+  return true;
+#else
+  return false;
+#endif
+}
+
+[[nodiscard]] constexpr bool useAarch64NeonF32x8() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return true;
+#else
+  return false;
+#endif
+}
+
+}  // namespace
+
 float F32x8T::cmpMask(bool predicate) {
-  return predicate ? kTrueMask : 0.0f;
+  return backend::scalar::f32x8CmpMask(predicate);
 }
 
 F32x8T F32x8T::floor() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::floor(lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Floor(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Floor(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Floor(lanes_));
 }
 
 F32x8T F32x8T::fract() const {
@@ -33,150 +55,166 @@ F32x8T F32x8T::normalize() const {
 }
 
 I32x8T F32x8T::toI32x8Bitcast() const {
-  std::array<std::int32_t, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::bit_cast<std::int32_t>(lanes_[i]);
+  if constexpr (useAarch64NeonF32x8()) {
+    return I32x8T(backend::aarch64_neon::f32x8ToI32Bitcast(lanes_));
   }
 
-  return I32x8T(out);
+  return I32x8T(backend::scalar::f32x8ToI32Bitcast(lanes_));
 }
 
 U32x8T F32x8T::toU32x8Bitcast() const {
-  std::array<std::uint32_t, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::bit_cast<std::uint32_t>(lanes_[i]);
+  if constexpr (useAarch64NeonF32x8()) {
+    return U32x8T(backend::aarch64_neon::f32x8ToU32Bitcast(lanes_));
   }
 
-  return U32x8T(out);
+  return U32x8T(backend::scalar::f32x8ToU32Bitcast(lanes_));
 }
 
 F32x8T F32x8T::cmpEq(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] == rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpEq(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpEq(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpEq(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::cmpNe(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] != rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpNe(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpNe(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpNe(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::cmpGe(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] >= rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpGe(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpGe(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpGe(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::cmpGt(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] > rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpGt(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpGt(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpGt(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::cmpLe(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] <= rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpLe(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpLe(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpLe(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::cmpLt(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = cmpMask(lanes_[i] < rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8CmpLt(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8CmpLt(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8CmpLt(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::blend(const F32x8T& t, const F32x8T& f) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t maskBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t tBits = std::bit_cast<std::uint32_t>(t.lanes_[i]);
-    const std::uint32_t fBits = std::bit_cast<std::uint32_t>(f.lanes_[i]);
-    out[i] = std::bit_cast<float>(genericBitBlend(maskBits, tBits, fBits));
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Blend(lanes_, t.lanes_, f.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Blend(lanes_, t.lanes_, f.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Blend(lanes_, t.lanes_, f.lanes_));
 }
 
 F32x8T F32x8T::abs() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::fabs(lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Abs(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Abs(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Abs(lanes_));
 }
 
 F32x8T F32x8T::sqrt() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::sqrt(lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Sqrt(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Sqrt(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Sqrt(lanes_));
 }
 
 F32x8T F32x8T::recipFast() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = 1.0f / lanes_[i];
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8RecipFast(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8RecipFast(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8RecipFast(lanes_));
 }
 
 F32x8T F32x8T::recipSqrt() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = 1.0f / std::sqrt(lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8RecipSqrt(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8RecipSqrt(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8RecipSqrt(lanes_));
 }
 
 F32x8T F32x8T::powf(float exp) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::pow(lanes_[i], exp);
-  }
-
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Powf(lanes_, exp));
 }
 
 F32x8T F32x8T::max(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = fasterMax(lanes_[i], rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Max(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Max(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Max(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::min(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = fasterMin(lanes_[i], rhs.lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Min(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Min(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Min(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::isFinite() const {
@@ -188,99 +226,107 @@ F32x8T F32x8T::isFinite() const {
 }
 
 F32x8T F32x8T::round() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = std::nearbyint(lanes_[i]);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Round(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Round(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Round(lanes_));
 }
 
 I32x8T F32x8T::roundInt() const {
-  std::array<std::int32_t, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::int32_t>(std::nearbyint(lanes_[i]));
+  if constexpr (useAarch64NeonF32x8()) {
+    return I32x8T(backend::aarch64_neon::f32x8RoundInt(lanes_));
   }
 
-  return I32x8T(out);
+  return I32x8T(backend::scalar::f32x8RoundInt(lanes_));
 }
 
 I32x8T F32x8T::truncInt() const {
-  std::array<std::int32_t, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = static_cast<std::int32_t>(std::trunc(lanes_[i]));
+  if constexpr (useAarch64NeonF32x8()) {
+    return I32x8T(backend::aarch64_neon::f32x8TruncInt(lanes_));
   }
 
-  return I32x8T(out);
+  return I32x8T(backend::scalar::f32x8TruncInt(lanes_));
 }
 
 F32x8T F32x8T::operator+(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = lanes_[i] + rhs.lanes_[i];
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Add(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Add(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Add(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator-(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = lanes_[i] - rhs.lanes_[i];
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Sub(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Sub(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Sub(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator*(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = lanes_[i] * rhs.lanes_[i];
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Mul(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Mul(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Mul(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator/(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    out[i] = lanes_[i] / rhs.lanes_[i];
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8Div(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8Div(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8Div(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator&(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t rhsBits = std::bit_cast<std::uint32_t>(rhs.lanes_[i]);
-    out[i] = std::bit_cast<float>(lhsBits & rhsBits);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8BitAnd(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8BitAnd(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8BitAnd(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator|(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t rhsBits = std::bit_cast<std::uint32_t>(rhs.lanes_[i]);
-    out[i] = std::bit_cast<float>(lhsBits | rhsBits);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8BitOr(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8BitOr(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8BitOr(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator^(const F32x8T& rhs) const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    const std::uint32_t rhsBits = std::bit_cast<std::uint32_t>(rhs.lanes_[i]);
-    out[i] = std::bit_cast<float>(lhsBits ^ rhsBits);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8BitXor(lanes_, rhs.lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8BitXor(lanes_, rhs.lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8BitXor(lanes_, rhs.lanes_));
 }
 
 F32x8T F32x8T::operator-() const {
@@ -288,13 +334,14 @@ F32x8T F32x8T::operator-() const {
 }
 
 F32x8T F32x8T::operator~() const {
-  std::array<float, 8> out{};
-  for (std::size_t i = 0; i < out.size(); ++i) {
-    const std::uint32_t bits = std::bit_cast<std::uint32_t>(lanes_[i]);
-    out[i] = std::bit_cast<float>(~bits);
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return F32x8T(backend::x86_avx2_fma::f32x8BitNot(lanes_));
+  }
+  if constexpr (useAarch64NeonF32x8()) {
+    return F32x8T(backend::aarch64_neon::f32x8BitNot(lanes_));
   }
 
-  return F32x8T(out);
+  return F32x8T(backend::scalar::f32x8BitNot(lanes_));
 }
 
 bool F32x8T::operator==(const F32x8T& rhs) const {

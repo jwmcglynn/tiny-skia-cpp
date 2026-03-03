@@ -2,7 +2,16 @@
 
 #include <type_traits>
 
+#include "tiny_skia/wide/backend/BackendConfig.h"
+
 namespace tiny_skia::wide {
+
+enum class SimdBuildMode {
+  kNative,
+  kScalar,
+};
+
+using SimdBackend = backend::SimdBackend;
 
 template <typename T>
 [[nodiscard]] constexpr T genericBitBlend(T mask, T y, T n) {
@@ -12,5 +21,9 @@ template <typename T>
 
 [[nodiscard]] float fasterMin(float lhs, float rhs);
 [[nodiscard]] float fasterMax(float lhs, float rhs);
+[[nodiscard]] SimdBuildMode configuredSimdBuildMode();
+[[nodiscard]] const char* configuredSimdBuildModeName();
+[[nodiscard]] SimdBackend configuredSimdBackend();
+[[nodiscard]] const char* configuredSimdBackendName();
 
 }  // namespace tiny_skia::wide

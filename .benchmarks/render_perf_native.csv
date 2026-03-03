@@ -1,0 +1,29 @@
+2026-03-02T22:13:36-08:00
+Running /private/var/tmp/_bazel_jwm/602f469963c2665475cac3baeee5d214/execroot/_main/bazel-out/darwin_arm64-opt/bin/tests/benchmarks/render_perf_bench_native
+Run on (14 X 24 MHz CPU s)
+CPU Caches:
+  L1 Data 64 KiB
+  L1 Instruction 128 KiB
+  L2 Unified 4096 KiB (x14)
+Load Average: 11.72, 8.00, 7.65
+comparison_mode: engine_core
+cpp_backend: aarch64_neon
+rust_ffi_mode: prepared_state
+simd_mode: native
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message,"pixels_per_second"
+"BM_FillPath_Cpp/512_mean",5,239591,239578,ns,,1.09424e+09,,,,1.09424e+09
+"BM_FillPath_Cpp/512_median",5,240311,240301,ns,,1.0909e+09,,,,1.0909e+09
+"BM_FillPath_Cpp/512_stddev",5,1727.74,1730.98,ns,,7.93613e+06,,,,7.93613e+06
+"BM_FillPath_Cpp/512_cv",5,0.0072112,0.00722513,,,0.00725267,,,,0.00725267
+"BM_FillPath_Rust/512_mean",5,312176,312154,ns,,8.39858e+08,,,,8.39858e+08
+"BM_FillPath_Rust/512_median",5,311168,311124,ns,,8.4257e+08,,,,8.4257e+08
+"BM_FillPath_Rust/512_stddev",5,3099.76,3106.8,ns,,8.30662e+06,,,,8.30662e+06
+"BM_FillPath_Rust/512_cv",5,0.00992953,0.00995279,,,0.00989051,,,,0.00989051
+"BM_FillRect_Cpp/512_mean",5,144277,144267,ns,,1.81727e+09,,,,1.81727e+09
+"BM_FillRect_Cpp/512_median",5,144728,144715,ns,,1.81145e+09,,,,1.81145e+09
+"BM_FillRect_Cpp/512_stddev",5,1648.76,1643.53,ns,,2.07925e+07,,,,2.07925e+07
+"BM_FillRect_Cpp/512_cv",5,0.0114277,0.0113923,,,0.0114416,,,,0.0114416
+"BM_FillRect_Rust/512_mean",5,268336,268314,ns,,9.77108e+08,,,,9.77108e+08
+"BM_FillRect_Rust/512_median",5,270074,270055,ns,,9.70704e+08,,,,9.70704e+08
+"BM_FillRect_Rust/512_stddev",5,3064.77,3067.71,ns,,1.12234e+07,,,,1.12234e+07
+"BM_FillRect_Rust/512_cv",5,0.0114214,0.0114333,,,0.0114864,,,,0.0114864

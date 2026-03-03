@@ -11,6 +11,21 @@ use tiny_skia::{
     StrokeDash, Transform,
 };
 
+#[repr(C)]
+pub struct TsFfiPaint {
+    paint: Paint<'static>,
+}
+
+#[repr(C)]
+pub struct TsFfiRect {
+    rect: Rect,
+}
+
+#[repr(C)]
+pub struct TsFfiTransform {
+    transform: Transform,
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -233,6 +248,112 @@ pub unsafe extern "C" fn ts_ffi_path_free(path: *mut Path) {
 // ---------------------------------------------------------------------------
 // Fill path
 // ---------------------------------------------------------------------------
+
+#[no_mangle]
+pub extern "C" fn ts_ffi_paint_new_solid_rgba8(
+    r: u8,
+    g: u8,
+    b: u8,
+    a: u8,
+    anti_alias: bool,
+    blend_mode: u8,
+) -> *mut TsFfiPaint {
+    let mut paint: Paint<'static> = Paint::default();
+    paint.set_color_rgba8(r, g, b, a);
+    paint.anti_alias = anti_alias;
+    paint.blend_mode = blend_mode_from_u8(blend_mode);
+    Box::into_raw(Box::new(TsFfiPaint { paint }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_paint_free(paint: *mut TsFfiPaint) {
+    if !paint.is_null() {
+        drop(Box::from_raw(paint));
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ts_ffi_rect_from_ltrb(
+    left: f32,
+    top: f32,
+    right: f32,
+    bottom: f32,
+) -> *mut TsFfiRect {
+    match Rect::from_ltrb(left, top, right, bottom) {
+        Some(rect) => Box::into_raw(Box::new(TsFfiRect { rect })),
+        None => std::ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_rect_free(rect: *mut TsFfiRect) {
+    if !rect.is_null() {
+        drop(Box::from_raw(rect));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_transform_from_row(transform: *const f32) -> *mut TsFfiTransform {
+    if transform.is_null() {
+        return std::ptr::null_mut();
+    }
+
+    Box::into_raw(Box::new(TsFfiTransform {
+        transform: read_transform(transform),
+    }))
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_transform_free(transform: *mut TsFfiTransform) {
+    if !transform.is_null() {
+        drop(Box::from_raw(transform));
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_fill_path_prepared(
+    pixmap: *mut Pixmap,
+    path: *const Path,
+    paint: *const TsFfiPaint,
+    fill_rule: u8,
+    transform: *const TsFfiTransform,
+) -> bool {
+    if pixmap.is_null() || path.is_null() || paint.is_null() || transform.is_null() {
+        return false;
+    }
+
+    let pm = &mut *pixmap;
+    let p = &*path;
+    let paint = &(*paint).paint;
+    let ts = (*transform).transform;
+    let rule = if fill_rule == 1 {
+        FillRule::EvenOdd
+    } else {
+        FillRule::Winding
+    };
+
+    pm.fill_path(p, paint, rule, ts, None);
+    true
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ts_ffi_fill_rect_prepared(
+    pixmap: *mut Pixmap,
+    rect: *const TsFfiRect,
+    paint: *const TsFfiPaint,
+    transform: *const TsFfiTransform,
+) -> bool {
+    if pixmap.is_null() || rect.is_null() || paint.is_null() || transform.is_null() {
+        return false;
+    }
+
+    let pm = &mut *pixmap;
+    let rect = (*rect).rect;
+    let paint = &(*paint).paint;
+    let ts = (*transform).transform;
+    pm.fill_rect(rect, paint, ts, None);
+    true
+}
 
 /// Fills `path` onto `pixmap` using a solid color paint.
 ///

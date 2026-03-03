@@ -28,6 +28,11 @@ typedef struct TsFfiPath TsFfiPath;
 /// Opaque Rust `tiny_skia::PathBuilder`.
 typedef struct TsFfiPathBuilder TsFfiPathBuilder;
 
+/// Opaque Rust render-state wrappers for prepared benchmark calls.
+typedef struct TsFfiPaint TsFfiPaint;
+typedef struct TsFfiRect TsFfiRect;
+typedef struct TsFfiTransform TsFfiTransform;
+
 // ---------------------------------------------------------------------------
 // Pixmap
 // ---------------------------------------------------------------------------
@@ -97,6 +102,38 @@ void ts_ffi_path_free(TsFfiPath* path);
 // ---------------------------------------------------------------------------
 // Rendering – fill
 // ---------------------------------------------------------------------------
+
+/// Creates a solid-color paint object to reuse across rendering calls.
+TsFfiPaint* ts_ffi_paint_new_solid_rgba8(uint8_t r, uint8_t g, uint8_t b,
+                                         uint8_t a, bool anti_alias,
+                                         uint8_t blend_mode);
+
+/// Frees a paint handle. Safe to call with NULL.
+void ts_ffi_paint_free(TsFfiPaint* paint);
+
+/// Creates a validated rectangle from [left, top, right, bottom].
+/// Returns NULL if the rectangle is invalid.
+TsFfiRect* ts_ffi_rect_from_ltrb(float left, float top, float right, float bottom);
+
+/// Frees a rectangle handle. Safe to call with NULL.
+void ts_ffi_rect_free(TsFfiRect* rect);
+
+/// Creates a transform handle from [sx, kx, tx, ky, sy, ty].
+/// Returns NULL when `transform` is NULL.
+TsFfiTransform* ts_ffi_transform_from_row(const float transform[6]);
+
+/// Frees a transform handle. Safe to call with NULL.
+void ts_ffi_transform_free(TsFfiTransform* transform);
+
+/// Prepared-state fill path call for engine-core comparisons.
+bool ts_ffi_fill_path_prepared(TsFfiPixmap* pixmap, const TsFfiPath* path,
+                               const TsFfiPaint* paint, uint8_t fill_rule,
+                               const TsFfiTransform* transform);
+
+/// Prepared-state fill rect call for engine-core comparisons.
+bool ts_ffi_fill_rect_prepared(TsFfiPixmap* pixmap, const TsFfiRect* rect,
+                               const TsFfiPaint* paint,
+                               const TsFfiTransform* transform);
 
 /// Fills `path` onto `pixmap` using a solid-color paint.
 ///
