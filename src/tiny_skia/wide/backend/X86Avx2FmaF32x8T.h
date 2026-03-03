@@ -4,13 +4,15 @@
 #include <cstddef>
 #include <cstdint>
 
+#if defined(__AVX2__) && defined(__FMA__) && (defined(__x86_64__) || defined(__i386__))
+#include <immintrin.h>
+#endif
+
 #include "tiny_skia/wide/backend/ScalarF32x8T.h"
 
 namespace tiny_skia::wide::backend::x86_avx2_fma {
 
 #if defined(__AVX2__) && defined(__FMA__) && (defined(__x86_64__) || defined(__i386__))
-
-#include <immintrin.h>
 
 [[nodiscard]] inline __m256 loadF32x8(const std::array<float, 8>& lanes) {
   return _mm256_loadu_ps(lanes.data());
@@ -22,8 +24,30 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return out;
 }
 
+[[nodiscard]] inline std::array<std::int32_t, 8> storeI32x8(__m256i value) {
+  std::array<std::int32_t, 8> out{};
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(out.data()), value);
+  return out;
+}
+
+[[nodiscard]] inline std::array<std::uint32_t, 8> storeU32x8(__m256i value) {
+  std::array<std::uint32_t, 8> out{};
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(out.data()), value);
+  return out;
+}
+
 [[nodiscard]] inline std::array<float, 8> f32x8Floor(const std::array<float, 8>& lanes) {
   return storeF32x8(_mm256_floor_ps(loadF32x8(lanes)));
+}
+
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8ToI32Bitcast(
+    const std::array<float, 8>& lanes) {
+  return storeI32x8(_mm256_castps_si256(loadF32x8(lanes)));
+}
+
+[[nodiscard]] inline std::array<std::uint32_t, 8> f32x8ToU32Bitcast(
+    const std::array<float, 8>& lanes) {
+  return storeU32x8(_mm256_castps_si256(loadF32x8(lanes)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpEq(const std::array<float, 8>& lhs,
@@ -96,6 +120,16 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
       _mm256_round_ps(loadF32x8(lanes), _MM_FROUND_NO_EXC | _MM_FROUND_TO_NEAREST_INT));
 }
 
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
+    const std::array<float, 8>& lanes) {
+  return storeI32x8(_mm256_cvtps_epi32(loadF32x8(lanes)));
+}
+
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
+    const std::array<float, 8>& lanes) {
+  return storeI32x8(_mm256_cvttps_epi32(loadF32x8(lanes)));
+}
+
 [[nodiscard]] inline std::array<float, 8> f32x8Add(const std::array<float, 8>& lhs,
                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_add_ps(loadF32x8(lhs), loadF32x8(rhs)));
@@ -140,6 +174,16 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 
 [[nodiscard]] inline std::array<float, 8> f32x8Floor(const std::array<float, 8>& lanes) {
   return scalar::f32x8Floor(lanes);
+}
+
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8ToI32Bitcast(
+    const std::array<float, 8>& lanes) {
+  return scalar::f32x8ToI32Bitcast(lanes);
+}
+
+[[nodiscard]] inline std::array<std::uint32_t, 8> f32x8ToU32Bitcast(
+    const std::array<float, 8>& lanes) {
+  return scalar::f32x8ToU32Bitcast(lanes);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpEq(const std::array<float, 8>& lhs,
@@ -206,6 +250,16 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 
 [[nodiscard]] inline std::array<float, 8> f32x8Round(const std::array<float, 8>& lanes) {
   return scalar::f32x8Round(lanes);
+}
+
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
+    const std::array<float, 8>& lanes) {
+  return scalar::f32x8RoundInt(lanes);
+}
+
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
+    const std::array<float, 8>& lanes) {
+  return scalar::f32x8TruncInt(lanes);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Add(const std::array<float, 8>& lhs,

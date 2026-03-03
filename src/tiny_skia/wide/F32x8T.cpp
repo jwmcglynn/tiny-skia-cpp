@@ -55,6 +55,9 @@ F32x8T F32x8T::normalize() const {
 }
 
 I32x8T F32x8T::toI32x8Bitcast() const {
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return I32x8T(backend::x86_avx2_fma::f32x8ToI32Bitcast(lanes_));
+  }
   if constexpr (useAarch64NeonF32x8()) {
     return I32x8T(backend::aarch64_neon::f32x8ToI32Bitcast(lanes_));
   }
@@ -63,6 +66,9 @@ I32x8T F32x8T::toI32x8Bitcast() const {
 }
 
 U32x8T F32x8T::toU32x8Bitcast() const {
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return U32x8T(backend::x86_avx2_fma::f32x8ToU32Bitcast(lanes_));
+  }
   if constexpr (useAarch64NeonF32x8()) {
     return U32x8T(backend::aarch64_neon::f32x8ToU32Bitcast(lanes_));
   }
@@ -237,6 +243,9 @@ F32x8T F32x8T::round() const {
 }
 
 I32x8T F32x8T::roundInt() const {
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return I32x8T(backend::x86_avx2_fma::f32x8RoundInt(lanes_));
+  }
   if constexpr (useAarch64NeonF32x8()) {
     return I32x8T(backend::aarch64_neon::f32x8RoundInt(lanes_));
   }
@@ -245,6 +254,9 @@ I32x8T F32x8T::roundInt() const {
 }
 
 I32x8T F32x8T::truncInt() const {
+  if constexpr (useX86Avx2FmaF32x8()) {
+    return I32x8T(backend::x86_avx2_fma::f32x8TruncInt(lanes_));
+  }
   if constexpr (useAarch64NeonF32x8()) {
     return I32x8T(backend::aarch64_neon::f32x8TruncInt(lanes_));
   }

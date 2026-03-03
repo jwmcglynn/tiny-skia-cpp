@@ -7,6 +7,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "tiny_skia/wide/F32x8T.h"
+#include "tiny_skia/wide/U32x8T.h"
 
 namespace {
 
@@ -52,6 +53,16 @@ TEST(I32x8TTest, ToF32x8AndBitcastMatchRustConversions) {
   EXPECT_EQ(std::bit_cast<std::int32_t>(bitcast.lanes()[0]), 1);
   EXPECT_EQ(std::bit_cast<std::int32_t>(bitcast.lanes()[1]), -2);
   EXPECT_EQ(std::bit_cast<std::int32_t>(bitcast.lanes()[7]), -8);
+
+  const auto asU32 = value.toU32x8Bitcast().lanes();
+  EXPECT_THAT(asU32, ElementsAre(std::bit_cast<std::uint32_t>(1),
+                                 std::bit_cast<std::uint32_t>(-2),
+                                 std::bit_cast<std::uint32_t>(3),
+                                 std::bit_cast<std::uint32_t>(-4),
+                                 std::bit_cast<std::uint32_t>(5),
+                                 std::bit_cast<std::uint32_t>(-6),
+                                 std::bit_cast<std::uint32_t>(7),
+                                 std::bit_cast<std::uint32_t>(-8)));
 }
 
 }  // namespace

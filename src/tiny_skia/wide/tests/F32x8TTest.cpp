@@ -9,6 +9,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "tiny_skia/wide/I32x8T.h"
+#include "tiny_skia/wide/U32x8T.h"
 
 namespace {
 
@@ -70,6 +71,27 @@ TEST(F32x8TTest, FloorFractRoundAndIntegerConversionsMatchScalarFallback) {
 
   const tiny_skia::wide::I32x8T truncated = value.truncInt();
   EXPECT_THAT(truncated.lanes(), ElementsAre(1, -1, 2, -2, 0, 3, -3, 8));
+}
+
+TEST(F32x8TTest, BitcastConversionsPreserveAllLaneBits) {
+  const F32x8T value({std::bit_cast<float>(0x3f800000u), std::bit_cast<float>(0xbf800000u),
+                      std::bit_cast<float>(0x00000000u), std::bit_cast<float>(0x80000000u),
+                      std::bit_cast<float>(0x7f800000u), std::bit_cast<float>(0xff800000u),
+                      std::bit_cast<float>(0x7fc00000u), std::bit_cast<float>(0x12345678u)});
+
+  const auto asI32 = value.toI32x8Bitcast().lanes();
+  EXPECT_THAT(asI32, ElementsAre(std::bit_cast<std::int32_t>(0x3f800000u),
+                                 std::bit_cast<std::int32_t>(0xbf800000u),
+                                 std::bit_cast<std::int32_t>(0x00000000u),
+                                 std::bit_cast<std::int32_t>(0x80000000u),
+                                 std::bit_cast<std::int32_t>(0x7f800000u),
+                                 std::bit_cast<std::int32_t>(0xff800000u),
+                                 std::bit_cast<std::int32_t>(0x7fc00000u),
+                                 std::bit_cast<std::int32_t>(0x12345678u)));
+
+  const auto asU32 = value.toU32x8Bitcast().lanes();
+  EXPECT_THAT(asU32, ElementsAre(0x3f800000u, 0xbf800000u, 0x00000000u, 0x80000000u,
+                                 0x7f800000u, 0xff800000u, 0x7fc00000u, 0x12345678u));
 }
 
 TEST(F32x8TTest, IsFiniteMatchesRustBitMaskLogic) {

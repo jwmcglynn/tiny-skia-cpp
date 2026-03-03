@@ -135,6 +135,9 @@ F32x8T I32x8T::toF32x8() const {
 }
 
 U32x8T I32x8T::toU32x8Bitcast() const {
+  if constexpr (useX86Avx2FmaI32x8()) {
+    return U32x8T(backend::x86_avx2_fma::i32x8ToU32Bitcast(lanes_));
+  }
   if constexpr (useAarch64NeonI32x8()) {
     return composeU32x8(U32x4T(bitcastI32ToU32(lowI32x4(lanes_).lanes())),
                         U32x4T(bitcastI32ToU32(highI32x4(lanes_).lanes())));
@@ -144,6 +147,9 @@ U32x8T I32x8T::toU32x8Bitcast() const {
 }
 
 F32x8T I32x8T::toF32x8Bitcast() const {
+  if constexpr (useX86Avx2FmaI32x8()) {
+    return F32x8T(backend::x86_avx2_fma::i32x8ToF32Bitcast(lanes_));
+  }
   if constexpr (useAarch64NeonI32x8()) {
     return composeF32x8(lowI32x4(lanes_).toF32x4Bitcast(), highI32x4(lanes_).toF32x4Bitcast());
   }

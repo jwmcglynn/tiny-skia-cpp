@@ -1,10 +1,13 @@
 #include "tiny_skia/wide/U32x8T.h"
 
 #include <array>
+#include <bit>
 #include <cstdint>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "tiny_skia/wide/F32x8T.h"
+#include "tiny_skia/wide/I32x8T.h"
 
 namespace {
 
@@ -17,6 +20,36 @@ TEST(U32x8TTest, CmpEqProducesAllOnesMaskPerLane) {
 
   EXPECT_THAT(lhs.cmpEq(rhs).lanes(),
               ElementsAre(UINT32_MAX, 0u, UINT32_MAX, 0u, UINT32_MAX, 0u, 0u, UINT32_MAX));
+}
+
+TEST(U32x8TTest, BitcastConversionsPreserveAllLaneBits) {
+  const U32x8T value({0x3f800000u, 0xbf800000u, 0x00000000u, 0x80000000u,
+                      0x7f800000u, 0xff800000u, 0x7fc00000u, 0x12345678u});
+
+  const auto asI32 = value.toI32x8Bitcast().lanes();
+  EXPECT_THAT(asI32, ElementsAre(std::bit_cast<std::int32_t>(0x3f800000u),
+                                 std::bit_cast<std::int32_t>(0xbf800000u),
+                                 std::bit_cast<std::int32_t>(0x00000000u),
+                                 std::bit_cast<std::int32_t>(0x80000000u),
+                                 std::bit_cast<std::int32_t>(0x7f800000u),
+                                 std::bit_cast<std::int32_t>(0xff800000u),
+                                 std::bit_cast<std::int32_t>(0x7fc00000u),
+                                 std::bit_cast<std::int32_t>(0x12345678u)));
+
+  const auto asF32 = value.toF32x8Bitcast().lanes();
+  const std::array<std::uint32_t, 8> roundTripBits = {
+      std::bit_cast<std::uint32_t>(asF32[0]),
+      std::bit_cast<std::uint32_t>(asF32[1]),
+      std::bit_cast<std::uint32_t>(asF32[2]),
+      std::bit_cast<std::uint32_t>(asF32[3]),
+      std::bit_cast<std::uint32_t>(asF32[4]),
+      std::bit_cast<std::uint32_t>(asF32[5]),
+      std::bit_cast<std::uint32_t>(asF32[6]),
+      std::bit_cast<std::uint32_t>(asF32[7]),
+  };
+  EXPECT_THAT(roundTripBits,
+              ElementsAre(0x3f800000u, 0xbf800000u, 0x00000000u, 0x80000000u,
+                          0x7f800000u, 0xff800000u, 0x7fc00000u, 0x12345678u));
 }
 
 TEST(U32x8TTest, ShiftOperationsMatchRustScalarFallback) {

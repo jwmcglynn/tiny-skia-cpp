@@ -174,7 +174,7 @@ namespace {
   std::fill(tail_functions.begin(), tail_functions.end(), &lowp::justReturn);
 
   for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
-    tail_functions[i] = lowp::STAGES[static_cast<std::size_t>(stages[i])];
+    tail_functions[i] = lowp::STAGES_TAIL[static_cast<std::size_t>(stages[i])];
   }
   return tail_functions;
 }
@@ -225,13 +225,10 @@ void RasterPipeline::run(const ScreenIntRect& rect,
     return;
   }
 
-  const auto highp_functions = highpFunctions(stages_, stage_count_);
-  const auto highp_tail_functions = highpTailFunctions(stages_, stage_count_);
-  const auto lowp_functions = lowpFunctions(stages_, stage_count_);
-  const auto lowp_tail_functions = lowpTailFunctions(stages_, stage_count_);
-
   switch (kind_) {
-    case Kind::High:
+    case Kind::High: {
+      const auto highp_functions = highpFunctions(stages_, stage_count_);
+      const auto highp_tail_functions = highpTailFunctions(stages_, stage_count_);
       highp::start(highp_functions,
                    highp_tail_functions,
                    rect,
@@ -241,7 +238,10 @@ void RasterPipeline::run(const ScreenIntRect& rect,
                    pixmap_src,
                    pixmap_dst);
       break;
-    case Kind::Low:
+    }
+    case Kind::Low: {
+      const auto lowp_functions = lowpFunctions(stages_, stage_count_);
+      const auto lowp_tail_functions = lowpTailFunctions(stages_, stage_count_);
       lowp::start(lowp_functions,
                    lowp_tail_functions,
                    rect,
@@ -250,6 +250,7 @@ void RasterPipeline::run(const ScreenIntRect& rect,
                    ctx_,
                    pixmap_dst);
       break;
+    }
   }
 }
 

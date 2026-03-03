@@ -1,5 +1,17 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+_SIMD_NATIVE_X86_COPTS = select({
+    "//bazel/config:simd_native_x86_64": [
+        "-mavx2",
+        "-mfma",
+    ],
+    "//bazel/config:simd_native_x86_32": [
+        "-mavx2",
+        "-mfma",
+    ],
+    "//conditions:default": [],
+})
+
 
 def _tiny_skia_cc_library_impl(
         name,
@@ -15,7 +27,7 @@ def _tiny_skia_cc_library_impl(
         srcs = srcs,
         hdrs = hdrs,
         deps = deps,
-        copts = ["-std=c++20"] + copts,
+        copts = ["-std=c++20"] + _SIMD_NATIVE_X86_COPTS + copts,
         defines = defines,
         visibility = visibility,
         **kwargs,

@@ -10,6 +10,7 @@
 #include "tiny_skia/wide/F32x8T.h"
 #include "tiny_skia/wide/U16x16T.h"
 #include "tiny_skia/wide/backend/Aarch64NeonU16x16T.h"
+#include "tiny_skia/wide/backend/X86Avx2FmaU16x16T.h"
 
 #include <algorithm>
 #include <cmath>
@@ -100,6 +101,9 @@ inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
 inline U16x16T div255(U16x16T v) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16Div255(v);
+#elif defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
+  return wide::backend::x86_avx2_fma::u16x16Div255(v);
 #else
   return (v + U16x16T::splat(255)) >> U16x16T::splat(8);
 #endif
@@ -108,6 +112,9 @@ inline U16x16T div255(U16x16T v) {
 inline U16x16T mulDiv255(const U16x16T& lhs, const U16x16T& rhs) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16MulDiv255(lhs, rhs);
+#elif defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
+  return wide::backend::x86_avx2_fma::u16x16MulDiv255(lhs, rhs);
 #else
   return div255(lhs * rhs);
 #endif
@@ -117,6 +124,9 @@ inline U16x16T mulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0,
                             const U16x16T& lhs1, const U16x16T& rhs1) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16MulAddDiv255(lhs0, rhs0, lhs1, rhs1);
+#elif defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
+  return wide::backend::x86_avx2_fma::u16x16MulAddDiv255(lhs0, rhs0, lhs1, rhs1);
 #else
   return div255(lhs0 * rhs0 + lhs1 * rhs1);
 #endif
@@ -126,6 +136,9 @@ inline U16x16T sourceOverChannel(const U16x16T& source, const U16x16T& dest,
                                  const U16x16T& sourceAlpha) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16SourceOver(source, dest, sourceAlpha);
+#elif defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
+  return wide::backend::x86_avx2_fma::u16x16SourceOver(source, dest, sourceAlpha);
 #else
   return source + div255(dest * (U16x16T::splat(255) - sourceAlpha));
 #endif
@@ -372,41 +385,164 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
 }
 
 // Matches Rust load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...).
-// Loads u8 pixel channels into U16x16T (zero-extend u8 → u16).
+// Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
 void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
-                    std::size_t count,
                     U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
-  auto& rl = or_.lanes(); auto& gl = og.lanes();
-  auto& bl = ob.lanes(); auto& al = oa.lanes();
-  for (std::size_t i = 0; i < count; ++i) {
-    rl[i] = pixels[i].red();
-    gl[i] = pixels[i].green();
-    bl[i] = pixels[i].blue();
-    al[i] = pixels[i].alpha();
-  }
-  for (std::size_t i = count; i < kStageWidth; ++i) {
-    rl[i] = 0; gl[i] = 0; bl[i] = 0; al[i] = 0;
-  }
+  auto& rl = or_.lanes();
+  auto& gl = og.lanes();
+  auto& bl = ob.lanes();
+  auto& al = oa.lanes();
+
+  rl[0] = pixels[0].red();    rl[1] = pixels[1].red();
+  rl[2] = pixels[2].red();    rl[3] = pixels[3].red();
+  rl[4] = pixels[4].red();    rl[5] = pixels[5].red();
+  rl[6] = pixels[6].red();    rl[7] = pixels[7].red();
+  rl[8] = pixels[8].red();    rl[9] = pixels[9].red();
+  rl[10] = pixels[10].red();  rl[11] = pixels[11].red();
+  rl[12] = pixels[12].red();  rl[13] = pixels[13].red();
+  rl[14] = pixels[14].red();  rl[15] = pixels[15].red();
+
+  gl[0] = pixels[0].green();    gl[1] = pixels[1].green();
+  gl[2] = pixels[2].green();    gl[3] = pixels[3].green();
+  gl[4] = pixels[4].green();    gl[5] = pixels[5].green();
+  gl[6] = pixels[6].green();    gl[7] = pixels[7].green();
+  gl[8] = pixels[8].green();    gl[9] = pixels[9].green();
+  gl[10] = pixels[10].green();  gl[11] = pixels[11].green();
+  gl[12] = pixels[12].green();  gl[13] = pixels[13].green();
+  gl[14] = pixels[14].green();  gl[15] = pixels[15].green();
+
+  bl[0] = pixels[0].blue();    bl[1] = pixels[1].blue();
+  bl[2] = pixels[2].blue();    bl[3] = pixels[3].blue();
+  bl[4] = pixels[4].blue();    bl[5] = pixels[5].blue();
+  bl[6] = pixels[6].blue();    bl[7] = pixels[7].blue();
+  bl[8] = pixels[8].blue();    bl[9] = pixels[9].blue();
+  bl[10] = pixels[10].blue();  bl[11] = pixels[11].blue();
+  bl[12] = pixels[12].blue();  bl[13] = pixels[13].blue();
+  bl[14] = pixels[14].blue();  bl[15] = pixels[15].blue();
+
+  al[0] = pixels[0].alpha();    al[1] = pixels[1].alpha();
+  al[2] = pixels[2].alpha();    al[3] = pixels[3].alpha();
+  al[4] = pixels[4].alpha();    al[5] = pixels[5].alpha();
+  al[6] = pixels[6].alpha();    al[7] = pixels[7].alpha();
+  al[8] = pixels[8].alpha();    al[9] = pixels[9].alpha();
+  al[10] = pixels[10].alpha();  al[11] = pixels[11].alpha();
+  al[12] = pixels[12].alpha();  al[13] = pixels[13].alpha();
+  al[14] = pixels[14].alpha();  al[15] = pixels[15].alpha();
+}
+
+void load_8888_tail(std::size_t count,
+                    std::span<const PremultipliedColorU8> pixels,
+                    U16x16T& or_,
+                    U16x16T& og,
+                    U16x16T& ob,
+                    U16x16T& oa) {
+  std::array<PremultipliedColorU8, kStageWidth> tmp{};
+  tmp.fill(PremultipliedColorU8::transparent);
+  std::copy_n(pixels.begin(), count, tmp.begin());
+  load_8888_lowp(tmp, or_, og, ob, oa);
 }
 
 // Matches Rust store_8888(&u16x16, ..., &mut [PremultipliedColorU8; STAGE_WIDTH]).
-// Stores U16x16T pixel channels to u8 pixels (clamp+truncate).
+// Stores U16x16T pixel channels to u8 pixels.
 void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
-                     std::size_t count,
                      const U16x16T& r,
                      const U16x16T& g,
                      const U16x16T& b,
                      const U16x16T& a) {
-  const auto& rl = r.lanes(); const auto& gl = g.lanes();
-  const auto& bl = b.lanes(); const auto& al = a.lanes();
-  for (std::size_t i = 0; i < count; ++i) {
+  const auto& rl = r.lanes();
+  const auto& gl = g.lanes();
+  const auto& bl = b.lanes();
+  const auto& al = a.lanes();
+
+  pixels[0] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[0]), static_cast<std::uint8_t>(gl[0]),
+      static_cast<std::uint8_t>(bl[0]), static_cast<std::uint8_t>(al[0]));
+  pixels[1] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[1]), static_cast<std::uint8_t>(gl[1]),
+      static_cast<std::uint8_t>(bl[1]), static_cast<std::uint8_t>(al[1]));
+  pixels[2] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[2]), static_cast<std::uint8_t>(gl[2]),
+      static_cast<std::uint8_t>(bl[2]), static_cast<std::uint8_t>(al[2]));
+  pixels[3] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[3]), static_cast<std::uint8_t>(gl[3]),
+      static_cast<std::uint8_t>(bl[3]), static_cast<std::uint8_t>(al[3]));
+  pixels[4] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[4]), static_cast<std::uint8_t>(gl[4]),
+      static_cast<std::uint8_t>(bl[4]), static_cast<std::uint8_t>(al[4]));
+  pixels[5] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[5]), static_cast<std::uint8_t>(gl[5]),
+      static_cast<std::uint8_t>(bl[5]), static_cast<std::uint8_t>(al[5]));
+  pixels[6] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[6]), static_cast<std::uint8_t>(gl[6]),
+      static_cast<std::uint8_t>(bl[6]), static_cast<std::uint8_t>(al[6]));
+  pixels[7] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[7]), static_cast<std::uint8_t>(gl[7]),
+      static_cast<std::uint8_t>(bl[7]), static_cast<std::uint8_t>(al[7]));
+  pixels[8] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[8]), static_cast<std::uint8_t>(gl[8]),
+      static_cast<std::uint8_t>(bl[8]), static_cast<std::uint8_t>(al[8]));
+  pixels[9] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[9]), static_cast<std::uint8_t>(gl[9]),
+      static_cast<std::uint8_t>(bl[9]), static_cast<std::uint8_t>(al[9]));
+  pixels[10] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[10]), static_cast<std::uint8_t>(gl[10]),
+      static_cast<std::uint8_t>(bl[10]), static_cast<std::uint8_t>(al[10]));
+  pixels[11] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[11]), static_cast<std::uint8_t>(gl[11]),
+      static_cast<std::uint8_t>(bl[11]), static_cast<std::uint8_t>(al[11]));
+  pixels[12] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[12]), static_cast<std::uint8_t>(gl[12]),
+      static_cast<std::uint8_t>(bl[12]), static_cast<std::uint8_t>(al[12]));
+  pixels[13] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[13]), static_cast<std::uint8_t>(gl[13]),
+      static_cast<std::uint8_t>(bl[13]), static_cast<std::uint8_t>(al[13]));
+  pixels[14] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[14]), static_cast<std::uint8_t>(gl[14]),
+      static_cast<std::uint8_t>(bl[14]), static_cast<std::uint8_t>(al[14]));
+  pixels[15] = PremultipliedColorU8::fromRgbaUnchecked(
+      static_cast<std::uint8_t>(rl[15]), static_cast<std::uint8_t>(gl[15]),
+      static_cast<std::uint8_t>(bl[15]), static_cast<std::uint8_t>(al[15]));
+}
+
+void store_8888_tail(std::size_t count,
+                     std::span<PremultipliedColorU8> pixels,
+                     const U16x16T& r,
+                     const U16x16T& g,
+                     const U16x16T& b,
+                     const U16x16T& a) {
+  const auto& rl = r.lanes();
+  const auto& gl = g.lanes();
+  const auto& bl = b.lanes();
+  const auto& al = a.lanes();
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
     pixels[i] = PremultipliedColorU8::fromRgbaUnchecked(
-        static_cast<std::uint8_t>(std::min<std::uint16_t>(rl[i], 255)),
-        static_cast<std::uint8_t>(std::min<std::uint16_t>(gl[i], 255)),
-        static_cast<std::uint8_t>(std::min<std::uint16_t>(bl[i], 255)),
-        static_cast<std::uint8_t>(std::min<std::uint16_t>(al[i], 255)));
+        static_cast<std::uint8_t>(rl[i]),
+        static_cast<std::uint8_t>(gl[i]),
+        static_cast<std::uint8_t>(bl[i]),
+        static_cast<std::uint8_t>(al[i]));
+    if (i + 1 == count) {
+      break;
+    }
   }
+}
+
+void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
+  auto& al = a.lanes();
+  al[0] = data[0];    al[1] = data[1];
+  al[2] = data[2];    al[3] = data[3];
+  al[4] = data[4];    al[5] = data[5];
+  al[6] = data[6];    al[7] = data[7];
+  al[8] = data[8];    al[9] = data[9];
+  al[10] = data[10];  al[11] = data[11];
+  al[12] = data[12];  al[13] = data[13];
+  al[14] = data[14];  al[15] = data[15];
+}
+
+void load_8_tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T& a) {
+  std::array<std::uint8_t, kStageWidth> tmp{};
+  std::copy_n(data.begin(), count, tmp.begin());
+  load_8_lowp(tmp, a);
 }
 
 void load_dst(Pipeline& pipeline) {
@@ -415,8 +551,17 @@ void load_dst(Pipeline& pipeline) {
     return;
   }
   const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
-  load_8888_lowp(pixels, pipeline.tail,
-                 pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  pipeline.nextStage();
+}
+
+void load_dst_tail(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
@@ -426,8 +571,17 @@ void store(Pipeline& pipeline) {
     return;
   }
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
-  store_8888_lowp(pixels, pipeline.tail,
-                  pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  pipeline.nextStage();
+}
+
+void store_tail(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
@@ -437,13 +591,20 @@ void load_dst_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
-  auto& dal = pipeline.da.lanes();
-  for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    dal[i] = static_cast<std::uint16_t>(pipeline.pixmap_dst->data[offset + i]);
+  load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, kStageWidth),
+              pipeline.da);
+  pipeline.nextStage();
+}
+
+void load_dst_u8_tail(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
   }
-  for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
-    dal[i] = 0;
-  }
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  load_8_tail(pipeline.tail,
+              std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, pipeline.tail),
+              pipeline.da);
   pipeline.nextStage();
 }
 
@@ -454,8 +615,37 @@ void store_u8(Pipeline& pipeline) {
   }
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   const auto& al = pipeline.a.lanes();
-  for (std::size_t i = 0; i < pipeline.tail; ++i) {
+  pipeline.pixmap_dst->data[offset + 0] = static_cast<std::uint8_t>(al[0]);
+  pipeline.pixmap_dst->data[offset + 1] = static_cast<std::uint8_t>(al[1]);
+  pipeline.pixmap_dst->data[offset + 2] = static_cast<std::uint8_t>(al[2]);
+  pipeline.pixmap_dst->data[offset + 3] = static_cast<std::uint8_t>(al[3]);
+  pipeline.pixmap_dst->data[offset + 4] = static_cast<std::uint8_t>(al[4]);
+  pipeline.pixmap_dst->data[offset + 5] = static_cast<std::uint8_t>(al[5]);
+  pipeline.pixmap_dst->data[offset + 6] = static_cast<std::uint8_t>(al[6]);
+  pipeline.pixmap_dst->data[offset + 7] = static_cast<std::uint8_t>(al[7]);
+  pipeline.pixmap_dst->data[offset + 8] = static_cast<std::uint8_t>(al[8]);
+  pipeline.pixmap_dst->data[offset + 9] = static_cast<std::uint8_t>(al[9]);
+  pipeline.pixmap_dst->data[offset + 10] = static_cast<std::uint8_t>(al[10]);
+  pipeline.pixmap_dst->data[offset + 11] = static_cast<std::uint8_t>(al[11]);
+  pipeline.pixmap_dst->data[offset + 12] = static_cast<std::uint8_t>(al[12]);
+  pipeline.pixmap_dst->data[offset + 13] = static_cast<std::uint8_t>(al[13]);
+  pipeline.pixmap_dst->data[offset + 14] = static_cast<std::uint8_t>(al[14]);
+  pipeline.pixmap_dst->data[offset + 15] = static_cast<std::uint8_t>(al[15]);
+  pipeline.nextStage();
+}
+
+void store_u8_tail(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto& al = pipeline.a.lanes();
+  for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
+    if (i + 1 == pipeline.tail) {
+      break;
+    }
   }
   pipeline.nextStage();
 }
@@ -513,14 +703,27 @@ void source_over_rgba(Pipeline& pipeline) {
     return;
   }
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
-  load_8888_lowp(pixels, pipeline.tail,
-                 pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
   pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
   pipeline.b = sourceOverChannel(pipeline.b, pipeline.db, pipeline.a);
   pipeline.a = sourceOverChannel(pipeline.a, pipeline.da, pipeline.a);
-  store_8888_lowp(pixels, pipeline.tail,
-                  pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  pipeline.nextStage();
+}
+
+void source_over_rgba_tail(Pipeline& pipeline) {
+  if (pipeline.pixmap_dst == nullptr) {
+    pipeline.nextStage();
+    return;
+  }
+  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
+  pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
+  pipeline.b = sourceOverChannel(pipeline.b, pipeline.db, pipeline.a);
+  pipeline.a = sourceOverChannel(pipeline.a, pipeline.da, pipeline.a);
+  store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
@@ -796,5 +999,15 @@ const std::array<StageFn, kStagesCount> STAGES = {
     null_fn,
     null_fn,
 };
+
+const std::array<StageFn, kStagesCount> STAGES_TAIL = [] {
+  auto stages = STAGES;
+  stages[static_cast<std::size_t>(Stage::LoadDestination)] = load_dst_tail;
+  stages[static_cast<std::size_t>(Stage::Store)] = store_tail;
+  stages[static_cast<std::size_t>(Stage::LoadDestinationU8)] = load_dst_u8_tail;
+  stages[static_cast<std::size_t>(Stage::StoreU8)] = store_u8_tail;
+  stages[static_cast<std::size_t>(Stage::SourceOverRgba)] = source_over_rgba_tail;
+  return stages;
+}();
 
 }  // namespace tiny_skia::pipeline::lowp

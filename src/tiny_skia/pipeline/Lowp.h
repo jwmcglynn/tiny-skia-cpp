@@ -27,5 +27,6 @@ bool fnPtrEq(StageFn a, StageFn b);
 const void* fnPtr(StageFn fn);
 
 extern const std::array<StageFn, kStagesCount> STAGES;
+extern const std::array<StageFn, kStagesCount> STAGES_TAIL;
 
 }  // namespace tiny_skia::pipeline::lowp
