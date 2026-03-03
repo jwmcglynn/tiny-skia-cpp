@@ -194,6 +194,9 @@ to `x86_64` and `aarch64`.
 - Validation run after this update:
   - `bazel build //...` passed
   - `bazel test //...` passed
+- Benchmark snapshot (`tests/benchmarks/run_render_perf_compare.sh`, opt mode, x86_64 host):
+  - FillPath(512): native `358983 ns` vs Rust avg `313137 ns` (`native/rust: 0.872x`)
+  - FillRect(512): native `274485 ns` vs Rust avg `249224 ns` (`native/rust: 0.908x`)
 
 ## Recent Update: 2026-03-03 (X86 AVX2/FMA Backend Completion)
 
@@ -266,6 +269,23 @@ to `x86_64` and `aarch64`.
   - FillRect(512): native `378478 ns` vs scalar `888819 ns` (`2.348x` native/scalar)
   - Rust gap reduced from ~5x slower (earlier report) to ~1.5x slower
     (`native/rust`: `0.649x` FillPath, `0.656x` FillRect).
+
+## Recent Update: 2026-03-03 (Opt-Level Parity With Rust Bench Path)
+
+- Identified a build-configuration mismatch in perf comparisons:
+  - Rust (`rules_rust`) is compiled with `--codegen=opt-level=3` under `-c opt`.
+  - C++ (`rules_cc`) defaulted to `-O2` under `-c opt`.
+- Added opt-mode C++ tuning in `bazel/defs.bzl` for tiny-skia library targets:
+  - `@bazel_tools//tools/cpp:opt` now appends `-O3` in `tiny_skia_cc_library`.
+- This closes a non-algorithmic optimization-level gap so default benchmark runs compare
+  similarly optimized C++ and Rust code paths.
+- Added a transparent-clear fast path in `src/tiny_skia/Pixmap.cpp`:
+  - `Pixmap::fill()` now short-circuits fully transparent colors before premultiply and uses
+    `memset` for transparent black (`RGBA = 0,0,0,0`), removing avoidable per-pixel store
+    overhead in benchmark clear loops.
+- Validation run after this update:
+  - `bazel build //...` passed
+  - `bazel test //...` passed
 
 ## Recent Update: 2026-03-02 (AArch64 NEON Materialization Audit)
 

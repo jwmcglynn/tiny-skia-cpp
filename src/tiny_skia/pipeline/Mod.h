@@ -23,6 +23,14 @@ enum class SpreadMode {
 
 namespace pipeline {
 
+namespace highp {
+struct Pipeline;
+}
+
+namespace lowp {
+struct Pipeline;
+}
+
 enum class Stage : std::uint8_t {
   MoveSourceToDestination,
   MoveDestinationToSource,
@@ -251,10 +259,19 @@ class RasterPipeline {
   }
 
  private:
+  using HighpStageFn = void (*)(highp::Pipeline&);
+  using LowpStageFn = void (*)(lowp::Pipeline&);
+
+  void initializeFunctions();
+
   Kind kind_ = Kind::High;
   Context ctx_{};
   std::array<Stage, kMaxStages> stages_ = {};
   std::size_t stage_count_ = 0;
+  std::array<HighpStageFn, kMaxStages> highp_functions_{};
+  std::array<HighpStageFn, kMaxStages> highp_tail_functions_{};
+  std::array<LowpStageFn, kMaxStages> lowp_functions_{};
+  std::array<LowpStageFn, kMaxStages> lowp_tail_functions_{};
 };
 
 class RasterPipelineBuilder {

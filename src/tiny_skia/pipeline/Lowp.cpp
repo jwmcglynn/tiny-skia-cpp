@@ -13,6 +13,7 @@
 #include "tiny_skia/wide/backend/X86Avx2FmaU16x16T.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstring>
 #include <span>
@@ -35,6 +36,10 @@ struct Pipeline {
   LowpChannel g{};
   LowpChannel b{};
   LowpChannel a{};
+  LowpChannel uniform_r{};
+  LowpChannel uniform_g{};
+  LowpChannel uniform_b{};
+  LowpChannel uniform_a{};
   LowpChannel dr{};
   LowpChannel dg{};
   LowpChannel db{};
@@ -59,7 +64,11 @@ struct Pipeline {
            const MaskCtx& mask_ctx_arg,
            Context& ctx_arg,
            SubPixmapMut* pixmap_dst_arg)
-      : functions(&fun),
+      : uniform_r(U16x16T::splat(ctx_arg.uniform_color.rgba[0])),
+        uniform_g(U16x16T::splat(ctx_arg.uniform_color.rgba[1])),
+        uniform_b(U16x16T::splat(ctx_arg.uniform_color.rgba[2])),
+        uniform_a(U16x16T::splat(ctx_arg.uniform_color.rgba[3])),
+        functions(&fun),
         rect(&rect_arg),
         aa_mask_ctx(&aa_mask_ctx_arg),
         mask_ctx(&mask_ctx_arg),
@@ -198,11 +207,10 @@ void premultiply(Pipeline& pipeline) {
 }
 
 void uniform_color(Pipeline& pipeline) {
-  const auto& u = pipeline.ctx->uniform_color;
-  pipeline.r = U16x16T::splat(u.rgba[0]);
-  pipeline.g = U16x16T::splat(u.rgba[1]);
-  pipeline.b = U16x16T::splat(u.rgba[2]);
-  pipeline.a = U16x16T::splat(u.rgba[3]);
+  pipeline.r = pipeline.uniform_r;
+  pipeline.g = pipeline.uniform_g;
+  pipeline.b = pipeline.uniform_b;
+  pipeline.a = pipeline.uniform_a;
   pipeline.nextStage();
 }
 
@@ -606,50 +614,35 @@ void load_8_tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T&
 }
 
 void load_dst(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void load_dst_tail(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void store(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void store_tail(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void load_dst_u8(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, kStageWidth),
               pipeline.da);
@@ -657,10 +650,7 @@ void load_dst_u8(Pipeline& pipeline) {
 }
 
 void load_dst_u8_tail(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   load_8_tail(pipeline.tail,
               std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, pipeline.tail),
@@ -669,10 +659,7 @@ void load_dst_u8_tail(Pipeline& pipeline) {
 }
 
 void store_u8(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   const auto& al = pipeline.a.lanes();
   if constexpr (useAarch64NeonNative()) {
@@ -703,10 +690,7 @@ void store_u8(Pipeline& pipeline) {
 }
 
 void store_u8_tail(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   const auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
@@ -766,10 +750,7 @@ void mask_u8(Pipeline& pipeline) {
 }
 
 void source_over_rgba(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
@@ -781,10 +762,7 @@ void source_over_rgba(Pipeline& pipeline) {
 }
 
 void source_over_rgba_tail(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
-    pipeline.nextStage();
-    return;
-  }
+  assert(pipeline.pixmap_dst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);

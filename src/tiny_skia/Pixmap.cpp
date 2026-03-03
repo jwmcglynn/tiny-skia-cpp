@@ -1,6 +1,7 @@
 #include "tiny_skia/Pixmap.h"
 
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <utility>
 
@@ -205,7 +206,17 @@ std::optional<Pixmap> Pixmap::cloneRect(const IntRect& rect) const {
 }
 
 void Pixmap::fill(const Color& color) {
+  if (color.alpha() == 0.0f) {
+    std::memset(data_.data(), 0, data_.size());
+    return;
+  }
+
   const auto c = color.premultiply().toColorU8();
+  if (c == PremultipliedColorU8::transparent) {
+    std::memset(data_.data(), 0, data_.size());
+    return;
+  }
+
   auto px = pixelsMut();
   for (auto& p : px) {
     p = c;

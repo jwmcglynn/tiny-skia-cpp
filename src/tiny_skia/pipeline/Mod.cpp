@@ -127,6 +127,7 @@ RasterPipeline::RasterPipeline(Kind kind,
   for (std::size_t i = 0; i < stage_count_; ++i) {
     stages_[i] = stages[i];
   }
+  initializeFunctions();
 }
 
 namespace {
@@ -181,6 +182,13 @@ namespace {
 
 }  // namespace
 
+void RasterPipeline::initializeFunctions() {
+  highp_functions_ = highpFunctions(stages_, stage_count_);
+  highp_tail_functions_ = highpTailFunctions(stages_, stage_count_);
+  lowp_functions_ = lowpFunctions(stages_, stage_count_);
+  lowp_tail_functions_ = lowpTailFunctions(stages_, stage_count_);
+}
+
 void RasterPipelineBuilder::pushUniformColor(const PremultipliedColor& color) {
   const auto r = color.red();
   const auto g = color.green();
@@ -227,10 +235,8 @@ void RasterPipeline::run(const ScreenIntRect& rect,
 
   switch (kind_) {
     case Kind::High: {
-      const auto highp_functions = highpFunctions(stages_, stage_count_);
-      const auto highp_tail_functions = highpTailFunctions(stages_, stage_count_);
-      highp::start(highp_functions,
-                   highp_tail_functions,
+      highp::start(highp_functions_,
+                   highp_tail_functions_,
                    rect,
                    aa_mask_ctx,
                    mask_ctx,
@@ -240,10 +246,8 @@ void RasterPipeline::run(const ScreenIntRect& rect,
       break;
     }
     case Kind::Low: {
-      const auto lowp_functions = lowpFunctions(stages_, stage_count_);
-      const auto lowp_tail_functions = lowpTailFunctions(stages_, stage_count_);
-      lowp::start(lowp_functions,
-                   lowp_tail_functions,
+      lowp::start(lowp_functions_,
+                   lowp_tail_functions_,
                    rect,
                    aa_mask_ctx,
                    mask_ctx,
