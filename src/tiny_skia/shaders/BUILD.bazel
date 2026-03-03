@@ -3,7 +3,12 @@
 filegroup(
     name = "srcs",
     srcs = [
+        "Gradient.cpp",
+        "LinearGradient.cpp",
         "Mod.cpp",
+        "Pattern.cpp",
+        "RadialGradient.cpp",
+        "SweepGradient.cpp",
     ],
     visibility = ["//visibility:public"],
 )
@@ -11,7 +16,12 @@ filegroup(
 filegroup(
     name = "hdrs",
     srcs = [
+        "Gradient.h",
+        "LinearGradient.h",
         "Mod.h",
+        "Pattern.h",
+        "RadialGradient.h",
+        "SweepGradient.h",
     ],
     visibility = ["//visibility:public"],
 )

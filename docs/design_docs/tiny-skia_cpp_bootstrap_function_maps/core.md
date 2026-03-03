@@ -243,8 +243,8 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 | `Mask::submask` | `Mask::submask` | 🟢 | Line-by-line audited: intersects requested rect with mask bounds and returns offset view; matcher diagnostics upgraded in `MaskTest.SubmaskComputesIntersectedViewAndOffset` |
 | `Mask::as_subpixmap` | `Mask::asSubpixmap` | 🟢 | Line-by-line audited: mutable full-size mask view parity |
 | `Mask::subpixmap` | `Mask::subpixmap` | 🟢 | Line-by-line audited: mutable intersected subview + row-offset parity; matcher diagnostics upgraded in `MaskTest.SubpixmapComputesIntersectedMutableView` |
-| `Mask::fill_path` | `Mask::fillPath` | ☐ | Awaiting `Painter/Pixmap/scan` integration path |
-| `Mask::intersect_path` | `Mask::intersectPath` | ☐ | Awaiting `fillPath` and blending integration |
+| `Mask::fill_path` | `Mask::fillPath` | 🟢 | Line-by-line audited: implementation in `MaskOps.cpp` matches Rust fill flow with transform handling and tiled fallback; covered by `MaskTest.FillPathDrawsOntoMask` and `MaskTest.FillPathWithTransformOffsetsPath` |
+| `Mask::intersect_path` | `Mask::intersectPath` | 🟢 | Line-by-line audited: builds temporary mask via `fillPath` then multiplies into destination mask like Rust; covered by `MaskTest.IntersectPathMultipliesMasks` |
 
 ### `third_party/tiny-skia/src/pixmap.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |

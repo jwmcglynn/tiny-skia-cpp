@@ -12,7 +12,7 @@
 
 #include "tiny_skia/Edge.h"
 #include "tiny_skia/Geom.h"
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/Transform.h"
 
 namespace tiny_skia {
 

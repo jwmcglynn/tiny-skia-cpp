@@ -4,6 +4,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "tiny_skia/PathGeometryCoreRs.h"
+#include "tiny_skia/PathGeometryPathRs.h"
 #include "tiny_skia/PathGeometry.h"
 #include "tiny_skia/Scalar.h"
 
@@ -209,4 +211,30 @@ TEST(PathGeometryTest, ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurv
                                    PointEq(src[2].x, src[2].y), PointEq(src[3].x, src[3].y)));
   // tValues should not be modified when count == 0 (no interior roots).
   // Since NormalizedF32Exclusive default-initializes, we just verify count == 1.
+}
+
+TEST(PathGeometryTest, ModuleOwnershipWrappersRouteToUnderlyingFunctions) {
+  const auto quad = std::array<tiny_skia::Point, 3>{tiny_skia::Point{0.0f, 0.0f},
+                                                    tiny_skia::Point{1.0f, 2.0f},
+                                                    tiny_skia::Point{2.0f, 0.0f}};
+  auto directDst = std::array<tiny_skia::Point, 5>{};
+  auto wrappedDst = std::array<tiny_skia::Point, 5>{};
+
+  const auto directCount = tiny_skia::path_geometry::chopQuadAt(quad, 0.5f, directDst);
+  const auto wrappedCount = tiny_skia::path_geometry::path_rs::chopQuadAt(quad, 0.5f, wrappedDst);
+  EXPECT_EQ(wrappedCount, directCount);
+  EXPECT_EQ(wrappedDst, directDst);
+
+  const auto cubic = std::array<tiny_skia::Point, 4>{tiny_skia::Point{0.0f, 0.0f},
+                                                     tiny_skia::Point{1.0f, 3.0f},
+                                                     tiny_skia::Point{2.0f, 3.0f},
+                                                     tiny_skia::Point{3.0f, 0.0f}};
+  auto directExtremaDst = std::array<tiny_skia::Point, 10>{};
+  auto wrappedExtremaDst = std::array<tiny_skia::Point, 10>{};
+  const auto directExtremaCount =
+      tiny_skia::path_geometry::chopCubicAtYExtrema(cubic, directExtremaDst);
+  const auto wrappedExtremaCount =
+      tiny_skia::path_geometry::core_rs::chopCubicAtYExtrema(cubic, wrappedExtremaDst);
+  EXPECT_EQ(wrappedExtremaCount, directExtremaCount);
+  EXPECT_EQ(wrappedExtremaDst, directExtremaDst);
 }

@@ -4,24 +4,9 @@
 #include <cstdlib>
 #include <limits>
 
+#include "tiny_skia/FloatingPoint.h"
+
 namespace tiny_skia {
-
-namespace {
-
-template <typename T>
-T saturateFrom64(long long value) {
-  const auto min = static_cast<long long>(std::numeric_limits<T>::min());
-  const auto max = static_cast<long long>(std::numeric_limits<T>::max());
-  if (value < min) {
-    return static_cast<T>(min);
-  }
-  if (value > max) {
-    return static_cast<T>(max);
-  }
-  return static_cast<T>(value);
-}
-
-}  // namespace
 
 FDot6 fdot6::fromI32(std::int32_t n) {
   assert(static_cast<std::int16_t>(n) == n);
@@ -73,7 +58,7 @@ FDot8 fdot8::fromFdot16(FDot16 x) {
 }
 
 FDot16 fdot16::fromF32(float x) {
-  return saturateFrom64<std::int32_t>(static_cast<long long>(x * fdot16::one));
+  return saturateCastI32(x * static_cast<float>(fdot16::one));
 }
 
 std::int32_t fdot16::floorToI32(FDot16 x) {

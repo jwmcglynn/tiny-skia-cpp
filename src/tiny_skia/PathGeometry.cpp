@@ -9,7 +9,7 @@
 #include "tiny_skia/path64/LineCubicIntersections.h"
 #include "tiny_skia/path64/Point64.h"
 #include "tiny_skia/path64/Quad64.h"
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/Transform.h"
 
 namespace tiny_skia::path_geometry {
 

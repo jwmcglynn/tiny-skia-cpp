@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <limits>
 
+#include "tiny_skia/FloatingPoint.h"
+
 namespace tiny_skia {
 
 namespace {
@@ -168,10 +170,10 @@ std::optional<Rect> Rect::fromLtrb(float left, float top, float right, float bot
 }
 
 std::optional<IntRect> Rect::roundOut() const {
-  const auto left = static_cast<std::int32_t>(std::floor(left_));
-  const auto top = static_cast<std::int32_t>(std::floor(top_));
-  const auto right = static_cast<std::int32_t>(std::ceil(right_));
-  const auto bottom = static_cast<std::int32_t>(std::ceil(bottom_));
+  const auto left = saturateFloorToI32(left_);
+  const auto top = saturateFloorToI32(top_);
+  const auto right = saturateCeilToI32(right_);
+  const auto bottom = saturateCeilToI32(bottom_);
 
   const auto width = std::max<std::int64_t>(1, static_cast<std::int64_t>(right - left));
   const auto height = std::max<std::int64_t>(1, static_cast<std::int64_t>(bottom - top));
@@ -188,15 +190,10 @@ std::optional<IntRect> Rect::roundOut() const {
 }
 
 std::optional<IntRect> Rect::round() const {
-  // Match Rust's saturate_round: (floor(x) + 0.5) as i32 (truncation toward zero).
-  auto saturateRound = [](float x) -> std::int32_t {
-    return static_cast<std::int32_t>(std::floor(x) + 0.5f);
-  };
-
-  const auto left = saturateRound(left_);
-  const auto top = saturateRound(top_);
-  const auto right = saturateRound(right_);
-  const auto bottom = saturateRound(bottom_);
+  const auto left = saturateRoundToI32(left_);
+  const auto top = saturateRoundToI32(top_);
+  const auto right = saturateRoundToI32(right_);
+  const auto bottom = saturateRoundToI32(bottom_);
 
   const auto width = std::max<std::int64_t>(1, static_cast<std::int64_t>(right - left));
   const auto height = std::max<std::int64_t>(1, static_cast<std::int64_t>(bottom - top));

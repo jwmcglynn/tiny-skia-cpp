@@ -17,6 +17,7 @@ cc_test(
         "EdgeLineTest.cpp",
         "EdgeQuadraticTest.cpp",
         "FixedPointTest.cpp",
+        "FloatingPointTest.cpp",
         "GeomTest.cpp",
         "LineClipperTest.cpp",
         "MathTest.cpp",

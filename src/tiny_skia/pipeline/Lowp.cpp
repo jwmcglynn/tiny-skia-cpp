@@ -6,16 +6,23 @@
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Pixmap.h"
+#include "tiny_skia/wide/F32x16T.h"
+#include "tiny_skia/wide/F32x8T.h"
+#include "tiny_skia/wide/U16x16T.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <span>
 
 namespace tiny_skia::pipeline::lowp {
 
+using tiny_skia::wide::F32x16T;
+using tiny_skia::wide::F32x8T;
+using tiny_skia::wide::U16x16T;
+
 // Maps to Rust's u16x16 — a 16-element channel of lowp pixel values in [0, 255].
-// C++ uses float rather than u16, but the value range and lane count are identical.
-using LowpChannel = std::array<float, kStageWidth>;
+using LowpChannel = U16x16T;
 
 struct Pipeline {
   LowpChannel r{};
@@ -72,120 +79,137 @@ const void* fnPtr(StageFn fn) {
 
 namespace {
 
+// Matches Rust split(): reinterpret f32x16 (64 bytes) as two u16x16 (32 bytes each)
+inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
+  auto lo_lanes = v.lo().lanes();
+  auto hi_lanes = v.hi().lanes();
+  std::memcpy(&lo.lanes(), &lo_lanes, sizeof(lo.lanes()));
+  std::memcpy(&hi.lanes(), &hi_lanes, sizeof(hi.lanes()));
+}
+
+// Matches Rust join(): reinterpret two u16x16 (32 bytes each) as f32x16 (64 bytes)
+inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
+  std::array<float, 8> lo_f{}, hi_f{};
+  std::memcpy(&lo_f, &lo.lanes(), sizeof(lo_f));
+  std::memcpy(&hi_f, &hi.lanes(), sizeof(hi_f));
+  return F32x16T(F32x8T(lo_f), F32x8T(hi_f));
+}
+
 // Matches Rust lowp: (v + 255) >> 8
-// Truncates to integer to avoid float fraction accumulation across stages.
-inline float div255(float v) {
-  // Match Rust lowp: (v + 255) >> 8, i.e. integer floor((v + 255) / 256).
-  return std::floor((v + 255.0f) * (1.0f / 256.0f));
+inline U16x16T div255(U16x16T v) {
+  return (v + U16x16T::splat(255)) >> U16x16T::splat(8);
 }
 
-// Matches Rust lowp: from_float(f) = (f * 255.0 + 0.5) as u16
-inline float fromFloat(float f) {
-  return std::floor(f * 255.0f + 0.5f);
+// Matches Rust from_float(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
+inline U16x16T fromFloat(float f) {
+  return U16x16T::splat(static_cast<std::uint16_t>(f * 255.0f + 0.5f));
 }
 
-// Matches Rust normalize(): clamp to [0, 1]
-inline float normalize(float f) {
-  return std::max(0.0f, std::min(1.0f, f));
+// Matches Rust round_f32_to_u16(): normalize, scale to [0,255], truncate
+inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af,
+                          U16x16T& r, U16x16T& g, U16x16T& b, U16x16T& a) {
+  rf = rf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
+  gf = gf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
+  bf = bf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
+  af = af * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
+  rf.saveToU16x16(r);
+  gf.saveToU16x16(g);
+  bf.saveToU16x16(b);
+  af.saveToU16x16(a);
 }
 
 void move_source_to_destination(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.dr[i] = pipeline.r[i];
-    pipeline.dg[i] = pipeline.g[i];
-    pipeline.db[i] = pipeline.b[i];
-    pipeline.da[i] = pipeline.a[i];
-  }
+  pipeline.dr = pipeline.r;
+  pipeline.dg = pipeline.g;
+  pipeline.db = pipeline.b;
+  pipeline.da = pipeline.a;
   pipeline.nextStage();
 }
 
 void move_destination_to_source(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.dr[i];
-    pipeline.g[i] = pipeline.dg[i];
-    pipeline.b[i] = pipeline.db[i];
-    pipeline.a[i] = pipeline.da[i];
-  }
+  pipeline.r = pipeline.dr;
+  pipeline.g = pipeline.dg;
+  pipeline.b = pipeline.db;
+  pipeline.a = pipeline.da;
   pipeline.nextStage();
 }
 
 void premultiply(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = div255(pipeline.r[i] * pipeline.a[i]);
-    pipeline.g[i] = div255(pipeline.g[i] * pipeline.a[i]);
-    pipeline.b[i] = div255(pipeline.b[i] * pipeline.a[i]);
-  }
+  pipeline.r = div255(pipeline.r * pipeline.a);
+  pipeline.g = div255(pipeline.g * pipeline.a);
+  pipeline.b = div255(pipeline.b * pipeline.a);
   pipeline.nextStage();
 }
 
 void uniform_color(Pipeline& pipeline) {
   const auto& u = pipeline.ctx->uniform_color;
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = static_cast<float>(u.rgba[0]);
-    pipeline.g[i] = static_cast<float>(u.rgba[1]);
-    pipeline.b[i] = static_cast<float>(u.rgba[2]);
-    pipeline.a[i] = static_cast<float>(u.rgba[3]);
-  }
+  pipeline.r = U16x16T::splat(u.rgba[0]);
+  pipeline.g = U16x16T::splat(u.rgba[1]);
+  pipeline.b = U16x16T::splat(u.rgba[2]);
+  pipeline.a = U16x16T::splat(u.rgba[3]);
   pipeline.nextStage();
 }
 
 void seed_shader(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.dr[i] = 0.0f;
-    pipeline.dg[i] = 0.0f;
-    pipeline.db[i] = 0.0f;
-    pipeline.da[i] = 0.0f;
-    pipeline.r[i] = static_cast<float>(pipeline.dx) + static_cast<float>(i) + 0.5f;
-    pipeline.g[i] = static_cast<float>(pipeline.dy) + 0.5f;
-    pipeline.b[i] = 1.0f;
-    pipeline.a[i] = 0.0f;
-  }
+  const auto iota = F32x16T(
+      F32x8T({0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f, 6.5f, 7.5f}),
+      F32x8T({8.5f, 9.5f, 10.5f, 11.5f, 12.5f, 13.5f, 14.5f, 15.5f}));
+  const auto x = F32x16T::splat(static_cast<float>(pipeline.dx)) + iota;
+  const auto y = F32x16T::splat(static_cast<float>(pipeline.dy) + 0.5f);
+  split(x, pipeline.r, pipeline.g);
+  split(y, pipeline.b, pipeline.a);
+  pipeline.dr = U16x16T::splat(0);
+  pipeline.dg = U16x16T::splat(0);
+  pipeline.db = U16x16T::splat(0);
+  pipeline.da = U16x16T::splat(0);
   pipeline.nextStage();
 }
 
 void scale_u8(Pipeline& pipeline) {
   const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  U16x16T c{};
+  auto& cl = c.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const auto c = static_cast<float>(i < 2 ? data[i] : 0u);
-    pipeline.r[i] = div255(pipeline.r[i] * c);
-    pipeline.g[i] = div255(pipeline.g[i] * c);
-    pipeline.b[i] = div255(pipeline.b[i] * c);
-    pipeline.a[i] = div255(pipeline.a[i] * c);
+    cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
+  pipeline.r = div255(pipeline.r * c);
+  pipeline.g = div255(pipeline.g * c);
+  pipeline.b = div255(pipeline.b * c);
+  pipeline.a = div255(pipeline.a * c);
   pipeline.nextStage();
 }
 
 void lerp_u8(Pipeline& pipeline) {
   const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  U16x16T c{};
+  auto& cl = c.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const auto c = static_cast<float>(i < 2 ? data[i] : 0u);
-    pipeline.r[i] = div255(pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c);
-    pipeline.g[i] = div255(pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c);
-    pipeline.b[i] = div255(pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c);
-    pipeline.a[i] = div255(pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c);
+    cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
+  const auto inv_c = U16x16T::splat(255) - c;
+  pipeline.r = div255(pipeline.dr * inv_c + pipeline.r * c);
+  pipeline.g = div255(pipeline.dg * inv_c + pipeline.g * c);
+  pipeline.b = div255(pipeline.db * inv_c + pipeline.b * c);
+  pipeline.a = div255(pipeline.da * inv_c + pipeline.a * c);
   pipeline.nextStage();
 }
 
 void scale_1_float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->current_coverage);
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = div255(pipeline.r[i] * c);
-    pipeline.g[i] = div255(pipeline.g[i] * c);
-    pipeline.b[i] = div255(pipeline.b[i] * c);
-    pipeline.a[i] = div255(pipeline.a[i] * c);
-  }
+  pipeline.r = div255(pipeline.r * c);
+  pipeline.g = div255(pipeline.g * c);
+  pipeline.b = div255(pipeline.b * c);
+  pipeline.a = div255(pipeline.a * c);
   pipeline.nextStage();
 }
 
 void lerp_1_float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->current_coverage);
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = div255(pipeline.dr[i] * (255.0f - c) + pipeline.r[i] * c);
-    pipeline.g[i] = div255(pipeline.dg[i] * (255.0f - c) + pipeline.g[i] * c);
-    pipeline.b[i] = div255(pipeline.db[i] * (255.0f - c) + pipeline.b[i] * c);
-    pipeline.a[i] = div255(pipeline.da[i] * (255.0f - c) + pipeline.a[i] * c);
-  }
+  const auto inv_c = U16x16T::splat(255) - c;
+  pipeline.r = div255(pipeline.dr * inv_c + pipeline.r * c);
+  pipeline.g = div255(pipeline.dg * inv_c + pipeline.g * c);
+  pipeline.b = div255(pipeline.db * inv_c + pipeline.b * c);
+  pipeline.a = div255(pipeline.da * inv_c + pipeline.a * c);
   pipeline.nextStage();
 }
 
@@ -197,109 +221,105 @@ void lerp_1_float(Pipeline& pipeline) {
 
 template <typename F>
 void blend_fn(Pipeline& pipeline, F&& f) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
-    pipeline.r[i] = f(pipeline.r[i], pipeline.dr[i], sa, da);
-    pipeline.g[i] = f(pipeline.g[i], pipeline.dg[i], sa, da);
-    pipeline.b[i] = f(pipeline.b[i], pipeline.db[i], sa, da);
-    pipeline.a[i] = f(sa, da, sa, da);
-  }
+  const auto sa = pipeline.a, da = pipeline.da;
+  pipeline.r = f(pipeline.r, pipeline.dr, sa, da);
+  pipeline.g = f(pipeline.g, pipeline.dg, sa, da);
+  pipeline.b = f(pipeline.b, pipeline.db, sa, da);
+  pipeline.a = f(sa, da, sa, da);
   pipeline.nextStage();
 }
 
 template <typename F>
 void blend_fn2(Pipeline& pipeline, F&& f) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float sa = pipeline.a[i], da = pipeline.da[i];
-    pipeline.r[i] = f(pipeline.r[i], pipeline.dr[i], sa, da);
-    pipeline.g[i] = f(pipeline.g[i], pipeline.dg[i], sa, da);
-    pipeline.b[i] = f(pipeline.b[i], pipeline.db[i], sa, da);
-    pipeline.a[i] = sa + div255(da * (255.0f - sa));
-  }
+  const auto sa = pipeline.a, da = pipeline.da;
+  pipeline.r = f(pipeline.r, pipeline.dr, sa, da);
+  pipeline.g = f(pipeline.g, pipeline.dg, sa, da);
+  pipeline.b = f(pipeline.b, pipeline.db, sa, da);
+  pipeline.a = sa + div255(da * (U16x16T::splat(255) - sa));
   pipeline.nextStage();
 }
 
 void clear(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float /*s*/, float /*d*/, float /*sa*/, float /*da*/) {
-    return 0.0f;
+  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T /*d*/, U16x16T /*sa*/, U16x16T /*da*/) {
+    return U16x16T::splat(0);
   });
 }
 
 void destination_atop(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float sa, float da) {
-    return div255(d * sa + s * (255.0f - da));
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return div255(d * sa + s * (U16x16T::splat(255) - da));
   });
 }
 
 void destination_in(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float /*s*/, float d, float sa, float /*da*/) {
+  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
     return div255(d * sa);
   });
 }
 
 void destination_out(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float /*s*/, float d, float sa, float /*da*/) {
-    return div255(d * (255.0f - sa));
+  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
+    return div255(d * (U16x16T::splat(255) - sa));
   });
 }
 
 void source_atop(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float sa, float da) {
-    return div255(s * da + d * (255.0f - sa));
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return div255(s * da + d * (U16x16T::splat(255) - sa));
   });
 }
 
 void source_in(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float /*d*/, float /*sa*/, float da) {
+  blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
     return div255(s * da);
   });
 }
 
 void source_out(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float /*d*/, float /*sa*/, float da) {
-    return div255(s * (255.0f - da));
+  blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
+    return div255(s * (U16x16T::splat(255) - da));
   });
 }
 
 void source_over(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float sa, float /*da*/) {
-    return s + div255(d * (255.0f - sa));
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T /*da*/) {
+    return s + div255(d * (U16x16T::splat(255) - sa));
   });
 }
 
 void destination_over(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float /*sa*/, float da) {
-    return d + div255(s * (255.0f - da));
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T da) {
+    return d + div255(s * (U16x16T::splat(255) - da));
   });
 }
 
 void modulate(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
     return div255(s * d);
   });
 }
 
 void multiply(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float sa, float da) {
-    return div255(s * (255.0f - da) + d * (255.0f - sa) + s * d);
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return div255(s * (U16x16T::splat(255) - da) + d * (U16x16T::splat(255) - sa) + s * d);
   });
 }
 
 void plus(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
-    return std::min(255.0f, s + d);
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
+    return (s + d).min(U16x16T::splat(255));
   });
 }
 
 void screen(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
     return s + d - div255(s * d);
   });
 }
 
 void x_or(Pipeline& pipeline) {
-  blend_fn(pipeline, [](float s, float d, float sa, float da) {
-    return div255(s * (255.0f - da) + d * (255.0f - sa));
+  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return div255(s * (U16x16T::splat(255) - da) + d * (U16x16T::splat(255) - sa));
   });
 }
 
@@ -321,39 +341,40 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
 }
 
 // Matches Rust load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...).
-// Callers compute the pixel offset and pass a span starting at the first pixel.
+// Loads u8 pixel channels into U16x16T (zero-extend u8 → u16).
 void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
                     std::size_t count,
-                    LowpChannel& or_, LowpChannel& og,
-                    LowpChannel& ob, LowpChannel& oa) {
+                    U16x16T& or_, U16x16T& og,
+                    U16x16T& ob, U16x16T& oa) {
+  auto& rl = or_.lanes(); auto& gl = og.lanes();
+  auto& bl = ob.lanes(); auto& al = oa.lanes();
   for (std::size_t i = 0; i < count; ++i) {
-    or_[i] = static_cast<float>(pixels[i].red());
-    og[i] = static_cast<float>(pixels[i].green());
-    ob[i] = static_cast<float>(pixels[i].blue());
-    oa[i] = static_cast<float>(pixels[i].alpha());
+    rl[i] = pixels[i].red();
+    gl[i] = pixels[i].green();
+    bl[i] = pixels[i].blue();
+    al[i] = pixels[i].alpha();
   }
   for (std::size_t i = count; i < kStageWidth; ++i) {
-    or_[i] = 0.0f;
-    og[i] = 0.0f;
-    ob[i] = 0.0f;
-    oa[i] = 0.0f;
+    rl[i] = 0; gl[i] = 0; bl[i] = 0; al[i] = 0;
   }
 }
 
 // Matches Rust store_8888(&u16x16, ..., &mut [PremultipliedColorU8; STAGE_WIDTH]).
-// Callers compute the pixel offset and pass a span starting at the first pixel.
+// Stores U16x16T pixel channels to u8 pixels (clamp+truncate).
 void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
                      std::size_t count,
-                     const LowpChannel& r,
-                     const LowpChannel& g,
-                     const LowpChannel& b,
-                     const LowpChannel& a) {
-  auto clamp = [](float v) -> std::uint8_t {
-    return static_cast<std::uint8_t>(std::max(0.0f, std::min(255.0f, v)));
-  };
+                     const U16x16T& r,
+                     const U16x16T& g,
+                     const U16x16T& b,
+                     const U16x16T& a) {
+  const auto& rl = r.lanes(); const auto& gl = g.lanes();
+  const auto& bl = b.lanes(); const auto& al = a.lanes();
   for (std::size_t i = 0; i < count; ++i) {
     pixels[i] = PremultipliedColorU8::fromRgbaUnchecked(
-        clamp(r[i]), clamp(g[i]), clamp(b[i]), clamp(a[i]));
+        static_cast<std::uint8_t>(std::min<std::uint16_t>(rl[i], 255)),
+        static_cast<std::uint8_t>(std::min<std::uint16_t>(gl[i], 255)),
+        static_cast<std::uint8_t>(std::min<std::uint16_t>(bl[i], 255)),
+        static_cast<std::uint8_t>(std::min<std::uint16_t>(al[i], 255)));
   }
 }
 
@@ -385,11 +406,12 @@ void load_dst_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  auto& dal = pipeline.da.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    pipeline.da[i] = static_cast<float>(pipeline.pixmap_dst->data[offset + i]);
+    dal[i] = static_cast<std::uint16_t>(pipeline.pixmap_dst->data[offset + i]);
   }
   for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
-    pipeline.da[i] = 0.0f;
+    dal[i] = 0;
   }
   pipeline.nextStage();
 }
@@ -400,8 +422,9 @@ void store_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(pipeline.a[i]);
+    pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
   }
   pipeline.nextStage();
 }
@@ -412,17 +435,16 @@ void load_mask_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    pipeline.a[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]);
+    al[i] = static_cast<std::uint16_t>(pipeline.mask_ctx->data[offset + i]);
   }
   for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
-    pipeline.a[i] = 0.0f;
+    al[i] = 0;
   }
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = 0.0f;
-    pipeline.g[i] = 0.0f;
-    pipeline.b[i] = 0.0f;
-  }
+  pipeline.r = U16x16T::splat(0);
+  pipeline.g = U16x16T::splat(0);
+  pipeline.b = U16x16T::splat(0);
   pipeline.nextStage();
 }
 
@@ -432,13 +454,14 @@ void mask_u8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
-  LowpChannel c{};
+  U16x16T c{};
+  auto& cl = c.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    c[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]);
+    cl[i] = static_cast<std::uint16_t>(pipeline.mask_ctx->data[offset + i]);
   }
   bool all_zero = true;
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    if (c[i] != 0.0f) {
+    if (cl[i] != 0) {
       all_zero = false;
       break;
     }
@@ -446,12 +469,10 @@ void mask_u8(Pipeline& pipeline) {
   if (all_zero) {
     return;
   }
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = div255(pipeline.r[i] * c[i]);
-    pipeline.g[i] = div255(pipeline.g[i] * c[i]);
-    pipeline.b[i] = div255(pipeline.b[i] * c[i]);
-    pipeline.a[i] = div255(pipeline.a[i] * c[i]);
-  }
+  pipeline.r = div255(pipeline.r * c);
+  pipeline.g = div255(pipeline.g * c);
+  pipeline.b = div255(pipeline.b * c);
+  pipeline.a = div255(pipeline.a * c);
   pipeline.nextStage();
 }
 
@@ -463,151 +484,164 @@ void source_over_rgba(Pipeline& pipeline) {
   auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.tail,
                  pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float inv_sa = 255.0f - pipeline.a[i];
-    pipeline.r[i] = pipeline.r[i] + div255(pipeline.dr[i] * inv_sa);
-    pipeline.g[i] = pipeline.g[i] + div255(pipeline.dg[i] * inv_sa);
-    pipeline.b[i] = pipeline.b[i] + div255(pipeline.db[i] * inv_sa);
-    pipeline.a[i] = pipeline.a[i] + div255(pipeline.da[i] * inv_sa);
-  }
+  const auto inv_sa = U16x16T::splat(255) - pipeline.a;
+  pipeline.r = pipeline.r + div255(pipeline.dr * inv_sa);
+  pipeline.g = pipeline.g + div255(pipeline.dg * inv_sa);
+  pipeline.b = pipeline.b + div255(pipeline.db * inv_sa);
+  pipeline.a = pipeline.a + div255(pipeline.da * inv_sa);
   store_8888_lowp(pixels, pipeline.tail,
                   pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void darken(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
-    return s + d - div255(std::max(s * da, d * sa));
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return s + d - div255((s * da).max(d * sa));
   });
 }
 
 void lighten(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
-    return s + d - div255(std::min(s * da, d * sa));
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return s + d - div255((s * da).min(d * sa));
   });
 }
 
 void difference(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
-    return s + d - 2.0f * div255(std::min(s * da, d * sa));
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    return s + d - U16x16T::splat(2) * div255((s * da).min(d * sa));
   });
 }
 
 void exclusion(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float /*sa*/, float /*da*/) {
-    return s + d - 2.0f * div255(s * d);
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
+    return s + d - U16x16T::splat(2) * div255(s * d);
   });
 }
 
 void hard_light(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
-    const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
-    const float body = (2.0f * s <= sa)
-        ? (2.0f * s * d)
-        : (sa * da - 2.0f * (sa - s) * (da - d));
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    const auto inv_da = U16x16T::splat(255) - da;
+    const auto inv_sa = U16x16T::splat(255) - sa;
+    const auto body_if = U16x16T::splat(2) * s * d;
+    const auto body_else = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
+    const auto mask = (U16x16T::splat(2) * s).cmpLe(sa);
+    const auto body = mask.blend(body_if, body_else);
     return div255(s * inv_da + d * inv_sa + body);
   });
 }
 
 void overlay(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](float s, float d, float sa, float da) {
-    const float inv_da = 255.0f - da, inv_sa = 255.0f - sa;
-    const float body = (2.0f * d <= da)
-        ? (2.0f * s * d)
-        : (sa * da - 2.0f * (sa - s) * (da - d));
+  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    const auto inv_da = U16x16T::splat(255) - da;
+    const auto inv_sa = U16x16T::splat(255) - sa;
+    const auto body_if = U16x16T::splat(2) * s * d;
+    const auto body_else = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
+    const auto mask = (U16x16T::splat(2) * d).cmpLe(da);
+    const auto body = mask.blend(body_if, body_else);
     return div255(s * inv_da + d * inv_sa + body);
   });
 }
 
 // --- Lowp coordinate/shader stages ---
 //
-// Structural note (WI-07): Rust lowp uses split()/join() to convert between
-// f32x16 (a single 512-bit float SIMD vector used for coordinates) and pairs
-// of u16x16 (256-bit integer SIMD vectors used for pixel channels). The
-// pipeline stores coordinates by splitting one f32x16 across two u16x16
-// registers (e.g. x -> r,g and y -> b,a), then join() reconstructs the
-// f32x16 before coordinate math.
-//
-// In C++ lowp, coordinates are already stored as separate float arrays
-// (pipeline.r for x, pipeline.g for y, etc.), so no split/join conversion
-// is needed — the float arrays serve directly as both coordinate and channel
-// storage. The coordinate stages below operate on pipeline.r/g/b/a directly,
-// which is equivalent to the Rust pattern of join -> compute -> split.
+// Rust lowp uses split()/join() to convert between f32x16 (a single 512-bit
+// float SIMD vector used for coordinates) and pairs of u16x16 (256-bit integer
+// SIMD vectors used for pixel channels). The pipeline stores coordinates by
+// splitting one f32x16 across two u16x16 registers (x -> r,g and y -> b,a),
+// then join() reconstructs the f32x16 before coordinate math.
 
 void transform(Pipeline& pipeline) {
   const auto& ts = pipeline.ctx->transform;
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float x = pipeline.r[i];
-    const float y = pipeline.g[i];
-    // Match Rust's nested mad: x * sx + (y * kx + tx)
-    pipeline.r[i] = x * ts.sx + (y * ts.kx + ts.tx);
-    pipeline.g[i] = x * ts.ky + (y * ts.sy + ts.ty);
-  }
+  auto x = join(pipeline.r, pipeline.g);
+  auto y = join(pipeline.b, pipeline.a);
+  // Match Rust's nested mad: x * sx + (y * kx + tx)
+  auto nx = x * F32x16T::splat(ts.sx) + (y * F32x16T::splat(ts.kx) + F32x16T::splat(ts.tx));
+  auto ny = x * F32x16T::splat(ts.ky) + (y * F32x16T::splat(ts.sy) + F32x16T::splat(ts.ty));
+  split(nx, pipeline.r, pipeline.g);
+  split(ny, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void pad_x1(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = std::max(0.0f, std::min(1.0f, pipeline.r[i]));
-  }
+  auto x = join(pipeline.r, pipeline.g);
+  split(x.normalize(), pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 
 void reflect_x1(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float v = pipeline.r[i];
-    pipeline.r[i] = std::max(0.0f, std::min(1.0f,
-        std::abs((v - 1.0f) - 2.0f * std::floor((v - 1.0f) * 0.5f) - 1.0f)));
-  }
+  auto x = join(pipeline.r, pipeline.g);
+  auto v_minus_1 = x - F32x16T::splat(1.0f);
+  auto result = (v_minus_1 - F32x16T::splat(2.0f) * (v_minus_1 * F32x16T::splat(0.5f)).floor()
+                 - F32x16T::splat(1.0f)).abs().normalize();
+  split(result, pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 
 void repeat_x1(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float v = pipeline.r[i];
-    pipeline.r[i] = std::max(0.0f, std::min(1.0f, v - std::floor(v)));
-  }
+  auto x = join(pipeline.r, pipeline.g);
+  auto result = (x - x.floor()).normalize();
+  split(result, pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 
 void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
   const auto& ctx = pipeline.ctx->evenly_spaced_2_stop_gradient;
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float t = pipeline.r[i];
-    pipeline.r[i] = fromFloat(normalize(t * ctx.factor.r + ctx.bias.r));
-    pipeline.g[i] = fromFloat(normalize(t * ctx.factor.g + ctx.bias.g));
-    pipeline.b[i] = fromFloat(normalize(t * ctx.factor.b + ctx.bias.b));
-    pipeline.a[i] = fromFloat(t * ctx.factor.a + ctx.bias.a);
-  }
+  auto t = join(pipeline.r, pipeline.g);
+  auto rf = t * F32x16T::splat(ctx.factor.r) + F32x16T::splat(ctx.bias.r);
+  auto gf = t * F32x16T::splat(ctx.factor.g) + F32x16T::splat(ctx.bias.g);
+  auto bf = t * F32x16T::splat(ctx.factor.b) + F32x16T::splat(ctx.bias.b);
+  auto af = t * F32x16T::splat(ctx.factor.a) + F32x16T::splat(ctx.bias.a);
+  roundF32ToU16(rf, gf, bf, af, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void gradient(Pipeline& pipeline) {
   const auto& ctx = pipeline.ctx->gradient;
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float t = pipeline.r[i];
-    std::uint32_t idx = 0;
-    for (std::size_t s = 1; s < ctx.len; ++s) {
-      if (t >= ctx.t_values[s]) {
-        idx += 1;
+  auto t = join(pipeline.r, pipeline.g);
+
+  // Per-lane index lookup — inherently scalar
+  auto t_lo = t.lo().lanes();
+  auto t_hi = t.hi().lanes();
+
+  std::array<float, 8> r_lo{}, g_lo{}, b_lo{}, a_lo{};
+  std::array<float, 8> r_hi{}, g_hi{}, b_hi{}, a_hi{};
+
+  auto process = [&](const std::array<float, 8>& tv,
+                     std::array<float, 8>& rv, std::array<float, 8>& gv,
+                     std::array<float, 8>& bv, std::array<float, 8>& av) {
+    for (std::size_t i = 0; i < 8; ++i) {
+      std::uint32_t idx = 0;
+      for (std::size_t s = 1; s < ctx.len; ++s) {
+        if (tv[i] >= ctx.t_values[s]) {
+          idx += 1;
+        }
       }
+      const auto& factor = ctx.factors[idx];
+      const auto& bias = ctx.biases[idx];
+      rv[i] = tv[i] * factor.r + bias.r;
+      gv[i] = tv[i] * factor.g + bias.g;
+      bv[i] = tv[i] * factor.b + bias.b;
+      av[i] = tv[i] * factor.a + bias.a;
     }
-    const auto& factor = ctx.factors[idx];
-    const auto& bias = ctx.biases[idx];
-    pipeline.r[i] = fromFloat(normalize(t * factor.r + bias.r));
-    pipeline.g[i] = fromFloat(normalize(t * factor.g + bias.g));
-    pipeline.b[i] = fromFloat(normalize(t * factor.b + bias.b));
-    pipeline.a[i] = fromFloat(t * factor.a + bias.a);
-  }
+  };
+
+  process(t_lo, r_lo, g_lo, b_lo, a_lo);
+  process(t_hi, r_hi, g_hi, b_hi, a_hi);
+
+  auto rf = F32x16T(F32x8T(r_lo), F32x8T(r_hi));
+  auto gf = F32x16T(F32x8T(g_lo), F32x8T(g_hi));
+  auto bf = F32x16T(F32x8T(b_lo), F32x8T(b_hi));
+  auto af = F32x16T(F32x8T(a_lo), F32x8T(a_hi));
+
+  roundF32ToU16(rf, gf, bf, af, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void xy_to_radius(Pipeline& pipeline) {
-  for (std::size_t i = 0; i < kStageWidth; ++i) {
-    const float x = pipeline.r[i];
-    const float y = pipeline.g[i];
-    pipeline.r[i] = std::sqrt(x * x + y * y);
-  }
+  auto x = join(pipeline.r, pipeline.g);
+  auto y = join(pipeline.b, pipeline.a);
+  auto radius = (x * x + y * y).sqrt();
+  split(radius, pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 

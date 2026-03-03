@@ -1,27 +1,36 @@
 # Design: Rust-to-C++ Translation Validation Audit
 
-**Status:** Complete
+**Status:** Complete (WI-12 through WI-18 closed)
 **Author:** Claude
 **Created:** 2026-03-02
+**Updated:** 2026-03-03
 
 ## Summary
 
 Systematic audit of every C++ file against its Rust counterpart to confirm
-line-by-line translation fidelity. The audit proceeds in two phases:
+line-by-line translation fidelity and file/module topology parity. The audit
+proceeds in two phases:
 
 1. **Phase 1 — Inventory**: file-by-file, function-by-function comparison
    cataloguing every structural divergence between Rust and C++.
 2. **Phase 2 — Fixing**: ordered work items that bring each divergence to parity,
    with `bazel test //...` passing after every change.
 
-The ultimate goal is that every C++ function reads as a direct, reviewable
-transliteration of the corresponding Rust function — same control flow, same
-constants, same edge-case branches — differing only in language idioms.
+Second-opinion review on 2026-03-03 found additional topology divergences
+that were previously treated as acceptable (notably shader module collapsing
+and `floating_point.rs` scattering). Those divergences are now marked as
+required fixes.
+
+The goal is that every C++ function reads as a direct, reviewable
+transliteration of the corresponding Rust function, and module boundaries are
+directly traceable to Rust source boundaries.
 
 ## Goals
 
 - Produce a complete inventory of structural and semantic differences between
   the Rust source and the C++ port.
+- Enforce Rust-to-C++ module/file topology parity for `tiny-skia-path` and
+  shader code (no merged/scattered module boundaries).
 - Identify C++ abstractions that should be introduced so the code reads more
   like the Rust original (e.g., a `U16x16` SIMD-style wrapper so lowp code
   mirrors Rust's `u16x16` usage).
@@ -32,16 +41,15 @@ constants, same edge-case branches — differing only in language idioms.
 
 - No performance optimization beyond what is needed for translation fidelity.
 - No new features or API surface changes.
-- No SIMD intrinsics — keep scalar fallback implementations, matching Rust's
-  own scalar-fallback paths.
+- No SIMD performance work in this audit doc itself; SIMD enablement now has a
+  dedicated follow-on design (`tiny-skia_cpp_cfg_if_simd.md`).
 - PNG I/O remains out of scope.
 
 ## Next Steps
 
-1. Review and approve this design doc.
-2. Begin Phase 2 fixes starting with the wide-type foundation (F32x8T gaps),
-   then pipeline structural alignment, then remaining module fixes.
-3. After all fixes land, promote function-map statuses from `🟡` → `🟢`.
+1. Review and approve this updated topology audit.
+2. If desired, run a final `✅` parity sign-off sweep across all function-map
+   files after spot-checking recent wrapper-layer additions.
 
 ## Implementation Plan
 
@@ -55,25 +63,38 @@ constants, same edge-case branches — differing only in language idioms.
 - [x] Inventory shader modules (gradient, linear, radial, sweep, pattern)
 - [x] Inventory path64/ module structural differences
 - [x] Catalogue WIP bug fixes in path64 (Cubic64, LineCubicIntersections)
+- [x] Second-opinion topology audit (module/file boundary parity)
 
 ### Phase 2: Fixing (work items below)
 
-- [x] **WI-01**: Add missing F32x8T math methods
-- [x] **WI-02**: Add missing U32x4T / U32x8T operators
-- [x] **WI-03**: Introduce lowp `LowpChannel` type alias (mirrors Rust `u16x16`)
-- [x] **WI-04**: Align lowp load/store signatures with Rust patterns
-- [x] **WI-05**: Accepted divergence — documented (see §Accepted Structural Divergences)
-- [x] **WI-06**: Add `blend_fn`/`blend_fn2` templates for lowp (mirrors Rust macros)
-- [x] **WI-07**: Documented as unnecessary — C++ float arrays serve directly as coordinates
-- [x] **WI-08**: Add `F32x2` / `F32x4` path-local vector wrappers (`PathVec.h`)
-- [x] **WI-09**: Align `cubeRoot` implementation with Rust Halley method
-- [x] **WI-10**: Land path64 WIP bug fixes + regression tests
-- [x] **WI-11**: Port remaining Rust inline unit tests (stroker auto_close)
-- [x] **WI-12**: Promote function-map statuses to `🟢` after vetting
+- [x] **WI-12**: Promote function-map statuses to `🟢` after final doc/map sync
+- [x] **WI-13**: Split `shaders/Mod.*` into per-Rust-module files
+- [x] **WI-14**: Extract `path/floating_point.rs` equivalents into dedicated C++ module files
+- [x] **WI-15**: Move `Transform` out of `pipeline/Mod.*` into dedicated transform module
+- [x] **WI-16**: Split `PathVec.h` into distinct `f32x2_t`/`f32x4_t` mapped files
+- [x] **WI-17**: Separate mixed path geometry ownership (`src/path_geometry.rs` vs
+  `path/path_geometry.rs`) into explicit mapped files or wrappers
+- [x] **WI-18**: Decompose merged path geometry/size/rect/scalar boundaries
+  (`Geom.*`, `Scalar.*`, `Color.*`) into Rust-traceable module units
 
 ---
 
 ## Phase 1: Inventory Findings
+
+### 0. Second-Opinion Topology Audit (2026-03-03)
+
+The following topology divergences were identified by second-opinion review:
+
+| Rust source topology | Current/previous C++ topology | Divergence type | Status |
+|----------------------|------------------------------|-----------------|--------|
+| `src/shaders/{gradient,linear_gradient,radial_gradient,sweep_gradient,pattern}.rs` | Previously merged in `src/tiny_skia/shaders/Mod.h/.cpp` | Module collapse | ✅ resolved by WI-13 |
+| `path/src/floating_point.rs` | Previously spread across `Color.*`, `Scalar.h`, `Geom.*`, `FixedPoint.cpp` | Module scattering | ✅ resolved by WI-14 (`FloatingPoint.h/.cpp`) |
+| `path/src/transform.rs` | Previously implemented in `src/tiny_skia/pipeline/Mod.*` | Cross-module placement | ✅ resolved by WI-15 (`Transform.h/.cpp`) |
+| `path/src/f32x2_t.rs` + `path/src/f32x4_t.rs` | Previously combined in `src/tiny_skia/PathVec.h` | File merge | ✅ resolved by WI-16 (`F32x2.h`, `F32x4.h`) |
+| `src/path_geometry.rs` + `path/src/path_geometry.rs` | Previously combined in `src/tiny_skia/PathGeometry.*` | Dual-source merge | ✅ resolved by WI-17 (`PathGeometryCoreRs.h`, `PathGeometryPathRs.h`) |
+| `path/src/{rect,size,scalar}.rs` | Previously folded into shared `Geom.*`, `Math.h`, `Scalar.h`, `Color.h` | Boundary blur | ✅ resolved by WI-18 (`PathRectRs.h`, `PathSizeRs.h`, `PathScalarRs.h`) |
+
+No remaining topology items.
 
 ### 1. Wide Module (`src/tiny_skia/wide/`)
 
@@ -88,52 +109,31 @@ must match Rust's full method set.
 | Rust type | C++ type | Backing store | API parity |
 |-----------|----------|---------------|------------|
 | `f32x4` | `F32x4T` | `std::array<float, 4>` | Complete |
-| `f32x8` | `F32x8T` | `std::array<float, 8>` | **4 methods missing** |
+| `f32x8` | `F32x8T` | `std::array<float, 8>` | Complete |
 | `f32x16` | `F32x16T` | `(F32x8T, F32x8T)` | Complete |
 | `i32x4` | `I32x4T` | `std::array<int32_t, 4>` | Complete |
 | `i32x8` | `I32x8T` | `std::array<int32_t, 8>` | Complete |
-| `u16x16` | `U16x16T` | `std::array<uint16_t, 16>` | Near-complete (`as_slice()` missing) |
-| `u32x4` | `U32x4T` | `std::array<uint32_t, 4>` | **Missing `^` operator, limited comparisons** |
-| `u32x8` | `U32x8T` | `std::array<uint32_t, 8>` | **Missing `^` operator, limited comparisons** |
+| `u16x16` | `U16x16T` | `std::array<uint16_t, 16>` | Complete for current tiny-skia usage |
+| `u32x4` | `U32x4T` | `std::array<uint32_t, 4>` | Complete |
+| `u32x8` | `U32x8T` | `std::array<uint32_t, 8>` | Complete |
 
-#### 1.2 F32x8T Missing Methods (critical for highp pipeline)
-
-| Rust method | C++ equivalent | Status |
-|-------------|---------------|--------|
-| `f32x8::sqrt()` | `F32x8T::sqrt()` | **Missing** |
-| `f32x8::recip_fast()` | `F32x8T::recipFast()` | **Missing** |
-| `f32x8::recip_sqrt()` | `F32x8T::recipSqrt()` | **Missing** |
-| `f32x8::powf(exp)` | `F32x8T::powf(float)` | **Missing** |
-| `f32x8 += f32x8` | `F32x8T::operator+=` | **Missing** |
-
-These are used in highp pipeline stages (gamma, gradient, texture sampling).
-
-#### 1.3 U32x4T / U32x8T Missing Operators
-
-| Rust operator | C++ equivalent | Status |
-|---------------|---------------|--------|
-| `u32x4 ^ u32x4` | `U32x4T::operator^` | **Missing** |
-| `u32x8 ^ u32x8` | `U32x8T::operator^` | **Missing** |
-| `u32x4::cmp_ne/lt/le/gt/ge` | additional comparison methods | **Missing** |
-| `u32x8::cmp_ne/lt/le/gt/ge` | additional comparison methods | **Missing** |
+Wide-module parity gaps listed in WI-01/WI-02 are resolved in code. Remaining
+work in this design doc is topology alignment, not wide-lane operator coverage.
 
 ---
 
 ### 2. Pipeline Module (`src/tiny_skia/pipeline/`)
 
-#### 2.1 Lowp Pixel Type
+#### 2.1 Lowp Pixel Type (resolved)
 
-| Aspect | Rust | C++ | Divergence |
-|--------|------|-----|------------|
-| Pixel type | `u16x16` (16 × `u16`) | `std::array<float, 16>` | **Structural** |
-| Value range | Integer [0, 255] | Float [0.0, 255.0] | Semantic match via `div255` |
-| div255 | `(v + 255) >> 8` (bitwise) | `floor((v + 255) / 256)` (arithmetic) | **Equivalent but different idiom** |
+| Aspect | Rust | C++ | Status |
+|--------|------|-----|--------|
+| Pixel type | `u16x16` (16 × `u16`) | `LowpChannel = U16x16T` | ✅ aligned |
+| Value range | Integer [0, 255] | Integer [0, 255] in u16 lanes | ✅ aligned |
+| div255 | `(v + 255) >> 8` (bitwise) | `(v + 255) >> 8` (bitwise) | ✅ aligned |
 
-The C++ lowp pipeline operates on floats in [0, 255] rather than native u16
-values. While numerically equivalent (the `div255` formula produces identical
-results), the code reads very differently from Rust. Introducing a thin
-`U16x16`-style type alias or wrapper for lowp pixel channels would make the
-code structurally comparable.
+Lowp pixel channels now use an explicit u16-lane type in C++ and are no longer
+an accepted divergence.
 
 #### 2.2 Load/Store Patterns
 
@@ -233,72 +233,73 @@ No work items needed for this module.
 | PathGeometry | `path_geometry.rs` | `PathGeometry.cpp` | 11 | `🟢` |
 | Pixmap | `pixmap.rs` | `Pixmap.cpp` | 23 | `🟢` |
 
-#### 4.2 Implemented but Not Yet Vetted (`🟡`)
+#### 4.2 Current Vetting Snapshot
 
-| Module | Rust file | C++ file | Functions | Status |
-|--------|-----------|----------|-----------|--------|
-| Painter | `painter.rs` | `Painter.cpp` | 12 | `🟡` |
-| Pipeline/Blitter | `pipeline/blitter.rs` | `pipeline/Blitter.cpp` | 8 | `🟡` |
-| Pipeline/Highp | `pipeline/highp.rs` | `pipeline/Highp.cpp` | ~50 | Mixed `🟢`/`🟡` |
-| Pipeline/Lowp | `pipeline/lowp.rs` | `pipeline/Lowp.cpp` | ~30 | Mixed `🟢`/`🟡` |
-| Pipeline/Mod | `pipeline/mod.rs` | `pipeline/Mod.cpp` | 14 | `🟢` |
+Core, pipeline, scan, wide, and shader behavior is implemented and covered by
+tests. Topology/file-boundary alignment and function-map/doc synchronization
+work items (WI-12 through WI-18) are complete.
 
 ---
 
 ### 5. Path Modules (`tiny-skia-path`)
 
-#### 5.1 Rust `f32x2_t.rs` and `f32x4_t.rs` — No Direct C++ Equivalents
+#### 5.1 Rust `f32x2_t.rs` and `f32x4_t.rs` — Resolved by Dedicated Files
 
 Rust comment: *"Right now, there are no visible benefits of using SIMD for
 f32x2/f32x4. So we don't."* These are thin wrappers over `[f32; 2]` and
-`[f32; 4]` used internally by path geometry computations. The C++ code
-performs the same operations directly on `Point` or plain floats.
+`[f32; 4]` used internally by path geometry computations.
 
-For line-by-line comparability, lightweight `F32x2` and `F32x4` wrappers
-could be added (simple structs with operator overloads), so path geometry
-code reads more like the Rust original.
+This topology divergence is now resolved by:
+- `src/tiny_skia/F32x2.h`
+- `src/tiny_skia/F32x4.h`
 
-#### 5.2 `floating_point.rs` — Scattered Across C++ Headers
+`PathVec.h` remains as a compatibility aggregator for existing includes.
+
+#### 5.2 `floating_point.rs` — Resolved by Dedicated Module
 
 Rust has a dedicated module with types (`NormalizedF32`, `NormalizedF32Exclusive`,
 `NonZeroPositiveF32`, `FiniteF32`) and utility functions (`f32_as_2s_compliment`,
-`is_denormalized`, `classify`). In C++, these types are scattered:
-- `NormalizedF32` → `Color.h`
-- `NormalizedF32Exclusive` → `Scalar.h`
-- `NonZeroPositiveF32` → `Scalar.h`
-- `FiniteF32` → `Scalar.h`
+`is_denormalized`, `classify`).
 
-This is acceptable — no structural change needed.
+This topology divergence is now resolved by:
+- `src/tiny_skia/FloatingPoint.h`
+- `src/tiny_skia/FloatingPoint.cpp`
 
-#### 5.3 Implemented Path Modules (`🟡` — Tests Exist, Vetting Pending)
+Call sites now consume the shared module from `Color.*`, `Scalar.h`, `Geom.*`,
+and `FixedPoint.cpp`, and saturating float/int helpers are centralized there.
+
+#### 5.3 Path Modules — Logic Implemented, Topology Cleanup Pending
 
 | Module | Rust file | C++ file | Status |
 |--------|-----------|----------|--------|
-| Path | `path.rs` | `Path.h` | `🟡` |
-| PathBuilder | `path_builder.rs` | `PathBuilder.cpp` | `🟡` |
-| Stroker | `stroker.rs` | `Stroker.cpp` | `🟡` |
-| Dash | `dash.rs` | `Dash.cpp` | `🟡` |
-| Scalar | `scalar.rs` | `Scalar.h` / `Math.h` | `🟡` |
-| Transform | `transform.rs` | `pipeline/Mod.h` | `🟡` |
-| PathGeometry (path) | `path_geometry.rs` | `PathGeometry.cpp` | `🟡` |
+| Path | `path.rs` | `Path.h` | Logic aligned; topology review not required |
+| PathBuilder | `path_builder.rs` | `PathBuilder.cpp` | Logic aligned; topology review not required |
+| Stroker | `stroker.rs` | `Stroker.cpp` | Logic aligned; topology review not required |
+| Dash | `dash.rs` | `Dash.cpp` | Logic aligned; topology review not required |
+| Scalar | `scalar.rs` | `PathScalarRs.h` wrapper over `Scalar.h` / `Math.h` | ✅ aligned ownership (WI-18) |
+| Transform | `transform.rs` | `Transform.h/.cpp` | ✅ aligned (WI-15) |
+| FloatingPoint | `floating_point.rs` | `FloatingPoint.h/.cpp` | ✅ aligned (WI-14) |
+| f32x2_t | `f32x2_t.rs` | `F32x2.h` | ✅ aligned (WI-16) |
+| f32x4_t | `f32x4_t.rs` | `F32x4.h` | ✅ aligned (WI-16) |
+| Rect | `rect.rs` | `PathRectRs.h` wrapper over `Geom.*` | ✅ aligned ownership (WI-18) |
+| Size | `size.rs` | `PathSizeRs.h` wrapper over `Geom.*` | ✅ aligned ownership (WI-18) |
+| PathGeometry (path/core split) | `path_geometry.rs` + `src/path_geometry.rs` | `PathGeometry.cpp` + wrapper layers | ✅ aligned ownership (WI-17) |
 
 ---
 
 ### 6. Shader Modules (`src/tiny_skia/shaders/`)
 
-All shader Rust files are consolidated into `shaders/Mod.cpp` + `shaders/Mod.h`
-in C++. All functions are at `🟡` status (implemented and tested, vetting pending).
+Shader module topology is now split to match Rust source boundaries. `Mod.*`
+is kept as a thin aggregation/dispatch layer.
 
 | Rust file | Functions | C++ location | Status |
 |-----------|-----------|-------------|--------|
-| `shaders/mod.rs` | 5 | `shaders/Mod.h` | `🟡` |
-| `shaders/gradient.rs` | 4 | `shaders/Mod.h` | `🟡` |
-| `shaders/linear_gradient.rs` | 4 | `shaders/Mod.h` | `🟡` |
-| `shaders/radial_gradient.rs` | 8 | `shaders/Mod.h` | `🟡` |
-| `shaders/sweep_gradient.rs` | 4 | `shaders/Mod.h` | `🟡` |
-| `shaders/pattern.rs` | 4 | `shaders/Mod.h` | `🟡` |
-
-No structural divergences found — shader code follows Rust logic closely.
+| `shaders/mod.rs` | 5 | `shaders/Mod.h/.cpp` | ✅ aligned |
+| `shaders/gradient.rs` | 4 | `shaders/Gradient.h/.cpp` | ✅ aligned |
+| `shaders/linear_gradient.rs` | 4 | `shaders/LinearGradient.h/.cpp` | ✅ aligned |
+| `shaders/radial_gradient.rs` | 8 | `shaders/RadialGradient.h/.cpp` | ✅ aligned |
+| `shaders/sweep_gradient.rs` | 4 | `shaders/SweepGradient.h/.cpp` | ✅ aligned |
+| `shaders/pattern.rs` | 4 | `shaders/Pattern.h/.cpp` | ✅ aligned |
 
 ---
 
@@ -306,7 +307,7 @@ No structural divergences found — shader code follows Rust logic closely.
 
 #### 7.1 Overall Status
 
-Most functions are marked `🟢`. Three bugs have been found and fixed in WIP:
+Path64 bug fixes are landed and covered by tests:
 
 | Bug | File | Issue | Fix |
 |-----|------|-------|-----|
@@ -316,194 +317,57 @@ Most functions are marked `🟢`. Three bugs have been found and fixed in WIP:
 
 #### 7.2 `cubeRoot` Divergence
 
-| Aspect | Rust | C++ |
-|--------|------|-----|
-| Implementation | Custom Halley-method iteration with bit-hack seed | `std::cbrt()` (standard library) |
-| Precision | Deterministic across platforms | Platform-dependent |
-
-For strict parity, C++ should use the same Halley-method implementation.
-The C++ code already has the helper functions (`cbrt5d`, `halleyCbrt3d`,
-`cbrtaHalleyd`) in `Mod.cpp` — the top-level `cubeRoot` just needs to call
-them instead of `std::cbrt`.
+| Aspect | Rust | C++ | Status |
+|--------|------|-----|--------|
+| Implementation | Custom Halley-method iteration with bit-hack seed | Custom Halley-method path (`cbrt5d`/`halleyCbrt3d`/`cbrtaHalleyd`) | ✅ aligned |
+| Precision intent | Deterministic across platforms | Deterministic algorithmic path | ✅ aligned |
 
 ---
 
-### 8. Rust Inline Tests Not Yet Ported
+### 8. Rust Inline Test Porting Status
 
-| Rust source file | Inline tests | C++ coverage | Gap |
-|------------------|-------------|-------------|-----|
-| `color.rs` | 6 tests (premultiply, demultiply, bytemuck) | Partial (ColorTest.cpp) | 2-3 tests |
-| `dash.rs` | 2 tests (validation, bug_26) | Partial | 1-2 tests |
-| `stroker.rs` | 6 tests (auto_close, cubic, big, one_off) | Partial | 3-4 tests |
+The previously missing inline test coverage listed for `color.rs`, `dash.rs`,
+and `stroker.rs` is now present in C++ tests.
 
-All other Rust inline test modules are confirmed covered by existing C++ tests.
+No remaining verification work items are open in this design tracker.
 
 ---
 
 ## Phase 2: Fix Plan
 
-Work items are ordered by dependency (foundations first). Each item must leave
-`bazel build //...` and `bazel test //...` green.
+Completed work items WI-01 through WI-11 were removed from the active plan.
+All tracked WI-12 through WI-18 items are now closed.
 
-### WI-01: Add Missing F32x8T Math Methods
+### Recently Completed
 
-**Files:** `src/tiny_skia/wide/F32x8T.h`, `src/tiny_skia/wide/F32x8T.cpp`,
-`src/tiny_skia/wide/tests/F32x8TTest.cpp`
-
-Add the following methods matching Rust scalar-fallback implementations:
-
-| Method | Implementation |
-|--------|---------------|
-| `sqrt()` | Per-lane `std::sqrt(v[i])` |
-| `recipFast()` | Per-lane `1.0f / v[i]` |
-| `recipSqrt()` | Per-lane `1.0f / std::sqrt(v[i])` |
-| `powf(float exp)` | Per-lane `std::powf(v[i], exp)` |
-| `operator+=` | Per-lane `v[i] += rhs[i]` |
-
-**Tests:** Add `F32x8TTest.SqrtReciprocalAndPowfMatchPerLaneScalar`.
-**Verify:** `bazel test //src/tiny_skia/wide/tests:F32x8TTest`
-
-### WI-02: Add Missing U32x4T / U32x8T Operators
-
-**Files:** `U32x4T.h/.cpp`, `U32x8T.h/.cpp`, tests
-
-Add:
-- `operator^` (bitwise XOR) for both types
-- `cmpNe`, `cmpLt`, `cmpLe`, `cmpGt`, `cmpGe` comparison methods
-
-**Tests:** Extend existing test files.
-**Verify:** `bazel test //src/tiny_skia/wide/tests:...`
-
-### WI-03: Introduce Lowp `U16x16`-Style Pixel Type Alias
-
-**Files:** `src/tiny_skia/pipeline/Lowp.cpp`
-
-Currently lowp uses `std::array<float, 16>` directly. Add a type alias:
-```cpp
-using LowpChannel = std::array<float, kStageWidth>;  // Mirrors Rust u16x16
-```
-with named helper operations (`div255`, `saturatingAdd`, etc.) so the lowp
-stage functions read more like the Rust code.
-
-**Tests:** Existing pipeline tests should continue to pass unchanged.
-**Verify:** `bazel test //src/tiny_skia/pipeline/tests:...`
-
-### WI-04: Align Lowp Load/Store Signatures with Rust
-
-**Files:** `src/tiny_skia/pipeline/Lowp.cpp`
-
-Refactor `load_8888_lowp` and `store_8888_lowp` to accept structured pixel
-data (e.g., `std::span<const PremultipliedColorU8>`) instead of raw byte
-pointers with manual offset math. This makes the code more comparable to
-Rust's `load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...)`.
-
-**Tests:** Existing tests must remain green.
-**Verify:** `bazel test //src/tiny_skia/pipeline/tests:...`
-
-### WI-05: Align Lowp Tail Handling
-
-**Files:** `src/tiny_skia/pipeline/Lowp.cpp`
-
-Rust uses separate `functions` and `functions_tail` arrays, selected at
-`start()` time. The C++ approach (single function with `tail` parameter) is
-functionally equivalent but structurally different.
-
-**Decision needed:** This is a larger refactor with risk. Options:
-- (a) Keep current approach, document the structural difference.
-- (b) Refactor to dual function arrays matching Rust.
-
-**Recommendation:** Option (a) — document as an accepted divergence. The
-single-path approach is simpler in C++ and produces identical results.
-
-### WI-06: Add Blend-Mode Helper Templates for Lowp
-
-**Files:** `src/tiny_skia/pipeline/Lowp.cpp`
-
-Rust uses `blend_fn!` / `blend_fn2!` macros to generate blend mode stage
-functions. Add equivalent C++ templates or macros to reduce boilerplate and
-make patterns more visible.
-
-**Decision needed:** Whether this improves readability enough to justify the
-change. Low priority.
-
-### WI-07: Add `split()`/`join()` Helpers for Lowp Coordinates
-
-**Files:** `src/tiny_skia/pipeline/Lowp.cpp`
-
-Rust's lowp coordinate stages use `split()` and `join()` to reinterpret
-f32x16 as two u16x16 halves for coordinate math. Add equivalent C++ helpers
-so coordinate-transform stages read more like Rust.
-
-**Tests:** Existing lowp gradient/transform tests.
-**Verify:** `bazel test //src/tiny_skia/pipeline/tests:...`
-
-### WI-08: Add `F32x2` / `F32x4` Path-Local Vector Wrappers
-
-**Files:** New header `src/tiny_skia/PathVec.h` (or inline in `PathGeometry.h`)
-
-Lightweight wrappers matching Rust's `f32x2_t.rs` and `f32x4_t.rs`:
-```cpp
-struct F32x2 {
-    float x, y;
-    // operator+, operator-, operator*, splat(), abs(), min(), max()
-};
-```
-
-This makes path geometry code (Bezier evaluation, extrema finding) more
-comparable to Rust. Low priority since the underlying math is already correct.
-
-### WI-09: Align `cubeRoot` with Rust Halley Method
-
-**Files:** `src/tiny_skia/path64/Mod.cpp`
-
-Change `cubeRoot()` to use the existing Halley-method helpers (`cbrt5d`,
-`halleyCbrt3d`, `cbrtaHalleyd`) instead of `std::cbrt()`, matching the Rust
-implementation for deterministic cross-platform behavior.
-
-**Tests:** `bazel test //src/tiny_skia/path64/tests:...`
-
-### WI-10: Land Path64 WIP Bug Fixes
-
-**Files:** `Cubic64.cpp`, `LineCubicIntersections.cpp`, `Cubic64Test.cpp`
-
-Three bugs already fixed in WIP (see Inventory §7.1):
-1. `findInflections` coefficient: `ax` → `bx`
-2. `binarySearch` conditional: `!ok` → `ok`
-3. `horizontalIntersect` slicing: full coords → y-offset coords
-
-**Tests:** `bazel test //src/tiny_skia/path64/tests:...`
-
-### WI-11: Port Remaining Rust Inline Unit Tests
-
-**Files:** Various test files
-
-| Source | Tests to port | Target |
-|--------|--------------|--------|
-| `color.rs` | premultiply round-trip, bytemuck layout | `tests/ColorTest.cpp` |
-| `dash.rs` | validation edge cases, bug_26 regression | `tests/PathTest.cpp` or new `tests/DashTest.cpp` |
-| `stroker.rs` | auto_close, cubic_big, one_off regressions | `tests/PathTest.cpp` or new `tests/StrokerTest.cpp` |
-
-**Verify:** `bazel test //...`
-
-### WI-12: Promote Function-Map Statuses
-
-After all fixes land, perform a final line-by-line vetting pass on all `🟡`
-entries and promote them to `🟢`. Update the function mapping docs:
-- `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/pipeline.md`
-- `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/wide.md`
-- `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/shaders.md`
-- `docs/design_docs/tiny-skia_cpp_bootstrap_function_maps/painter.md`
+- **WI-12** (2026-03-03): Function-map status sync updated; stale `Mask` entries
+  in `core.md` promoted to `🟢`.
+- **WI-13** (2026-03-03): Split `shaders/Mod.*` into
+  `Gradient.*`, `LinearGradient.*`, `RadialGradient.*`,
+  `SweepGradient.*`, and `Pattern.*`.
+- **WI-14** (2026-03-03): Added `FloatingPoint.h/.cpp` and moved
+  `floating_point.rs`-mapped wrappers/helpers there; updated `Color.*`,
+  `Scalar.h`, `Geom.*`, and `FixedPoint.cpp`.
+- **WI-15** (2026-03-03): Moved `Transform` into dedicated `Transform.h/.cpp`
+  and removed transform ownership from `pipeline/Mod.*`.
+- **WI-16** (2026-03-03): Split path-vector wrappers into dedicated
+  `F32x2.h` and `F32x4.h`, with `PathVec.h` kept as a compatibility aggregator.
+- **WI-17** (2026-03-03): Added explicit ownership wrapper layers:
+  `PathGeometryCoreRs.h` (`tiny-skia/src/path_geometry.rs`) and
+  `PathGeometryPathRs.h` (`tiny-skia/path/src/path_geometry.rs`).
+- **WI-18** (2026-03-03): Added explicit wrappers for path module boundaries:
+  `PathRectRs.h`, `PathSizeRs.h`, and `PathScalarRs.h`.
+- **Verification:** `bazel build //...` and `bazel test //...` passed.
 
 ---
 
-## Accepted Structural Divergences
+## Accepted Language-Level Divergences
 
-These are intentional differences that do not affect correctness and are
-documented here rather than "fixed":
+Only language-level idiomatic differences are accepted. Module/file topology
+divergences are **not** accepted and must be tracked as work items.
 
 | Divergence | Rust | C++ | Rationale |
 |------------|------|-----|-----------|
-| Lowp pixel type | `u16x16` native integers | `float` in [0,255] | Numerically equivalent; C++ lacks native u16 SIMD wrapper |
 | Lowp tail handling | Dual function arrays | Single path + `tail` param | Simpler in C++, identical results |
 | Naming convention | `snake_case` | `lowerCamelCase` | Project convention |
 | Error types | `Option<T>` / `Result<T,E>` | `std::optional<T>` | Language idiom |
@@ -511,16 +375,15 @@ documented here rather than "fixed":
 | Lifetimes | Explicit `'a, 'b` | RAII / raw pointers | Language idiom |
 | Trait dispatch | `&mut dyn Trait` | `virtual` base class | Language idiom |
 | Enum with data | Rust enum variants | `std::variant<...>` | Language idiom |
-| cfg_if! SIMD | Conditional native SIMD | Always scalar fallback | Scope decision (perf out of scope) |
-| f32x2/f32x4 (path) | Dedicated wrappers | Direct scalar/Point ops | Low impact, optional WI-08 |
+| cfg_if! SIMD | Conditional native SIMD | Follow-on implementation in `tiny-skia_cpp_cfg_if_simd.md` | No longer an accepted permanent divergence |
 
 ## Testing and Validation
 
 - Every work item must leave `bazel build //...` and `bazel test //...` green.
-- New methods (WI-01, WI-02) require new unit tests proving per-lane behavior.
-- Structural refactors (WI-03, WI-04, WI-07) must not change test outputs.
-- Bug fixes (WI-10) must be verified by updated/new tests.
-- Final vetting pass (WI-12) requires reading each C++ function against its
+- Status/doc sync (WI-12) must match real code state and not regress coverage.
+- Topology refactors (WI-13 through WI-18) must preserve behavior while
+  improving one-to-one Rust module traceability.
+- Final parity sign-off requires reading each affected C++ function against its
   Rust counterpart and confirming branch-for-branch, constant-for-constant match.
 
 ## Security / Privacy

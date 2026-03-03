@@ -5,32 +5,6 @@
 
 namespace tiny_skia {
 
-namespace {
-
-constexpr float kFloatMax = 1.0f;
-constexpr float kFloatMin = 0.0f;
-
-constexpr float clamp01(float value) {
-  return value < kFloatMin ? kFloatMin : (value > kFloatMax ? kFloatMax : value);
-}
-
-}  // namespace
-
-std::optional<NormalizedF32> NormalizedF32::newFloat(float value) {
-  if (!std::isfinite(value) || value < 0.0f || value > 1.0f) {
-    return std::nullopt;
-  }
-  return NormalizedF32::newUnchecked(value);
-}
-
-NormalizedF32 NormalizedF32::newClamped(float value) {
-  return NormalizedF32(clamp01(value));
-}
-
-NormalizedF32 NormalizedF32::fromU8(AlphaU8 value) {
-  return NormalizedF32::newUnchecked(static_cast<float>(value) * (1.0f / 255.0f));
-}
-
 PremultipliedColorU8 ColorU8::premultiply() const {
   const auto a = alpha();
   if (a == kAlphaU8Opaque) {

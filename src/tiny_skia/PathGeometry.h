@@ -11,7 +11,7 @@
 namespace tiny_skia {
 /// Direction for adding closed contours.
 enum class PathDirection : std::uint8_t { CW, CCW };
-struct Transform;
+class Transform;
 }  // namespace tiny_skia
 
 namespace tiny_skia::path_geometry {

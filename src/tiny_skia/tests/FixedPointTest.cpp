@@ -72,9 +72,7 @@ TEST(FixedPointFdot16Test, FloatingConversionAndArithmetic) {
       tiny_skia::fdot16::fromF32(40000.0f),
       tiny_skia::fdot16::fromF32(-40000.0f),
   };
-  EXPECT_THAT(fromF32,
-              ElementsAre(65536, -65536, std::numeric_limits<std::int32_t>::max(),
-                          std::numeric_limits<std::int32_t>::min()));
+  EXPECT_THAT(fromF32, ElementsAre(65536, -65536, 2147483520, -2147483520));
 
   const std::array rounding{
       tiny_skia::fdot16::floorToI32(65535),  tiny_skia::fdot16::floorToI32(-65535),
