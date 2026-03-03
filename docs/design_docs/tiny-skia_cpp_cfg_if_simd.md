@@ -285,6 +285,22 @@ to `x86_64` and `aarch64`.
   - FillPath(512): native `237658 ns` vs scalar `442642 ns` (`1.863x` native/scalar)
   - FillRect(512): native `143342 ns` vs scalar `345637 ns` (`2.411x` native/scalar)
 
+## Recent Update: 2026-03-03 (AArch64 Lowp Pixel Marshal Fast Path Regression Fix)
+
+- Investigated a regression after x86 SIMD expansion where native ARM (`aarch64_neon`) and
+  scalar builds were near parity in end-to-end benchmarks despite native backend selection.
+- Root cause in lowp hot path: `load_8888_lowp` / `store_8888_lowp` / `load_8_lowp` /
+  `store_u8` remained scalar lane-by-lane marshaling, dominating runtime and masking NEON math
+  gains.
+- Implemented AArch64 NEON-native marshaling in `src/tiny_skia/pipeline/Lowp.cpp`:
+  - `vld4q_u8` + widen for RGBA load into `U16x16T`.
+  - saturating narrow + `vst4q_u8` for RGBA store (restores clamp-to-255 behavior).
+  - vectorized u8 mask load/store paths for full-width stages.
+- Benchmark snapshot after fix (`tests/benchmarks/run_render_perf_compare.sh`, opt mode,
+  Apple Silicon host):
+  - FillPath(512): native `222564 ns` vs scalar `321730 ns` (`1.446x` native/scalar)
+  - FillRect(512): native `137527 ns` vs scalar `257156 ns` (`1.870x` native/scalar)
+
 ## Alternatives Considered
 
 - Runtime CPU dispatch with one binary and multiple ISA kernels.

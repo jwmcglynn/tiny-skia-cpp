@@ -17,6 +17,7 @@ features.
 - Establish deterministic formatting and style tooling for C++ and Bazel files.
 - Ship complete project-facing docs, including onboarding and API references.
 - Add robust CI quality gates across supported platforms/toolchains.
+- Add explicit code coverage collection and quality gates for critical modules.
 - Improve readability and maintainability with Google-grade C++ best practices and modern C++20
   patterns where behavior is unchanged.
 - Remove intermediate porting artifacts from production code and docs.
@@ -91,7 +92,9 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Gate CI on warning-clean status for both compilers.
   - [ ] Add sanitizer jobs (ASan/UBSan; TSan where stable) with documented scopes.
   - [ ] Add mode coverage for SIMD/scalar transitions and fallback paths.
-  - [ ] Add coverage reporting and trend visibility for critical modules.
+  - [ ] Add line and branch coverage collection for unit/integration tests.
+  - [ ] Publish CI coverage reports with trend visibility for critical modules.
+  - [ ] Define and enforce minimum coverage thresholds for production-critical modules.
 
 - [ ] Milestone 3: Project Documentation and Onboarding
   - [ ] Write top-level `README.md` project intro, architecture summary, and quickstart.
@@ -143,6 +146,7 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Confirm no intermediate-porting artifacts remain in production paths.
   - [ ] Confirm formatting, docs, and CI standards are stable and reproducible.
   - [ ] Confirm `AGENTS.md` guidance is current for both code-change and API-usage workflows.
+  - [ ] Confirm coverage thresholds are green for required modules in CI.
   - [ ] Confirm all roadmap checkboxes are complete with linked evidence.
   - [ ] Confirm final status reflected in validation and SIMD roadmap docs.
 
@@ -154,6 +158,7 @@ inputs. These should be treated as untrusted. Production hardening includes:
 - Required hardening tracks:
   - Sanitizer suite execution policy and pass criteria.
   - SIMD/scalar and transition-path coverage in tests.
+  - Coverage collection and threshold gates for production-critical modules.
   - Golden/render-regression checks for behavior-sensitive modules.
 - Required release checks:
   - Doxygen generation and publish job health.

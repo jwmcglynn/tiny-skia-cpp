@@ -17,6 +17,10 @@
 #include <cstring>
 #include <span>
 
+#if defined(__aarch64__) && defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif
+
 namespace tiny_skia::pipeline::lowp {
 
 using tiny_skia::wide::F32x16T;
@@ -80,6 +84,14 @@ const void* fnPtr(StageFn fn) {
 }
 
 namespace {
+
+[[nodiscard]] constexpr bool useAarch64NeonNative() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return true;
+#else
+  return false;
+#endif
+}
 
 // Matches Rust split(): reinterpret f32x16 (64 bytes) as two u16x16 (32 bytes each)
 inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
@@ -389,6 +401,26 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
 void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
                     U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
+  if constexpr (useAarch64NeonNative()) {
+    static_assert(sizeof(PremultipliedColorU8) == 4);
+
+    const auto* packed = reinterpret_cast<const std::uint8_t*>(pixels.data());
+    const uint8x16x4_t rgba = vld4q_u8(packed);
+    const uint16x8x2_t r16 = {vmovl_u8(vget_low_u8(rgba.val[0])),
+                              vmovl_u8(vget_high_u8(rgba.val[0]))};
+    const uint16x8x2_t g16 = {vmovl_u8(vget_low_u8(rgba.val[1])),
+                              vmovl_u8(vget_high_u8(rgba.val[1]))};
+    const uint16x8x2_t b16 = {vmovl_u8(vget_low_u8(rgba.val[2])),
+                              vmovl_u8(vget_high_u8(rgba.val[2]))};
+    const uint16x8x2_t a16 = {vmovl_u8(vget_low_u8(rgba.val[3])),
+                              vmovl_u8(vget_high_u8(rgba.val[3]))};
+    vst1q_u16_x2(or_.lanes().data(), r16);
+    vst1q_u16_x2(og.lanes().data(), g16);
+    vst1q_u16_x2(ob.lanes().data(), b16);
+    vst1q_u16_x2(oa.lanes().data(), a16);
+    return;
+  }
+
   auto& rl = or_.lanes();
   auto& gl = og.lanes();
   auto& bl = ob.lanes();
@@ -450,6 +482,26 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
                      const U16x16T& g,
                      const U16x16T& b,
                      const U16x16T& a) {
+  if constexpr (useAarch64NeonNative()) {
+    static_assert(sizeof(PremultipliedColorU8) == 4);
+
+    const uint16x8x2_t r16 = vld1q_u16_x2(r.lanes().data());
+    const uint16x8x2_t g16 = vld1q_u16_x2(g.lanes().data());
+    const uint16x8x2_t b16 = vld1q_u16_x2(b.lanes().data());
+    const uint16x8x2_t a16 = vld1q_u16_x2(a.lanes().data());
+
+    uint8x16x4_t rgba{};
+    // Saturating narrow preserves prior clamp-to-255 semantics.
+    rgba.val[0] = vcombine_u8(vqmovn_u16(r16.val[0]), vqmovn_u16(r16.val[1]));
+    rgba.val[1] = vcombine_u8(vqmovn_u16(g16.val[0]), vqmovn_u16(g16.val[1]));
+    rgba.val[2] = vcombine_u8(vqmovn_u16(b16.val[0]), vqmovn_u16(b16.val[1]));
+    rgba.val[3] = vcombine_u8(vqmovn_u16(a16.val[0]), vqmovn_u16(a16.val[1]));
+
+    auto* packed = reinterpret_cast<std::uint8_t*>(pixels.data());
+    vst4q_u8(packed, rgba);
+    return;
+  }
+
   const auto& rl = r.lanes();
   const auto& gl = g.lanes();
   const auto& bl = b.lanes();
@@ -528,6 +580,14 @@ void store_8888_tail(std::size_t count,
 }
 
 void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
+  if constexpr (useAarch64NeonNative()) {
+    const uint8x16_t src = vld1q_u8(data.data());
+    const uint16x8x2_t wide = {vmovl_u8(vget_low_u8(src)),
+                               vmovl_u8(vget_high_u8(src))};
+    vst1q_u16_x2(a.lanes().data(), wide);
+    return;
+  }
+
   auto& al = a.lanes();
   al[0] = data[0];    al[1] = data[1];
   al[2] = data[2];    al[3] = data[3];
@@ -615,6 +675,14 @@ void store_u8(Pipeline& pipeline) {
   }
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   const auto& al = pipeline.a.lanes();
+  if constexpr (useAarch64NeonNative()) {
+    const uint16x8x2_t a16 = vld1q_u16_x2(al.data());
+    const uint8x16_t a8 = vcombine_u8(vqmovn_u16(a16.val[0]), vqmovn_u16(a16.val[1]));
+    vst1q_u8(pipeline.pixmap_dst->data + offset, a8);
+    pipeline.nextStage();
+    return;
+  }
+
   pipeline.pixmap_dst->data[offset + 0] = static_cast<std::uint8_t>(al[0]);
   pipeline.pixmap_dst->data[offset + 1] = static_cast<std::uint8_t>(al[1]);
   pipeline.pixmap_dst->data[offset + 2] = static_cast<std::uint8_t>(al[2]);
