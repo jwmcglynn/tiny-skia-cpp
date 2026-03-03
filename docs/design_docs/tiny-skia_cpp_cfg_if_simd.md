@@ -321,6 +321,20 @@ to `x86_64` and `aarch64`.
   - FillPath(512): native `222564 ns` vs scalar `321730 ns` (`1.446x` native/scalar)
   - FillRect(512): native `137527 ns` vs scalar `257156 ns` (`1.870x` native/scalar)
 
+## Recent Update: 2026-03-03 (Lowp Intrinsics Arch Parse Guards After Rebase)
+
+- Rebase/autostash replay exposed a cross-arch compile break in
+  `src/tiny_skia/pipeline/Lowp.cpp`:
+  - ARM NEON and x86 intrinsic blocks were inside `if constexpr` branches, but intrinsic
+    symbols/types are still parsed by the compiler on unsupported targets.
+  - x86 builds therefore failed on NEON-only symbols (`uint8x16x4_t`, `vld4q_u8`, etc.).
+- Fixed by wrapping intrinsic blocks with architecture preprocessor guards:
+  - `#if defined(__aarch64__) && defined(__ARM_NEON)` around NEON marshal paths.
+  - `#if defined(__x86_64__) || defined(__i386__)` around x86 marshal paths.
+- Validation run after fix:
+  - `bazel build //...` passed
+  - `bazel test //...` passed
+
 ## Alternatives Considered
 
 - Runtime CPU dispatch with one binary and multiple ISA kernels.

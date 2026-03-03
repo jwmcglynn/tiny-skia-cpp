@@ -15,3 +15,5 @@ tests/rust_ffi/target/
 
 # Benchmark generated artifacts
 .benchmarks/
+callgrind*.out
+callgrind.out.*

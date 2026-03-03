@@ -22,6 +22,10 @@
 #include <arm_neon.h>
 #endif
 
+#if defined(__x86_64__) || defined(__i386__)
+#include <immintrin.h>
+#endif
+
 namespace tiny_skia::pipeline::lowp {
 
 using tiny_skia::wide::F32x16T;
@@ -96,6 +100,15 @@ namespace {
 
 [[nodiscard]] constexpr bool useAarch64NeonNative() {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  return true;
+#else
+  return false;
+#endif
+}
+
+[[nodiscard]] constexpr bool useX86Avx2FmaNative() {
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
+    (defined(__x86_64__) || defined(__i386__))
   return true;
 #else
   return false;
@@ -409,6 +422,7 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
 void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
                     U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
+#if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
@@ -428,6 +442,66 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
     vst1q_u16_x2(oa.lanes().data(), a16);
     return;
   }
+#endif
+
+#if defined(__x86_64__) || defined(__i386__)
+  if constexpr (useX86Avx2FmaNative()) {
+    static_assert(sizeof(PremultipliedColorU8) == 4);
+
+    const auto* packed = reinterpret_cast<const std::uint8_t*>(pixels.data());
+    const __m128i p0 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 0));
+    const __m128i p1 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 16));
+    const __m128i p2 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 32));
+    const __m128i p3 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 48));
+    const __m128i zero = _mm_setzero_si128();
+
+    const __m128i r_mask =
+        _mm_setr_epi8(0, 4, 8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
+    const __m128i g_mask =
+        _mm_setr_epi8(1, 5, 9, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
+    const __m128i b_mask =
+        _mm_setr_epi8(2, 6, 10, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
+    const __m128i a_mask =
+        _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
+
+    const auto gather_channel = [&](__m128i mask) {
+      const __m128i c0 = _mm_shuffle_epi8(p0, mask);
+      const __m128i c1 = _mm_shuffle_epi8(p1, mask);
+      const __m128i c2 = _mm_shuffle_epi8(p2, mask);
+      const __m128i c3 = _mm_shuffle_epi8(p3, mask);
+      const __m128i c01 = _mm_unpacklo_epi32(c0, c1);
+      const __m128i c23 = _mm_unpacklo_epi32(c2, c3);
+      return _mm_unpacklo_epi64(c01, c23);
+    };
+
+    const __m128i r8 = gather_channel(r_mask);
+    const __m128i g8 = gather_channel(g_mask);
+    const __m128i b8 = gather_channel(b_mask);
+    const __m128i a8 = gather_channel(a_mask);
+
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data()),
+                     _mm_unpacklo_epi8(r8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data() + 8),
+                     _mm_unpackhi_epi8(r8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(og.lanes().data()),
+                     _mm_unpacklo_epi8(g8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(og.lanes().data() + 8),
+                     _mm_unpackhi_epi8(g8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(ob.lanes().data()),
+                     _mm_unpacklo_epi8(b8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(ob.lanes().data() + 8),
+                     _mm_unpackhi_epi8(b8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(oa.lanes().data()),
+                     _mm_unpacklo_epi8(a8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(oa.lanes().data() + 8),
+                     _mm_unpackhi_epi8(a8, zero));
+    return;
+  }
+#endif
 
   auto& rl = or_.lanes();
   auto& gl = og.lanes();
@@ -490,6 +564,7 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
                      const U16x16T& g,
                      const U16x16T& b,
                      const U16x16T& a) {
+#if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
@@ -509,6 +584,43 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
     vst4q_u8(packed, rgba);
     return;
   }
+#endif
+
+#if defined(__x86_64__) || defined(__i386__)
+  if constexpr (useX86Avx2FmaNative()) {
+    static_assert(sizeof(PremultipliedColorU8) == 4);
+
+    const __m128i r8 = _mm_packus_epi16(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data())),
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data() + 8)));
+    const __m128i g8 = _mm_packus_epi16(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data())),
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data() + 8)));
+    const __m128i b8 = _mm_packus_epi16(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data())),
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data() + 8)));
+    const __m128i a8 = _mm_packus_epi16(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data())),
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data() + 8)));
+
+    const __m128i rg_lo = _mm_unpacklo_epi8(r8, g8);
+    const __m128i rg_hi = _mm_unpackhi_epi8(r8, g8);
+    const __m128i ba_lo = _mm_unpacklo_epi8(b8, a8);
+    const __m128i ba_hi = _mm_unpackhi_epi8(b8, a8);
+
+    const __m128i rgba0 = _mm_unpacklo_epi16(rg_lo, ba_lo);
+    const __m128i rgba1 = _mm_unpackhi_epi16(rg_lo, ba_lo);
+    const __m128i rgba2 = _mm_unpacklo_epi16(rg_hi, ba_hi);
+    const __m128i rgba3 = _mm_unpackhi_epi16(rg_hi, ba_hi);
+
+    auto* packed = reinterpret_cast<std::uint8_t*>(pixels.data());
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(packed + 0), rgba0);
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(packed + 16), rgba1);
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(packed + 32), rgba2);
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(packed + 48), rgba3);
+    return;
+  }
+#endif
 
   const auto& rl = r.lanes();
   const auto& gl = g.lanes();
@@ -588,6 +700,7 @@ void store_8888_tail(std::size_t count,
 }
 
 void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
+#if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint8x16_t src = vld1q_u8(data.data());
     const uint16x8x2_t wide = {vmovl_u8(vget_low_u8(src)),
@@ -595,6 +708,19 @@ void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
     vst1q_u16_x2(a.lanes().data(), wide);
     return;
   }
+#endif
+
+#if defined(__x86_64__) || defined(__i386__)
+  if constexpr (useX86Avx2FmaNative()) {
+    const __m128i src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(data.data()));
+    const __m128i zero = _mm_setzero_si128();
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(a.lanes().data()),
+                     _mm_unpacklo_epi8(src, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(a.lanes().data() + 8),
+                     _mm_unpackhi_epi8(src, zero));
+    return;
+  }
+#endif
 
   auto& al = a.lanes();
   al[0] = data[0];    al[1] = data[1];
@@ -662,6 +788,7 @@ void store_u8(Pipeline& pipeline) {
   assert(pipeline.pixmap_dst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
   const auto& al = pipeline.a.lanes();
+#if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint16x8x2_t a16 = vld1q_u16_x2(al.data());
     const uint8x16_t a8 = vcombine_u8(vqmovn_u16(a16.val[0]), vqmovn_u16(a16.val[1]));
@@ -669,6 +796,19 @@ void store_u8(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
+#endif
+
+#if defined(__x86_64__) || defined(__i386__)
+  if constexpr (useX86Avx2FmaNative()) {
+    const __m128i a8 = _mm_packus_epi16(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())),
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)));
+    _mm_storeu_si128(
+        reinterpret_cast<__m128i*>(pipeline.pixmap_dst->data + offset), a8);
+    pipeline.nextStage();
+    return;
+  }
+#endif
 
   pipeline.pixmap_dst->data[offset + 0] = static_cast<std::uint8_t>(al[0]);
   pipeline.pixmap_dst->data[offset + 1] = static_cast<std::uint8_t>(al[1]);
