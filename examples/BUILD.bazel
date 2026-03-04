@@ -11,63 +11,90 @@ _COMMON_DEPS = [
 
 cc_binary(
     name = "fill",
-    srcs = ["PngEncoder.h", "fill.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "fill.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "stroke",
-    srcs = ["PngEncoder.h", "stroke.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "stroke.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "hairline",
-    srcs = ["PngEncoder.h", "hairline.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "hairline.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "linear_gradient",
-    srcs = ["PngEncoder.h", "linear_gradient.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "linear_gradient.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "mask",
-    srcs = ["PngEncoder.h", "mask.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "mask.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "pattern",
-    srcs = ["PngEncoder.h", "pattern.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "pattern.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "gamma",
-    srcs = ["PngEncoder.h", "gamma.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "gamma.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "image_on_image",
-    srcs = ["PngEncoder.h", "image_on_image.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "image_on_image.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )
 
 cc_binary(
     name = "large_image",
-    srcs = ["PngEncoder.h", "large_image.cpp"],
+    srcs = [
+        "PngEncoder.h",
+        "large_image.cpp",
+    ],
     copts = _COMMON_COPTS,
     deps = _COMMON_DEPS,
 )

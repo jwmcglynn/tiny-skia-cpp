@@ -10,8 +10,14 @@ _COMMON_DEPS = [
 ]
 
 _NATIVE_X86_COPTS = select({
-    "//bazel/config:simd_native_x86_64": ["-mavx2", "-mfma"],
-    "//bazel/config:simd_native_x86_32": ["-mavx2", "-mfma"],
+    "//bazel/config:simd_native_x86_64": [
+        "-mavx2",
+        "-mfma",
+    ],
+    "//bazel/config:simd_native_x86_32": [
+        "-mavx2",
+        "-mfma",
+    ],
     "//conditions:default": [],
 })
 
@@ -31,6 +37,7 @@ cc_binary(
 
 sh_test(
     name = "render_perf_regression_test",
+    size = "large",
     srcs = ["run_render_perf_regression_test.sh"],
     args = [
         "$(COMPILATION_MODE)",
@@ -41,6 +48,5 @@ sh_test(
         ":render_perf_bench_native",
         ":render_perf_bench_scalar",
     ],
-    size = "large",
     tags = ["perf_regression"],
 )

@@ -2,4 +2,7 @@
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["README.md", "LICENSE"])
+exports_files([
+    "README.md",
+    "LICENSE",
+])

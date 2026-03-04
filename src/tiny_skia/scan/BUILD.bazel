@@ -18,11 +18,11 @@ tiny_skia_cc_library(
         "Path.h",
         "PathAa.h",
     ],
-    deps = [
-        "//src/tiny_skia:tiny_skia_core",
-    ],
     defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     include_prefix = "tiny_skia/scan",
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
+    deps = [
+        "//src/tiny_skia:tiny_skia_core",
+    ],
 )

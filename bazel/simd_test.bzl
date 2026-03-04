@@ -3,7 +3,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 load("//:bazel/simd_transition.bzl", "simd_mode_dep")
 
-
 def _transition_deps(name, deps, mode):
     transitioned = []
     for i, dep in enumerate(deps):
@@ -15,7 +14,6 @@ def _transition_deps(name, deps, mode):
         )
         transitioned.append(":" + transition_name)
     return transitioned
-
 
 def tiny_skia_dual_mode_cc_test(
         name,

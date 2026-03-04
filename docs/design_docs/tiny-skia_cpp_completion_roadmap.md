@@ -75,13 +75,13 @@ inputs. These should be treated as untrusted. Production hardening includes:
 
 ## Implementation Plan
 
-- [ ] Milestone 1: Tooling Standardization (Formatting Foundation)
+- [x] Milestone 1: Tooling Standardization (Formatting Foundation)
   - [x] Add/confirm `.clang-format` and formatter version policy in docs.
   - [x] Run `clang-format` across C++ sources and headers with tracked file audit.
-  - [ ] Add/confirm `buildifier` formatting commands and policy for Bazel files.
+  - [x] Add/confirm `buildifier` formatting commands and policy for Bazel files.
   - [x] Add and document a CMake build path for the library (and tests where practical).
-  - [ ] Verify Bazel files are buildifier-formatted and include no follow-up drift.
-  - [ ] Record completion evidence for reproducible formatter runs.
+  - [x] Verify Bazel files are buildifier-formatted and include no follow-up drift.
+  - [x] Record completion evidence for reproducible formatter runs.
 
 - [ ] Milestone 2: CI Quality Gates and Platform Matrix
   - [ ] Define CI matrix with minimum targets: `wasm`, `macOS arm64`, and `x86_64`.

@@ -17,7 +17,6 @@ _OPT_MODE_COPTS = select({
     "//conditions:default": [],
 })
 
-
 def _tiny_skia_cc_library_impl(
         name,
         srcs,
@@ -35,7 +34,7 @@ def _tiny_skia_cc_library_impl(
         copts = ["-std=c++20", "-ffp-contract=off"] + _OPT_MODE_COPTS + _SIMD_NATIVE_X86_COPTS + copts,
         defines = defines,
         visibility = visibility,
-        **kwargs,
+        **kwargs
     )
 
 def tiny_skia_cc_library(**kwargs):

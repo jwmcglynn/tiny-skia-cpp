@@ -1,8 +1,8 @@
 """Test utilities for golden image comparison and cross-validation."""
 
-package(default_visibility = ["//tests:__subpackages__"])
-
 load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//tests:__subpackages__"])
 
 cc_library(
     name = "png_decoder",

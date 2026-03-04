@@ -9,8 +9,8 @@ cc_library(
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
     deps = [
-        "@googletest//:gtest",
         "//src:tiny_skia_lib",
+        "@googletest//:gtest",
     ],
 )
 
@@ -21,8 +21,8 @@ cc_library(
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
     deps = [
-        "@googletest//:gtest",
         "//src:tiny_skia_lib",
+        "@googletest//:gtest",
     ],
 )
 
@@ -33,8 +33,8 @@ cc_library(
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
     deps = [
-        "@googletest//:gtest",
         "//src:tiny_skia_lib",
+        "@googletest//:gtest",
     ],
 )
 
