@@ -17,7 +17,7 @@ auto PointEq(float expectedX, float expectedY) {
 }  // namespace
 
 TEST(LineClipperTest, ClipRejectsFullyAboveAndBelow) {
-  const auto clip = tiny_skia::Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f).value();
   std::array<tiny_skia::Point, 2> src{{{0.0f, -5.0f}, {5.0f, -1.0f}}};
   std::array<tiny_skia::Point, tiny_skia::lineClipper::kLineClipperMaxPoints> out{};
 
@@ -33,7 +33,7 @@ TEST(LineClipperTest, ClipRejectsFullyAboveAndBelow) {
 }
 
 TEST(LineClipperTest, ClipClampsHorizontallyInsideBounds) {
-  const auto clip = tiny_skia::Rect::fromLtrb(1.0f, 0.0f, 9.0f, 10.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(1.0f, 0.0f, 9.0f, 10.0f).value();
   std::array<tiny_skia::Point, 2> src{{{-5.0f, 3.0f}, {5.0f, 3.0f}}};
   std::array<tiny_skia::Point, tiny_skia::lineClipper::kLineClipperMaxPoints> out{};
 
@@ -44,7 +44,7 @@ TEST(LineClipperTest, ClipClampsHorizontallyInsideBounds) {
 }
 
 TEST(LineClipperTest, ClipClampsBothSidesOnSkewLine) {
-  const auto clip = tiny_skia::Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f).value();
   std::array<tiny_skia::Point, 2> src{{{-5.0f, 2.0f}, {15.0f, 8.0f}}};
   std::array<tiny_skia::Point, tiny_skia::lineClipper::kLineClipperMaxPoints> out{};
 
@@ -55,7 +55,7 @@ TEST(LineClipperTest, ClipClampsBothSidesOnSkewLine) {
 }
 
 TEST(LineClipperTest, ClipCanCullToRightAndPreserveWhenFalse) {
-  const auto clip = tiny_skia::Rect::fromLtrb(1.0f, 0.0f, 10.0f, 10.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(1.0f, 0.0f, 10.0f, 10.0f).value();
   std::array<tiny_skia::Point, 2> src{{{12.0f, 2.0f}, {20.0f, 4.0f}}};
   std::array<tiny_skia::Point, tiny_skia::lineClipper::kLineClipperMaxPoints> out{};
 
@@ -69,7 +69,7 @@ TEST(LineClipperTest, ClipCanCullToRightAndPreserveWhenFalse) {
 }
 
 TEST(LineClipperTest, IntersectClipsAndReturnsTrueForPartiallyOverlapping) {
-  const auto clip = tiny_skia::Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(1.0f, 1.0f, 9.0f, 9.0f).value();
   std::array<tiny_skia::Point, 2> src{{{-5.0f, -5.0f}, {15.0f, 15.0f}}};
   std::array<tiny_skia::Point, 2> dst{};
 
@@ -80,7 +80,7 @@ TEST(LineClipperTest, IntersectClipsAndReturnsTrueForPartiallyOverlapping) {
 }
 
 TEST(LineClipperTest, IntersectRejectsDisjointSegment) {
-  const auto clip = tiny_skia::Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(1.0f, 1.0f, 9.0f, 9.0f).value();
   std::array<tiny_skia::Point, 2> src{{{-5.0f, 3.0f}, {-1.0f, 7.0f}}};
   std::array<tiny_skia::Point, 2> dst{};
 

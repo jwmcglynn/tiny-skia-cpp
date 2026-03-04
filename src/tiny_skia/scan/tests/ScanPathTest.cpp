@@ -208,7 +208,7 @@ TEST(ScanPathTest, FillPathAaClipOverflowAvoidsBlitting) {
 
 TEST(ScanPathTest, FillRectRoundsAndClipsToClipRect) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(2.2f, 2.7f, 6.3f, 6.1f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(2.2f, 2.7f, 6.3f, 6.1f).value();
 
   RecordingBlitter blitter;
   tiny_skia::scan::fillRect(rect, clip, blitter);
@@ -219,7 +219,7 @@ TEST(ScanPathTest, FillRectRoundsAndClipsToClipRect) {
 
 TEST(ScanPathTest, FillRectClipsOutOfRange) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(18.2f, 18.8f, 25.1f, 27.9f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(18.2f, 18.8f, 25.1f, 27.9f).value();
 
   RecordingBlitter blitter;
   tiny_skia::scan::fillRect(rect, clip, blitter);
@@ -230,7 +230,7 @@ TEST(ScanPathTest, FillRectClipsOutOfRange) {
 
 TEST(ScanPathTest, FillRectClippedAwayWhenOutsideClip) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 10, 10).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(12.0f, 12.0f, 20.0f, 20.0f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(12.0f, 12.0f, 20.0f, 20.0f).value();
 
   RecordingBlitter blitter;
   tiny_skia::scan::fillRect(rect, clip, blitter);
@@ -240,7 +240,7 @@ TEST(ScanPathTest, FillRectClippedAwayWhenOutsideClip) {
 
 TEST(ScanPathTest, FillRectAaUsesAntialiasingForFractionalCoordinates) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(2.2f, 2.2f, 5.8f, 5.8f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(2.2f, 2.2f, 5.8f, 5.8f).value();
 
   RecordingAntialiasBlitter blitter;
   tiny_skia::scan::fillRectAa(rect, clip, blitter);
@@ -251,7 +251,7 @@ TEST(ScanPathTest, FillRectAaUsesAntialiasingForFractionalCoordinates) {
 
 TEST(ScanPathTest, FillRectAaIntegerRectUsesWholeRectBlit) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 20, 20).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(2.0f, 2.0f, 6.0f, 6.0f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(2.0f, 2.0f, 6.0f, 6.0f).value();
 
   RecordingAntialiasBlitter blitter;
   tiny_skia::scan::fillRectAa(rect, clip, blitter);
@@ -265,7 +265,7 @@ TEST(ScanPathTest, FillRectAaIntegerRectUsesWholeRectBlit) {
 
 TEST(ScanPathTest, FillRectAaClipsOutsideClipRect) {
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 10, 10).value();
-  const auto rect = tiny_skia::Rect::fromLtrb(-2.5f, 8.5f, 12.7f, 14.2f).value();
+  const auto rect = tiny_skia::Rect::fromLTRB(-2.5f, 8.5f, 12.7f, 14.2f).value();
 
   RecordingAntialiasBlitter blitter;
   tiny_skia::scan::fillRectAa(rect, clip, blitter);

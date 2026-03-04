@@ -75,11 +75,11 @@ class MutablePixmapView {
 
   [[nodiscard]] IntSize size() const { return size_; }
 
-  [[nodiscard]] std::span<std::uint8_t> dataMut() const {
+  [[nodiscard]] std::span<std::uint8_t> data() const {
     return std::span<std::uint8_t>(data_, len_);
   }
 
-  [[nodiscard]] std::span<PremultipliedColorU8> pixelsMut() const;
+  [[nodiscard]] std::span<PremultipliedColorU8> pixels() const;
   [[nodiscard]] MutableSubPixmapView subpixmap() const;
   [[nodiscard]] std::optional<MutableSubPixmapView> subpixmap(const IntRect& rect) const;
 
@@ -108,7 +108,7 @@ struct MutableSubPixmapView {
 
   [[nodiscard]] std::size_t height() const { return size.height(); }
 
-  [[nodiscard]] std::span<std::uint8_t> dataMut() const;
+  [[nodiscard]] std::span<std::uint8_t> dataSpan() const;
 };
 
 class Pixmap {
@@ -132,12 +132,12 @@ class Pixmap {
     return std::span<const std::uint8_t>(data_.data(), data_.size());
   }
 
-  [[nodiscard]] std::span<std::uint8_t> dataMut() {
+  [[nodiscard]] std::span<std::uint8_t> data() {
     return std::span<std::uint8_t>(data_.data(), data_.size());
   }
 
   [[nodiscard]] std::span<const PremultipliedColorU8> pixels() const;
-  [[nodiscard]] std::span<PremultipliedColorU8> pixelsMut();
+  [[nodiscard]] std::span<PremultipliedColorU8> pixels();
 
   [[nodiscard]] std::optional<PremultipliedColorU8> pixel(std::uint32_t x, std::uint32_t y) const;
   [[nodiscard]] std::optional<Pixmap> cloneRect(const IntRect& rect) const;
@@ -154,8 +154,8 @@ class Pixmap {
                   Transform transform, const Mask* mask = nullptr);
   void applyMask(const Mask& mask);
 
-  [[nodiscard]] std::vector<std::uint8_t> take();
-  [[nodiscard]] std::vector<std::uint8_t> takeDemultiplied();
+  [[nodiscard]] std::vector<std::uint8_t> release();
+  [[nodiscard]] std::vector<std::uint8_t> releaseDemultiplied();
 
  private:
   explicit Pixmap(std::vector<std::uint8_t> data, IntSize size)

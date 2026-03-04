@@ -93,18 +93,18 @@ TEST(PathTest, ClearReturnsEmptyPathBuilder) {
   builder.lineTo(30.0f, 40.0f);
   auto path = builder.finish();
   ASSERT_TRUE(path.has_value());
-  ASSERT_FALSE(path->isEmpty());
+  ASSERT_FALSE(path->empty());
 
   auto newBuilder = path->clear();
-  EXPECT_TRUE(path->isEmpty());       // Path should be empty after clear.
-  EXPECT_TRUE(newBuilder.isEmpty());  // Builder starts empty.
+  EXPECT_TRUE(path->empty());       // Path should be empty after clear.
+  EXPECT_TRUE(newBuilder.empty());  // Builder starts empty.
 
   // The returned builder should be usable.
   newBuilder.moveTo(1.0f, 2.0f);
   newBuilder.lineTo(3.0f, 4.0f);
   auto newPath = newBuilder.finish();
   ASSERT_TRUE(newPath.has_value());
-  EXPECT_EQ(newPath->len(), 2u);
+  EXPECT_EQ(newPath->size(), 2u);
 }
 
 // ---- StrokeDash validation tests (ported from Rust dash.rs: test) ----

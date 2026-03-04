@@ -179,7 +179,7 @@ bool intersect(std::span<const Point, 2> src, const Rect& clip, std::span<Point,
   const auto top = std::min(src[0].y, src[1].y);
   const auto right = std::max(src[0].x, src[1].x);
   const auto bottom = std::max(src[0].y, src[1].y);
-  auto bounds = Rect::fromLtrb(left, top, right, bottom);
+  auto bounds = Rect::fromLTRB(left, top, right, bottom);
   if (bounds.has_value()) {
     const auto width = right - left;
     const auto height = bottom - top;

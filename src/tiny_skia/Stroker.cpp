@@ -77,7 +77,7 @@ bool setNormalUnitNormal(Point before, Point after, float scale, float radius, P
   if (!unitNormal.setNormalize((after.x - before.x) * scale, (after.y - before.y) * scale)) {
     return false;
   }
-  unitNormal.rotateCcw();
+  unitNormal.rotateCounterClockwise();
   normal = unitNormal.scaled(radius);
   return true;
 }
@@ -86,7 +86,7 @@ bool setNormalUnitNormal2(Point vec, float radius, Point& normal, Point& unitNor
   if (!unitNormal.setNormalize(vec.x, vec.y)) {
     return false;
   }
-  unitNormal.rotateCcw();
+  unitNormal.rotateCounterClockwise();
   normal = unitNormal.scaled(radius);
   return true;
 }
@@ -126,11 +126,11 @@ float ptToLine(Point pt, Point lineStart, Point lineEnd) {
   float denom = dxy.dot(dxy);
   float t = numer / denom;
   if (t >= 0.0f && t <= 1.0f) {
-    Point hit = Point::fromXy(lineStart.x * (1.0f - t) + lineEnd.x * t,
+    Point hit = Point::fromXY(lineStart.x * (1.0f - t) + lineEnd.x * t,
                               lineStart.y * (1.0f - t) + lineEnd.y * t);
-    return hit.distanceToSqd(pt);
+    return hit.distanceToSquared(pt);
   } else {
-    return pt.distanceToSqd(lineStart);
+    return pt.distanceToSquared(lineStart);
   }
 }
 
@@ -269,14 +269,14 @@ std::size_t intersectQuadRay(const Point line[2], const Point quad[3],
 }
 
 bool pointsWithinDist(Point nearPt, Point farPt, float limit) {
-  return nearPt.distanceToSqd(farPt) <= limit * limit;
+  return nearPt.distanceToSquared(farPt) <= limit * limit;
 }
 
 bool sharpAngle(const Point quad[3]) {
   Point smaller = quad[1] - quad[0];
   Point larger = quad[1] - quad[2];
-  float smallerLen = smaller.lengthSqd();
-  float largerLen = larger.lengthSqd();
+  float smallerLen = smaller.lengthSquared();
+  float largerLen = larger.lengthSquared();
   if (smallerLen > largerLen) {
     std::swap(smaller, larger);
     largerLen = smallerLen;
@@ -326,7 +326,7 @@ void buttCapper(Point /*pivot*/, Point /*normal*/, Point stop, const PathBuilder
 void roundCapper(Point pivot, Point normal, Point stop, const PathBuilder* /*otherPath*/,
                  PathBuilder& path) {
   Point parallel = normal;
-  parallel.rotateCw();
+  parallel.rotateClockwise();
 
   Point projectedCenter = pivot + parallel;
 
@@ -337,11 +337,11 @@ void roundCapper(Point pivot, Point normal, Point stop, const PathBuilder* /*oth
 void squareCapper(Point pivot, Point normal, Point stop, const PathBuilder* otherPath,
                   PathBuilder& path) {
   Point parallel = normal;
-  parallel.rotateCw();
+  parallel.rotateClockwise();
 
   if (otherPath != nullptr) {
     path.setLastPoint(
-        Point::fromXy(pivot.x + normal.x + parallel.x, pivot.y + normal.y + parallel.y));
+        Point::fromXY(pivot.x + normal.x + parallel.x, pivot.y + normal.y + parallel.y));
     path.lineTo(pivot.x - normal.x + parallel.x, pivot.y - normal.y + parallel.y);
   } else {
     path.lineTo(pivot.x + normal.x + parallel.x, pivot.y + normal.y + parallel.y);
@@ -436,10 +436,10 @@ static void doBluntOrClipped(SwappableBuilders builders, Point pivot, float radi
     before.scale(radius);
 
     Point beforeTangent = before;
-    beforeTangent.rotateCw();
+    beforeTangent.rotateClockwise();
 
     Point afterTangent = after;
-    afterTangent.rotateCcw();
+    afterTangent.rotateCounterClockwise();
 
     Point c1 = pivot + before + beforeTangent.scaled(x);
     Point c2 = pivot + after + afterTangent.scaled(x);
@@ -465,7 +465,7 @@ static void doMiter(SwappableBuilders builders, Point pivot, float radius, bool 
   after.scale(radius);
 
   if (prevIsLine) {
-    builders.outer->setLastPoint(Point::fromXy(pivot.x + mid.x, pivot.y + mid.y));
+    builders.outer->setLastPoint(Point::fromXY(pivot.x + mid.x, pivot.y + mid.y));
   } else {
     builders.outer->lineTo(pivot.x + mid.x, pivot.y + mid.y);
   }
@@ -516,12 +516,12 @@ static void miterJoinerInner(Point beforeUnitNormal, Point pivot, Point afterUni
 
   // choose the most accurate way to form the initial mid-vector
   if (angleType == AngleType::Sharp) {
-    mid = Point::fromXy(after.y - before.y, before.x - after.x);
+    mid = Point::fromXY(after.y - before.y, before.x - after.x);
     if (ccw) {
       mid = -mid;
     }
   } else {
-    mid = Point::fromXy(before.x + after.x, before.y + after.y);
+    mid = Point::fromXY(before.x + after.x, before.y + after.y);
   }
 
   // midLength = radius / sinHalfAngle
@@ -596,8 +596,8 @@ PathStroker::PathStroker()
       joinCompleted_(false) {}
 
 float PathStroker::computeResolutionScale(const Transform& ts) {
-  float sx = Point::fromXy(ts.sx, ts.kx).length();
-  float sy = Point::fromXy(ts.ky, ts.sy).length();
+  float sx = Point::fromXY(ts.sx, ts.kx).length();
+  float sy = Point::fromXY(ts.ky, ts.sy).length();
   if (std::isfinite(sx) && std::isfinite(sy)) {
     float scale = std::max(sx, sy);
     if (scale > 0.0f) {
@@ -1077,7 +1077,7 @@ void PathStroker::finishContour(bool close, bool currIsLine) {
       outer_.close();
     }
 
-    if (!cusper_.isEmpty()) {
+    if (!cusper_.empty()) {
       outer_.pushPathBuilder(cusper_);
       cusper_.clear();
     }
@@ -1101,14 +1101,14 @@ bool PathStroker::preJoinTo(Point p, bool currIsLine, Point& normal, Point& unit
     }
 
     // Square caps and round caps draw even if the segment length is zero.
-    normal = Point::fromXy(radius_, 0.0f);
-    unitNormal = Point::fromXy(1.0f, 0.0f);
+    normal = Point::fromXY(radius_, 0.0f);
+    unitNormal = Point::fromXY(1.0f, 0.0f);
   }
 
   if (segmentCount_ == 0) {
     firstNormal_ = normal;
     firstUnitNormal_ = unitNormal;
-    firstOuterPt_ = Point::fromXy(prevX + normal.x, prevY + normal.y);
+    firstOuterPt_ = Point::fromXY(prevX + normal.x, prevY + normal.y);
 
     outer_.moveTo(firstOuterPt_.x, firstOuterPt_.y);
     inner_.moveTo(prevX - normal.x, prevY - normal.y);
@@ -1207,7 +1207,7 @@ ResultType PathStroker::compareQuadQuad(const Point quad[3], QuadConstruct& quad
 
 void PathStroker::setRayPoints(Point tp, Point& dxy, Point& onP, Point* tangent) {
   if (!dxy.setLength(radius_)) {
-    dxy = Point::fromXy(radius_, 0.0f);
+    dxy = Point::fromXY(radius_, 0.0f);
   }
 
   float axisFlip = static_cast<float>(static_cast<int>(strokeType_));

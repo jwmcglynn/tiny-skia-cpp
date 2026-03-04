@@ -42,7 +42,7 @@ std::optional<std::size_t> pixelIndex(std::uint32_t width, std::uint32_t height,
 
 std::optional<PixmapView> PixmapView::fromBytes(std::span<const std::uint8_t> data,
                                               std::uint32_t width, std::uint32_t height) {
-  const auto size = IntSize::fromWh(width, height);
+  const auto size = IntSize::fromWH(width, height);
   if (!size.has_value()) {
     return std::nullopt;
   }
@@ -86,7 +86,7 @@ std::optional<Pixmap> PixmapView::cloneRect(const IntRect& rect) const {
   }
 
   const auto srcBytes = data();
-  auto dstBytes = out->dataMut();
+  auto dstBytes = out->data();
 
   const auto srcWidth = static_cast<std::size_t>(width());
   const auto rowBytes = static_cast<std::size_t>(clipped->width()) * kBytesPerPixel;
@@ -103,7 +103,7 @@ std::optional<Pixmap> PixmapView::cloneRect(const IntRect& rect) const {
 
 std::optional<MutablePixmapView> MutablePixmapView::fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
                                               std::uint32_t height) {
-  const auto size = IntSize::fromWh(width, height);
+  const auto size = IntSize::fromWH(width, height);
   if (!size.has_value()) {
     return std::nullopt;
   }
@@ -116,7 +116,7 @@ std::optional<MutablePixmapView> MutablePixmapView::fromBytes(std::span<std::uin
   return MutablePixmapView(data.data(), data.size(), size.value());
 }
 
-std::span<PremultipliedColorU8> MutablePixmapView::pixelsMut() const {
+std::span<PremultipliedColorU8> MutablePixmapView::pixels() const {
   static_assert(sizeof(PremultipliedColorU8) == kBytesPerPixel);
   auto* ptr = reinterpret_cast<PremultipliedColorU8*>(data_);
   return std::span<PremultipliedColorU8>(ptr, len_ / kBytesPerPixel);
@@ -145,7 +145,7 @@ std::optional<MutableSubPixmapView> MutablePixmapView::subpixmap(const IntRect& 
   const auto offset = (static_cast<std::size_t>(intersection->top()) * srcWidth +
                        static_cast<std::size_t>(intersection->left())) *
                       kBytesPerPixel;
-  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  const auto subSize = IntSize::fromWH(intersection->width(), intersection->height());
   if (!subSize.has_value()) {
     return std::nullopt;
   }
@@ -157,14 +157,14 @@ std::optional<MutableSubPixmapView> MutablePixmapView::subpixmap(const IntRect& 
   };
 }
 
-std::span<std::uint8_t> MutableSubPixmapView::dataMut() const {
+std::span<std::uint8_t> MutableSubPixmapView::dataSpan() const {
   const auto len = static_cast<std::size_t>(realWidth) * static_cast<std::size_t>(size.height()) *
                    kBytesPerPixel;
   return std::span<std::uint8_t>(data, len);
 }
 
 std::optional<Pixmap> Pixmap::fromSize(std::uint32_t width, std::uint32_t height) {
-  const auto size = IntSize::fromWh(width, height);
+  const auto size = IntSize::fromWH(width, height);
   if (!size.has_value()) {
     return std::nullopt;
   }
@@ -187,7 +187,7 @@ std::optional<Pixmap> Pixmap::fromVec(std::vector<std::uint8_t> data, IntSize si
 
 std::span<const PremultipliedColorU8> Pixmap::pixels() const { return view().pixels(); }
 
-std::span<PremultipliedColorU8> Pixmap::pixelsMut() { return mutableView().pixelsMut(); }
+std::span<PremultipliedColorU8> Pixmap::pixels() { return mutableView().pixels(); }
 
 std::optional<PremultipliedColorU8> Pixmap::pixel(std::uint32_t x, std::uint32_t y) const {
   return view().pixel(x, y);
@@ -209,24 +209,24 @@ void Pixmap::fill(const Color& color) {
     return;
   }
 
-  auto px = pixelsMut();
+  auto px = pixels();
   for (auto& p : px) {
     p = c;
   }
 }
 
-std::vector<std::uint8_t> Pixmap::take() {
+std::vector<std::uint8_t> Pixmap::release() {
   size_ = IntSize{};
   return std::move(data_);
 }
 
-std::vector<std::uint8_t> Pixmap::takeDemultiplied() {
-  auto px = pixelsMut();
+std::vector<std::uint8_t> Pixmap::releaseDemultiplied() {
+  auto px = pixels();
   for (auto& p : px) {
     const auto c = p.demultiply();
     p = PremultipliedColorU8::fromRgbaUnchecked(c.red(), c.green(), c.blue(), c.alpha());
   }
-  return take();
+  return release();
 }
 
 // MutablePixmapView drawing methods (delegate to Painter).

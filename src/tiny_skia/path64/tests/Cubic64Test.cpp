@@ -17,10 +17,10 @@ auto Point64Eq(double expectedX, double expectedY) {
 
 TEST(Cubic64Test, AsF64SlicePreservesCoordinates) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(2.0, 3.0),
-      tiny_skia::Point64::fromXy(4.0, 5.0),
-      tiny_skia::Point64::fromXy(6.0, 7.0),
+      tiny_skia::Point64::fromXY(0.0, 1.0),
+      tiny_skia::Point64::fromXY(2.0, 3.0),
+      tiny_skia::Point64::fromXY(4.0, 5.0),
+      tiny_skia::Point64::fromXY(6.0, 7.0),
   });
 
   const auto slice = cubic.asF64Slice();
@@ -29,10 +29,10 @@ TEST(Cubic64Test, AsF64SlicePreservesCoordinates) {
 
 TEST(Cubic64Test, PointAtTEvaluatesEndpointsAndMidpoint) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
   });
 
   const auto p0 = cubic.pointAtT(0.0);
@@ -68,10 +68,10 @@ TEST(Cubic64Test, RootsValidTForCubicPolynomial) {
 
 TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
-      tiny_skia::Point64::fromXy(2.0, 0.0),
-      tiny_skia::Point64::fromXy(3.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
+      tiny_skia::Point64::fromXY(2.0, 0.0),
+      tiny_skia::Point64::fromXY(3.0, 0.0),
   });
   const auto pair = cubic.chopAt(0.5);
 
@@ -86,10 +86,10 @@ TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {
   // in [0,1] (inflection at t=-0.5), and linear X giving 0 findExtrema.
   // Binary search interval is [0,1] with midpoint=0.5, so it converges immediately.
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
-      tiny_skia::Point64::fromXy(2.0, -0.5),
-      tiny_skia::Point64::fromXy(3.0, 0.5),
+      tiny_skia::Point64::fromXY(0.0, 1.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
+      tiny_skia::Point64::fromXY(2.0, -0.5),
+      tiny_skia::Point64::fromXY(3.0, 0.5),
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};
@@ -111,10 +111,10 @@ TEST(Cubic64Test, RootsRealReturnsThreeDistinctRoots) {
 
 TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
   });
   std::array<double, 6> extremaTs{};
   const auto count = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremaTs);
@@ -124,10 +124,10 @@ TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
 
 TEST(Cubic64Test, FindExtremaForStraightLineReturnsNone) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 2.0),
-      tiny_skia::Point64::fromXy(2.0, 4.0),
-      tiny_skia::Point64::fromXy(3.0, 6.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 2.0),
+      tiny_skia::Point64::fromXY(2.0, 4.0),
+      tiny_skia::Point64::fromXY(3.0, 6.0),
   });
   std::array<double, 6> extremaTs{};
   const auto count = tiny_skia::path64::cubic64::findExtrema(cubic.asF64Slice(), extremaTs);
@@ -136,10 +136,10 @@ TEST(Cubic64Test, FindExtremaForStraightLineReturnsNone) {
 
 TEST(Cubic64Test, SearchRootsFindsNoRootForFlatCurve) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(0.5, 1.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
-      tiny_skia::Point64::fromXy(1.5, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 1.0),
+      tiny_skia::Point64::fromXY(0.5, 1.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
+      tiny_skia::Point64::fromXY(1.5, 1.0),
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};
@@ -150,10 +150,10 @@ TEST(Cubic64Test, SearchRootsFindsNoRootForFlatCurve) {
 
 TEST(Cubic64Test, SearchRootsReturnsNoneWhenCurveStaysAboveAxis) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
-      tiny_skia::Point64::fromXy(2.0, 1.0),
-      tiny_skia::Point64::fromXy(3.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 1.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
+      tiny_skia::Point64::fromXY(2.0, 1.0),
+      tiny_skia::Point64::fromXY(3.0, 1.0),
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};
@@ -178,10 +178,10 @@ TEST(Cubic64Test, RootsValidTClampsNearZero) {
 
 TEST(Cubic64Test, FindInflectionsForCollinearLineIncludesEndpointT) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
-      tiny_skia::Point64::fromXy(2.0, 2.0),
-      tiny_skia::Point64::fromXy(3.0, 3.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
+      tiny_skia::Point64::fromXY(2.0, 2.0),
+      tiny_skia::Point64::fromXY(3.0, 3.0),
   });
   std::array<double, 6> extremaTs{};
   auto extremaSpan = std::span<double>(extremaTs.begin(), extremaTs.end());
@@ -193,10 +193,10 @@ TEST(Cubic64Test, FindInflectionsForCollinearLineIncludesEndpointT) {
 
 TEST(Cubic64Test, FindInflectionsFindsInternalInflectionAtHalf) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0 / 3.0, 0.0),
-      tiny_skia::Point64::fromXy(2.0 / 3.0, 0.6),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0 / 3.0, 0.0),
+      tiny_skia::Point64::fromXY(2.0 / 3.0, 0.6),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
   });
   std::array<double, 6> extremaTs{};
   auto extremaSpan = std::span<double>(extremaTs.begin(), extremaTs.end());
@@ -211,10 +211,10 @@ TEST(Cubic64Test, FindInflectionsFindsInternalInflectionAtHalf) {
 TEST(Cubic64Test, FindInflectionsUsesCorrectFirstCoefficient) {
   // S-curve: control points chosen so that ax != bx, making the bug observable.
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.0, 1.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 1.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
   });
   std::array<double, 6> extremaTs{};
   auto extremaSpan = std::span<double>(extremaTs.begin(), extremaTs.end());
@@ -229,10 +229,10 @@ TEST(Cubic64Test, FindInflectionsUsesCorrectFirstCoefficient) {
 // A strictly monotonic y-curve crossing y=0.5 at t=0.5 — searchRoots should find it.
 TEST(Cubic64Test, BinarySearchConvergesWhenOkSetsPriorT) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, -1.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
-      tiny_skia::Point64::fromXy(2.0, 1.0),
-      tiny_skia::Point64::fromXy(3.0, 2.0),
+      tiny_skia::Point64::fromXY(0.0, -1.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
+      tiny_skia::Point64::fromXY(2.0, 1.0),
+      tiny_skia::Point64::fromXY(3.0, 2.0),
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};

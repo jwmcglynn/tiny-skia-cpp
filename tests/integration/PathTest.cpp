@@ -63,8 +63,8 @@ TEST(PathTest, line) {
     expectBounds(*path, 10.0f, 20.0f, 30.0f, 40.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(10.0f, 20.0f),
-        Point::fromXy(30.0f, 40.0f),
+        Point::fromXY(10.0f, 20.0f),
+        Point::fromXY(30.0f, 40.0f),
     });
 }
 
@@ -80,8 +80,8 @@ TEST(PathTest, NoMoveBeforeLine) {
     expectBounds(*path, 0.0f, 0.0f, 30.0f, 40.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(0.0f, 0.0f),
-        Point::fromXy(30.0f, 40.0f),
+        Point::fromXY(0.0f, 0.0f),
+        Point::fromXY(30.0f, 40.0f),
     });
 }
 
@@ -97,9 +97,9 @@ TEST(PathTest, NoMoveBeforeQuad) {
     expectBounds(*path, 0.0f, 0.0f, 60.0f, 75.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Quad});
     expectPoints(*path, {
-        Point::fromXy(0.0f, 0.0f),
-        Point::fromXy(40.0f, 30.0f),
-        Point::fromXy(60.0f, 75.0f),
+        Point::fromXY(0.0f, 0.0f),
+        Point::fromXY(40.0f, 30.0f),
+        Point::fromXY(60.0f, 75.0f),
     });
 }
 
@@ -115,10 +115,10 @@ TEST(PathTest, NoMoveBeforeCubic) {
     expectBounds(*path, 0.0f, 0.0f, 60.0f, 75.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Cubic});
     expectPoints(*path, {
-        Point::fromXy(0.0f, 0.0f),
-        Point::fromXy(40.0f, 30.0f),
-        Point::fromXy(60.0f, 75.0f),
-        Point::fromXy(33.0f, 66.0f),
+        Point::fromXY(0.0f, 0.0f),
+        Point::fromXY(40.0f, 30.0f),
+        Point::fromXY(60.0f, 75.0f),
+        Point::fromXY(33.0f, 66.0f),
     });
 }
 
@@ -147,9 +147,9 @@ TEST(PathTest, DoubleClose) {
     expectBounds(*path, 10.0f, 10.0f, 20.0f, 20.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Close});
     expectPoints(*path, {
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(20.0f, 10.0f),
-        Point::fromXy(20.0f, 20.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(20.0f, 10.0f),
+        Point::fromXY(20.0f, 20.0f),
     });
 }
 
@@ -177,8 +177,8 @@ TEST(PathTest, DoubleMoveTo2) {
     expectBounds(*path, 20.0f, 10.0f, 30.0f, 40.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(20.0f, 10.0f),
-        Point::fromXy(30.0f, 40.0f),
+        Point::fromXY(20.0f, 10.0f),
+        Point::fromXY(30.0f, 40.0f),
     });
 }
 
@@ -197,10 +197,10 @@ TEST(PathTest, TwoContours) {
     expectBounds(*path, 10.0f, 20.0f, 300.0f, 400.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line, PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(10.0f, 20.0f),
-        Point::fromXy(30.0f, 40.0f),
-        Point::fromXy(100.0f, 200.0f),
-        Point::fromXy(300.0f, 400.0f),
+        Point::fromXY(10.0f, 20.0f),
+        Point::fromXY(30.0f, 40.0f),
+        Point::fromXY(100.0f, 200.0f),
+        Point::fromXY(300.0f, 400.0f),
     });
 }
 
@@ -224,10 +224,10 @@ TEST(PathTest, TwoClosedContours) {
         PathVerb::Move, PathVerb::Line, PathVerb::Close,
     });
     expectPoints(*path, {
-        Point::fromXy(10.0f, 20.0f),
-        Point::fromXy(30.0f, 40.0f),
-        Point::fromXy(100.0f, 200.0f),
-        Point::fromXy(300.0f, 400.0f),
+        Point::fromXY(10.0f, 20.0f),
+        Point::fromXY(30.0f, 40.0f),
+        Point::fromXY(100.0f, 200.0f),
+        Point::fromXY(300.0f, 400.0f),
     });
 }
 
@@ -249,10 +249,10 @@ TEST(PathTest, LineAfterClose) {
         PathVerb::Move, PathVerb::Line,
     });
     expectPoints(*path, {
-        Point::fromXy(10.0f, 20.0f),
-        Point::fromXy(30.0f, 40.0f),
-        Point::fromXy(10.0f, 20.0f),
-        Point::fromXy(20.0f, 20.0f),
+        Point::fromXY(10.0f, 20.0f),
+        Point::fromXY(30.0f, 40.0f),
+        Point::fromXY(10.0f, 20.0f),
+        Point::fromXY(20.0f, 20.0f),
     });
 }
 
@@ -269,8 +269,8 @@ TEST(PathTest, HorLine) {
     expectBounds(*path, 10.0f, 10.0f, 20.0f, 10.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(20.0f, 10.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(20.0f, 10.0f),
     });
 }
 
@@ -287,8 +287,8 @@ TEST(PathTest, VerLine) {
     expectBounds(*path, 10.0f, 10.0f, 10.0f, 20.0f);
     expectVerbs(*path, {PathVerb::Move, PathVerb::Line});
     expectPoints(*path, {
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(10.0f, 20.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(10.0f, 20.0f),
     });
 }
 
@@ -307,8 +307,8 @@ TEST(PathTest, translate) {
 
     expectVerbs(*transformed, {PathVerb::Move, PathVerb::Line});
     expectPoints(*transformed, {
-        Point::fromXy(20.0f, 40.0f),
-        Point::fromXy(40.0f, 60.0f),
+        Point::fromXY(20.0f, 40.0f),
+        Point::fromXY(40.0f, 60.0f),
     });
 }
 
@@ -327,8 +327,8 @@ TEST(PathTest, scale) {
 
     expectVerbs(*transformed, {PathVerb::Move, PathVerb::Line});
     expectPoints(*transformed, {
-        Point::fromXy(20.0f, 10.0f),
-        Point::fromXy(60.0f, 20.0f),
+        Point::fromXY(20.0f, 10.0f),
+        Point::fromXY(60.0f, 20.0f),
     });
 }
 
@@ -348,8 +348,8 @@ TEST(PathTest, transform) {
 
     expectVerbs(*transformed, {PathVerb::Move, PathVerb::Line});
     expectPoints(*transformed, {
-        Point::fromXy(24.0f, 37.0f),
-        Point::fromXy(58.0f, 61.0f),
+        Point::fromXY(24.0f, 37.0f),
+        Point::fromXY(58.0f, 61.0f),
     });
 }
 

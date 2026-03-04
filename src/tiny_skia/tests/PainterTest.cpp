@@ -63,7 +63,7 @@ TEST(PaintTest, IsSolidColorFalseForGradient) {
       tiny_skia::GradientStop::create(0.0f, Color::black),
       tiny_skia::GradientStop::create(1.0f, Color::white),
   };
-  auto result = tiny_skia::LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 0),
+  auto result = tiny_skia::LinearGradient::create(Point::fromXY(0, 0), Point::fromXY(100, 0),
                                                   std::move(stops), tiny_skia::SpreadMode::Pad,
                                                   Transform::identity());
   ASSERT_TRUE(result.has_value());
@@ -171,13 +171,13 @@ TEST(DrawTilerTest, RectTiling) {
 // ---- isTooBigForMath tests ----
 
 TEST(PainterHelpersTest, IsTooBigForMathSmallPath) {
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f));
   EXPECT_FALSE(tiny_skia::detail::isTooBigForMath(path));
 }
 
 TEST(PainterHelpersTest, IsTooBigForMathHugePath) {
   const float big = std::numeric_limits<float>::max() * 0.5f;
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(-big, -big, big, big));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(-big, -big, big, big));
   EXPECT_TRUE(tiny_skia::detail::isTooBigForMath(path));
 }
 
@@ -216,7 +216,7 @@ TEST(PainterHelpersTest, TreatAsHairlineThickStroke) {
 // ---- Transform::mapPoints tests ----
 
 TEST(TransformTest, MapPointsIdentity) {
-  Point pts[2] = {Point::fromXy(10.0f, 20.0f), Point::fromXy(30.0f, 40.0f)};
+  Point pts[2] = {Point::fromXY(10.0f, 20.0f), Point::fromXY(30.0f, 40.0f)};
   Transform::identity().mapPoints(pts);
   EXPECT_FLOAT_EQ(pts[0].x, 10.0f);
   EXPECT_FLOAT_EQ(pts[0].y, 20.0f);
@@ -225,7 +225,7 @@ TEST(TransformTest, MapPointsIdentity) {
 }
 
 TEST(TransformTest, MapPointsTranslate) {
-  Point pts[2] = {Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 1.0f)};
+  Point pts[2] = {Point::fromXY(0.0f, 0.0f), Point::fromXY(1.0f, 1.0f)};
   Transform::fromTranslate(10.0f, 20.0f).mapPoints(pts);
   EXPECT_FLOAT_EQ(pts[0].x, 10.0f);
   EXPECT_FLOAT_EQ(pts[0].y, 20.0f);
@@ -234,7 +234,7 @@ TEST(TransformTest, MapPointsTranslate) {
 }
 
 TEST(TransformTest, MapPointsScale) {
-  Point pts[1] = {Point::fromXy(3.0f, 4.0f)};
+  Point pts[1] = {Point::fromXY(3.0f, 4.0f)};
   Transform::fromScale(2.0f, 3.0f).mapPoints(pts);
   EXPECT_FLOAT_EQ(pts[0].x, 6.0f);
   EXPECT_FLOAT_EQ(pts[0].y, 12.0f);
@@ -243,7 +243,7 @@ TEST(TransformTest, MapPointsScale) {
 // ---- Path::fromRect tests ----
 
 TEST(PathHelperTest, PathFromRect) {
-  auto rect = Rect::fromLtrb(10.0f, 20.0f, 30.0f, 40.0f);
+  auto rect = Rect::fromLTRB(10.0f, 20.0f, 30.0f, 40.0f);
   ASSERT_TRUE(rect.has_value());
   auto path = tiny_skia::Path::fromRect(*rect);
   EXPECT_EQ(path.verbs().size(), 5u);
@@ -259,7 +259,7 @@ TEST(PathHelperTest, PathFromRect) {
 // ---- Path::transform tests ----
 
 TEST(PathTest, TransformIdentityNoChange) {
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f));
   auto result = path.transform(Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_FLOAT_EQ(result->bounds().left(), 0.0f);
@@ -267,7 +267,7 @@ TEST(PathTest, TransformIdentityNoChange) {
 }
 
 TEST(PathTest, TransformTranslate) {
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f));
   auto result = path.transform(Transform::fromTranslate(5.0f, 10.0f));
   ASSERT_TRUE(result.has_value());
   EXPECT_FLOAT_EQ(result->bounds().left(), 5.0f);
@@ -279,7 +279,7 @@ TEST(PathTest, TransformTranslate) {
 // ---- Rect::width/height tests ----
 
 TEST(RectTest, WidthHeight) {
-  auto r = Rect::fromLtrb(10.0f, 20.0f, 50.0f, 60.0f);
+  auto r = Rect::fromLTRB(10.0f, 20.0f, 50.0f, 60.0f);
   ASSERT_TRUE(r.has_value());
   EXPECT_FLOAT_EQ(r->width(), 40.0f);
   EXPECT_FLOAT_EQ(r->height(), 40.0f);
@@ -288,7 +288,7 @@ TEST(RectTest, WidthHeight) {
 // ---- IntSize::toIntRect/toRect tests ----
 
 TEST(IntSizeTest, ToIntRect) {
-  auto s = tiny_skia::IntSize::fromWh(100, 200);
+  auto s = tiny_skia::IntSize::fromWH(100, 200);
   ASSERT_TRUE(s.has_value());
   auto r = s->toIntRect(5, 10);
   ASSERT_TRUE(r.has_value());
@@ -299,7 +299,7 @@ TEST(IntSizeTest, ToIntRect) {
 }
 
 TEST(IntSizeTest, ToRect) {
-  auto s = tiny_skia::IntSize::fromWh(100, 200);
+  auto s = tiny_skia::IntSize::fromWH(100, 200);
   ASSERT_TRUE(s.has_value());
   auto r = s->toRect();
   EXPECT_FLOAT_EQ(r.left(), 0.0f);
@@ -316,7 +316,7 @@ TEST(FillRectTest, SolidColorFill) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->mutableView();
-  auto rect = Rect::fromLtrb(2.0f, 2.0f, 8.0f, 8.0f);
+  auto rect = Rect::fromLTRB(2.0f, 2.0f, 8.0f, 8.0f);
   ASSERT_TRUE(rect.has_value());
 
   Paint paint;
@@ -347,7 +347,7 @@ TEST(FillRectTest, WithTransformDelegatesToFillPath) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->mutableView();
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 5.0f, 5.0f);
   ASSERT_TRUE(rect.has_value());
 
   Paint paint;
@@ -377,7 +377,7 @@ TEST(FillPathTest, SimpleRectanglePath) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->mutableView();
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(1.0f, 1.0f, 9.0f, 9.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(0, 0, 255, 255));
@@ -399,7 +399,7 @@ TEST(FillPathTest, EmptyPathIsNoOp) {
 
   auto mut = pixmap->mutableView();
   // Empty line (zero height).
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(0.0f, 5.0f, 10.0f, 5.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(0.0f, 5.0f, 10.0f, 5.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -419,7 +419,7 @@ TEST(FillPathTest, WithTransform) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->mutableView();
-  auto path = tiny_skia::Path::fromRect(*Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f));
+  auto path = tiny_skia::Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 5.0f, 5.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 255, 0, 255));
@@ -520,7 +520,7 @@ TEST(StrokeHairlineTest, BasicStroke) {
 
   // A simple horizontal line path.
   std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line};
-  std::vector<Point> points = {Point::fromXy(1.0f, 5.0f), Point::fromXy(9.0f, 5.0f)};
+  std::vector<Point> points = {Point::fromXY(1.0f, 5.0f), Point::fromXY(9.0f, 5.0f)};
   Path path(std::move(verbs), std::move(points));
 
   Paint paint;
@@ -543,7 +543,7 @@ TEST(FillRectTest, DestinationBlendModeIsNoOp) {
   pixmap->fill(Color::fromRgba8(100, 100, 100, 255));
 
   auto mut = pixmap->mutableView();
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
 
   Paint paint;
@@ -565,7 +565,7 @@ TEST(FillRectTest, ClearBlendMode) {
   pixmap->fill(Color::fromRgba8(255, 0, 0, 255));
 
   auto mut = pixmap->mutableView();
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
 
   Paint paint;

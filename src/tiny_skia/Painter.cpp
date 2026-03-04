@@ -45,7 +45,7 @@ std::optional<float> detail::treatAsHairline(const Paint& paint, float strokeWid
   ts.ty = 0.0f;
 
   // Map the stroke width through the transform to check actual pixel width.
-  Point points[2] = {Point::fromXy(strokeWidth, 0.0f), Point::fromXy(0.0f, strokeWidth)};
+  Point points[2] = {Point::fromXY(strokeWidth, 0.0f), Point::fromXY(0.0f, strokeWidth)};
   ts.mapPoints(points);
 
   // fastLen: approximation of vector length.

@@ -165,7 +165,7 @@ Point64 Cubic64::pointAtT(double t) const {
   const auto t2 = t * t;
   const auto c = 3.0 * oneT * t2;
   const auto d = t2 * t;
-  return Point64::fromXy(a * points[0].x + b * points[1].x + c * points[2].x + d * points[3].x,
+  return Point64::fromXY(a * points[0].x + b * points[1].x + c * points[2].x + d * points[3].x,
                          a * points[0].y + b * points[1].y + c * points[2].y + d * points[3].y);
 }
 

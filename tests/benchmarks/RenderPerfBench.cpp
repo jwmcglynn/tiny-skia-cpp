@@ -292,7 +292,7 @@ void BM_FillRect_Cpp(benchmark::State& state) {
     return;
   }
 
-  auto rect = Rect::fromLtrb(0.12f * static_cast<float>(dim),
+  auto rect = Rect::fromLTRB(0.12f * static_cast<float>(dim),
                              0.18f * static_cast<float>(dim),
                              0.88f * static_cast<float>(dim),
                              0.84f * static_cast<float>(dim));

@@ -49,7 +49,7 @@ TEST(PatternTest, PadNearest) {
         Transform::identity()
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -74,7 +74,7 @@ TEST(PatternTest, RepeatNearest) {
         Transform::identity()
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -99,7 +99,7 @@ TEST(PatternTest, ReflectNearest) {
         Transform::identity()
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -127,7 +127,7 @@ TEST(PatternTest, PadBicubic) {
         Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -153,7 +153,7 @@ TEST(PatternTest, RepeatBicubic) {
         Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -179,7 +179,7 @@ TEST(PatternTest, ReflectBicubic) {
         Transform::fromRow(1.1f, 0.3f, 0.0f, 1.4f, 0.0f, 0.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -204,7 +204,7 @@ TEST(PatternTest, FilterNearestNoTs) {
         Transform::identity()
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -232,7 +232,7 @@ TEST(PatternTest, FilterNearest) {
         Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -258,7 +258,7 @@ TEST(PatternTest, FilterBilinear) {
         Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -284,7 +284,7 @@ TEST(PatternTest, FilterBicubic) {
         Transform::fromRow(1.5f, 0.0f, -0.4f, -0.8f, 5.0f, 1.0f)
     );
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 

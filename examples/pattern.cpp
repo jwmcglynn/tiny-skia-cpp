@@ -51,7 +51,7 @@ int main() {
   auto mut = pixmap->mutableView();
   Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("pattern.png", data.data(), 400, 400)) {
     std::printf("Wrote pattern.png (400x400)\n");
   } else {

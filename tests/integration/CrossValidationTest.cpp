@@ -43,7 +43,7 @@ TEST(CrossValidation, FillIntRect) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(10.0f, 15.0f, 90.0f, 85.0f);
+  auto rect = Rect::fromLTRB(10.0f, 15.0f, 90.0f, 85.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto cpp = Pixmap::fromSize(100, 100);
@@ -66,7 +66,7 @@ TEST(CrossValidation, FillFloatRectAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromLtrb(10.3f, 15.4f, 90.8f, 86.0f);
+  auto rect = Rect::fromLTRB(10.3f, 15.4f, 90.8f, 86.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto cpp = Pixmap::fromSize(100, 100);
@@ -238,7 +238,7 @@ TEST(CrossValidation, FillRectScaled) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromLtrb(5.0f, 5.0f, 45.0f, 45.0f);
+  auto rect = Rect::fromLTRB(5.0f, 5.0f, 45.0f, 45.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto ts = Transform::fromScale(2.0f, 2.0f);
@@ -343,7 +343,7 @@ TEST(CrossValidation, FillRectBlendXor) {
   paint.antiAlias = false;
   paint.blendMode = BlendMode::Xor;
 
-  auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+  auto rect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
   auto mut = cpp->mutableView();
   tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());

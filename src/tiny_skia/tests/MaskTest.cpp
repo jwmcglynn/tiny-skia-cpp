@@ -39,7 +39,7 @@ TEST(MaskTest, FromSizeInitializesZeroedBufferAndDimensions) {
 }
 
 TEST(MaskTest, FromVecRequiresExactSize) {
-  const auto size = tiny_skia::IntSize::fromWh(2, 2);
+  const auto size = tiny_skia::IntSize::fromWH(2, 2);
   ASSERT_THAT(size, Optional(testing::_));
 
   EXPECT_THAT(tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{1, 2, 3}, *size),
@@ -53,13 +53,13 @@ TEST(MaskTest, DataMutAndTakeExposeOwnedBuffer) {
   ASSERT_THAT(maskOpt, Optional(testing::_));
   auto mask = std::move(*maskOpt);
 
-  auto writable = mask.dataMut();
+  auto writable = mask.data();
   writable[0] = 7;
   writable[3] = 11;
   EXPECT_EQ(mask.data()[0], 7u);
   EXPECT_EQ(mask.data()[3], 11u);
 
-  const auto taken = mask.take();
+  const auto taken = mask.release();
   ASSERT_EQ(taken.size(), 4u);
   EXPECT_THAT(taken, ElementsAre(7u, 0u, 0u, 11u));
   EXPECT_TRUE(mask.data().empty());
@@ -68,7 +68,7 @@ TEST(MaskTest, DataMutAndTakeExposeOwnedBuffer) {
 }
 
 TEST(MaskTest, FromPixmapAlphaCopiesAlphaChannel) {
-  const auto size = tiny_skia::IntSize::fromWh(2, 1);
+  const auto size = tiny_skia::IntSize::fromWH(2, 1);
   ASSERT_THAT(size, Optional(testing::_));
   const auto pixmap =
       tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>{10, 20, 30, 40, 50, 60, 70, 80}, *size);
@@ -80,7 +80,7 @@ TEST(MaskTest, FromPixmapAlphaCopiesAlphaChannel) {
 }
 
 TEST(MaskTest, FromPixmapLuminanceUsesDemultiplyThenLumaTimesAlpha) {
-  const auto size = tiny_skia::IntSize::fromWh(3, 1);
+  const auto size = tiny_skia::IntSize::fromWH(3, 1);
   ASSERT_THAT(size, Optional(testing::_));
   const auto pixmap = tiny_skia::Pixmap::fromVec(
       std::vector<std::uint8_t>{
@@ -109,7 +109,7 @@ TEST(MaskTest, SubmaskComputesIntersectedViewAndOffset) {
   auto maskOpt = tiny_skia::Mask::fromSize(4, 3);
   ASSERT_THAT(maskOpt, Optional(testing::_));
   auto mask = std::move(*maskOpt);
-  auto bytes = mask.dataMut();
+  auto bytes = mask.data();
   for (std::size_t i = 0; i < bytes.size(); ++i) {
     bytes[i] = static_cast<std::uint8_t>(i);
   }
@@ -126,7 +126,7 @@ TEST(MaskTest, SubpixmapComputesIntersectedMutableView) {
   auto maskOpt = tiny_skia::Mask::fromSize(4, 3);
   ASSERT_THAT(maskOpt, Optional(testing::_));
   auto mask = std::move(*maskOpt);
-  auto bytes = mask.dataMut();
+  auto bytes = mask.data();
   for (std::size_t i = 0; i < bytes.size(); ++i) {
     bytes[i] = static_cast<std::uint8_t>(i);
   }
@@ -146,7 +146,7 @@ TEST(MaskTest, SubpixmapComputesIntersectedMutableView) {
 TEST(MaskTest, InvertFlipsAllBytes) {
   auto mask = tiny_skia::Mask::fromSize(3, 1);
   ASSERT_THAT(mask, Optional(testing::_));
-  auto data = mask->dataMut();
+  auto data = mask->data();
   data[0] = 0;
   data[1] = 128;
   data[2] = 255;
@@ -160,7 +160,7 @@ TEST(MaskTest, InvertFlipsAllBytes) {
 TEST(MaskTest, ClearZerosAllData) {
   auto mask = tiny_skia::Mask::fromSize(2, 2);
   ASSERT_THAT(mask, Optional(testing::_));
-  auto data = mask->dataMut();
+  auto data = mask->data();
   data[0] = 10;
   data[1] = 20;
   data[2] = 30;
@@ -226,7 +226,7 @@ TEST(MaskTest, IntersectPathMultipliesMasks) {
   auto mask = tiny_skia::Mask::fromSize(10, 10);
   ASSERT_THAT(mask, Optional(testing::_));
   // Fill entire mask with 255.
-  std::fill(mask->dataMut().begin(), mask->dataMut().end(), static_cast<std::uint8_t>(255));
+  std::fill(mask->data().begin(), mask->data().end(), static_cast<std::uint8_t>(255));
 
   // Intersect with a small rect: only the rect area should remain.
   tiny_skia::PathBuilder builder;

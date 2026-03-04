@@ -49,7 +49,7 @@ std::optional<Rect> boundsFromPoints(const std::array<Point, N>& points) {
     bottom = std::max(bottom, point.y);
   }
 
-  return Rect::fromLtrb(left, top, right, bottom);
+  return Rect::fromLTRB(left, top, right, bottom);
 }
 
 void chopQuadInY(const Rect& clip, std::array<Point, 3>& pts) {

@@ -53,7 +53,7 @@ int main() {
     Painter::strokePath(mut, *path, paint, stroke, xf);
   }
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("gamma.png", data.data(), 1000, 1000)) {
     std::printf("Wrote gamma.png (1000x1000)\n");
   } else {

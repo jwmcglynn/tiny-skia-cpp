@@ -13,7 +13,7 @@ struct Point {
 
   [[nodiscard]] static constexpr Point zero() { return Point{0.0f, 0.0f}; }
 
-  [[nodiscard]] static constexpr Point fromXy(float px, float py) { return Point{px, py}; }
+  [[nodiscard]] static constexpr Point fromXY(float px, float py) { return Point{px, py}; }
 
   [[nodiscard]] bool isZero() const { return x == 0.0f && y == 0.0f; }
 
@@ -29,14 +29,14 @@ struct Point {
     return static_cast<float>(std::sqrt(xx * xx + yy * yy));
   }
 
-  [[nodiscard]] float lengthSqd() const { return x * x + y * y; }
+  [[nodiscard]] float lengthSquared() const { return x * x + y * y; }
 
   [[nodiscard]] float distance(const Point& other) const {
     // Subtract in f32, then call length().
     return Point{x - other.x, y - other.y}.length();
   }
 
-  [[nodiscard]] float distanceToSqd(const Point& other) const {
+  [[nodiscard]] float distanceToSquared(const Point& other) const {
     float dx = x - other.x;
     float dy = y - other.y;
     return dx * dx + dy * dy;
@@ -82,13 +82,13 @@ struct Point {
 
   [[nodiscard]] constexpr Point scaled(float factor) const { return Point{x * factor, y * factor}; }
 
-  void rotateCw() {
+  void rotateClockwise() {
     float tmp = x;
     x = -y;
     y = tmp;
   }
 
-  void rotateCcw() {
+  void rotateCounterClockwise() {
     float tmp = x;
     x = y;
     y = -tmp;

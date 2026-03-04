@@ -20,7 +20,7 @@ int main() {
   paint.antiAlias = false;
 
   auto result =
-      LinearGradient::create(Point::fromXy(100.0f, 100.0f), Point::fromXy(900.0f, 900.0f),
+      LinearGradient::create(Point::fromXY(100.0f, 100.0f), Point::fromXY(900.0f, 900.0f),
                              {
                                  GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
                                  GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -40,7 +40,7 @@ int main() {
   auto mut = pixmap->mutableView();
   Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("linear_gradient.png", data.data(), 1000, 1000)) {
     std::printf("Wrote linear_gradient.png (1000x1000)\n");
   } else {

@@ -132,7 +132,7 @@ std::optional<IntRect> makeOutset(const IntRect& rect, std::uint32_t outsetX,
 }
 
 std::optional<Rect> makeOutset(const Rect& rect, float outsetX, float outsetY) {
-  return Rect::fromLtrb(rect.left() - outsetX, rect.top() - outsetY, rect.right() + outsetX,
+  return Rect::fromLTRB(rect.left() - outsetX, rect.top() - outsetY, rect.right() + outsetX,
                         rect.bottom() + outsetY);
 }
 
@@ -217,12 +217,12 @@ struct QuadCoeffLocal {
   }
 
   Point eval(float t) const {
-    return Point::fromXy((ax * t + bx) * t + cx, (ay * t + by) * t + cy);
+    return Point::fromXY((ax * t + bx) * t + cx, (ay * t + by) * t + cy);
   }
 };
 
 std::optional<Rect> intRectToRect(const IntRect& rect) {
-  return Rect::fromLtrb(static_cast<float>(rect.x()), static_cast<float>(rect.y()),
+  return Rect::fromLTRB(static_cast<float>(rect.x()), static_cast<float>(rect.y()),
                         static_cast<float>(rect.x()) + rect.width(),
                         static_cast<float>(rect.y()) + rect.height());
 }
@@ -245,7 +245,7 @@ struct CubicCoeffLocal {
   }
 
   Point eval(float t) const {
-    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
+    return Point::fromXY(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
   }
 };
 
@@ -271,7 +271,7 @@ std::optional<Rect> computeNoCheckQuadBounds(const std::array<Point, 3>& points)
   const auto minY = std::min({points[0].y, points[1].y, points[2].y});
   const auto maxX = std::max({points[0].x, points[1].x, points[2].x});
   const auto maxY = std::max({points[0].y, points[1].y, points[2].y});
-  return Rect::fromLtrb(minX, minY, maxX, maxY);
+  return Rect::fromLTRB(minX, minY, maxX, maxY);
 }
 
 std::optional<Rect> computeNoCheckCubicBounds(const std::array<Point, 4>& points) {
@@ -279,7 +279,7 @@ std::optional<Rect> computeNoCheckCubicBounds(const std::array<Point, 4>& points
   const auto minY = std::min({points[0].y, points[1].y, points[2].y, points[3].y});
   const auto maxX = std::max({points[0].x, points[1].x, points[2].x, points[3].x});
   const auto maxY = std::max({points[0].y, points[1].y, points[2].y, points[3].y});
-  return Rect::fromLtrb(minX, minY, maxX, maxY);
+  return Rect::fromLTRB(minX, minY, maxX, maxY);
 }
 
 void hairQuad2(const std::array<Point, 3>& points, const ScreenIntRect* clip, LineProc lineProc,
@@ -400,7 +400,7 @@ void hairCubic(std::array<Point, 4> points, const ScreenIntRect* clip,
 }
 
 void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitter& blitter) {
-  const auto fixedBounds = Rect::fromLtrb(-kMaxCoord, -kMaxCoord, kMaxCoord, kMaxCoord);
+  const auto fixedBounds = Rect::fromLTRB(-kMaxCoord, -kMaxCoord, kMaxCoord, kMaxCoord);
   if (!fixedBounds.has_value()) {
     return;
   }

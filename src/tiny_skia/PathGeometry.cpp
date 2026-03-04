@@ -52,11 +52,11 @@ void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) 
   const float abcdy = interp(abcy, bcdy, t);
 
   dst[0] = src[0];
-  dst[1] = Point::fromXy(abx, aby);
-  dst[2] = Point::fromXy(abcx, abcy);
-  dst[3] = Point::fromXy(abcdx, abcdy);
-  dst[4] = Point::fromXy(bcdx, bcdy);
-  dst[5] = Point::fromXy(cdx, cdy);
+  dst[1] = Point::fromXY(abx, aby);
+  dst[2] = Point::fromXY(abcx, abcy);
+  dst[3] = Point::fromXY(abcdx, abcdy);
+  dst[4] = Point::fromXY(bcdx, bcdy);
+  dst[5] = Point::fromXY(cdx, cdy);
   dst[6] = src[3];
 }
 
@@ -311,7 +311,7 @@ namespace {
 float interpF(float a, float b, float t) { return a + (b - a) * t; }
 
 Point interpPt(Point a, Point b, float t) {
-  return Point::fromXy(interpF(a.x, b.x, t), interpF(a.y, b.y, t));
+  return Point::fromXY(interpF(a.x, b.x, t), interpF(a.y, b.y, t));
 }
 
 // Quad coefficient representation
@@ -331,7 +331,7 @@ struct QuadCoeff {
   }
 
   Point eval(float t) const {
-    return Point::fromXy((ax * t + bx) * t + cx, (ay * t + by) * t + cy);
+    return Point::fromXY((ax * t + bx) * t + cx, (ay * t + by) * t + cy);
   }
 };
 
@@ -358,7 +358,7 @@ struct CubicCoeff {
   }
 
   Point eval(float t) const {
-    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
+    return Point::fromXY(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
   }
 };
 
@@ -376,7 +376,7 @@ Point evalCubicDerivative(const Point src[4], NormalizedF32 t) {
   float cy = p1y - p0y;
 
   float tv = t.get();
-  return Point::fromXy((ax * tv + bx) * tv + cx, (ay * tv + by) * tv + cy);
+  return Point::fromXY((ax * tv + bx) * tv + cx, (ay * tv + by) * tv + cy);
 }
 
 // formulateF1DotF2 (float variant for cubic max curvature)
@@ -469,8 +469,8 @@ bool onSameSide(const Point src[4], std::size_t testIndex, std::size_t lineIndex
 }
 
 float calcCubicPrecision(const Point src[4]) {
-  return (src[1].distanceToSqd(src[0]) + src[2].distanceToSqd(src[1]) +
-          src[3].distanceToSqd(src[2])) *
+  return (src[1].distanceToSquared(src[0]) + src[2].distanceToSquared(src[1]) +
+          src[3].distanceToSquared(src[2])) *
          1e-8f;
 }
 
@@ -522,7 +522,7 @@ Point evalQuadTangentAt(const Point src[3], NormalizedF32 t) {
   float tv = t.get();
   float tx = ax * tv + bx;
   float ty = ay * tv + by;
-  return Point::fromXy(tx + tx, ty + ty);
+  return Point::fromXY(tx + tx, ty + ty);
 }
 
 Point evalCubicPosAt(const Point src[4], NormalizedF32 t) {
@@ -614,7 +614,7 @@ std::optional<NormalizedF32Exclusive> findCubicCusp(const Point src[4]) {
   for (std::size_t i = 0; i < count; ++i) {
     if (tVals[i].get() <= 0.0f || tVals[i].get() >= 1.0f) continue;
     auto dPt = evalCubicDerivative(src, tVals[i]);
-    float dPtMag = dPt.lengthSqd();
+    float dPtMag = dPt.lengthSquared();
     float precision = calcCubicPrecision(src);
     if (dPtMag < precision) {
       return NormalizedF32Exclusive::newBounded(tVals[i].get());
@@ -678,7 +678,7 @@ void Conic::chop(Conic dst[2]) const {
   float newW = std::sqrt(0.5f + weight * 0.5f);
 
   Point wp1 = points[1].scaled(weight);
-  Point m = Point::fromXy((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale * 0.5f,
+  Point m = Point::fromXY((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale * 0.5f,
                           (points[0].y + (wp1.y + wp1.y) + points[2].y) * scale * 0.5f);
 
   // If m is not finite, recompute using f64 for precision.
@@ -697,12 +697,12 @@ void Conic::chop(Conic dst[2]) const {
   }
 
   dst[0].points[0] = points[0];
-  dst[0].points[1] = Point::fromXy((points[0].x + wp1.x) * scale, (points[0].y + wp1.y) * scale);
+  dst[0].points[1] = Point::fromXY((points[0].x + wp1.x) * scale, (points[0].y + wp1.y) * scale);
   dst[0].points[2] = m;
   dst[0].weight = newW;
 
   dst[1].points[0] = m;
-  dst[1].points[1] = Point::fromXy((wp1.x + points[2].x) * scale, (wp1.y + points[2].y) * scale);
+  dst[1].points[1] = Point::fromXY((wp1.x + points[2].x) * scale, (wp1.y + points[2].y) * scale);
   dst[1].points[2] = points[2];
   dst[1].weight = newW;
 }
@@ -827,9 +827,9 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uS
   }
 
   const Point quadrantPoints[8] = {
-      Point::fromXy(1.0f, 0.0f),  Point::fromXy(1.0f, 1.0f),  Point::fromXy(0.0f, 1.0f),
-      Point::fromXy(-1.0f, 1.0f), Point::fromXy(-1.0f, 0.0f), Point::fromXy(-1.0f, -1.0f),
-      Point::fromXy(0.0f, -1.0f), Point::fromXy(1.0f, -1.0f),
+      Point::fromXY(1.0f, 0.0f),  Point::fromXY(1.0f, 1.0f),  Point::fromXY(0.0f, 1.0f),
+      Point::fromXY(-1.0f, 1.0f), Point::fromXY(-1.0f, 0.0f), Point::fromXY(-1.0f, -1.0f),
+      Point::fromXY(0.0f, -1.0f), Point::fromXY(1.0f, -1.0f),
   };
 
   constexpr float kQuadrantWeight = kScalarRoot2Over2;
@@ -839,18 +839,18 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uS
     dst[i] = Conic::fromPoints(&quadrantPoints[i * 2], kQuadrantWeight);
   }
 
-  Point finalPt = Point::fromXy(x, y);
+  Point finalPt = Point::fromXY(x, y);
   Point lastQ = quadrantPoints[quadrant * 2];
   float dotVal = lastQ.dot(finalPt);
 
   if (dotVal < 1.0f) {
-    Point offCurve = Point::fromXy(lastQ.x + x, lastQ.y + y);
+    Point offCurve = Point::fromXY(lastQ.x + x, lastQ.y + y);
     float cosThetaOver2 = std::sqrt((1.0f + dotVal) / 2.0f);
     offCurve.setLength(1.0f / cosThetaOver2);
     // Check that lastQ and offCurve are not almost equal.
     // almostEqual returns true when the diff vector can't normalize
     // (both components zero or non-finite). We add conic when NOT almostEqual.
-    Point diff = Point::fromXy(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
+    Point diff = Point::fromXY(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
     bool canNormalize =
         std::isfinite(diff.x) && std::isfinite(diff.y) && (diff.x != 0.0f || diff.y != 0.0f);
     if (canNormalize) {

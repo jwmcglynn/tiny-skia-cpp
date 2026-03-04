@@ -84,7 +84,7 @@ std::optional<Rect> Path::computeTightBounds() const {
     }
   }
 
-  return Rect::fromLtrb(minPt.x, minPt.y, maxPt.x, maxPt.y);
+  return Rect::fromLTRB(minPt.x, minPt.y, maxPt.x, maxPt.y);
 }
 
 PathBuilder Path::clear() {

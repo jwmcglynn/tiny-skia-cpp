@@ -15,7 +15,7 @@ using namespace tiny_skia;
 namespace {
 
 TEST(MaskTest, Rect) {
-    auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto clipRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
 
@@ -29,7 +29,7 @@ TEST(MaskTest, Rect) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -38,7 +38,7 @@ TEST(MaskTest, Rect) {
 }
 
 TEST(MaskTest, RectAa) {
-    auto clipRect = Rect::fromLtrb(10.5f, 10.0f, 90.5f, 90.5f);
+    auto clipRect = Rect::fromLTRB(10.5f, 10.0f, 90.5f, 90.5f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
 
@@ -52,7 +52,7 @@ TEST(MaskTest, RectAa) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -64,7 +64,7 @@ TEST(MaskTest, RectTs) {
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
 
-    auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto clipRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
     auto transformedPath = clipPath.transform(Transform::fromRow(1.0f, -0.3f, 0.0f, 1.0f, 0.0f, 15.0f));
@@ -78,7 +78,7 @@ TEST(MaskTest, RectTs) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = false;
 
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -103,7 +103,7 @@ TEST(MaskTest, CircleBottomRightAa) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = false;
 
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -115,7 +115,7 @@ TEST(MaskTest, Stroke) {
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
 
-    auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto clipRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
 
@@ -130,7 +130,7 @@ TEST(MaskTest, Stroke) {
     tiny_skia::Stroke stroke;
     stroke.width = 10.0f;
 
-    auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto pathRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(pathRect.has_value());
     auto path = Path::fromRect(*pathRect);
 
@@ -149,7 +149,7 @@ TEST(MaskTest, SkipDest) {
     paint.antiAlias = false;
 
     // Draw first rect on pixmap
-    auto rectPath1 = Rect::fromLtrb(5.0f, 5.0f, 65.0f, 65.0f);
+    auto rectPath1 = Rect::fromLTRB(5.0f, 5.0f, 65.0f, 65.0f);
     ASSERT_TRUE(rectPath1.has_value());
     auto path1 = Path::fromRect(*rectPath1);
     {
@@ -160,7 +160,7 @@ TEST(MaskTest, SkipDest) {
     // Draw second rect on pixmap2
     auto pixmap2 = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap2.has_value());
-    auto rectPath2 = Rect::fromLtrb(35.0f, 35.0f, 95.0f, 95.0f);
+    auto rectPath2 = Rect::fromLTRB(35.0f, 35.0f, 95.0f, 95.0f);
     ASSERT_TRUE(rectPath2.has_value());
     auto path2 = Path::fromRect(*rectPath2);
     {
@@ -169,7 +169,7 @@ TEST(MaskTest, SkipDest) {
     }
 
     // Create mask
-    auto clipRect = Rect::fromLtrb(40.0f, 40.0f, 80.0f, 80.0f);
+    auto clipRect = Rect::fromLTRB(40.0f, 40.0f, 80.0f, 80.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
     auto mask = Mask::fromSize(100, 100);
@@ -206,7 +206,7 @@ TEST(MaskTest, IntersectAa) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 200.0f, 200.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -215,7 +215,7 @@ TEST(MaskTest, IntersectAa) {
 }
 
 TEST(MaskTest, IgnoreMemset) {
-    auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto clipRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
 
@@ -229,7 +229,7 @@ TEST(MaskTest, IgnoreMemset) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -238,7 +238,7 @@ TEST(MaskTest, IgnoreMemset) {
 }
 
 TEST(MaskTest, IgnoreSource) {
-    auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+    auto clipRect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
     auto clipPath = Path::fromRect(*clipRect);
 
@@ -255,7 +255,7 @@ TEST(MaskTest, IgnoreSource) {
     ASSERT_TRUE(pixmap.has_value());
     pixmap->fill(Color::white);
 
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
     Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
@@ -280,7 +280,7 @@ TEST(MaskTest, ApplyMask) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = false;
 
-    auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
+    auto rect = Rect::fromLTRB(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     {
         auto mut = pixmap->mutableView();

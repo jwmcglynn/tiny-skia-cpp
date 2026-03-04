@@ -13,7 +13,7 @@ struct Point64 {
   double x = 0.0;
   double y = 0.0;
 
-  static constexpr Point64 fromXy(double x, double y) { return Point64{x, y}; }
+  static constexpr Point64 fromXY(double x, double y) { return Point64{x, y}; }
 
   static Point64 fromPoint(const Point& point);
 

@@ -11,8 +11,8 @@ using IntRect = ::tiny_skia::IntRect;
 using Rect = ::tiny_skia::Rect;
 using ScreenIntRect = ::tiny_skia::ScreenIntRect;
 
-inline std::optional<IntSize> fromWh(LengthU32 width, LengthU32 height) {
-  return IntSize::fromWh(width, height);
+inline std::optional<IntSize> fromWH(LengthU32 width, LengthU32 height) {
+  return IntSize::fromWH(width, height);
 }
 
 inline ScreenIntRect toScreenIntRect(const IntSize& size, std::uint32_t x, std::uint32_t y) {

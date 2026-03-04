@@ -22,8 +22,8 @@ TEST(GradientsTest, TwoStopsLinearPadLq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -33,7 +33,7 @@ TEST(GradientsTest, TwoStopsLinearPadLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -49,8 +49,8 @@ TEST(GradientsTest, TwoStopsLinearRepeatLq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(100.0f, 100.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -60,7 +60,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -76,8 +76,8 @@ TEST(GradientsTest, TwoStopsLinearReflectLq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(100.0f, 100.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -87,7 +87,7 @@ TEST(GradientsTest, TwoStopsLinearReflectLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -103,8 +103,8 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedLq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(0.50f, Color::fromRgba8(220, 140, 75, 180)),
@@ -115,7 +115,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -131,8 +131,8 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedLq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(0.75f, Color::fromRgba8(220, 140, 75, 180)),
@@ -142,7 +142,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -163,8 +163,8 @@ TEST(GradientsTest, TwoStopsLinearPadHq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -174,7 +174,7 @@ TEST(GradientsTest, TwoStopsLinearPadHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -191,8 +191,8 @@ TEST(GradientsTest, TwoStopsLinearRepeatHq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(100.0f, 100.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -202,7 +202,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -219,8 +219,8 @@ TEST(GradientsTest, TwoStopsLinearReflectHq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(100.0f, 100.0f),
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
@@ -230,7 +230,7 @@ TEST(GradientsTest, TwoStopsLinearReflectHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -247,8 +247,8 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedHq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(0.50f, Color::fromRgba8(220, 140, 75, 180)),
@@ -259,7 +259,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -276,8 +276,8 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedHq) {
     paint.antiAlias = false;
 
     auto result = LinearGradient::create(
-        Point::fromXy(10.0f, 10.0f),
-        Point::fromXy(190.0f, 190.0f),
+        Point::fromXY(10.0f, 10.0f),
+        Point::fromXY(190.0f, 190.0f),
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
             GradientStop::create(0.75f, Color::fromRgba8(220, 140, 75, 180)),
@@ -287,7 +287,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -309,9 +309,9 @@ TEST(GradientsTest, WellBehavedRadial) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(120.0f, 80.0f),
+        Point::fromXY(120.0f, 80.0f),
         100.0f,
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -322,7 +322,7 @@ TEST(GradientsTest, WellBehavedRadial) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -338,9 +338,9 @@ TEST(GradientsTest, FocalOnCircleRadial) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(120.0f, 80.0f),
+        Point::fromXY(120.0f, 80.0f),
         28.29f,  // This radius forces the required pipeline stage.
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -351,7 +351,7 @@ TEST(GradientsTest, FocalOnCircleRadial) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -367,9 +367,9 @@ TEST(GradientsTest, ConicalGreaterRadial) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(120.0f, 80.0f),
+        Point::fromXY(120.0f, 80.0f),
         10.0f,  // This radius forces the required pipeline stage.
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -380,7 +380,7 @@ TEST(GradientsTest, ConicalGreaterRadial) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -396,9 +396,9 @@ TEST(GradientsTest, SimpleRadialLq) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         100.0f,
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -409,7 +409,7 @@ TEST(GradientsTest, SimpleRadialLq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -426,9 +426,9 @@ TEST(GradientsTest, SimpleRadialHq) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         100.0f,
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -439,7 +439,7 @@ TEST(GradientsTest, SimpleRadialHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -456,9 +456,9 @@ TEST(GradientsTest, SimpleRadialWithTsHq) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         100.0f,
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 200)),
@@ -469,7 +469,7 @@ TEST(GradientsTest, SimpleRadialWithTsHq) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -488,9 +488,9 @@ TEST(GradientsTest, globalOpacity) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         100.0f,
         {
             GradientStop::create(0.25f, Color::fromRgba8(50, 127, 150, 255)),
@@ -502,7 +502,7 @@ TEST(GradientsTest, globalOpacity) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
     applyShaderOpacity(paint.shader, 0.5f);
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -519,9 +519,9 @@ TEST(GradientsTest, StripGradient) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(50.0f, 100.0f),
+        Point::fromXY(50.0f, 100.0f),
         50.0f,
-        Point::fromXy(150.0f, 100.0f),
+        Point::fromXY(150.0f, 100.0f),
         50.0f,
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
@@ -532,7 +532,7 @@ TEST(GradientsTest, StripGradient) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -549,9 +549,9 @@ TEST(GradientsTest, ConcentricRadial) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         30.0f,
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         90.0f,
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
@@ -562,7 +562,7 @@ TEST(GradientsTest, ConcentricRadial) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -580,9 +580,9 @@ TEST(GradientsTest, ConicalSmallerRadial) {
     paint.antiAlias = false;
 
     auto result = RadialGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         60.0f,
-        Point::fromXy(150.0f, 100.0f),
+        Point::fromXY(150.0f, 100.0f),
         30.0f,
         {
             GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
@@ -593,7 +593,7 @@ TEST(GradientsTest, ConicalSmallerRadial) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -613,7 +613,7 @@ TEST(GradientsTest, SweepGradient) {
     paint.antiAlias = false;
 
     auto result = SweepGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         135.0f,
         225.0f,
         {
@@ -625,7 +625,7 @@ TEST(GradientsTest, SweepGradient) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<SweepGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
@@ -641,7 +641,7 @@ TEST(GradientsTest, SweepGradientFull) {
     paint.antiAlias = false;
 
     auto result = SweepGradient::create(
-        Point::fromXy(100.0f, 100.0f),
+        Point::fromXY(100.0f, 100.0f),
         0.0f,
         360.0f,
         {
@@ -653,7 +653,7 @@ TEST(GradientsTest, SweepGradientFull) {
     ASSERT_TRUE(result.has_value());
     paint.shader = std::get<SweepGradient>(std::move(*result));
 
-    auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
+    auto rect = Rect::fromLTRB(10.0f, 10.0f, 190.0f, 190.0f);
     auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);

@@ -104,7 +104,7 @@ void computePosTan(const Point* points, SegmentType segKind, NormalizedF32 t, Po
     case SegmentType::Line: {
       if (pos != nullptr) {
         *pos =
-            Point::fromXy(interp(points[0].x, points[1].x, t), interp(points[0].y, points[1].y, t));
+            Point::fromXY(interp(points[0].x, points[1].x, t), interp(points[0].y, points[1].y, t));
       }
       if (tangent != nullptr) {
         tangent->setNormalize(points[1].x - points[0].x, points[1].y - points[0].y);

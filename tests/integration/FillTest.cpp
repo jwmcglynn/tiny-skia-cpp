@@ -88,7 +88,7 @@ TEST(FillTest, IntRect) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  auto rect = Rect::fromXywh(10.0f, 15.0f, 80.0f, 70.0f);
+  auto rect = Rect::fromXYWH(10.0f, 15.0f, 80.0f, 70.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -105,7 +105,7 @@ TEST(FillTest, FloatRect) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
+  auto rect = Rect::fromXYWH(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -122,7 +122,7 @@ TEST(FillTest, IntRectAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(10.0f, 15.0f, 80.0f, 70.0f);
+  auto rect = Rect::fromXYWH(10.0f, 15.0f, 80.0f, 70.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -139,7 +139,7 @@ TEST(FillTest, FloatRectAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
+  auto rect = Rect::fromXYWH(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -157,7 +157,7 @@ TEST(FillTest, FloatRectAaHighp) {
   paint.antiAlias = true;
   paint.forceHqPipeline = true;
 
-  auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
+  auto rect = Rect::fromXYWH(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -174,7 +174,7 @@ TEST(FillTest, TinyFloatRect) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  auto rect = Rect::fromXywh(1.3f, 1.4f, 0.5f, 0.6f);
+  auto rect = Rect::fromXYWH(1.3f, 1.4f, 0.5f, 0.6f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(3, 3);
@@ -207,7 +207,7 @@ TEST(FillTest, TinyFloatRectAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(1.3f, 1.4f, 0.5f, 0.6f);
+  auto rect = Rect::fromXYWH(1.3f, 1.4f, 0.5f, 0.6f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(3, 3);
@@ -240,7 +240,7 @@ TEST(FillTest, TinyRectAa) {
   paint.setColorRgba8(0, 0, 0, 0);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(0.7f, 0.0f, 1.0f, 2.0f);
+  auto rect = Rect::fromXYWH(0.7f, 0.0f, 1.0f, 2.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(10, 10);
@@ -255,7 +255,7 @@ TEST(FillTest, FloatRectClipTopLeftAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(-10.3f, -20.4f, 100.5f, 70.2f);
+  auto rect = Rect::fromXYWH(-10.3f, -20.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -272,7 +272,7 @@ TEST(FillTest, FloatRectClipTopRightAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(60.3f, -20.4f, 100.5f, 70.2f);
+  auto rect = Rect::fromXYWH(60.3f, -20.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -289,7 +289,7 @@ TEST(FillTest, FloatRectClipBottomRightAa) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
 
-  auto rect = Rect::fromXywh(60.3f, 40.4f, 100.5f, 70.2f);
+  auto rect = Rect::fromXYWH(60.3f, 40.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -306,7 +306,7 @@ TEST(FillTest, IntRectWithTsClipRight) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  auto rect = Rect::fromXywh(0.0f, 0.0f, 100.0f, 100.0f);
+  auto rect = Rect::fromXYWH(0.0f, 0.0f, 100.0f, 100.0f);
   ASSERT_TRUE(rect.has_value());
 
   auto pixmap = Pixmap::fromSize(100, 100);
@@ -457,7 +457,7 @@ TEST(FillTest, Memset2d) {
   paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque to trigger memset2d.
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
+  auto rect = Rect::fromLTRB(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
   auto path = tiny_skia::Path::fromRect(*rect);
 
@@ -475,7 +475,7 @@ TEST(FillTest, Memset2dOutOfBounds) {
   paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque to trigger memset2d.
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(50.0f, 50.0f, 120.0f, 120.0f);
+  auto rect = Rect::fromLTRB(50.0f, 50.0f, 120.0f, 120.0f);
   ASSERT_TRUE(rect.has_value());
   auto path = tiny_skia::Path::fromRect(*rect);
 
@@ -729,7 +729,7 @@ TEST(FillTest, FillRectCanvas) {
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
 
-  auto rect = Rect::fromXywh(20.3f, 10.4f, 50.5f, 30.2f);
+  auto rect = Rect::fromXYWH(20.3f, 10.4f, 50.5f, 30.2f);
   ASSERT_TRUE(rect.has_value());
 
   auto mut = pixmap->mutableView();

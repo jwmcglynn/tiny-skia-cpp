@@ -8,10 +8,10 @@
 
 TEST(LineCubicIntersectionsTest, HorizontalIntersectFindsExpectedSingleRoot) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.3333333333333333, 1.0 / 3.0),
-      tiny_skia::Point64::fromXy(0.6666666666666666, 2.0 / 3.0),
-      tiny_skia::Point64::fromXy(1.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.3333333333333333, 1.0 / 3.0),
+      tiny_skia::Point64::fromXY(0.6666666666666666, 2.0 / 3.0),
+      tiny_skia::Point64::fromXY(1.0, 1.0),
   });
 
   std::array<double, 3> roots{};
@@ -23,10 +23,10 @@ TEST(LineCubicIntersectionsTest, HorizontalIntersectFindsExpectedSingleRoot) {
 
 TEST(LineCubicIntersectionsTest, VerticalIntersectFindsExpectedSingleRoot) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0 / 3.0, 0.0),
-      tiny_skia::Point64::fromXy(2.0 / 3.0, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0 / 3.0, 0.0),
+      tiny_skia::Point64::fromXY(2.0 / 3.0, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
   });
 
   std::array<double, 3> roots{};
@@ -38,10 +38,10 @@ TEST(LineCubicIntersectionsTest, VerticalIntersectFindsExpectedSingleRoot) {
 
 TEST(LineCubicIntersectionsTest, VerticalIntersectReturnsZeroForMiss) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(0.25, 0.0),
-      tiny_skia::Point64::fromXy(0.5, 0.0),
-      tiny_skia::Point64::fromXy(1.0, 0.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(0.25, 0.0),
+      tiny_skia::Point64::fromXY(0.5, 0.0),
+      tiny_skia::Point64::fromXY(1.0, 0.0),
   });
 
   std::array<double, 3> roots{};
@@ -57,10 +57,10 @@ TEST(LineCubicIntersectionsTest, HorizontalIntersectUsesYCoordinates) {
   // Cubic where x goes 0->10 linearly but y goes 0->1 as a cubic.
   // horizontalIntersect at y=0.5 should find a root.
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
-      tiny_skia::Point64::fromXy(0.0, 0.0),
-      tiny_skia::Point64::fromXy(3.0, 0.0),
-      tiny_skia::Point64::fromXy(7.0, 1.0),
-      tiny_skia::Point64::fromXy(10.0, 1.0),
+      tiny_skia::Point64::fromXY(0.0, 0.0),
+      tiny_skia::Point64::fromXY(3.0, 0.0),
+      tiny_skia::Point64::fromXY(7.0, 1.0),
+      tiny_skia::Point64::fromXY(10.0, 1.0),
   });
 
   std::array<double, 3> roots{};

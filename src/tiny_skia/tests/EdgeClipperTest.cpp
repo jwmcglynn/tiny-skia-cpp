@@ -14,7 +14,7 @@ using tiny_skia::tests::matchers::VerticalPathEdgeAtX;
 
 std::vector<tiny_skia::PathEdge> CollectClippedEdges(const tiny_skia::Path& path,
                                                      bool canCullToTheRight) {
-  const auto clip = tiny_skia::Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f).value();
+  const auto clip = tiny_skia::Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f).value();
   auto iter = tiny_skia::EdgeClipperIter(path, clip, canCullToTheRight);
 
   auto result = std::vector<tiny_skia::PathEdge>{};
