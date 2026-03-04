@@ -23,7 +23,7 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
 
 ## Goals
 
-- Rename Rust-flavored view types: `PixmapView` → `PixmapView`,
+- Rename Rust-flavored view types: `PixmapRef` → `PixmapView`,
   `PixmapMut` → `MutablePixmapView`, `SubPixmapMut` → `MutableSubPixmapView`.
 - Free drawing functions become `Painter::fillRect(...)` etc. (static methods).
 - `Pixmap`/`MutablePixmapView` get instance methods as syntactic sugar.
@@ -31,6 +31,13 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
 - Internal helpers (`DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
   `strokeHairline`) move into `namespace detail` or become private.
 - Add `Path::fromRect()` and `Path::fromCircle()` convenience statics.
+- Replace `dataMut()`/`pixelsMut()` with const/non-const overloads.
+- Adopt STL naming: `len()` → `size()`, `isEmpty()` → `empty()`,
+  `take()` → `release()`.
+- Fix abbreviations: `lengthSqd()` → `lengthSquared()`, etc.
+- Consistent casing: `fromXywh()` → `fromXYWH()`, `fromLtrb()` → `fromLTRB()`.
+- Drop Rust `as_` prefix: `asSubmask()` → `submask()`.
+- `PathBuilder` methods return `PathBuilder&` for fluent chaining.
 - Zero new allocations, zero virtual calls, zero overhead vs current code.
 
 ## Non-Goals
@@ -40,6 +47,10 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
   conversion from `Color` already works well.
 - Adding builder/fluent patterns to `Stroke` or `Paint` — their public
   aggregate fields are idiomatic C++ already.
+- Renaming `from*()` factory methods — named constructors are idiomatic C++.
+- Renaming `is*()` predicates — standard C++ naming.
+- Replacing `std::optional` returns — this is modern C++ best practice.
+- Renaming `preConcat()`/`postConcat()` — standard matrix terminology.
 
 ## Next Steps
 
@@ -84,6 +95,29 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
   - [ ] Add `Path::fromRect(const Rect&)` static method
   - [ ] Add `Path::fromCircle(float cx, float cy, float radius)` static
   - [ ] Remove `pathFromRect()` free function; migrate all call sites
+  - [ ] Build and test gate
+- [ ] Milestone 4: Naming cleanup (STL conventions and abbreviations)
+  - [ ] `dataMut()` → const/non-const overloads of `data()`;
+        `pixelsMut()` → const/non-const overloads of `pixels()`
+        (Pixmap, MutablePixmapView, Mask)
+  - [ ] `len()` → `size()` (Path, PathBuilder — STL convention)
+  - [ ] `isEmpty()` → `empty()` (Path, PathBuilder — STL convention)
+  - [ ] `take()` → `release()` (Pixmap, Mask — matches `unique_ptr`)
+  - [ ] `takeDemultiplied()` → `releaseDemultiplied()` (Pixmap)
+  - [ ] `lengthSqd()` → `lengthSquared()`,
+        `distanceToSqd()` → `distanceToSquared()` (Point)
+  - [ ] `rotateCw()` → `rotateClockwise()`,
+        `rotateCcw()` → `rotateCounterClockwise()` (Point)
+  - [ ] `fromXywh()` → `fromXYWH()` (Rect — consistent casing)
+  - [ ] `fromLtrb()` → `fromLTRB()` (Rect — consistent casing)
+  - [ ] `fromWh()` → `fromWH()` (IntSize)
+  - [ ] `fromXy()` → `fromXY()` (Point)
+  - [ ] `asSubmask()` → `submask()`, `asSubpixmap()` → `subpixmap()`
+        (Mask — drop Rust `as_` prefix)
+  - [ ] Build and test gate
+- [ ] Milestone 5: Builder fluent return (PathBuilder)
+  - [ ] `moveTo()`, `lineTo()`, `quadTo()`, `cubicTo()`, `close()`
+        return `PathBuilder&` instead of `void` (enables chaining)
   - [ ] Build and test gate
 
 ## Proposed Architecture
@@ -309,13 +343,52 @@ only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
 | `PixmapRef` | `PixmapView` |
 | `PixmapMut` | `MutablePixmapView` |
 | `SubPixmapMut` | `MutableSubPixmapView` |
-| `SubMaskView` | `SubMaskView` |
+| `SubMaskRef` | `SubMaskView` |
 | `Pixmap::asRef()` | `Pixmap::view()` |
 | `Pixmap::asMut()` | `Pixmap::mutableView()` |
 
 Both view types keep two types (not unified) to preserve compile-time
 const-safety: `PixmapView` holds `const uint8_t*`, `MutablePixmapView`
 holds `uint8_t*`.
+
+### Naming cleanup (Milestone 4)
+
+| Before | After | Files affected |
+|--------|-------|----------------|
+| `dataMut()` | `data()` (non-const overload) | Pixmap.h, Mask.h |
+| `pixelsMut()` | `pixels()` (non-const overload) | Pixmap.h |
+| `len()` | `size()` | Path.h, PathBuilder.h |
+| `isEmpty()` | `empty()` | Path.h, PathBuilder.h |
+| `take()` | `release()` | Pixmap.h, Mask.h |
+| `takeDemultiplied()` | `releaseDemultiplied()` | Pixmap.h |
+| `lengthSqd()` | `lengthSquared()` | Point.h |
+| `distanceToSqd()` | `distanceToSquared()` | Point.h |
+| `rotateCw()` | `rotateClockwise()` | Point.h |
+| `rotateCcw()` | `rotateCounterClockwise()` | Point.h |
+| `fromXywh()` | `fromXYWH()` | Geom.h (Rect) |
+| `fromLtrb()` | `fromLTRB()` | Geom.h (Rect) |
+| `fromWh()` | `fromWH()` | Geom.h (IntSize) |
+| `fromXy()` | `fromXY()` | Point.h |
+| `asSubmask()` | `submask()` | Mask.h |
+| `asSubpixmap()` | `subpixmap()` | Mask.h, Pixmap.h |
+
+### Fluent builder (Milestone 5)
+
+```cpp
+// Before: void returns
+PathBuilder b;
+b.moveTo(0, 0);
+b.lineTo(10, 10);
+b.close();
+auto path = b.finish();
+
+// After: chaining via PathBuilder& returns
+auto path = PathBuilder()
+    .moveTo(0, 0)
+    .lineTo(10, 10)
+    .close()
+    .finish();
+```
 
 ## File changes summary
 
@@ -324,10 +397,15 @@ holds `uint8_t*`.
 | `Paint.h` (new) | `Paint`, `PixmapPaint` extracted from `Painter.h` |
 | `Painter.h` | `Painter` class with static methods; `detail::DrawTiler`; no free functions; includes `Paint.h` |
 | `Painter.cpp` | Rename free functions to `Painter::` static methods |
-| `Pixmap.h` | Forward declarations + drawing method declarations |
+| `Pixmap.h` | Rename types, forward declarations, drawing methods, `dataMut()` → overloads, `take()` → `release()` |
 | `Pixmap.cpp` | Drawing method implementations delegating to `Painter` |
-| `Path.h` | Add `Path::fromRect()`, `Path::fromCircle()` statics |
+| `Path.h` | Add `Path::fromRect()`, `Path::fromCircle()`; `len()` → `size()`, `isEmpty()` → `empty()` |
 | `Path.cpp` | Implement the new statics |
+| `PathBuilder.h` | `len()` → `size()`, `isEmpty()` → `empty()`; return `PathBuilder&` for chaining |
+| `PathBuilder.cpp` | Update return types to `PathBuilder&` |
+| `Point.h` | `lengthSqd()` → `lengthSquared()`, `rotateCw()` → `rotateClockwise()`, etc. |
+| `Geom.h` | `fromXywh()` → `fromXYWH()`, `fromLtrb()` → `fromLTRB()`, `fromWh()` → `fromWH()` |
+| `Mask.h` | Rename types, `dataMut()` → overloads, `take()` → `release()`, `asSubmask()` → `submask()` |
 
 ## Testing and Validation
 
