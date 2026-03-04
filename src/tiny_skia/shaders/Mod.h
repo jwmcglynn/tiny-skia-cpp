@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file shaders/Mod.h
+/// @brief Shader variant type and dispatch utilities.
+
 #include <variant>
 
 #include "tiny_skia/shaders/Gradient.h"
@@ -10,22 +13,20 @@
 
 namespace tiny_skia {
 
-// The Shader variant type.
-// Uses std::variant to dispatch between shader types.
+/// Paint shader source — a solid color or one of the gradient/pattern types.
 using Shader = std::variant<Color, LinearGradient, SweepGradient, RadialGradient, Pattern>;
 
-// Returns true if the shader is guaranteed to produce only opaque colors.
+/// @internal
 [[nodiscard]] bool isShaderOpaque(const Shader& shader);
 
-// Pushes shader stages into the pipeline builder.
-// Returns false if the shader fails (e.g., non-invertible transform).
+/// @internal
 [[nodiscard]] bool pushShaderStages(const Shader& shader, ColorSpace cs,
                                     pipeline::RasterPipelineBuilder& p);
 
-// Applies a transform to the shader.
+/// @internal
 void transformShader(Shader& shader, const Transform& ts);
 
-// Applies opacity to the shader.
+/// @internal
 void applyShaderOpacity(Shader& shader, float opacity);
 
 }  // namespace tiny_skia

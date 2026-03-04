@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file Transform.h
+/// @brief 2D affine transformation matrix.
+
 #include <optional>
 #include <span>
 
@@ -7,20 +10,24 @@ namespace tiny_skia {
 
 struct Point;
 
-/// Affine transformation matrix [sx kx tx; ky sy ty; 0 0 1].
+/// 2D affine transformation: [sx kx tx; ky sy ty; 0 0 1].
+///
+/// Supports translate, scale, skew. Use fromTranslate/fromScale for common
+/// cases, fromRow for arbitrary matrices. Compose with preConcat/postConcat.
 class Transform {
  public:
-  float sx = 1.0f;
-  float kx = 0.0f;
-  float ky = 0.0f;
-  float sy = 1.0f;
-  float tx = 0.0f;
-  float ty = 0.0f;
+  float sx = 1.0f;  ///< Horizontal scale.
+  float kx = 0.0f;  ///< Horizontal skew.
+  float ky = 0.0f;  ///< Vertical skew.
+  float sy = 1.0f;  ///< Vertical scale.
+  float tx = 0.0f;  ///< Horizontal translation.
+  float ty = 0.0f;  ///< Vertical translation.
 
   constexpr Transform() = default;
 
   [[nodiscard]] static constexpr Transform identity() { return Transform{}; }
 
+  /// Creates from all 6 matrix entries (row-major: sx, ky, kx, sy, tx, ty).
   [[nodiscard]] static constexpr Transform fromRow(float sx, float ky, float kx, float sy, float tx,
                                                    float ty) {
     Transform t;
@@ -49,15 +56,19 @@ class Transform {
   [[nodiscard]] bool hasSkew() const;
   [[nodiscard]] bool hasTranslate() const;
 
+  /// Returns the inverse, or nullopt if singular.
   [[nodiscard]] std::optional<Transform> invert() const;
+
+  /// Returns this * other (other applied first).
   [[nodiscard]] Transform preConcat(const Transform& other) const;
+  /// Returns other * this (this applied first).
   [[nodiscard]] Transform postConcat(const Transform& other) const;
   [[nodiscard]] Transform preScale(float sx, float sy) const;
   [[nodiscard]] Transform postScale(float sx, float sy) const;
   [[nodiscard]] Transform preTranslate(float tx, float ty) const;
   [[nodiscard]] Transform postTranslate(float tx, float ty) const;
 
-  /// Maps an array of points through the transform.
+  /// Transforms an array of points in-place.
   void mapPoints(std::span<Point> points) const;
 
   constexpr bool operator==(const Transform&) const = default;

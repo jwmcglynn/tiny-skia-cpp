@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file Geom.h
+/// @brief Geometric primitives: Rect, IntRect, ScreenIntRect, IntSize.
+
 #include <cstdint>
 #include <optional>
 
@@ -11,11 +14,13 @@ class ScreenIntRect;
 class IntRect;
 class Rect;
 
+/// Non-zero integer dimensions (width x height).
 class IntSize {
  public:
   constexpr IntSize() = default;
   constexpr IntSize(LengthU32 width, LengthU32 height) : width_(width), height_(height) {}
 
+  /// Creates from width/height. Returns nullopt if either is zero.
   static std::optional<IntSize> fromWH(LengthU32 width, LengthU32 height) {
     if (width == 0u || height == 0u) {
       return std::nullopt;
@@ -36,10 +41,12 @@ class IntSize {
   LengthU32 height_ = 0;
 };
 
+/// Unsigned integer rectangle (x, y, width, height). Used for screen coordinates.
 class ScreenIntRect {
  public:
   constexpr ScreenIntRect() = default;
 
+  /// Creates from components. Returns nullopt for zero width/height or overflow.
   static std::optional<ScreenIntRect> fromXYWH(std::uint32_t x, std::uint32_t y,
                                                std::uint32_t width, std::uint32_t height);
 
@@ -74,8 +81,10 @@ class ScreenIntRect {
   LengthU32 height_;
 };
 
+/// Signed integer rectangle (x, y, width, height).
 class IntRect {
  public:
+  /// Creates from components. Returns nullopt for zero dimensions or overflow.
   static std::optional<IntRect> fromXYWH(std::int32_t x, std::int32_t y, std::uint32_t width,
                                          std::uint32_t height);
 
@@ -90,6 +99,7 @@ class IntRect {
   [[nodiscard]] std::int32_t right() const;
   [[nodiscard]] std::int32_t bottom() const;
 
+  /// Returns the intersection with another rect, or nullopt if disjoint.
   [[nodiscard]] std::optional<IntRect> intersect(const IntRect& other) const;
 
   [[nodiscard]] std::optional<ScreenIntRect> toScreenIntRect() const;
@@ -104,11 +114,14 @@ class IntRect {
   LengthU32 height_ = 0;
 };
 
+/// Floating-point rectangle (left, top, right, bottom).
+/// All components must be finite, and width/height must be > 0.
 class Rect {
  public:
+  /// Creates from edges. Returns nullopt for non-finite, empty, or inverted rects.
   static std::optional<Rect> fromLTRB(float left, float top, float right, float bottom);
 
-  /// Creates a Rect from (x, y, width, height).
+  /// Creates from origin and size. Returns nullopt if invalid.
   static std::optional<Rect> fromXYWH(float x, float y, float w, float h) {
     return fromLTRB(x, y, x + w, y + h);
   }
@@ -123,9 +136,9 @@ class Rect {
 
   constexpr bool operator==(const Rect&) const = default;
 
+  /// Converts to IntRect by rounding outward (floor left/top, ceil right/bottom).
   [[nodiscard]] std::optional<IntRect> roundOut() const;
-  /// Rounds to nearest integer using Rust's saturateRound semantics:
-  /// floor(x) + 0.5, then truncate to int.
+  /// Converts to IntRect by rounding to nearest integer.
   [[nodiscard]] std::optional<IntRect> round() const;
 
  private:
@@ -138,6 +151,7 @@ class Rect {
   float bottom_ = 0.0f;
 };
 
+/// @internal
 std::optional<ScreenIntRect> intRectToScreen(const IntRect& rect);
 
 }  // namespace tiny_skia

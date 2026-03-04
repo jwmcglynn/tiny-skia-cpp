@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file shaders/LinearGradient.h
+/// @brief Two-point linear gradient shader.
+
 #include <optional>
 #include <variant>
 #include <vector>
@@ -8,19 +11,26 @@
 
 namespace tiny_skia {
 
-// A linear gradient shader.
+/// Two-point linear gradient shader.
+///
+/// @par Example
+/// @snippet linear_gradient.cpp linear_gradient_example
 class LinearGradient {
  public:
-  // Creates a new linear gradient. Returns Shader or nullopt.
+  /// Creates a linear gradient between two points.
+  /// Returns a Color if the gradient degenerates to a single color.
   static std::optional<std::variant<Color, LinearGradient>> create(Point start, Point end,
                                                                    std::vector<GradientStop> stops,
                                                                    SpreadMode mode,
                                                                    Transform transform);
 
+  /// @internal
   [[nodiscard]] bool isOpaque() const { return base_.colorsAreOpaque(); }
 
+  /// @internal
   [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
+  /// @internal
   Gradient base_;
 };
 

@@ -1,5 +1,11 @@
 #pragma once
 
+/// @file pipeline/Mod.h
+/// @brief Rendering pipeline types: SpreadMode, Stage, RasterPipeline.
+///
+/// Most types in this file are internal to the rendering engine.
+/// The main public type is SpreadMode.
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -15,22 +21,28 @@ class PixmapView;
 class ScreenIntRect;
 struct MutableSubPixmapView;
 
+/// How gradient/pattern colors extend beyond the [0,1] range.
 enum class SpreadMode {
-  Pad,
-  Reflect,
-  Repeat,
+  Pad,     ///< Clamp to the nearest edge color.
+  Reflect, ///< Mirror the gradient.
+  Repeat,  ///< Tile the gradient.
 };
 
+/// @internal
 namespace pipeline {
 
+/// @internal
 namespace highp {
 struct Pipeline;
 }
 
+/// @internal
 namespace lowp {
 struct Pipeline;
 }
 
+/// @internal
+/// Pipeline stage identifier.
 enum class Stage : std::uint8_t {
   MoveSourceToDestination,
   MoveDestinationToSource,
@@ -113,13 +125,16 @@ enum class Stage : std::uint8_t {
   GammaCompressSrgb,
 };
 
+/// @internal
 inline constexpr std::size_t kStagesCount = 1 + static_cast<std::size_t>(Stage::GammaCompressSrgb);
+/// @internal
 inline constexpr std::size_t kMaxStages = 32;
 
+/// @internal
 struct AAMaskCtx {
   std::array<std::uint8_t, 2> pixels = {0, 0};
-  std::uint32_t stride = 0;  // can be zero
-  std::size_t shift = 0;     // mask offset/position in pixmap coordinates
+  std::uint32_t stride = 0;
+  std::size_t shift = 0;
 
   [[nodiscard]] std::array<std::uint8_t, 2> copyAtXY(std::size_t dx, std::size_t dy,
                                                      std::size_t tail) const {
@@ -141,6 +156,7 @@ struct AAMaskCtx {
   }
 };
 
+/// @internal
 struct MaskCtx {
   const std::uint8_t* data = nullptr;
   std::uint32_t realWidth = 0;
@@ -155,20 +171,23 @@ struct MaskCtx {
   }
 };
 
+/// @internal
 struct SamplerCtx {
   SpreadMode spreadMode = SpreadMode::Pad;
   float invWidth = 0.0f;
   float invHeight = 0.0f;
 };
 
+/// @internal
 struct UniformColorCtx {
   float r = 0.0f;
   float g = 0.0f;
   float b = 0.0f;
   float a = 0.0f;
-  std::array<std::uint16_t, 4> rgba = {0, 0, 0, 0};  // [0,255] in a 16-bit lane.
+  std::array<std::uint16_t, 4> rgba = {0, 0, 0, 0};
 };
 
+/// @internal
 struct GradientColor {
   float r = 0.0f;
   float g = 0.0f;
@@ -182,24 +201,26 @@ struct GradientColor {
   }
 };
 
+/// @internal
 struct EvenlySpaced2StopGradientCtx {
   GradientColor factor{};
   GradientColor bias{};
 };
 
+/// @internal
 struct TwoPointConicalGradientCtx {
-  // This context is used only in high precision.
-  // Per-lane mask (8 lanes to match highp kStageWidth).
   std::array<std::uint32_t, 8> mask = {};
   float p0 = 0.0f;
   float p1 = 0.0f;
 };
 
+/// @internal
 struct TileCtx {
   float scale = 0.0f;
-  float invScale = 0.0f;  // cache of 1/scale
+  float invScale = 0.0f;
 };
 
+/// @internal
 struct Context {
   float currentCoverage = 0.0f;
   SamplerCtx sampler;
@@ -223,6 +244,7 @@ struct Context {
   Transform transform;
 };
 
+/// @internal
 class RasterPipeline {
  public:
   enum class Kind {
@@ -260,6 +282,7 @@ class RasterPipeline {
   std::array<LowpStageFn, kMaxStages> lowpTailFunctions_{};
 };
 
+/// @internal
 class RasterPipelineBuilder {
  public:
   RasterPipelineBuilder() = default;

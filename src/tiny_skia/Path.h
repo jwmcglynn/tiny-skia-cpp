@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file Path.h
+/// @brief Immutable vector path and related types.
+
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -16,6 +19,7 @@
 
 namespace tiny_skia {
 
+/// Path segment verb (moveTo, lineTo, quadTo, cubicTo, close).
 enum class PathVerb : std::uint8_t {
   Move,
   Close,
@@ -24,10 +28,11 @@ enum class PathVerb : std::uint8_t {
   Cubic,
 };
 
+/// Line cap style for stroke endpoints.
 enum class LineCap : std::uint8_t {
-  Butt,
-  Round,
-  Square,
+  Butt,   ///< Flat cap, no extension.
+  Round,  ///< Semicircle cap.
+  Square, ///< Extends by half the stroke width.
 };
 
 // Forward declarations for stroke/dash.
@@ -35,6 +40,7 @@ class PathBuilder;
 struct Stroke;
 struct StrokeDash;
 
+/// @internal
 /// A path segment for iteration.
 struct PathSegment {
   enum class Kind : std::uint8_t { MoveTo, LineTo, QuadTo, CubicTo, Close };
@@ -42,6 +48,11 @@ struct PathSegment {
   Point pts[3] = {};  // up to 3 points depending on kind
 };
 
+/// Immutable vector path — a sequence of lines, quadratics, and cubics.
+///
+/// Build with PathBuilder or use the static factories (fromRect, fromCircle).
+/// Paths are immutable once constructed; use Path::clear() to recycle into a
+/// new PathBuilder.
 class Path {
  public:
   Path() = default;
@@ -69,8 +80,10 @@ class Path {
   [[nodiscard]] std::span<const PathVerb> verbs() const { return verbs_; }
   [[nodiscard]] std::span<const Point> points() const { return points_; }
 
+  /// @internal
   void addVerb(PathVerb verb) { verbs_.push_back(verb); }
 
+  /// @internal
   void addPoint(Point point) {
     if (bounds_.has_value()) {
       const auto current = bounds_.value();
@@ -83,14 +96,15 @@ class Path {
     points_.push_back(point);
   }
 
+  /// @internal
   [[nodiscard]] bool isConvex() const { return true; }
 
+  /// Axis-aligned bounding box (control-point bounds).
   [[nodiscard]] Rect bounds() const {
     return bounds_.value_or(Rect::fromLTRB(0.0f, 0.0f, 0.0f, 0.0f).value());
   }
 
-  /// Returns a new Path with all points transformed.
-  /// Returns nullopt if the transform produces non-finite values.
+  /// Returns a transformed copy. Nullopt if the transform produces non-finite values.
   [[nodiscard]] std::optional<Path> transform(const Transform& ts) const {
     auto pts = points_;
     ts.mapPoints(pts);
@@ -102,18 +116,16 @@ class Path {
     return Path(verbs_, std::move(pts));
   }
 
-  /// Computes tight bounds by finding curve extrema.
-  /// Unlike bounds() which uses control points, this finds exact extrema.
+  /// Computes tight bounds by finding curve extrema (more precise than bounds()).
   [[nodiscard]] std::optional<Rect> computeTightBounds() const;
 
   /// Clears the path and returns a PathBuilder reusing the allocations.
-  /// Consumes (moves from) this path.
   [[nodiscard]] PathBuilder clear();
 
-  /// Stroke this path. Returns a filled path representing the stroke outline.
+  /// Generates a filled path representing the stroke outline.
   [[nodiscard]] std::optional<Path> stroke(const Stroke& stroke, float resScale) const;
 
-  /// Dash this path. Returns a new path with dash pattern applied.
+  /// Applies a dash pattern, returning a new dashed path.
   [[nodiscard]] std::optional<Path> dash(const StrokeDash& dash, float resScale) const;
 
  private:
@@ -143,11 +155,13 @@ class Path {
   std::optional<Rect> bounds_;
 };
 
+/// Fill rule for path filling.
 enum class FillRule : std::uint8_t {
-  Winding = 0,
-  EvenOdd = 1,
+  Winding = 0,  ///< Non-zero winding rule.
+  EvenOdd = 1,  ///< Even-odd (parity) rule.
 };
 
+/// @internal
 /// Path segments iterator.
 class PathSegmentsIter {
  public:

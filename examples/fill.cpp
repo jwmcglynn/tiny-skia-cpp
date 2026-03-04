@@ -15,6 +15,7 @@
 int main() {
   using namespace tiny_skia;
 
+  //! [fill_example]
   Paint paint1;
   paint1.setColorRgba8(50, 127, 150, 200);
   paint1.antiAlias = true;
@@ -44,6 +45,7 @@ int main() {
   auto mut = pixmap->mutableView();
   Painter::fillPath(mut, *path1, paint1, FillRule::Winding, Transform::identity());
   Painter::fillPath(mut, *path2, paint2, FillRule::Winding, Transform::identity());
+  //! [fill_example]
 
   auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("fill.png", data.data(), 1000, 1000)) {

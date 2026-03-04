@@ -112,3 +112,34 @@ add_tiny_skia_target(tiny_skia "TINYSKIA_CFG_IF_SIMD_NATIVE=1")
 
 # Scalar-only target: portable, no platform SIMD intrinsics.
 add_tiny_skia_target(tiny_skia_scalar "TINYSKIA_CFG_IF_SIMD_SCALAR=1")
+
+# ── Examples (opt-in via -DTINY_SKIA_BUILD_EXAMPLES=ON) ──────────────────────
+option(TINY_SKIA_BUILD_EXAMPLES "Build the tiny-skia-cpp example programs" OFF)
+
+if(TINY_SKIA_BUILD_EXAMPLES)
+  find_package(ZLIB REQUIRED)
+
+  set(TINY_SKIA_EXAMPLES fill stroke hairline linear_gradient mask pattern gamma image_on_image large_image)
+  foreach(example ${TINY_SKIA_EXAMPLES})
+    add_executable(example_${example} examples/${example}.cpp)
+    target_link_libraries(example_${example} PRIVATE tiny_skia ZLIB::ZLIB)
+    target_include_directories(example_${example} PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/examples
+    )
+  endforeach()
+endif()
+
+# ── Doxygen (opt-in via -DTINY_SKIA_BUILD_DOCS=ON) ───────────────────────────
+option(TINY_SKIA_BUILD_DOCS "Build Doxygen HTML documentation" OFF)
+
+if(TINY_SKIA_BUILD_DOCS)
+  find_package(Doxygen REQUIRED)
+  set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
+  configure_file(Doxyfile.in "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile" @ONLY)
+  add_custom_target(docs
+    COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM
+  )
+endif()
