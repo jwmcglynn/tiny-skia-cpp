@@ -33,7 +33,7 @@ tiny_skia::Pixmap createTriangle() {
   Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   // Stroke a border around the triangle pixmap.
-  auto rectPath = pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f));
+  auto rectPath = Path::fromRect(*Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f));
   Stroke stroke;
   paint.setColorRgba8(200, 0, 0, 220);
   Painter::strokePath(mut, rectPath, paint, stroke, Transform::identity());

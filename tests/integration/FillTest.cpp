@@ -459,7 +459,7 @@ TEST(FillTest, Memset2d) {
 
   auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
-  auto path = tiny_skia::pathFromRect(*rect);
+  auto path = tiny_skia::Path::fromRect(*rect);
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
@@ -477,7 +477,7 @@ TEST(FillTest, Memset2dOutOfBounds) {
 
   auto rect = Rect::fromLtrb(50.0f, 50.0f, 120.0f, 120.0f);
   ASSERT_TRUE(rect.has_value());
-  auto path = tiny_skia::pathFromRect(*rect);
+  auto path = tiny_skia::Path::fromRect(*rect);
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());

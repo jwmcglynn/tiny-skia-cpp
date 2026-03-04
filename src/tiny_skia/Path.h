@@ -50,6 +50,19 @@ class Path {
     recomputeBounds();
   }
 
+  /// Creates a rectangular path.
+  static Path fromRect(const Rect& rect) {
+    std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
+                                   PathVerb::Close};
+    std::vector<Point> points = {Point{rect.left(), rect.top()}, Point{rect.right(), rect.top()},
+                                 Point{rect.right(), rect.bottom()},
+                                 Point{rect.left(), rect.bottom()}};
+    return Path(std::move(verbs), std::move(points));
+  }
+
+  /// Creates a circular path. Returns nullopt for non-positive radius.
+  [[nodiscard]] static std::optional<Path> fromCircle(float cx, float cy, float r);
+
   [[nodiscard]] std::size_t len() const { return verbs_.size(); }
   [[nodiscard]] bool isEmpty() const { return verbs_.empty(); }
 
@@ -134,16 +147,6 @@ enum class FillRule : std::uint8_t {
   Winding = 0,
   EvenOdd = 1,
 };
-
-/// Creates a rectangular path from a Rect.
-inline Path pathFromRect(const Rect& rect) {
-  std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
-                                 PathVerb::Close};
-  std::vector<Point> points = {Point{rect.left(), rect.top()}, Point{rect.right(), rect.top()},
-                               Point{rect.right(), rect.bottom()},
-                               Point{rect.left(), rect.bottom()}};
-  return Path(std::move(verbs), std::move(points));
-}
 
 /// Path segments iterator.
 class PathSegmentsIter {

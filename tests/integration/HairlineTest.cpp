@@ -314,7 +314,7 @@ TEST(Hairline, ClippedCircleAa) {
     Stroke stroke;
     stroke.width = 0.5f;
 
-    auto path = PathBuilder::fromCircle(50.0f, 50.0f, 55.0f);
+    auto path = Path::fromCircle(50.0f, 50.0f, 55.0f);
     ASSERT_TRUE(path.has_value());
 
     auto mut = pixmap->mutableView();

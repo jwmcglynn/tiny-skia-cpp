@@ -17,7 +17,7 @@ namespace {
 TEST(MaskTest, Rect) {
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
@@ -40,7 +40,7 @@ TEST(MaskTest, Rect) {
 TEST(MaskTest, RectAa) {
     auto clipRect = Rect::fromLtrb(10.5f, 10.0f, 90.5f, 90.5f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
@@ -66,7 +66,7 @@ TEST(MaskTest, RectTs) {
 
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
     auto transformedPath = clipPath.transform(Transform::fromRow(1.0f, -0.3f, 0.0f, 1.0f, 0.0f, 15.0f));
     ASSERT_TRUE(transformedPath.has_value());
 
@@ -117,7 +117,7 @@ TEST(MaskTest, Stroke) {
 
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
@@ -132,7 +132,7 @@ TEST(MaskTest, Stroke) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto mut = pixmap->mutableView();
     Painter::strokePath(mut, path, paint, stroke, Transform::identity(), &*mask);
@@ -151,7 +151,7 @@ TEST(MaskTest, SkipDest) {
     // Draw first rect on pixmap
     auto rectPath1 = Rect::fromLtrb(5.0f, 5.0f, 65.0f, 65.0f);
     ASSERT_TRUE(rectPath1.has_value());
-    auto path1 = pathFromRect(*rectPath1);
+    auto path1 = Path::fromRect(*rectPath1);
     {
         auto mut = pixmap->mutableView();
         Painter::fillPath(mut, path1, paint, FillRule::Winding, Transform::identity());
@@ -162,7 +162,7 @@ TEST(MaskTest, SkipDest) {
     ASSERT_TRUE(pixmap2.has_value());
     auto rectPath2 = Rect::fromLtrb(35.0f, 35.0f, 95.0f, 95.0f);
     ASSERT_TRUE(rectPath2.has_value());
-    auto path2 = pathFromRect(*rectPath2);
+    auto path2 = Path::fromRect(*rectPath2);
     {
         auto mut2 = pixmap2->mutableView();
         Painter::fillPath(mut2, path2, paint, FillRule::Winding, Transform::identity());
@@ -171,7 +171,7 @@ TEST(MaskTest, SkipDest) {
     // Create mask
     auto clipRect = Rect::fromLtrb(40.0f, 40.0f, 80.0f, 80.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
     mask->Painter::fillPath(clipPath, FillRule::Winding, true, Transform::identity());
@@ -217,7 +217,7 @@ TEST(MaskTest, IntersectAa) {
 TEST(MaskTest, IgnoreMemset) {
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
@@ -240,7 +240,7 @@ TEST(MaskTest, IgnoreMemset) {
 TEST(MaskTest, IgnoreSource) {
     auto clipRect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
     ASSERT_TRUE(clipRect.has_value());
-    auto clipPath = pathFromRect(*clipRect);
+    auto clipPath = Path::fromRect(*clipRect);
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());

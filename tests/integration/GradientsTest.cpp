@@ -34,7 +34,7 @@ TEST(GradientsTest, TwoStopsLinearPadLq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -61,7 +61,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatLq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -88,7 +88,7 @@ TEST(GradientsTest, TwoStopsLinearReflectLq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -116,7 +116,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedLq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -143,7 +143,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedLq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -175,7 +175,7 @@ TEST(GradientsTest, TwoStopsLinearPadHq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -203,7 +203,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatHq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -231,7 +231,7 @@ TEST(GradientsTest, TwoStopsLinearReflectHq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -260,7 +260,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedHq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -288,7 +288,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedHq) {
     paint.shader = std::get<LinearGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -323,7 +323,7 @@ TEST(GradientsTest, WellBehavedRadial) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -352,7 +352,7 @@ TEST(GradientsTest, FocalOnCircleRadial) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -381,7 +381,7 @@ TEST(GradientsTest, ConicalGreaterRadial) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -410,7 +410,7 @@ TEST(GradientsTest, SimpleRadialLq) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -440,7 +440,7 @@ TEST(GradientsTest, SimpleRadialHq) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -470,7 +470,7 @@ TEST(GradientsTest, SimpleRadialWithTsHq) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -503,7 +503,7 @@ TEST(GradientsTest, globalOpacity) {
     applyShaderOpacity(paint.shader, 0.5f);
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -533,7 +533,7 @@ TEST(GradientsTest, StripGradient) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -563,7 +563,7 @@ TEST(GradientsTest, ConcentricRadial) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -594,7 +594,7 @@ TEST(GradientsTest, ConicalSmallerRadial) {
     paint.shader = std::get<RadialGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -626,7 +626,7 @@ TEST(GradientsTest, SweepGradient) {
     paint.shader = std::get<SweepGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -654,7 +654,7 @@ TEST(GradientsTest, SweepGradientFull) {
     paint.shader = std::get<SweepGradient>(std::move(*result));
 
     auto rect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
-    auto path = pathFromRect(*rect);
+    auto path = Path::fromRect(*rect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());

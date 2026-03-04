@@ -246,4 +246,10 @@ std::optional<Path> PathBuilder::finish() {
   return path;
 }
 
+std::optional<Path> Path::fromCircle(float cx, float cy, float r) {
+  PathBuilder b;
+  b.pushCircle(cx, cy, r);
+  return b.finish();
+}
+
 }  // namespace tiny_skia
