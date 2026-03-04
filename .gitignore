@@ -13,8 +13,8 @@ MODULE.bazel.lock
 # Cargo build artifacts (Rust FFI crate)
 tests/rust_ffi/target/
 
-# CMake build directory
-/build/
+# CMake build directories
+/build*/
 
 # Benchmark generated artifacts
 .benchmarks/
