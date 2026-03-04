@@ -290,24 +290,24 @@ TEST(ColorTest, PipelineAAMaskCtxCopyAtXYReturnsExpectedPairs) {
 }
 
 TEST(ColorTest, PipelineGradientCtxPushConstColorAppendsBiasAndZeroFactor) {
-  tiny_skia::pipeline::Context::GradientCtx gradient_ctx{};
+  tiny_skia::pipeline::Context::GradientCtx gradientCtx{};
   const auto first = tiny_skia::pipeline::GradientColor::newFromRGBA(0.2f, 0.4f, 0.6f, 0.8f);
   const auto second = tiny_skia::pipeline::GradientColor::newFromRGBA(0.3f, 0.5f, 0.7f, 0.9f);
 
-  ASSERT_THAT(gradient_ctx.factors, SizeIs(0));
-  ASSERT_THAT(gradient_ctx.biases, SizeIs(0));
-  gradient_ctx.pushConstColor(first);
-  EXPECT_THAT(gradient_ctx.factors, SizeIs(1));
-  EXPECT_THAT(gradient_ctx.biases, SizeIs(1));
-  EXPECT_EQ(gradient_ctx.factors[0], tiny_skia::pipeline::GradientColor{});
-  EXPECT_EQ(gradient_ctx.biases[0].r, first.r);
-  EXPECT_EQ(gradient_ctx.biases[0].g, first.g);
-  EXPECT_EQ(gradient_ctx.biases[0].b, first.b);
+  ASSERT_THAT(gradientCtx.factors, SizeIs(0));
+  ASSERT_THAT(gradientCtx.biases, SizeIs(0));
+  gradientCtx.pushConstColor(first);
+  EXPECT_THAT(gradientCtx.factors, SizeIs(1));
+  EXPECT_THAT(gradientCtx.biases, SizeIs(1));
+  EXPECT_EQ(gradientCtx.factors[0], tiny_skia::pipeline::GradientColor{});
+  EXPECT_EQ(gradientCtx.biases[0].r, first.r);
+  EXPECT_EQ(gradientCtx.biases[0].g, first.g);
+  EXPECT_EQ(gradientCtx.biases[0].b, first.b);
 
-  gradient_ctx.pushConstColor(second);
-  EXPECT_THAT(gradient_ctx.factors, SizeIs(2));
-  EXPECT_THAT(gradient_ctx.biases, SizeIs(2));
-  EXPECT_EQ(gradient_ctx.biases[1].a, second.a);
+  gradientCtx.pushConstColor(second);
+  EXPECT_THAT(gradientCtx.factors, SizeIs(2));
+  EXPECT_THAT(gradientCtx.biases, SizeIs(2));
+  EXPECT_EQ(gradientCtx.biases[1].a, second.a);
 }
 
 TEST(ColorTest, RasterPipelineBuilderCompileBuildsExpectedKindAndContext) {

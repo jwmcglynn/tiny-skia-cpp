@@ -79,7 +79,7 @@ bool nestedLt(float a, float b, float dim) { return a <= b && (a < b || dim > 0.
 
 }  // namespace
 
-namespace line_clipper {
+namespace lineClipper {
 
 std::span<const Point> clip(std::span<const Point, 2> src, const Rect& clip, bool canCullToTheRight,
                             std::span<Point, kLineClipperMaxPoints> pointsOut) {
@@ -233,5 +233,5 @@ bool intersect(std::span<const Point, 2> src, const Rect& clip, std::span<Point,
   return true;
 }
 
-}  // namespace line_clipper
+}  // namespace lineClipper
 }  // namespace tiny_skia

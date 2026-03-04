@@ -242,7 +242,7 @@ class RasterPipeline {
   void run(const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, MaskCtx maskCtx,
            const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst);
 
-  [[nodiscard]] std::size_t stageCount() const { return stage_count_; }
+  [[nodiscard]] std::size_t stageCount() const { return stageCount_; }
 
  private:
   using HighpStageFn = void (*)(highp::Pipeline&);
@@ -253,24 +253,24 @@ class RasterPipeline {
   Kind kind_ = Kind::High;
   Context ctx_{};
   std::array<Stage, kMaxStages> stages_ = {};
-  std::size_t stage_count_ = 0;
-  std::array<HighpStageFn, kMaxStages> highp_functions_{};
-  std::array<HighpStageFn, kMaxStages> highp_tail_functions_{};
-  std::array<LowpStageFn, kMaxStages> lowp_functions_{};
-  std::array<LowpStageFn, kMaxStages> lowp_tail_functions_{};
+  std::size_t stageCount_ = 0;
+  std::array<HighpStageFn, kMaxStages> highpFunctions_{};
+  std::array<HighpStageFn, kMaxStages> highpTailFunctions_{};
+  std::array<LowpStageFn, kMaxStages> lowpFunctions_{};
+  std::array<LowpStageFn, kMaxStages> lowpTailFunctions_{};
 };
 
 class RasterPipelineBuilder {
  public:
   RasterPipelineBuilder() = default;
 
-  void setForceHqPipeline(bool hq) { force_hq_pipeline_ = hq; }
+  void setForceHqPipeline(bool hq) { forceHqPipeline_ = hq; }
 
   void push(Stage stage) {
-    if (stage_count_ >= kMaxStages) {
+    if (stageCount_ >= kMaxStages) {
       return;
     }
-    stages_[stage_count_++] = stage;
+    stages_[stageCount_++] = stage;
   }
 
   void pushTransform(const Transform& ts) {
@@ -289,8 +289,8 @@ class RasterPipelineBuilder {
 
  private:
   std::array<Stage, kMaxStages> stages_ = {};
-  std::size_t stage_count_ = 0;
-  bool force_hq_pipeline_ = false;
+  std::size_t stageCount_ = 0;
+  bool forceHqPipeline_ = false;
   Context ctx_;
 };
 

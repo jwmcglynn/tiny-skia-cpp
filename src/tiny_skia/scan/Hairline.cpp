@@ -390,7 +390,7 @@ void hairCubic(std::array<Point, 4> points, const ScreenIntRect* clip,
   auto tValues = std::array<NormalizedF32Exclusive, 3>{
       NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
   const auto count =
-      path_geometry::chopCubicAtMaxCurvature(points, tValues, std::span<Point>{split});
+      pathGeometry::chopCubicAtMaxCurvature(points, tValues, std::span<Point>{split});
   for (std::size_t i = 0; i < count; ++i) {
     const auto offset = i * 3;
     const auto segment = std::array<Point, 4>{split[offset], split[offset + 1], split[offset + 2],
@@ -413,7 +413,7 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
   for (std::size_t i = 0; i + 1 < points.size(); ++i) {
     const auto segment = std::array<Point, 2>{points[i], points[i + 1]};
     auto clipped = std::array<Point, 2>{};
-    if (!line_clipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
+    if (!lineClipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
                                  std::span<Point, 2>{clipped})) {
       continue;
     }
@@ -421,7 +421,7 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
     auto working = clipped;
     if (clipBounds.has_value()) {
       auto clipped2 = std::array<Point, 2>{};
-      if (!line_clipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
+      if (!lineClipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
                                    std::span<Point, 2>{clipped2})) {
         continue;
       }

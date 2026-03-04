@@ -14,7 +14,7 @@ using namespace tiny_skia;
 // ---------------------------------------------------------------------------
 // clone_rect_1
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, clone_rect_1) {
+TEST(PixmapTest, CloneRect1) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
@@ -39,7 +39,7 @@ TEST(PixmapTest, clone_rect_1) {
 // ---------------------------------------------------------------------------
 // clone_rect_2
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, clone_rect_2) {
+TEST(PixmapTest, CloneRect2) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
@@ -64,7 +64,7 @@ TEST(PixmapTest, clone_rect_2) {
 // ---------------------------------------------------------------------------
 // clone_rect_out_of_bound
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, clone_rect_out_of_bound) {
+TEST(PixmapTest, CloneRectOutOfBound) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
@@ -115,7 +115,7 @@ TEST(PixmapTest, fill) {
 // Tests that painting algorithm will switch Bicubic/Bilinear to Nearest.
 // Otherwise we will get a blurry image.
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, draw_pixmap) {
+TEST(PixmapTest, DrawPixmap) {
     // A pixmap with the bottom half filled with solid color.
     auto subPixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(subPixmap.has_value());
@@ -146,7 +146,7 @@ TEST(PixmapTest, draw_pixmap) {
 // ---------------------------------------------------------------------------
 // draw_pixmap_ts
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, draw_pixmap_ts) {
+TEST(PixmapTest, DrawPixmapTs) {
     // Create a triangle sub-pixmap.
     auto triangle = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(triangle.has_value());
@@ -183,7 +183,7 @@ TEST(PixmapTest, draw_pixmap_ts) {
 // ---------------------------------------------------------------------------
 // draw_pixmap_opacity
 // ---------------------------------------------------------------------------
-TEST(PixmapTest, draw_pixmap_opacity) {
+TEST(PixmapTest, DrawPixmapOpacity) {
     // Create a triangle sub-pixmap.
     auto triangle = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(triangle.has_value());

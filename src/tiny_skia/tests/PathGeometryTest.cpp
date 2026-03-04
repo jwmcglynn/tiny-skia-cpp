@@ -26,7 +26,7 @@ TEST(PathGeometryTest, ChopQuadAtInterpolatesPoints) {
   const auto src =
       std::array<tiny_skia::Point, 3>{tiny_skia::Point{0.0f, 0.0f}, {10.0f, 10.0f}, {20.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 5>{};
-  const auto count = tiny_skia::path_geometry::chopQuadAt(src, 0.25f, dst);
+  const auto count = tiny_skia::pathGeometry::chopQuadAt(src, 0.25f, dst);
 
   EXPECT_EQ(count, 1u);
   EXPECT_THAT(std::span<const tiny_skia::Point>(dst.data(), 5),
@@ -38,7 +38,7 @@ TEST(PathGeometryTest, ChopQuadAtXExtremaMonotonicLeavesInputIntact) {
   const auto src = std::array<tiny_skia::Point, 3>{
       tiny_skia::Point{0.0f, 0.0f}, tiny_skia::Point{1.0f, 1.0f}, tiny_skia::Point{2.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 5>{};
-  const auto count = tiny_skia::path_geometry::chopQuadAtXExtrema(src, dst);
+  const auto count = tiny_skia::pathGeometry::chopQuadAtXExtrema(src, dst);
 
   EXPECT_EQ(count, 0u);
   EXPECT_FLOAT_EQ(dst[0].x, src[0].x);
@@ -50,7 +50,7 @@ TEST(PathGeometryTest, ChopQuadAtYExtremaMonotonicLeavesInputIntact) {
   const auto src = std::array<tiny_skia::Point, 3>{
       tiny_skia::Point{0.0f, 0.0f}, tiny_skia::Point{1.0f, 1.0f}, tiny_skia::Point{2.0f, 2.0f}};
   auto dst = std::array<tiny_skia::Point, 5>{};
-  const auto count = tiny_skia::path_geometry::chopQuadAtYExtrema(src, dst);
+  const auto count = tiny_skia::pathGeometry::chopQuadAtYExtrema(src, dst);
 
   EXPECT_EQ(count, 0u);
   EXPECT_FLOAT_EQ(dst[0].x, src[0].x);
@@ -61,7 +61,7 @@ TEST(PathGeometryTest, ChopQuadAtYExtremaFlattensPeak) {
   const auto src = std::array<tiny_skia::Point, 3>{
       tiny_skia::Point{0.0f, 0.0f}, tiny_skia::Point{1.0f, 10.0f}, tiny_skia::Point{2.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 5>{};
-  const auto count = tiny_skia::path_geometry::chopQuadAtYExtrema(src, dst);
+  const auto count = tiny_skia::pathGeometry::chopQuadAtYExtrema(src, dst);
 
   EXPECT_EQ(count, 1u);
   // chopQuadAtYExtrema only flattens Y coordinates (matching Rust).
@@ -78,7 +78,7 @@ TEST(PathGeometryTest, ChopCubicAtReturnsOriginalForEmptyTValues) {
   auto dst = std::array<tiny_skia::Point, 10>{};
   const auto span = std::span<const tiny_skia::NormalizedF32Exclusive>{};
   const auto count =
-      tiny_skia::path_geometry::chopCubicAt(src, span, std::span<tiny_skia::Point>(dst));
+      tiny_skia::pathGeometry::chopCubicAt(src, span, std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 0u);
   EXPECT_THAT(dst[0], PointEq(src[0].x, src[0].y));
@@ -92,7 +92,7 @@ TEST(PathGeometryTest, ChopCubicAtSplitsAtOneCut) {
   const auto tValues =
       std::array<tiny_skia::NormalizedF32Exclusive, 1>{tiny_skia::NormalizedF32Exclusive::HALF};
   auto dst = std::array<tiny_skia::Point, 10>{};
-  const auto count = tiny_skia::path_geometry::chopCubicAt(
+  const auto count = tiny_skia::pathGeometry::chopCubicAt(
       src, std::span<const tiny_skia::NormalizedF32Exclusive>(tValues.data(), tValues.size()),
       std::span<tiny_skia::Point>(dst));
 
@@ -107,7 +107,7 @@ TEST(PathGeometryTest, ChopCubicAtYExtremaFlattensMonotonicYForCurve) {
       std::array<tiny_skia::Point, 4>{tiny_skia::Point{0.0f, 0.0f}, tiny_skia::Point{1.0f, 3.0f},
                                       tiny_skia::Point{2.0f, 3.0f}, tiny_skia::Point{3.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 10>{};
-  const auto count = tiny_skia::path_geometry::chopCubicAtYExtrema(src, dst);
+  const auto count = tiny_skia::pathGeometry::chopCubicAtYExtrema(src, dst);
 
   EXPECT_EQ(count, 1u);
   EXPECT_FLOAT_EQ(dst[2].y, dst[3].y);
@@ -118,7 +118,7 @@ TEST(PathGeometryTest, ChopMonoQuadAtXReturnsFalseWhenNoIntersection) {
   const auto src =
       std::array<tiny_skia::Point, 3>{tiny_skia::Point{0.0f, 0.0f}, {2.0f, 2.0f}, {4.0f, 4.0f}};
   float t = -1.0f;
-  const auto found = tiny_skia::path_geometry::chopMonoQuadAtX(src, 123.0f, t);
+  const auto found = tiny_skia::pathGeometry::chopMonoQuadAtX(src, 123.0f, t);
 
   EXPECT_FALSE(found);
   EXPECT_FLOAT_EQ(t, -1.0f);
@@ -128,7 +128,7 @@ TEST(PathGeometryTest, ChopMonoQuadAtYReportsTAndLeavesBounds) {
   const auto src =
       std::array<tiny_skia::Point, 3>{tiny_skia::Point{0.0f, 0.0f}, {2.0f, 4.0f}, {4.0f, 0.0f}};
   float t = -1.0f;
-  const auto found = tiny_skia::path_geometry::chopMonoQuadAtY(src, 2.0f, t);
+  const auto found = tiny_skia::pathGeometry::chopMonoQuadAtY(src, 2.0f, t);
 
   EXPECT_TRUE(found);
   EXPECT_GT(t, 0.0f);
@@ -139,7 +139,7 @@ TEST(PathGeometryTest, ChopMonoCubicAtXFindsAndChopsAtIntercept) {
   const auto src = std::array<tiny_skia::Point, 4>{
       tiny_skia::Point{0.0f, 0.0f}, {10.0f, 0.0f}, {20.0f, 0.0f}, {30.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 7>{};
-  const auto found = tiny_skia::path_geometry::chopMonoCubicAtX(src, 15.0f, dst);
+  const auto found = tiny_skia::pathGeometry::chopMonoCubicAtX(src, 15.0f, dst);
 
   EXPECT_TRUE(found);
   EXPECT_THAT(dst[0], PointEq(0.0f, 0.0f));
@@ -151,7 +151,7 @@ TEST(PathGeometryTest, ChopMonoCubicAtYReturnsFalseWithoutRoots) {
   const auto src = std::array<tiny_skia::Point, 4>{
       tiny_skia::Point{0.0f, 0.0f}, {10.0f, 0.0f}, {20.0f, 0.0f}, {30.0f, 0.0f}};
   auto dst = std::array<tiny_skia::Point, 7>{};
-  const auto found = tiny_skia::path_geometry::chopMonoCubicAtY(src, 100.0f, dst);
+  const auto found = tiny_skia::pathGeometry::chopMonoCubicAtY(src, 100.0f, dst);
 
   EXPECT_FALSE(found);
 }
@@ -167,7 +167,7 @@ TEST(PathGeometryTest, ChopCubicAtMaxCurvatureFiltersEndpointsAndSplits) {
       tiny_skia::NormalizedF32Exclusive::HALF, tiny_skia::NormalizedF32Exclusive::HALF,
       tiny_skia::NormalizedF32Exclusive::HALF};
   auto dst = std::array<tiny_skia::Point, 10>{};
-  const auto count = tiny_skia::path_geometry::chopCubicAtMaxCurvature(
+  const auto count = tiny_skia::pathGeometry::chopCubicAtMaxCurvature(
       src, tValues, std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 2u);
@@ -187,7 +187,7 @@ TEST(PathGeometryTest, ChopCubicAtMaxCurvatureNoInteriorRootsReturnsOriginalCurv
       tiny_skia::NormalizedF32Exclusive::HALF, tiny_skia::NormalizedF32Exclusive::HALF,
       tiny_skia::NormalizedF32Exclusive::HALF};
   auto dst = std::array<tiny_skia::Point, 4>{};
-  const auto count = tiny_skia::path_geometry::chopCubicAtMaxCurvature(
+  const auto count = tiny_skia::pathGeometry::chopCubicAtMaxCurvature(
       src, tValues, std::span<tiny_skia::Point>(dst));
 
   EXPECT_EQ(count, 1u);
@@ -204,8 +204,8 @@ TEST(PathGeometryTest, ModuleOwnershipWrappersRouteToUnderlyingFunctions) {
   auto directDst = std::array<tiny_skia::Point, 5>{};
   auto wrappedDst = std::array<tiny_skia::Point, 5>{};
 
-  const auto directCount = tiny_skia::path_geometry::chopQuadAt(quad, 0.5f, directDst);
-  const auto wrappedCount = tiny_skia::path_geometry::path_rs::chopQuadAt(quad, 0.5f, wrappedDst);
+  const auto directCount = tiny_skia::pathGeometry::chopQuadAt(quad, 0.5f, directDst);
+  const auto wrappedCount = tiny_skia::pathGeometry::pathRs::chopQuadAt(quad, 0.5f, wrappedDst);
   EXPECT_EQ(wrappedCount, directCount);
   EXPECT_EQ(wrappedDst, directDst);
 
@@ -215,9 +215,9 @@ TEST(PathGeometryTest, ModuleOwnershipWrappersRouteToUnderlyingFunctions) {
   auto directExtremaDst = std::array<tiny_skia::Point, 10>{};
   auto wrappedExtremaDst = std::array<tiny_skia::Point, 10>{};
   const auto directExtremaCount =
-      tiny_skia::path_geometry::chopCubicAtYExtrema(cubic, directExtremaDst);
+      tiny_skia::pathGeometry::chopCubicAtYExtrema(cubic, directExtremaDst);
   const auto wrappedExtremaCount =
-      tiny_skia::path_geometry::core_rs::chopCubicAtYExtrema(cubic, wrappedExtremaDst);
+      tiny_skia::pathGeometry::coreRs::chopCubicAtYExtrema(cubic, wrappedExtremaDst);
   EXPECT_EQ(wrappedExtremaCount, directExtremaCount);
   EXPECT_EQ(wrappedExtremaDst, directExtremaDst);
 }

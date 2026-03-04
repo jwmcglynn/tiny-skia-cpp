@@ -2,7 +2,7 @@
 
 #include "tiny_skia/Geom.h"
 
-namespace tiny_skia::path_rect_rs {
+namespace tiny_skia::pathRectRs {
 
 // Wrappers for `third_party/tiny-skia/path/src/rect.rs`.
 
@@ -26,4 +26,4 @@ inline std::optional<ScreenIntRect> intRectToScreen(const IntRect& rect) {
   return ::tiny_skia::intRectToScreen(rect);
 }
 
-}  // namespace tiny_skia::path_rect_rs
+}  // namespace tiny_skia::pathRectRs

@@ -28,7 +28,7 @@ struct RadialType {
 };
 
 struct StripType {
-  float scaled_r0 = 0.0f;
+  float scaledR0 = 0.0f;
 };
 
 using GradientType = std::variant<RadialType, StripType, FocalData>;
@@ -58,7 +58,7 @@ class RadialGradient {
       Point c0, float r0, Point c1, float r1, std::vector<GradientStop> stops, SpreadMode mode,
       Transform transform);
 
-  GradientType gradient_type_;
+  GradientType gradientType_;
 };
 
 }  // namespace tiny_skia

@@ -28,7 +28,7 @@ class Gradient {
   Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transform transform,
            Transform pointsToUnit);
 
-  [[nodiscard]] bool colorsAreOpaque() const { return colors_are_opaque_; }
+  [[nodiscard]] bool colorsAreOpaque() const { return colorsAreOpaque_; }
 
   [[nodiscard]] bool pushStages(
       pipeline::RasterPipelineBuilder& p, ColorSpace cs,
@@ -41,10 +41,10 @@ class Gradient {
 
  private:
   std::vector<GradientStop> stops_;
-  SpreadMode tile_mode_ = SpreadMode::Pad;
-  Transform points_to_unit_;
-  bool colors_are_opaque_ = true;
-  bool has_uniform_stops_ = true;
+  SpreadMode tileMode_ = SpreadMode::Pad;
+  Transform pointsToUnit_;
+  bool colorsAreOpaque_ = true;
+  bool hasUniformStops_ = true;
 };
 
 }  // namespace tiny_skia

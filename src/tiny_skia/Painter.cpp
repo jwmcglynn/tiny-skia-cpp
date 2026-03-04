@@ -48,7 +48,7 @@ std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth, Tran
   Point points[2] = {Point::fromXy(strokeWidth, 0.0f), Point::fromXy(0.0f, strokeWidth)};
   ts.mapPoints(points);
 
-  // fast_len: approximation of vector length.
+  // fastLen: approximation of vector length.
   auto fastLen = [](Point p) -> float {
     float ax = std::abs(p.x);
     float ay = std::abs(p.y);

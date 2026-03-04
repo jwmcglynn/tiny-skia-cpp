@@ -71,7 +71,7 @@ TEST(PathTest, line) {
 // ---------------------------------------------------------------------------
 // no_move_before_line
 // ---------------------------------------------------------------------------
-TEST(PathTest, no_move_before_line) {
+TEST(PathTest, NoMoveBeforeLine) {
     PathBuilder pb;
     pb.lineTo(30.0f, 40.0f);
     auto path = pb.finish();
@@ -88,7 +88,7 @@ TEST(PathTest, no_move_before_line) {
 // ---------------------------------------------------------------------------
 // no_move_before_quad
 // ---------------------------------------------------------------------------
-TEST(PathTest, no_move_before_quad) {
+TEST(PathTest, NoMoveBeforeQuad) {
     PathBuilder pb;
     pb.quadTo(40.0f, 30.0f, 60.0f, 75.0f);
     auto path = pb.finish();
@@ -106,7 +106,7 @@ TEST(PathTest, no_move_before_quad) {
 // ---------------------------------------------------------------------------
 // no_move_before_cubic
 // ---------------------------------------------------------------------------
-TEST(PathTest, no_move_before_cubic) {
+TEST(PathTest, NoMoveBeforeCubic) {
     PathBuilder pb;
     pb.cubicTo(40.0f, 30.0f, 60.0f, 75.0f, 33.0f, 66.0f);
     auto path = pb.finish();
@@ -125,7 +125,7 @@ TEST(PathTest, no_move_before_cubic) {
 // ---------------------------------------------------------------------------
 // no_move_before_close
 // ---------------------------------------------------------------------------
-TEST(PathTest, no_move_before_close) {
+TEST(PathTest, NoMoveBeforeClose) {
     PathBuilder pb;
     pb.close();
     EXPECT_FALSE(pb.finish().has_value());
@@ -134,7 +134,7 @@ TEST(PathTest, no_move_before_close) {
 // ---------------------------------------------------------------------------
 // double_close
 // ---------------------------------------------------------------------------
-TEST(PathTest, double_close) {
+TEST(PathTest, DoubleClose) {
     PathBuilder pb;
     pb.moveTo(10.0f, 10.0f);
     pb.lineTo(20.0f, 10.0f);
@@ -156,7 +156,7 @@ TEST(PathTest, double_close) {
 // ---------------------------------------------------------------------------
 // double_move_to_1
 // ---------------------------------------------------------------------------
-TEST(PathTest, double_move_to_1) {
+TEST(PathTest, DoubleMoveTo1) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.moveTo(30.0f, 40.0f);
@@ -166,7 +166,7 @@ TEST(PathTest, double_move_to_1) {
 // ---------------------------------------------------------------------------
 // double_move_to_2
 // ---------------------------------------------------------------------------
-TEST(PathTest, double_move_to_2) {
+TEST(PathTest, DoubleMoveTo2) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.moveTo(20.0f, 10.0f);
@@ -185,7 +185,7 @@ TEST(PathTest, double_move_to_2) {
 // ---------------------------------------------------------------------------
 // two_contours
 // ---------------------------------------------------------------------------
-TEST(PathTest, two_contours) {
+TEST(PathTest, TwoContours) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.lineTo(30.0f, 40.0f);
@@ -207,7 +207,7 @@ TEST(PathTest, two_contours) {
 // ---------------------------------------------------------------------------
 // two_closed_contours
 // ---------------------------------------------------------------------------
-TEST(PathTest, two_closed_contours) {
+TEST(PathTest, TwoClosedContours) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.lineTo(30.0f, 40.0f);
@@ -234,7 +234,7 @@ TEST(PathTest, two_closed_contours) {
 // ---------------------------------------------------------------------------
 // line_after_close
 // ---------------------------------------------------------------------------
-TEST(PathTest, line_after_close) {
+TEST(PathTest, LineAfterClose) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.lineTo(30.0f, 40.0f);
@@ -259,7 +259,7 @@ TEST(PathTest, line_after_close) {
 // ---------------------------------------------------------------------------
 // hor_line
 // ---------------------------------------------------------------------------
-TEST(PathTest, hor_line) {
+TEST(PathTest, HorLine) {
     PathBuilder pb;
     pb.moveTo(10.0f, 10.0f);
     pb.lineTo(20.0f, 10.0f);
@@ -277,7 +277,7 @@ TEST(PathTest, hor_line) {
 // ---------------------------------------------------------------------------
 // ver_line
 // ---------------------------------------------------------------------------
-TEST(PathTest, ver_line) {
+TEST(PathTest, VerLine) {
     PathBuilder pb;
     pb.moveTo(10.0f, 10.0f);
     pb.lineTo(10.0f, 20.0f);
@@ -356,7 +356,7 @@ TEST(PathTest, transform) {
 // ---------------------------------------------------------------------------
 // invalid_transform
 // ---------------------------------------------------------------------------
-TEST(PathTest, invalid_transform) {
+TEST(PathTest, InvalidTransform) {
     PathBuilder pb;
     pb.moveTo(10.0f, 20.0f);
     pb.lineTo(30.0f, 40.0f);
@@ -381,7 +381,7 @@ TEST(PathTest, circle) {
 // ---------------------------------------------------------------------------
 // large_circle
 // ---------------------------------------------------------------------------
-TEST(PathTest, large_circle) {
+TEST(PathTest, LargeCircle) {
     auto path = PathBuilder::fromCircle(250.0f, 250.0f, 2000.0f);
     EXPECT_TRUE(path.has_value());  // Must not panic.
 }
@@ -389,7 +389,7 @@ TEST(PathTest, large_circle) {
 // ---------------------------------------------------------------------------
 // tight_bounds_1
 // ---------------------------------------------------------------------------
-TEST(PathTest, tight_bounds_1) {
+TEST(PathTest, TightBounds1) {
     PathBuilder pb;
     pb.moveTo(50.0f, 85.0f);
     pb.lineTo(65.0f, 135.0f);
@@ -414,7 +414,7 @@ TEST(PathTest, tight_bounds_1) {
 // ---------------------------------------------------------------------------
 // tight_bounds_2
 // ---------------------------------------------------------------------------
-TEST(PathTest, tight_bounds_2) {
+TEST(PathTest, TightBounds2) {
     PathBuilder pb;
     pb.moveTo(-19.309214f, 72.11173f);
     pb.cubicTo(-24.832062f, 67.477516f, -20.490944f, 62.16584f, -9.61306f, 60.247776f);

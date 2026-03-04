@@ -22,8 +22,8 @@ class AlphaRuns {
 
   void reset(LengthU32 width);
 
-  std::size_t add(std::uint32_t x, AlphaU8 start_alpha, std::size_t middle_count,
-                  AlphaU8 stop_alpha, std::uint8_t max_value, std::size_t offset_x);
+  std::size_t add(std::uint32_t x, AlphaU8 startAlpha, std::size_t middleCount,
+                  AlphaU8 stopAlpha, std::uint8_t maxValue, std::size_t offsetX);
 
   static void breakRun(std::span<AlphaRun> runs, std::span<std::uint8_t> alpha, std::size_t x,
                        std::size_t count);

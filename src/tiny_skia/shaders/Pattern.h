@@ -37,7 +37,7 @@ class Pattern {
 
  private:
   FilterQuality quality_;
-  SpreadMode spread_mode_;
+  SpreadMode spreadMode_;
 };
 
 }  // namespace tiny_skia

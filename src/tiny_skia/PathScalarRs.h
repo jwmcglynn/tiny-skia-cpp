@@ -5,7 +5,7 @@
 #include "tiny_skia/Point.h"
 #include "tiny_skia/Scalar.h"
 
-namespace tiny_skia::path_scalar_rs {
+namespace tiny_skia::pathScalarRs {
 
 // Wrappers for `third_party/tiny-skia/path/src/scalar.rs`.
 
@@ -36,4 +36,4 @@ inline bool almostDequalUlps(float a, float b) {
   return aBits < bBits + kUlpsEpsilon && bBits < aBits + kUlpsEpsilon;
 }
 
-}  // namespace tiny_skia::path_scalar_rs
+}  // namespace tiny_skia::pathScalarRs

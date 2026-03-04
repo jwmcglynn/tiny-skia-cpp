@@ -10,32 +10,32 @@ namespace {
 
 std::size_t computeQuadExtremas(Point p0, Point p1, Point p2, Point extremas[5]) {
   std::size_t idx = 0;
-  if (auto t = path_geometry::findQuadExtrema(p0.x, p1.x, p2.x)) {
+  if (auto t = pathGeometry::findQuadExtrema(p0.x, p1.x, p2.x)) {
     const Point src[3] = {p0, p1, p2};
-    extremas[idx++] = path_geometry::evalQuadAt(src, t->toNormalized());
+    extremas[idx++] = pathGeometry::evalQuadAt(src, t->toNormalized());
   }
-  if (auto t = path_geometry::findQuadExtrema(p0.y, p1.y, p2.y)) {
+  if (auto t = pathGeometry::findQuadExtrema(p0.y, p1.y, p2.y)) {
     const Point src[3] = {p0, p1, p2};
-    extremas[idx++] = path_geometry::evalQuadAt(src, t->toNormalized());
+    extremas[idx++] = pathGeometry::evalQuadAt(src, t->toNormalized());
   }
   extremas[idx] = p2;
   return idx + 1;
 }
 
 std::size_t computeCubicExtremas(Point p0, Point p1, Point p2, Point p3, Point extremas[5]) {
-  auto ts0 = path_geometry::newTValues();
-  auto ts1 = path_geometry::newTValues();
-  const auto n0 = path_geometry::findCubicExtremaT(p0.x, p1.x, p2.x, p3.x, ts0.data());
-  const auto n1 = path_geometry::findCubicExtremaT(p0.y, p1.y, p2.y, p3.y, ts1.data());
+  auto ts0 = pathGeometry::newTValues();
+  auto ts1 = pathGeometry::newTValues();
+  const auto n0 = pathGeometry::findCubicExtremaT(p0.x, p1.x, p2.x, p3.x, ts0.data());
+  const auto n1 = pathGeometry::findCubicExtremaT(p0.y, p1.y, p2.y, p3.y, ts1.data());
   const auto totalLen = n0 + n1;
 
   const Point src[4] = {p0, p1, p2, p3};
   std::size_t idx = 0;
   for (std::size_t i = 0; i < n0; ++i) {
-    extremas[idx++] = path_geometry::evalCubicPosAt(src, ts0[i].toNormalized());
+    extremas[idx++] = pathGeometry::evalCubicPosAt(src, ts0[i].toNormalized());
   }
   for (std::size_t i = 0; i < n1; ++i) {
-    extremas[idx++] = path_geometry::evalCubicPosAt(src, ts1[i].toNormalized());
+    extremas[idx++] = pathGeometry::evalCubicPosAt(src, ts1[i].toNormalized());
   }
   extremas[totalLen] = p3;
   return totalLen + 1;

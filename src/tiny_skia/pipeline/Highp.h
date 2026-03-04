@@ -16,7 +16,7 @@ constexpr std::size_t kStageWidth = 8;
 void justReturn(Pipeline&);
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
-           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
+           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFunctions,
            const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
            Context& ctx, const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst);
 

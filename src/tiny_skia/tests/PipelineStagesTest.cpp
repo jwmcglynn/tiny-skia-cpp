@@ -200,7 +200,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
 }
 
 // ==================================================================
-// xy_to_radius (radial gradient)
+// xyToRadius (radial gradient)
 // ==================================================================
 
 TEST(PipelineGradientTest, RadialGradient) {
@@ -238,7 +238,7 @@ TEST(PipelineGradientTest, RadialGradient) {
 }
 
 // ==================================================================
-// xy_to_unit_angle (sweep gradient)
+// xyToUnitAngle (sweep gradient)
 // ==================================================================
 
 TEST(PipelineGradientTest, SweepGradient) {
@@ -271,7 +271,7 @@ TEST(PipelineGradientTest, SweepGradient) {
 }
 
 // ==================================================================
-// pad_x1 / repeat_x1 / reflect_x1 tile mode stages
+// padX1 / repeatX1 / reflectX1 tile mode stages
 // ==================================================================
 
 TEST(PipelineTileModeTest, PadGradient) {

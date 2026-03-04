@@ -116,7 +116,7 @@ TEST(PatternTest, PadBicubic) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
+    // Rust: Transform::fromRow(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     //   = (sx=1.1, kx=0.3, ky=0.0, sy=1.4, tx=0.0, ty=0.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
     paint.shader = Pattern(
@@ -144,7 +144,7 @@ TEST(PatternTest, RepeatBicubic) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
+    // Rust: Transform::fromRow(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Repeat,
@@ -170,7 +170,7 @@ TEST(PatternTest, ReflectBicubic) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
+    // Rust: Transform::fromRow(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Reflect,
@@ -221,7 +221,7 @@ TEST(PatternTest, FilterNearest) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
+    // Rust: Transform::fromRow(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     //   = (sx=1.5, kx=0.0, ky=-0.4, sy=-0.8, tx=5.0, ty=1.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
     paint.shader = Pattern(
@@ -249,7 +249,7 @@ TEST(PatternTest, FilterBilinear) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
+    // Rust: Transform::fromRow(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Repeat,
@@ -275,7 +275,7 @@ TEST(PatternTest, FilterBicubic) {
 
     Paint paint;
     paint.antiAlias = false;
-    // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
+    // Rust: Transform::fromRow(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Repeat,

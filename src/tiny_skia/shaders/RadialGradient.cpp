@@ -68,7 +68,7 @@ std::optional<std::variant<Color, RadialGradient>> RadialGradient::createRadialU
   const auto pointsToUnit = Transform::fromTranslate(-center.x, -center.y).postScale(inv, inv);
 
   RadialGradient rg{Gradient(std::move(stops), mode, transform, pointsToUnit)};
-  rg.gradient_type_ = RadialType{0.0f, radius};
+  rg.gradientType_ = RadialType{0.0f, radius};
   return std::variant<Color, RadialGradient>{std::move(rg)};
 }
 
@@ -110,7 +110,7 @@ std::optional<std::variant<Color, RadialGradient>> RadialGradient::createTwoPoin
   }
 
   RadialGradient rg{Gradient(std::move(stops), mode, transform, gradientMatrix)};
-  rg.gradient_type_ = std::move(gradientType);
+  rg.gradientType_ = std::move(gradientType);
   return std::variant<Color, RadialGradient>{std::move(rg)};
 }
 
@@ -159,7 +159,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
   using Stage = pipeline::Stage;
 
   float p0 = 0.0f, p1 = 0.0f;
-  if (const auto* rt = std::get_if<RadialType>(&gradient_type_)) {
+  if (const auto* rt = std::get_if<RadialType>(&gradientType_)) {
     if (rt->radius1 == 0.0f) {
       p0 = 1.0f;
       p1 = 0.0f;
@@ -168,10 +168,10 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
       p0 = std::max(rt->radius1, rt->radius2) / dRadius;
       p1 = -rt->radius1 / dRadius;
     }
-  } else if (const auto* st = std::get_if<StripType>(&gradient_type_)) {
-    p0 = st->scaled_r0 * st->scaled_r0;
+  } else if (const auto* st = std::get_if<StripType>(&gradientType_)) {
+    p0 = st->scaledR0 * st->scaledR0;
     p1 = 0.0f;
-  } else if (const auto* fd = std::get_if<FocalData>(&gradient_type_)) {
+  } else if (const auto* fd = std::get_if<FocalData>(&gradientType_)) {
     p0 = 1.0f / fd->r1;
     p1 = fd->focalX;
   }
@@ -179,7 +179,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
   p.ctx().twoPointConicalGradient =
       pipeline::TwoPointConicalGradientCtx{.mask = 0, .p0 = p0, .p1 = p1};
 
-  const auto& gt = gradient_type_;
+  const auto& gt = gradientType_;
   return base_.pushStages(
       p, cs,
       [&gt, p0, p1](pipeline::RasterPipelineBuilder& b) {

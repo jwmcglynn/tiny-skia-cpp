@@ -199,7 +199,7 @@ Paint createPaint() {
 void recordThroughput(benchmark::State& state, std::int64_t dim) {
   const auto pixelsPerIteration = static_cast<double>(dim * dim);
   state.SetItemsProcessed(state.iterations() * dim * dim);
-  state.counters["pixels_per_second"] = benchmark::Counter(
+  state.counters["pixelsPerSecond"] = benchmark::Counter(
       pixelsPerIteration, benchmark::Counter::kIsIterationInvariantRate);
 }
 
@@ -352,13 +352,13 @@ void BM_FillRect_Rust(benchmark::State& state) {
 
 [[maybe_unused]] const bool kBenchmarkContextInitialized = []() {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE)
-  benchmark::AddCustomContext("simd_mode", "native");
+  benchmark::AddCustomContext("simdMode", "native");
 #else
-  benchmark::AddCustomContext("simd_mode", "scalar");
+  benchmark::AddCustomContext("simdMode", "scalar");
 #endif
-  benchmark::AddCustomContext("cpp_backend", backendName(selectedBackend()));
-  benchmark::AddCustomContext("comparison_mode", "engine_core");
-  benchmark::AddCustomContext("rust_ffi_mode", "prepared_state");
+  benchmark::AddCustomContext("cppBackend", backendName(selectedBackend()));
+  benchmark::AddCustomContext("comparisonMode", "engineCore");
+  benchmark::AddCustomContext("rustFfiMode", "preparedState");
   return true;
 }();
 

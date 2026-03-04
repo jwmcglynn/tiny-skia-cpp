@@ -202,7 +202,7 @@ TEST(PainterHelpersTest, TreatAsHairlineThinStroke) {
   paint.antiAlias = true;
   auto result = tiny_skia::treatAsHairline(paint, 0.5f, Transform::identity());
   ASSERT_TRUE(result.has_value());
-  // fast_len(0.5, 0) = 0.5, fast_len(0, 0.5) = 0.5, ave = 0.5
+  // fastLen(0.5, 0) = 0.5, fastLen(0, 0.5) = 0.5, ave = 0.5
   EXPECT_FLOAT_EQ(*result, 0.5f);
 }
 

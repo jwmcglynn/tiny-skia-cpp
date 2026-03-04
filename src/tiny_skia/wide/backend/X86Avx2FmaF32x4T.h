@@ -30,8 +30,8 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Abs(const std::array<float, 4>& lanes) {
-  const __m128 sign_mask = _mm_set1_ps(-0.0f);
-  return storeF32x4(_mm_andnot_ps(sign_mask, loadF32x4(lanes)));
+  const __m128 signMask = _mm_set1_ps(-0.0f);
+  return storeF32x4(_mm_andnot_ps(signMask, loadF32x4(lanes)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Max(const std::array<float, 4>& lhs,
@@ -77,11 +77,11 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 [[nodiscard]] inline std::array<float, 4> f32x4Blend(const std::array<float, 4>& mask,
                                                      const std::array<float, 4>& t,
                                                      const std::array<float, 4>& f) {
-  const __m128 mask_lanes = loadF32x4(mask);
-  const __m128 true_lanes = loadF32x4(t);
-  const __m128 false_lanes = loadF32x4(f);
+  const __m128 maskLanes = loadF32x4(mask);
+  const __m128 trueLanes = loadF32x4(t);
+  const __m128 falseLanes = loadF32x4(f);
   return storeF32x4(
-      _mm_or_ps(_mm_and_ps(mask_lanes, true_lanes), _mm_andnot_ps(mask_lanes, false_lanes)));
+      _mm_or_ps(_mm_and_ps(maskLanes, trueLanes), _mm_andnot_ps(maskLanes, falseLanes)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Floor(const std::array<float, 4>& lanes) {
@@ -153,8 +153,8 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitNot(const std::array<float, 4>& lanes) {
-  const __m128i all_ones = _mm_set1_epi32(-1);
-  return storeF32x4(_mm_xor_ps(loadF32x4(lanes), _mm_castsi128_ps(all_ones)));
+  const __m128i allOnes = _mm_set1_epi32(-1);
+  return storeF32x4(_mm_xor_ps(loadF32x4(lanes), _mm_castsi128_ps(allOnes)));
 }
 
 #else

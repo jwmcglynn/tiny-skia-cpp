@@ -786,7 +786,7 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
   for (std::size_t i = 0; i + 1 < points.size(); ++i) {
     std::array<Point, 2> segment{points[i], points[i + 1]};
     std::array<Point, 2> clipped{};
-    if (!line_clipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
+    if (!lineClipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
                                  std::span<Point, 2>{clipped})) {
       continue;
     }
@@ -794,7 +794,7 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
     auto working = clipped;
     if (clipBounds.has_value()) {
       std::array<Point, 2> clipClipped{};
-      if (!line_clipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
+      if (!lineClipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
                                    std::span<Point, 2>{clipClipped})) {
         continue;
       }

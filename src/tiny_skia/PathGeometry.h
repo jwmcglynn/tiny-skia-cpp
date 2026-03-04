@@ -14,7 +14,7 @@ enum class PathDirection : std::uint8_t { CW, CCW };
 class Transform;
 }  // namespace tiny_skia
 
-namespace tiny_skia::path_geometry {
+namespace tiny_skia::pathGeometry {
 
 // --- Existing functions (used by edge builder / scan) ---
 
@@ -117,4 +117,4 @@ struct AutoConicToQuads {
 
 std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1, Point pt2, float weight);
 
-}  // namespace tiny_skia::path_geometry
+}  // namespace tiny_skia::pathGeometry

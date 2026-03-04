@@ -19,7 +19,7 @@
 #include "tiny_skia/Stroke.h"
 #include "tiny_skia_ffi.h"
 
-namespace tiny_skia::rust_ref {
+namespace tiny_skia::rustRef {
 
 // ---------------------------------------------------------------------------
 // Pixmap
@@ -177,7 +177,7 @@ class PathBuilder {
 namespace detail {
 
 inline void writeTransform(const Transform& ts, float out[6]) {
-  // Transform::from_row expects (sx, ky, kx, sy, tx, ty) order.
+  // Transform::fromRow expects (sx, ky, kx, sy, tx, ty) order.
   out[0] = ts.sx;
   out[1] = ts.ky;
   out[2] = ts.kx;
@@ -280,4 +280,4 @@ inline bool strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
                     transform);
 }
 
-}  // namespace tiny_skia::rust_ref
+}  // namespace tiny_skia::rustRef

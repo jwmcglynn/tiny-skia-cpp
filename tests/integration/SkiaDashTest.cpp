@@ -21,7 +21,7 @@ using namespace tiny_skia;
 // behave as "expected". Now the code explicitly checks for walking off the
 // end of that array.
 // ---------------------------------------------------------------------------
-TEST(SkiaDashTest, crbug_140642) {
+TEST(SkiaDashTest, Crbug140642) {
     auto dash = StrokeDash::create(
         std::vector<float>{27734.0f, 35660.0f, 2157846850.0f, 247.0f},
         -248.135982067f);
@@ -34,7 +34,7 @@ TEST(SkiaDashTest, crbug_140642) {
 // This particular test/bug only applies to the float case, where
 // large values can "swamp" small ones.
 // ---------------------------------------------------------------------------
-TEST(SkiaDashTest, crbug_124652) {
+TEST(SkiaDashTest, Crbug124652) {
     auto dash = StrokeDash::create(
         std::vector<float>{837099584.0f, 33450.0f},
         -10.0f);
@@ -46,7 +46,7 @@ TEST(SkiaDashTest, crbug_124652) {
 // Extremely large path_length/dash_length ratios may cause infinite looping
 // due to single precision rounding.
 // ---------------------------------------------------------------------------
-TEST(SkiaDashTest, infinite_dash) {
+TEST(SkiaDashTest, InfiniteDash) {
     PathBuilder pb;
     pb.moveTo(0.0f, 5.0f);
     pb.lineTo(5000000.0f, 5.0f);

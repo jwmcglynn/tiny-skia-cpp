@@ -2,7 +2,7 @@
 
 #include "tiny_skia/Geom.h"
 
-namespace tiny_skia::path_size_rs {
+namespace tiny_skia::pathSizeRs {
 
 // Wrappers for `third_party/tiny-skia/path/src/size.rs`.
 
@@ -25,4 +25,4 @@ inline std::optional<IntRect> toIntRect(const IntSize& size, std::int32_t x, std
 
 inline Rect toRect(const IntSize& size) { return size.toRect(); }
 
-}  // namespace tiny_skia::path_size_rs
+}  // namespace tiny_skia::pathSizeRs

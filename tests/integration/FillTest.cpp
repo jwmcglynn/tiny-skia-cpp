@@ -557,7 +557,7 @@ TEST(FillTest, ClipLine2) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  // This strange path forces line_clipper::clip to return an empty array.
+  // This strange path forces lineClipper::clip to return an empty array.
   // We're checking that this case is handled correctly.
   PathBuilder pb;
   pb.moveTo(0.0f, -1.0f);
@@ -601,7 +601,7 @@ TEST(FillTest, ClipCubic1) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  // line_clipper::clip produces 2 points for this path.
+  // lineClipper::clip produces 2 points for this path.
   PathBuilder pb;
   pb.moveTo(10.0f, 50.0f);
   pb.cubicTo(0.0f, 175.0f, 195.0f, 70.0f, 75.0f, 20.0f);
@@ -622,7 +622,7 @@ TEST(FillTest, ClipCubic2) {
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = false;
 
-  // line_clipper::clip produces 3 points for this path.
+  // lineClipper::clip produces 3 points for this path.
   PathBuilder pb;
   pb.moveTo(10.0f, 50.0f);
   pb.cubicTo(10.0f, 40.0f, 90.0f, 120.0f, 125.0f, 20.0f);

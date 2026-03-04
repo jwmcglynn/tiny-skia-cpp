@@ -68,18 +68,18 @@ class DrawTiler {
       return std::nullopt;
     }
 
-    if (x_offset_ < image_width_ && y_offset_ < image_height_) {
-      const auto h = (y_offset_ < image_height_)
-                         ? std::min(image_height_ - y_offset_, kMaxDimensions)
-                         : image_height_;
+    if (xOffset_ < imageWidth_ && yOffset_ < imageHeight_) {
+      const auto h = (yOffset_ < imageHeight_)
+                         ? std::min(imageHeight_ - yOffset_, kMaxDimensions)
+                         : imageHeight_;
 
-      const auto r = ScreenIntRect::fromXYWH(x_offset_, y_offset_,
-                                             std::min(image_width_ - x_offset_, kMaxDimensions), h);
+      const auto r = ScreenIntRect::fromXYWH(xOffset_, yOffset_,
+                                             std::min(imageWidth_ - xOffset_, kMaxDimensions), h);
 
-      x_offset_ += kMaxDimensions;
-      if (x_offset_ >= image_width_) {
-        x_offset_ = 0;
-        y_offset_ += kMaxDimensions;
+      xOffset_ += kMaxDimensions;
+      if (xOffset_ >= imageWidth_) {
+        xOffset_ = 0;
+        yOffset_ += kMaxDimensions;
       }
 
       return r;
@@ -90,12 +90,12 @@ class DrawTiler {
 
  private:
   explicit DrawTiler(std::uint32_t imageWidth, std::uint32_t imageHeight)
-      : image_width_(imageWidth), image_height_(imageHeight) {}
+      : imageWidth_(imageWidth), imageHeight_(imageHeight) {}
 
-  std::uint32_t image_width_ = 0;
-  std::uint32_t image_height_ = 0;
-  std::uint32_t x_offset_ = 0;
-  std::uint32_t y_offset_ = 0;
+  std::uint32_t imageWidth_ = 0;
+  std::uint32_t imageHeight_ = 0;
+  std::uint32_t xOffset_ = 0;
+  std::uint32_t yOffset_ = 0;
   bool finished_ = false;
 };
 

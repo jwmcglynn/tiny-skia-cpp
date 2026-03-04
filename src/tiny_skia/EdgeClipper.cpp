@@ -57,8 +57,8 @@ void chopQuadInY(const Rect& clip, std::array<Point, 3>& pts) {
   auto tmp = std::array<Point, 5>{};
 
   if (pts[0].y < clip.top()) {
-    if (path_geometry::chopMonoQuadAtY(pts, clip.top(), t)) {
-      path_geometry::chopQuadAt(pts, t, tmp);
+    if (pathGeometry::chopMonoQuadAtY(pts, clip.top(), t)) {
+      pathGeometry::chopQuadAt(pts, t, tmp);
       tmp[2].y = clip.top();
       tmp[3].y = std::max(tmp[3].y, clip.top());
       pts[0] = tmp[2];
@@ -73,8 +73,8 @@ void chopQuadInY(const Rect& clip, std::array<Point, 3>& pts) {
   }
 
   if (pts[2].y > clip.bottom()) {
-    if (path_geometry::chopMonoQuadAtY(pts, clip.bottom(), t)) {
-      path_geometry::chopQuadAt(pts, t, tmp);
+    if (pathGeometry::chopMonoQuadAtY(pts, clip.bottom(), t)) {
+      pathGeometry::chopQuadAt(pts, t, tmp);
       tmp[1].y = std::min(tmp[1].y, clip.bottom());
       tmp[2].y = clip.bottom();
       pts[1] = tmp[1];
@@ -161,23 +161,23 @@ double monoCubicClosestT(std::array<float, 4> src, float target) {
 }
 
 void chopMonoCubicAtXFallback(const std::array<Point, 4>& src, float x, std::array<Point, 7>& dst) {
-  if (path_geometry::chopMonoCubicAtX(src, x, dst)) {
+  if (pathGeometry::chopMonoCubicAtX(src, x, dst)) {
     return;
   }
 
   const auto t = NormalizedF32Exclusive::newBounded(static_cast<float>(
       monoCubicClosestT(std::array<float, 4>{src[0].x, src[1].x, src[2].x, src[3].x}, x)));
-  path_geometry::chopCubicAt2(src.data(), t, dst.data());
+  pathGeometry::chopCubicAt2(src.data(), t, dst.data());
 }
 
 void chopMonoCubicAtYFallback(const std::array<Point, 4>& src, float y, std::array<Point, 7>& dst) {
-  if (path_geometry::chopMonoCubicAtY(src, y, dst)) {
+  if (pathGeometry::chopMonoCubicAtY(src, y, dst)) {
     return;
   }
 
   const auto t = NormalizedF32Exclusive::newBounded(static_cast<float>(
       monoCubicClosestT(std::array<float, 4>{src[0].y, src[1].y, src[2].y, src[3].y}, y)));
-  path_geometry::chopCubicAt2(src.data(), t, dst.data());
+  pathGeometry::chopCubicAt2(src.data(), t, dst.data());
 }
 
 }  // namespace
@@ -186,11 +186,11 @@ EdgeClipper::EdgeClipper(Rect clip, bool canCullToTheRight)
     : clip_(clip), canCullToTheRight_(canCullToTheRight) {}
 
 std::optional<ClippedEdges> EdgeClipper::clipLine(Point p0, Point p1) {
-  auto pointsOut = std::array<Point, line_clipper::kLineClipperMaxPoints>{};
+  auto pointsOut = std::array<Point, lineClipper::kLineClipperMaxPoints>{};
   const auto src = std::array<Point, 2>{p0, p1};
   const auto clipped =
-      line_clipper::clip(std::span<const Point, 2>(src), clip_, canCullToTheRight_,
-                         std::span<Point, line_clipper::kLineClipperMaxPoints>(pointsOut));
+      lineClipper::clip(std::span<const Point, 2>(src), clip_, canCullToTheRight_,
+                         std::span<Point, lineClipper::kLineClipperMaxPoints>(pointsOut));
 
   for (std::size_t i = 0; i < clipped.size(); ++i) {
     if (i + 1 >= clipped.size()) {
@@ -226,11 +226,11 @@ std::optional<ClippedEdges> EdgeClipper::clipQuad(Point p0, Point p1, Point p2) 
   }
 
   auto monoY = std::array<Point, 5>{};
-  const auto countY = path_geometry::chopQuadAtYExtrema(points, monoY);
+  const auto countY = pathGeometry::chopQuadAtYExtrema(points, monoY);
   for (std::size_t y = 0; y <= countY; ++y) {
     auto monoX = std::array<Point, 5>{};
     const auto yPoints = std::array<Point, 3>{monoY[y * 2], monoY[y * 2 + 1], monoY[y * 2 + 2]};
-    const auto countX = path_geometry::chopQuadAtXExtrema(yPoints, monoX);
+    const auto countX = pathGeometry::chopQuadAtXExtrema(yPoints, monoX);
     for (std::size_t x = 0; x <= countX; ++x) {
       const auto xPoints = std::array<Point, 3>{monoX[x * 2], monoX[x * 2 + 1], monoX[x * 2 + 2]};
       clipMonoQuad(xPoints);
@@ -276,8 +276,8 @@ void EdgeClipper::clipMonoQuad(const std::array<Point, 3>& src) {
   auto t = 0.0f;
   auto tmp = std::array<Point, 5>{};
   if (pts[0].x < clip_.left()) {
-    if (path_geometry::chopMonoQuadAtX(pts, clip_.left(), t)) {
-      path_geometry::chopQuadAt(pts, t, tmp);
+    if (pathGeometry::chopMonoQuadAtX(pts, clip_.left(), t)) {
+      pathGeometry::chopQuadAt(pts, t, tmp);
       pushVerticalLine(clip_.left(), tmp[0].y, tmp[2].y, reverse);
       tmp[2].x = clip_.left();
       tmp[3].x = std::max(tmp[3].x, clip_.left());
@@ -291,8 +291,8 @@ void EdgeClipper::clipMonoQuad(const std::array<Point, 3>& src) {
   }
 
   if (pts[2].x > clip_.right()) {
-    if (path_geometry::chopMonoQuadAtX(pts, clip_.right(), t)) {
-      path_geometry::chopQuadAt(pts, t, tmp);
+    if (pathGeometry::chopMonoQuadAtX(pts, clip_.right(), t)) {
+      pathGeometry::chopQuadAt(pts, t, tmp);
       tmp[1].x = std::min(tmp[1].x, clip_.right());
       tmp[2].x = clip_.right();
 
@@ -325,12 +325,12 @@ std::optional<ClippedEdges> EdgeClipper::clipCubic(Point p0, Point p1, Point p2,
   }
 
   auto monoY = std::array<Point, 10>{};
-  const auto countY = path_geometry::chopCubicAtYExtrema(points, monoY);
+  const auto countY = pathGeometry::chopCubicAtYExtrema(points, monoY);
   for (std::size_t y = 0; y <= countY; ++y) {
     auto monoX = std::array<Point, 10>{};
     const auto yPoints =
         std::array<Point, 4>{monoY[y * 3], monoY[y * 3 + 1], monoY[y * 3 + 2], monoY[y * 3 + 3]};
-    const auto countX = path_geometry::chopCubicAtXExtrema(yPoints, monoX);
+    const auto countX = pathGeometry::chopCubicAtXExtrema(yPoints, monoX);
     for (std::size_t x = 0; x <= countX; ++x) {
       const auto xPoints =
           std::array<Point, 4>{monoX[x * 3], monoX[x * 3 + 1], monoX[x * 3 + 2], monoX[x * 3 + 3]};

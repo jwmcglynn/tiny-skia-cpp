@@ -32,11 +32,11 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Blend(const std::array<std::int32_t, 4>& mask,
                                                             const std::array<std::int32_t, 4>& t,
                                                             const std::array<std::int32_t, 4>& f) {
-  const __m128i mask_lanes = loadI32x4(mask);
-  const __m128i true_lanes = loadI32x4(t);
-  const __m128i false_lanes = loadI32x4(f);
-  return storeI32x4(_mm_or_si128(_mm_and_si128(mask_lanes, true_lanes),
-                                 _mm_andnot_si128(mask_lanes, false_lanes)));
+  const __m128i maskLanes = loadI32x4(mask);
+  const __m128i trueLanes = loadI32x4(t);
+  const __m128i falseLanes = loadI32x4(f);
+  return storeI32x4(_mm_or_si128(_mm_and_si128(maskLanes, trueLanes),
+                                 _mm_andnot_si128(maskLanes, falseLanes)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpEq(

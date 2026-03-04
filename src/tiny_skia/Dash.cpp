@@ -113,20 +113,20 @@ void computePosTan(const Point* points, SegmentType segKind, NormalizedF32 t, Po
     }
     case SegmentType::Quad: {
       if (pos != nullptr) {
-        *pos = path_geometry::evalQuadAt(points, t);
+        *pos = pathGeometry::evalQuadAt(points, t);
       }
       if (tangent != nullptr) {
-        *tangent = path_geometry::evalQuadTangentAt(points, t);
+        *tangent = pathGeometry::evalQuadTangentAt(points, t);
         tangent->normalize();
       }
       break;
     }
     case SegmentType::Cubic: {
       if (pos != nullptr) {
-        *pos = path_geometry::evalCubicPosAt(points, t);
+        *pos = pathGeometry::evalCubicPosAt(points, t);
       }
       if (tangent != nullptr) {
-        *tangent = path_geometry::evalCubicTangentAt(points, t);
+        *tangent = pathGeometry::evalCubicTangentAt(points, t);
         tangent->normalize();
       }
       break;
@@ -165,18 +165,18 @@ void segmentTo(const Point* points, SegmentType segKind, NormalizedF32 startT, N
           pb.quadToPt(points[1], points[2]);
         } else {
           auto stopTe = NormalizedF32Exclusive::newBounded(stopT.get());
-          path_geometry::chopQuadAtT(points, stopTe, tmp0);
+          pathGeometry::chopQuadAtT(points, stopTe, tmp0);
           pb.quadToPt(tmp0[1], tmp0[2]);
         }
       } else {
         auto startTe = NormalizedF32Exclusive::newBounded(startT.get());
-        path_geometry::chopQuadAtT(points, startTe, tmp0);
+        pathGeometry::chopQuadAtT(points, startTe, tmp0);
         if (stopT == NormalizedF32::ONE) {
           pb.quadToPt(tmp0[3], tmp0[4]);
         } else {
           float newT = (stopT.get() - startT.get()) / (1.0f - startT.get());
           auto newTe = NormalizedF32Exclusive::newBounded(newT);
-          path_geometry::chopQuadAtT(&tmp0[2], newTe, tmp1);
+          pathGeometry::chopQuadAtT(&tmp0[2], newTe, tmp1);
           pb.quadToPt(tmp1[1], tmp1[2]);
         }
       }
@@ -190,18 +190,18 @@ void segmentTo(const Point* points, SegmentType segKind, NormalizedF32 startT, N
           pb.cubicToPt(points[1], points[2], points[3]);
         } else {
           auto stopTe = NormalizedF32Exclusive::newBounded(stopT.get());
-          path_geometry::chopCubicAt2(points, stopTe, tmp0);
+          pathGeometry::chopCubicAt2(points, stopTe, tmp0);
           pb.cubicToPt(tmp0[1], tmp0[2], tmp0[3]);
         }
       } else {
         auto startTe = NormalizedF32Exclusive::newBounded(startT.get());
-        path_geometry::chopCubicAt2(points, startTe, tmp0);
+        pathGeometry::chopCubicAt2(points, startTe, tmp0);
         if (stopT == NormalizedF32::ONE) {
           pb.cubicToPt(tmp0[4], tmp0[5], tmp0[6]);
         } else {
           float newT = (stopT.get() - startT.get()) / (1.0f - startT.get());
           auto newTe = NormalizedF32Exclusive::newBounded(newT);
-          path_geometry::chopCubicAt2(&tmp0[3], newTe, tmp1);
+          pathGeometry::chopCubicAt2(&tmp0[3], newTe, tmp1);
           pb.cubicToPt(tmp1[1], tmp1[2], tmp1[3]);
         }
       }
@@ -424,7 +424,7 @@ float ContourMeasure::computeQuadSegs(Point p0, Point p1, Point p2, float distan
     std::uint32_t halfT = (minT + maxT) >> 1;
 
     Point srcPts[3] = {p0, p1, p2};
-    path_geometry::chopQuadAtT(srcPts, NormalizedF32Exclusive::HALF, tmp);
+    pathGeometry::chopQuadAtT(srcPts, NormalizedF32Exclusive::HALF, tmp);
     distance =
         computeQuadSegs(tmp[0], tmp[1], tmp[2], distance, minT, halfT, pointIndex, tolerance);
     distance =
@@ -454,7 +454,7 @@ float ContourMeasure::computeCubicSegs(Point p0, Point p1, Point p2, Point p3, f
     std::uint32_t halfT = (minT + maxT) >> 1;
 
     Point srcPts[4] = {p0, p1, p2, p3};
-    path_geometry::chopCubicAt2(srcPts, NormalizedF32Exclusive::HALF, tmp);
+    pathGeometry::chopCubicAt2(srcPts, NormalizedF32Exclusive::HALF, tmp);
     distance = computeCubicSegs(tmp[0], tmp[1], tmp[2], tmp[3], distance, minT, halfT, pointIndex,
                                 tolerance);
     distance = computeCubicSegs(tmp[3], tmp[4], tmp[5], tmp[6], distance, halfT, maxT, pointIndex,

@@ -17,7 +17,7 @@ using namespace tiny_skia;
 // Linear gradient tests - low quality pipeline
 // ============================================================================
 
-TEST(GradientsTest, two_stops_linear_pad_lq) {
+TEST(GradientsTest, TwoStopsLinearPadLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -44,7 +44,7 @@ TEST(GradientsTest, two_stops_linear_pad_lq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-pad-lq.png");
 }
 
-TEST(GradientsTest, two_stops_linear_repeat_lq) {
+TEST(GradientsTest, TwoStopsLinearRepeatLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -71,7 +71,7 @@ TEST(GradientsTest, two_stops_linear_repeat_lq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-repeat-lq.png");
 }
 
-TEST(GradientsTest, two_stops_linear_reflect_lq) {
+TEST(GradientsTest, TwoStopsLinearReflectLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -98,7 +98,7 @@ TEST(GradientsTest, two_stops_linear_reflect_lq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-reflect-lq.png");
 }
 
-TEST(GradientsTest, three_stops_evenly_spaced_lq) {
+TEST(GradientsTest, ThreeStopsEvenlySpacedLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -126,7 +126,7 @@ TEST(GradientsTest, three_stops_evenly_spaced_lq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/three-stops-evenly-spaced-lq.png");
 }
 
-TEST(GradientsTest, two_stops_unevenly_spaced_lq) {
+TEST(GradientsTest, TwoStopsUnevenlySpacedLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -157,7 +157,7 @@ TEST(GradientsTest, two_stops_unevenly_spaced_lq) {
 // Linear gradient tests - high quality pipeline
 // ============================================================================
 
-TEST(GradientsTest, two_stops_linear_pad_hq) {
+TEST(GradientsTest, TwoStopsLinearPadHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -185,7 +185,7 @@ TEST(GradientsTest, two_stops_linear_pad_hq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-pad-hq.png");
 }
 
-TEST(GradientsTest, two_stops_linear_repeat_hq) {
+TEST(GradientsTest, TwoStopsLinearRepeatHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -213,7 +213,7 @@ TEST(GradientsTest, two_stops_linear_repeat_hq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-repeat-hq.png");
 }
 
-TEST(GradientsTest, two_stops_linear_reflect_hq) {
+TEST(GradientsTest, TwoStopsLinearReflectHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -241,7 +241,7 @@ TEST(GradientsTest, two_stops_linear_reflect_hq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-reflect-hq.png");
 }
 
-TEST(GradientsTest, three_stops_evenly_spaced_hq) {
+TEST(GradientsTest, ThreeStopsEvenlySpacedHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -270,7 +270,7 @@ TEST(GradientsTest, three_stops_evenly_spaced_hq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/three-stops-evenly-spaced-hq.png");
 }
 
-TEST(GradientsTest, two_stops_unevenly_spaced_hq) {
+TEST(GradientsTest, TwoStopsUnevenlySpacedHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -304,7 +304,7 @@ TEST(GradientsTest, two_stops_unevenly_spaced_hq) {
 // Therefore we do not have a lq/hq split (except for simple_radial).
 // ============================================================================
 
-TEST(GradientsTest, well_behaved_radial) {
+TEST(GradientsTest, WellBehavedRadial) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -333,7 +333,7 @@ TEST(GradientsTest, well_behaved_radial) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/well-behaved-radial.png");
 }
 
-TEST(GradientsTest, focal_on_circle_radial) {
+TEST(GradientsTest, FocalOnCircleRadial) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -362,7 +362,7 @@ TEST(GradientsTest, focal_on_circle_radial) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/focal-on-circle-radial.png");
 }
 
-TEST(GradientsTest, conical_greater_radial) {
+TEST(GradientsTest, ConicalGreaterRadial) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -391,7 +391,7 @@ TEST(GradientsTest, conical_greater_radial) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/conical-greater-radial.png");
 }
 
-TEST(GradientsTest, simple_radial_lq) {
+TEST(GradientsTest, SimpleRadialLq) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -420,7 +420,7 @@ TEST(GradientsTest, simple_radial_lq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/simple-radial-lq.png");
 }
 
-TEST(GradientsTest, simple_radial_hq) {
+TEST(GradientsTest, SimpleRadialHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -450,7 +450,7 @@ TEST(GradientsTest, simple_radial_hq) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/simple-radial-hq.png");
 }
 
-TEST(GradientsTest, simple_radial_with_ts_hq) {
+TEST(GradientsTest, SimpleRadialWithTsHq) {
     Paint paint;
     paint.forceHqPipeline = true;
     paint.antiAlias = false;
@@ -483,7 +483,7 @@ TEST(GradientsTest, simple_radial_with_ts_hq) {
 // Gradient doesn't add the Premultiply stage when all stops are opaque.
 // But it checks colors only on creation, so we have to recheck them after
 // calling applyShaderOpacity.
-TEST(GradientsTest, global_opacity) {
+TEST(GradientsTest, globalOpacity) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -513,7 +513,7 @@ TEST(GradientsTest, global_opacity) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/global-opacity.png");
 }
 
-TEST(GradientsTest, strip_gradient) {
+TEST(GradientsTest, StripGradient) {
     // Equal radii, different centers creates a Strip gradient
     Paint paint;
     paint.antiAlias = false;
@@ -543,7 +543,7 @@ TEST(GradientsTest, strip_gradient) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/strip-gradient.png");
 }
 
-TEST(GradientsTest, concentric_radial) {
+TEST(GradientsTest, ConcentricRadial) {
     // Same center, non-zero start radius (concentric gradient)
     Paint paint;
     paint.antiAlias = false;
@@ -573,7 +573,7 @@ TEST(GradientsTest, concentric_radial) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/concentric-radial.png");
 }
 
-TEST(GradientsTest, conical_smaller_radial) {
+TEST(GradientsTest, ConicalSmallerRadial) {
     // Configuration that triggers XYTo2PtConicalSmaller stage
     // r0=60, r1=30, distance=50
     Paint paint;
@@ -608,7 +608,7 @@ TEST(GradientsTest, conical_smaller_radial) {
 // Sweep gradient tests
 // ============================================================================
 
-TEST(GradientsTest, sweep_gradient) {
+TEST(GradientsTest, SweepGradient) {
     Paint paint;
     paint.antiAlias = false;
 
@@ -636,7 +636,7 @@ TEST(GradientsTest, sweep_gradient) {
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/sweep-gradient.png");
 }
 
-TEST(GradientsTest, sweep_gradient_full) {
+TEST(GradientsTest, SweepGradientFull) {
     Paint paint;
     paint.antiAlias = false;
 

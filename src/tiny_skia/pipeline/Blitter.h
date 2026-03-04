@@ -39,7 +39,7 @@ class RasterPipelineBlitter final : public tiny_skia::Blitter {
   void blitRect(const ScreenIntRect& rect) override;
   void blitMask(const Mask& mask, const ScreenIntRect& clip) override;
 
-  [[nodiscard]] bool isMaskOnly() const { return is_mask_only_; }
+  [[nodiscard]] bool isMaskOnly() const { return isMaskOnly_; }
 
  private:
   RasterPipelineBlitter(SubPixmapMut* pixmap, bool isMaskOnly,
@@ -49,13 +49,13 @@ class RasterPipelineBlitter final : public tiny_skia::Blitter {
                         RasterPipeline blitMaskRp);
 
   SubPixmapMut* pixmap_ = nullptr;
-  bool is_mask_only_ = false;
-  std::optional<PremultipliedColorU8> memset_color_;
+  bool isMaskOnly_ = false;
+  std::optional<PremultipliedColorU8> memsetColor_;
   std::optional<SubMaskRef> mask_;
-  Pixmap pixmap_src_storage_;
-  RasterPipeline blit_anti_h_rp_;
-  RasterPipeline blit_rect_rp_;
-  RasterPipeline blit_mask_rp_;
+  Pixmap pixmapSrcStorage_;
+  RasterPipeline blitAntiHRp_;
+  RasterPipeline blitRectRp_;
+  RasterPipeline blitMaskRp_;
 };
 
 }  // namespace tiny_skia::pipeline

@@ -41,10 +41,10 @@ struct Pipeline {
   LowpChannel g{};
   LowpChannel b{};
   LowpChannel a{};
-  LowpChannel uniform_r{};
-  LowpChannel uniform_g{};
-  LowpChannel uniform_b{};
-  LowpChannel uniform_a{};
+  LowpChannel uniformR{};
+  LowpChannel uniformG{};
+  LowpChannel uniformB{};
+  LowpChannel uniformA{};
   LowpChannel dr{};
   LowpChannel dg{};
   LowpChannel db{};
@@ -62,20 +62,20 @@ struct Pipeline {
   SubPixmapMut* pixmapDst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
-           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_fun,
-           const ScreenIntRect& rect_arg, const AAMaskCtx& aaMaskCtxArg,
-           const MaskCtx& maskCtxArg, Context& ctx_arg, SubPixmapMut* pixmapDstArg)
-      : uniform_r(U16x16T::splat(ctx_arg.uniformColor.rgba[0])),
-        uniform_g(U16x16T::splat(ctx_arg.uniformColor.rgba[1])),
-        uniform_b(U16x16T::splat(ctx_arg.uniformColor.rgba[2])),
-        uniform_a(U16x16T::splat(ctx_arg.uniformColor.rgba[3])),
+           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFun,
+           const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg,
+           const MaskCtx& maskCtxArg, Context& ctxArg, SubPixmapMut* pixmapDstArg)
+      : uniformR(U16x16T::splat(ctxArg.uniformColor.rgba[0])),
+        uniformG(U16x16T::splat(ctxArg.uniformColor.rgba[1])),
+        uniformB(U16x16T::splat(ctxArg.uniformColor.rgba[2])),
+        uniformA(U16x16T::splat(ctxArg.uniformColor.rgba[3])),
         functions(&fun),
-        rect(&rect_arg),
+        rect(&rectArg),
         aaMaskCtx(&aaMaskCtxArg),
         maskCtx(&maskCtxArg),
-        ctx(&ctx_arg),
+        ctx(&ctxArg),
         pixmapDst(pixmapDstArg) {
-    (void)tail_fun;
+    (void)tailFun;
   }
 
   void nextStage() {
@@ -110,18 +110,18 @@ namespace {
 
 // split(): reinterpret f32x16 (64 bytes) as two u16x16 (32 bytes each)
 inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
-  auto lo_lanes = v.lo().lanes();
-  auto hi_lanes = v.hi().lanes();
-  std::memcpy(&lo.lanes(), &lo_lanes, sizeof(lo.lanes()));
-  std::memcpy(&hi.lanes(), &hi_lanes, sizeof(hi.lanes()));
+  auto loLanes = v.lo().lanes();
+  auto hiLanes = v.hi().lanes();
+  std::memcpy(&lo.lanes(), &loLanes, sizeof(lo.lanes()));
+  std::memcpy(&hi.lanes(), &hiLanes, sizeof(hi.lanes()));
 }
 
 // join(): reinterpret two u16x16 (32 bytes each) as f32x16 (64 bytes)
 inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
-  std::array<float, 8> lo_f{}, hi_f{};
-  std::memcpy(&lo_f, &lo.lanes(), sizeof(lo_f));
-  std::memcpy(&hi_f, &hi.lanes(), sizeof(hi_f));
-  return F32x16T(F32x8T(lo_f), F32x8T(hi_f));
+  std::array<float, 8> loF{}, hiF{};
+  std::memcpy(&loF, &lo.lanes(), sizeof(loF));
+  std::memcpy(&hiF, &hi.lanes(), sizeof(hiF));
+  return F32x16T(F32x8T(loF), F32x8T(hiF));
 }
 
 // div255: (v + 255) >> 8
@@ -171,12 +171,12 @@ inline U16x16T sourceOverChannel(const U16x16T& source, const U16x16T& dest,
 #endif
 }
 
-// from_float(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
+// fromFloat(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
 inline U16x16T fromFloat(float f) {
   return U16x16T::splat(static_cast<std::uint16_t>(f * 255.0f + 0.5f));
 }
 
-// round_f32_to_u16(): normalize, scale to [0,255], truncate
+// roundF32ToU16(): normalize, scale to [0,255], truncate
 inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16T& r, U16x16T& g,
                           U16x16T& b, U16x16T& a) {
   rf = rf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
@@ -189,7 +189,7 @@ inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16
   af.saveToU16x16(a);
 }
 
-void move_source_to_destination(Pipeline& pipeline) {
+void moveSourceToDestination(Pipeline& pipeline) {
   pipeline.dr = pipeline.r;
   pipeline.dg = pipeline.g;
   pipeline.db = pipeline.b;
@@ -197,7 +197,7 @@ void move_source_to_destination(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void move_destination_to_source(Pipeline& pipeline) {
+void moveDestinationToSource(Pipeline& pipeline) {
   pipeline.r = pipeline.dr;
   pipeline.g = pipeline.dg;
   pipeline.b = pipeline.db;
@@ -212,15 +212,15 @@ void premultiply(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void uniform_color(Pipeline& pipeline) {
-  pipeline.r = pipeline.uniform_r;
-  pipeline.g = pipeline.uniform_g;
-  pipeline.b = pipeline.uniform_b;
-  pipeline.a = pipeline.uniform_a;
+void uniformColor(Pipeline& pipeline) {
+  pipeline.r = pipeline.uniformR;
+  pipeline.g = pipeline.uniformG;
+  pipeline.b = pipeline.uniformB;
+  pipeline.a = pipeline.uniformA;
   pipeline.nextStage();
 }
 
-void seed_shader(Pipeline& pipeline) {
+void seedShader(Pipeline& pipeline) {
   const auto iota = F32x16T(F32x8T({0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f, 6.5f, 7.5f}),
                             F32x8T({8.5f, 9.5f, 10.5f, 11.5f, 12.5f, 13.5f, 14.5f, 15.5f}));
   const auto x = F32x16T::splat(static_cast<float>(pipeline.dx)) + iota;
@@ -234,7 +234,7 @@ void seed_shader(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void scale_u8(Pipeline& pipeline) {
+void scaleU8(Pipeline& pipeline) {
   const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   U16x16T c{};
   auto& cl = c.lanes();
@@ -248,22 +248,22 @@ void scale_u8(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void lerp_u8(Pipeline& pipeline) {
+void lerpU8(Pipeline& pipeline) {
   const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   U16x16T c{};
   auto& cl = c.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
-  const auto inv_c = U16x16T::splat(255) - c;
-  pipeline.r = mulAddDiv255(pipeline.dr, inv_c, pipeline.r, c);
-  pipeline.g = mulAddDiv255(pipeline.dg, inv_c, pipeline.g, c);
-  pipeline.b = mulAddDiv255(pipeline.db, inv_c, pipeline.b, c);
-  pipeline.a = mulAddDiv255(pipeline.da, inv_c, pipeline.a, c);
+  const auto invC = U16x16T::splat(255) - c;
+  pipeline.r = mulAddDiv255(pipeline.dr, invC, pipeline.r, c);
+  pipeline.g = mulAddDiv255(pipeline.dg, invC, pipeline.g, c);
+  pipeline.b = mulAddDiv255(pipeline.db, invC, pipeline.b, c);
+  pipeline.a = mulAddDiv255(pipeline.da, invC, pipeline.a, c);
   pipeline.nextStage();
 }
 
-void scale_1_float(Pipeline& pipeline) {
+void scale1Float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->currentCoverage);
   pipeline.r = mulDiv255(pipeline.r, c);
   pipeline.g = mulDiv255(pipeline.g, c);
@@ -272,24 +272,24 @@ void scale_1_float(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void lerp_1_float(Pipeline& pipeline) {
+void lerp1Float(Pipeline& pipeline) {
   const auto c = fromFloat(pipeline.ctx->currentCoverage);
-  const auto inv_c = U16x16T::splat(255) - c;
-  pipeline.r = mulAddDiv255(pipeline.dr, inv_c, pipeline.r, c);
-  pipeline.g = mulAddDiv255(pipeline.dg, inv_c, pipeline.g, c);
-  pipeline.b = mulAddDiv255(pipeline.db, inv_c, pipeline.b, c);
-  pipeline.a = mulAddDiv255(pipeline.da, inv_c, pipeline.a, c);
+  const auto invC = U16x16T::splat(255) - c;
+  pipeline.r = mulAddDiv255(pipeline.dr, invC, pipeline.r, c);
+  pipeline.g = mulAddDiv255(pipeline.dg, invC, pipeline.g, c);
+  pipeline.b = mulAddDiv255(pipeline.db, invC, pipeline.b, c);
+  pipeline.a = mulAddDiv255(pipeline.da, invC, pipeline.a, c);
   pipeline.nextStage();
 }
 
 // --- Blend-mode helpers ---
 //
-// blend_fn:  applies F(s, d, sa, da) uniformly to all four channels (r, g, b, a).
-// blend_fn2: applies F(s, d, sa, da) to r, g, b only; alpha uses source_over:
+// blendFn:  applies F(s, d, sa, da) uniformly to all four channels (r, g, b, a).
+// blendFn2: applies F(s, d, sa, da) to r, g, b only; alpha uses sourceOver:
 //            a' = sa + div255(da * (255 - sa)).
 
 template <typename F>
-void blend_fn(Pipeline& pipeline, F&& f) {
+void blendFn(Pipeline& pipeline, F&& f) {
   const auto sa = pipeline.a, da = pipeline.da;
   pipeline.r = f(pipeline.r, pipeline.dr, sa, da);
   pipeline.g = f(pipeline.g, pipeline.dg, sa, da);
@@ -299,7 +299,7 @@ void blend_fn(Pipeline& pipeline, F&& f) {
 }
 
 template <typename F>
-void blend_fn2(Pipeline& pipeline, F&& f) {
+void blendFn2(Pipeline& pipeline, F&& f) {
   const auto sa = pipeline.a, da = pipeline.da;
   pipeline.r = f(pipeline.r, pipeline.dr, sa, da);
   pipeline.g = f(pipeline.g, pipeline.dg, sa, da);
@@ -309,99 +309,99 @@ void blend_fn2(Pipeline& pipeline, F&& f) {
 }
 
 void clear(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T /*d*/, U16x16T /*sa*/, U16x16T /*da*/) {
+  blendFn(pipeline, [](U16x16T /*s*/, U16x16T /*d*/, U16x16T /*sa*/, U16x16T /*da*/) {
     return U16x16T::splat(0);
   });
 }
 
-void destination_atop(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+void destinationAtop(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return mulAddDiv255(d, sa, s, U16x16T::splat(255) - da);
   });
 }
 
-void destination_in(Pipeline& pipeline) {
-  blend_fn(pipeline,
+void destinationIn(Pipeline& pipeline) {
+  blendFn(pipeline,
            [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) { return mulDiv255(d, sa); });
 }
 
-void destination_out(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
+void destinationOut(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
     return mulDiv255(d, U16x16T::splat(255) - sa);
   });
 }
 
-void source_atop(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+void sourceAtop(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return mulAddDiv255(s, da, d, U16x16T::splat(255) - sa);
   });
 }
 
-void source_in(Pipeline& pipeline) {
-  blend_fn(pipeline,
+void sourceIn(Pipeline& pipeline) {
+  blendFn(pipeline,
            [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) { return mulDiv255(s, da); });
 }
 
-void source_out(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
+void sourceOut(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
     return mulDiv255(s, U16x16T::splat(255) - da);
   });
 }
 
-void source_over(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T /*da*/) {
+void sourceOver(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T /*da*/) {
     return sourceOverChannel(s, d, sa);
   });
 }
 
-void destination_over(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T da) {
+void destinationOver(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T da) {
     return sourceOverChannel(d, s, da);
   });
 }
 
 void modulate(Pipeline& pipeline) {
-  blend_fn(pipeline,
+  blendFn(pipeline,
            [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) { return mulDiv255(s, d); });
 }
 
 void multiply(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return div255(s * (U16x16T::splat(255) - da) + d * (U16x16T::splat(255) - sa) + s * d);
   });
 }
 
 void plus(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
     return (s + d).min(U16x16T::splat(255));
   });
 }
 
 void screen(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
     return s + d - mulDiv255(s, d);
   });
 }
 
-void x_or(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+void xOr(Pipeline& pipeline) {
+  blendFn(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return mulAddDiv255(s, U16x16T::splat(255) - da, d, U16x16T::splat(255) - sa);
   });
 }
 
-void null_fn(Pipeline& pipeline) { (void)pipeline; }
+void nullFn(Pipeline& pipeline) { (void)pipeline; }
 
 // Returns a span of PremultipliedColorU8 pixels starting at (dx, dy) in the pixmap.
 inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap, std::size_t dx,
                                                   std::size_t dy) {
-  const auto pixel_offset = dy * pixmap.realWidth + dx;
+  const auto pixelOffset = dy * pixmap.realWidth + dx;
   auto* pixels = reinterpret_cast<PremultipliedColorU8*>(pixmap.data);
-  const auto total_pixels = pixmap.realWidth * pixmap.size.height();
-  return std::span<PremultipliedColorU8>(pixels + pixel_offset, total_pixels - pixel_offset);
+  const auto totalPixels = pixmap.realWidth * pixmap.size.height();
+  return std::span<PremultipliedColorU8>(pixels + pixelOffset, totalPixels - pixelOffset);
 }
 
 // Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
-void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
+void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
@@ -436,16 +436,16 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, 
     const __m128i p3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 48));
     const __m128i zero = _mm_setzero_si128();
 
-    const __m128i r_mask =
+    const __m128i rMask =
         _mm_setr_epi8(0, 4, 8, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-    const __m128i g_mask =
+    const __m128i gMask =
         _mm_setr_epi8(1, 5, 9, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-    const __m128i b_mask =
+    const __m128i bMask =
         _mm_setr_epi8(2, 6, 10, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
-    const __m128i a_mask =
+    const __m128i aMask =
         _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
 
-    const auto gather_channel = [&](__m128i mask) {
+    const auto gatherChannel = [&](__m128i mask) {
       const __m128i c0 = _mm_shuffle_epi8(p0, mask);
       const __m128i c1 = _mm_shuffle_epi8(p1, mask);
       const __m128i c2 = _mm_shuffle_epi8(p2, mask);
@@ -455,10 +455,10 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, 
       return _mm_unpacklo_epi64(c01, c23);
     };
 
-    const __m128i r8 = gather_channel(r_mask);
-    const __m128i g8 = gather_channel(g_mask);
-    const __m128i b8 = gather_channel(b_mask);
-    const __m128i a8 = gather_channel(a_mask);
+    const __m128i r8 = gatherChannel(rMask);
+    const __m128i g8 = gatherChannel(gMask);
+    const __m128i b8 = gatherChannel(bMask);
+    const __m128i a8 = gatherChannel(aMask);
 
     _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data()), _mm_unpacklo_epi8(r8, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data() + 8),
@@ -550,16 +550,16 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, 
   al[15] = pixels[15].alpha();
 }
 
-void load_8888_tail(std::size_t count, std::span<const PremultipliedColorU8> pixels, U16x16T& or_,
+void load8888Tail(std::size_t count, std::span<const PremultipliedColorU8> pixels, U16x16T& or_,
                     U16x16T& og, U16x16T& ob, U16x16T& oa) {
   std::array<PremultipliedColorU8, kStageWidth> tmp{};
   tmp.fill(PremultipliedColorU8::transparent);
   std::copy_n(pixels.begin(), count, tmp.begin());
-  load_8888_lowp(tmp, or_, og, ob, oa);
+  load8888Lowp(tmp, or_, og, ob, oa);
 }
 
 // Stores U16x16T pixel channels to u8 pixels.
-void store_8888_lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
+void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
                      const U16x16T& b, const U16x16T& a) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
@@ -587,38 +587,38 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, c
   if constexpr (useX86Avx2FmaNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
-    const __m128i byte_mask = _mm_set1_epi16(0x00FF);
-    const __m128i r_lo = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data())), byte_mask);
-    const __m128i r_hi = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data() + 8)), byte_mask);
-    const __m128i g_lo = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data())), byte_mask);
-    const __m128i g_hi = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data() + 8)), byte_mask);
-    const __m128i b_lo = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data())), byte_mask);
-    const __m128i b_hi = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data() + 8)), byte_mask);
-    const __m128i a_lo = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data())), byte_mask);
-    const __m128i a_hi = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data() + 8)), byte_mask);
+    const __m128i byteMask = _mm_set1_epi16(0x00FF);
+    const __m128i rLo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data())), byteMask);
+    const __m128i rHi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(r.lanes().data() + 8)), byteMask);
+    const __m128i gLo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data())), byteMask);
+    const __m128i gHi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(g.lanes().data() + 8)), byteMask);
+    const __m128i bLo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data())), byteMask);
+    const __m128i bHi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(b.lanes().data() + 8)), byteMask);
+    const __m128i aLo = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data())), byteMask);
+    const __m128i aHi = _mm_and_si128(
+        _mm_loadu_si128(reinterpret_cast<const __m128i*>(a.lanes().data() + 8)), byteMask);
 
-    const __m128i r8 = _mm_packus_epi16(r_lo, r_hi);
-    const __m128i g8 = _mm_packus_epi16(g_lo, g_hi);
-    const __m128i b8 = _mm_packus_epi16(b_lo, b_hi);
-    const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
+    const __m128i r8 = _mm_packus_epi16(rLo, rHi);
+    const __m128i g8 = _mm_packus_epi16(gLo, gHi);
+    const __m128i b8 = _mm_packus_epi16(bLo, bHi);
+    const __m128i a8 = _mm_packus_epi16(aLo, aHi);
 
-    const __m128i rg_lo = _mm_unpacklo_epi8(r8, g8);
-    const __m128i rg_hi = _mm_unpackhi_epi8(r8, g8);
-    const __m128i ba_lo = _mm_unpacklo_epi8(b8, a8);
-    const __m128i ba_hi = _mm_unpackhi_epi8(b8, a8);
+    const __m128i rgLo = _mm_unpacklo_epi8(r8, g8);
+    const __m128i rgHi = _mm_unpackhi_epi8(r8, g8);
+    const __m128i baLo = _mm_unpacklo_epi8(b8, a8);
+    const __m128i baHi = _mm_unpackhi_epi8(b8, a8);
 
-    const __m128i rgba0 = _mm_unpacklo_epi16(rg_lo, ba_lo);
-    const __m128i rgba1 = _mm_unpackhi_epi16(rg_lo, ba_lo);
-    const __m128i rgba2 = _mm_unpacklo_epi16(rg_hi, ba_hi);
-    const __m128i rgba3 = _mm_unpackhi_epi16(rg_hi, ba_hi);
+    const __m128i rgba0 = _mm_unpacklo_epi16(rgLo, baLo);
+    const __m128i rgba1 = _mm_unpackhi_epi16(rgLo, baLo);
+    const __m128i rgba2 = _mm_unpacklo_epi16(rgHi, baHi);
+    const __m128i rgba3 = _mm_unpackhi_epi16(rgHi, baHi);
 
     auto* packed = reinterpret_cast<std::uint8_t*>(pixels.data());
     _mm_storeu_si128(reinterpret_cast<__m128i*>(packed + 0), rgba0);
@@ -684,7 +684,7 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, c
       static_cast<std::uint8_t>(bl[15]), static_cast<std::uint8_t>(al[15]));
 }
 
-void store_8888_tail(std::size_t count, std::span<PremultipliedColorU8> pixels, const U16x16T& r,
+void store8888Tail(std::size_t count, std::span<PremultipliedColorU8> pixels, const U16x16T& r,
                      const U16x16T& g, const U16x16T& b, const U16x16T& a) {
   const auto& rl = r.lanes();
   const auto& gl = g.lanes();
@@ -700,7 +700,7 @@ void store_8888_tail(std::size_t count, std::span<PremultipliedColorU8> pixels, 
   }
 }
 
-void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
+void load8Lowp(std::span<const std::uint8_t> data, U16x16T& a) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint8x16_t src = vld1q_u8(data.data());
@@ -740,58 +740,58 @@ void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
   al[15] = data[15];
 }
 
-void load_8_tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T& a) {
+void load8Tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T& a) {
   std::array<std::uint8_t, kStageWidth> tmp{};
   std::copy_n(data.begin(), count, tmp.begin());
-  load_8_lowp(tmp, a);
+  load8Lowp(tmp, a);
 }
 
-void load_dst(Pipeline& pipeline) {
+void loadDst(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load8888Lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
-void load_dst_tail(Pipeline& pipeline) {
+void loadDstTail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load8888Tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void store(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store8888Lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
-void store_tail(Pipeline& pipeline) {
+void storeTail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store8888Tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
-void load_dst_u8(Pipeline& pipeline) {
+void loadDstU8(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
-  load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, kStageWidth),
+  load8Lowp(std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, kStageWidth),
               pipeline.da);
   pipeline.nextStage();
 }
 
-void load_dst_u8_tail(Pipeline& pipeline) {
+void loadDstU8Tail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
-  load_8_tail(pipeline.tail,
+  load8Tail(pipeline.tail,
               std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, pipeline.tail),
               pipeline.da);
   pipeline.nextStage();
 }
 
-void store_u8(Pipeline& pipeline) {
+void storeU8(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
@@ -807,12 +807,12 @@ void store_u8(Pipeline& pipeline) {
 
 #if defined(__x86_64__) || defined(__i386__)
   if constexpr (useX86Avx2FmaNative()) {
-    const __m128i byte_mask = _mm_set1_epi16(0x00FF);
-    const __m128i a_lo =
-        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())), byte_mask);
-    const __m128i a_hi =
-        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byte_mask);
-    const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
+    const __m128i byteMask = _mm_set1_epi16(0x00FF);
+    const __m128i aLo =
+        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())), byteMask);
+    const __m128i aHi =
+        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byteMask);
+    const __m128i a8 = _mm_packus_epi16(aLo, aHi);
     _mm_storeu_si128(reinterpret_cast<__m128i*>(pipeline.pixmapDst->data + offset), a8);
     pipeline.nextStage();
     return;
@@ -838,7 +838,7 @@ void store_u8(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void store_u8_tail(Pipeline& pipeline) {
+void storeU8Tail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
@@ -851,7 +851,7 @@ void store_u8_tail(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void load_mask_u8(Pipeline& pipeline) {
+void loadMaskU8(Pipeline& pipeline) {
   if (pipeline.maskCtx == nullptr || pipeline.maskCtx->data == nullptr) {
     pipeline.nextStage();
     return;
@@ -870,7 +870,7 @@ void load_mask_u8(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void mask_u8(Pipeline& pipeline) {
+void maskU8(Pipeline& pipeline) {
   if (pipeline.maskCtx == nullptr || pipeline.maskCtx->data == nullptr) {
     pipeline.nextStage();
     return;
@@ -881,14 +881,14 @@ void mask_u8(Pipeline& pipeline) {
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
     cl[i] = static_cast<std::uint16_t>(pipeline.maskCtx->data[offset + i]);
   }
-  bool all_zero = true;
+  bool allZero = true;
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
     if (cl[i] != 0) {
-      all_zero = false;
+      allZero = false;
       break;
     }
   }
-  if (all_zero) {
+  if (allZero) {
     return;
   }
   pipeline.r = mulDiv255(pipeline.r, c);
@@ -898,75 +898,75 @@ void mask_u8(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void source_over_rgba(Pipeline& pipeline) {
+void sourceOverRgba(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load8888Lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
   pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
   pipeline.b = sourceOverChannel(pipeline.b, pipeline.db, pipeline.a);
   pipeline.a = sourceOverChannel(pipeline.a, pipeline.da, pipeline.a);
-  store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store8888Lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
-void source_over_rgba_tail(Pipeline& pipeline) {
+void sourceOverRgbaTail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
-  load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load8888Tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
   pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
   pipeline.b = sourceOverChannel(pipeline.b, pipeline.db, pipeline.a);
   pipeline.a = sourceOverChannel(pipeline.a, pipeline.da, pipeline.a);
-  store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store8888Tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void darken(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return s + d - div255((s * da).max(d * sa));
   });
 }
 
 void lighten(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return s + d - div255((s * da).min(d * sa));
   });
 }
 
 void difference(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
     return s + d - U16x16T::splat(2) * div255((s * da).min(d * sa));
   });
 }
 
 void exclusion(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
     return s + d - U16x16T::splat(2) * div255(s * d);
   });
 }
 
-void hard_light(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
-    const auto inv_da = U16x16T::splat(255) - da;
-    const auto inv_sa = U16x16T::splat(255) - sa;
-    const auto body_if = U16x16T::splat(2) * s * d;
-    const auto body_else = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
+void hardLight(Pipeline& pipeline) {
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    const auto invDa = U16x16T::splat(255) - da;
+    const auto invSa = U16x16T::splat(255) - sa;
+    const auto bodyIf = U16x16T::splat(2) * s * d;
+    const auto bodyElse = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
     const auto mask = (U16x16T::splat(2) * s).cmpLe(sa);
-    const auto body = mask.blend(body_if, body_else);
-    return div255(s * inv_da + d * inv_sa + body);
+    const auto body = mask.blend(bodyIf, bodyElse);
+    return div255(s * invDa + d * invSa + body);
   });
 }
 
 void overlay(Pipeline& pipeline) {
-  blend_fn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
-    const auto inv_da = U16x16T::splat(255) - da;
-    const auto inv_sa = U16x16T::splat(255) - sa;
-    const auto body_if = U16x16T::splat(2) * s * d;
-    const auto body_else = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
+  blendFn2(pipeline, [](U16x16T s, U16x16T d, U16x16T sa, U16x16T da) {
+    const auto invDa = U16x16T::splat(255) - da;
+    const auto invSa = U16x16T::splat(255) - sa;
+    const auto bodyIf = U16x16T::splat(2) * s * d;
+    const auto bodyElse = sa * da - U16x16T::splat(2) * (sa - s) * (da - d);
     const auto mask = (U16x16T::splat(2) * d).cmpLe(da);
-    const auto body = mask.blend(body_if, body_else);
-    return div255(s * inv_da + d * inv_sa + body);
+    const auto body = mask.blend(bodyIf, bodyElse);
+    return div255(s * invDa + d * invSa + body);
   });
 }
 
@@ -990,16 +990,16 @@ void transform(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void pad_x1(Pipeline& pipeline) {
+void padX1(Pipeline& pipeline) {
   auto x = join(pipeline.r, pipeline.g);
   split(x.normalize(), pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 
-void reflect_x1(Pipeline& pipeline) {
+void reflectX1(Pipeline& pipeline) {
   auto x = join(pipeline.r, pipeline.g);
-  auto v_minus_1 = x - F32x16T::splat(1.0f);
-  auto result = (v_minus_1 - F32x16T::splat(2.0f) * (v_minus_1 * F32x16T::splat(0.5f)).floor() -
+  auto vMinus1 = x - F32x16T::splat(1.0f);
+  auto result = (vMinus1 - F32x16T::splat(2.0f) * (vMinus1 * F32x16T::splat(0.5f)).floor() -
                  F32x16T::splat(1.0f))
                     .abs()
                     .normalize();
@@ -1007,14 +1007,14 @@ void reflect_x1(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-void repeat_x1(Pipeline& pipeline) {
+void repeatX1(Pipeline& pipeline) {
   auto x = join(pipeline.r, pipeline.g);
   auto result = (x - x.floor()).normalize();
   split(result, pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
 
-void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
+void evenlySpaced2StopGradient(Pipeline& pipeline) {
   const auto& ctx = pipeline.ctx->evenlySpaced2StopGradient;
   auto t = join(pipeline.r, pipeline.g);
   auto rf = t * F32x16T::splat(ctx.factor.r) + F32x16T::splat(ctx.bias.r);
@@ -1030,11 +1030,11 @@ void gradient(Pipeline& pipeline) {
   auto t = join(pipeline.r, pipeline.g);
 
   // Per-lane index lookup — inherently scalar
-  auto t_lo = t.lo().lanes();
-  auto t_hi = t.hi().lanes();
+  auto tLo = t.lo().lanes();
+  auto tHi = t.hi().lanes();
 
-  std::array<float, 8> r_lo{}, g_lo{}, b_lo{}, a_lo{};
-  std::array<float, 8> r_hi{}, g_hi{}, b_hi{}, a_hi{};
+  std::array<float, 8> rLo{}, gLo{}, bLo{}, aLo{};
+  std::array<float, 8> rHi{}, gHi{}, bHi{}, aHi{};
 
   auto process = [&](const std::array<float, 8>& tv, std::array<float, 8>& rv,
                      std::array<float, 8>& gv, std::array<float, 8>& bv, std::array<float, 8>& av) {
@@ -1054,19 +1054,19 @@ void gradient(Pipeline& pipeline) {
     }
   };
 
-  process(t_lo, r_lo, g_lo, b_lo, a_lo);
-  process(t_hi, r_hi, g_hi, b_hi, a_hi);
+  process(tLo, rLo, gLo, bLo, aLo);
+  process(tHi, rHi, gHi, bHi, aHi);
 
-  auto rf = F32x16T(F32x8T(r_lo), F32x8T(r_hi));
-  auto gf = F32x16T(F32x8T(g_lo), F32x8T(g_hi));
-  auto bf = F32x16T(F32x8T(b_lo), F32x8T(b_hi));
-  auto af = F32x16T(F32x8T(a_lo), F32x8T(a_hi));
+  auto rf = F32x16T(F32x8T(rLo), F32x8T(rHi));
+  auto gf = F32x16T(F32x8T(gLo), F32x8T(gHi));
+  auto bf = F32x16T(F32x8T(bLo), F32x8T(bHi));
+  auto af = F32x16T(F32x8T(aLo), F32x8T(aHi));
 
   roundF32ToU16(rf, gf, bf, af, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
-void xy_to_radius(Pipeline& pipeline) {
+void xyToRadius(Pipeline& pipeline) {
   auto x = join(pipeline.r, pipeline.g);
   auto y = join(pipeline.b, pipeline.a);
   auto radius = (x * x + y * y).sqrt();
@@ -1079,10 +1079,10 @@ void xy_to_radius(Pipeline& pipeline) {
 void justReturn(Pipeline& pipeline) { (void)pipeline; }
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
-           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
+           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFunctions,
            const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
            Context& ctx, SubPixmapMut* pixmapDst) {
-  Pipeline p(functions, tail_functions, rect, aaMaskCtx, maskCtx, ctx, pixmapDst);
+  Pipeline p(functions, tailFunctions, rect, aaMaskCtx, maskCtx, ctx, pixmapDst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {
     std::size_t x = rect.x();
@@ -1100,7 +1100,7 @@ void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions
 
     if (x != end) {
       p.index = 0;
-      p.functions = &tail_functions;
+      p.functions = &tailFunctions;
       p.dx = x;
       p.dy = y;
       p.tail = end - x;
@@ -1110,94 +1110,94 @@ void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions
 }
 
 const std::array<StageFn, kStagesCount> STAGES = {
-    move_source_to_destination,
-    move_destination_to_source,
-    null_fn,
-    null_fn,
+    moveSourceToDestination,
+    moveDestinationToSource,
+    nullFn,
+    nullFn,
     premultiply,
-    uniform_color,
-    seed_shader,
-    load_dst,
+    uniformColor,
+    seedShader,
+    loadDst,
     store,
-    load_dst_u8,
-    store_u8,
-    null_fn,
-    load_mask_u8,
-    mask_u8,
-    scale_u8,
-    lerp_u8,
-    scale_1_float,
-    lerp_1_float,
-    destination_atop,
-    destination_in,
-    destination_out,
-    destination_over,
-    source_atop,
-    source_in,
-    source_out,
-    source_over,
+    loadDstU8,
+    storeU8,
+    nullFn,
+    loadMaskU8,
+    maskU8,
+    scaleU8,
+    lerpU8,
+    scale1Float,
+    lerp1Float,
+    destinationAtop,
+    destinationIn,
+    destinationOut,
+    destinationOver,
+    sourceAtop,
+    sourceIn,
+    sourceOut,
+    sourceOver,
     clear,
     modulate,
     multiply,
     plus,
     screen,
-    x_or,
-    null_fn,
-    null_fn,
+    xOr,
+    nullFn,
+    nullFn,
     darken,
     difference,
     exclusion,
-    hard_light,
+    hardLight,
     lighten,
     overlay,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,  // Luminosity (not lowp compatible)
-    source_over_rgba,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,  // Luminosity (not lowp compatible)
+    sourceOverRgba,
     transform,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    pad_x1,
-    reflect_x1,
-    repeat_x1,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    padX1,
+    reflectX1,
+    repeatX1,
     gradient,
-    evenly_spaced_2_stop_gradient,
-    null_fn,
-    xy_to_radius,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
-    null_fn,
+    evenlySpaced2StopGradient,
+    nullFn,
+    xyToRadius,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
+    nullFn,
 };
 
 const std::array<StageFn, kStagesCount> STAGES_TAIL = [] {
   auto stages = STAGES;
-  stages[static_cast<std::size_t>(Stage::LoadDestination)] = load_dst_tail;
-  stages[static_cast<std::size_t>(Stage::Store)] = store_tail;
-  stages[static_cast<std::size_t>(Stage::LoadDestinationU8)] = load_dst_u8_tail;
-  stages[static_cast<std::size_t>(Stage::StoreU8)] = store_u8_tail;
-  stages[static_cast<std::size_t>(Stage::SourceOverRgba)] = source_over_rgba_tail;
+  stages[static_cast<std::size_t>(Stage::LoadDestination)] = loadDstTail;
+  stages[static_cast<std::size_t>(Stage::Store)] = storeTail;
+  stages[static_cast<std::size_t>(Stage::LoadDestinationU8)] = loadDstU8Tail;
+  stages[static_cast<std::size_t>(Stage::StoreU8)] = storeU8Tail;
+  stages[static_cast<std::size_t>(Stage::SourceOverRgba)] = sourceOverRgbaTail;
   return stages;
 }();
 

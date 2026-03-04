@@ -197,12 +197,12 @@ std::pair<Point, ReductionType> checkQuadLinear(const Point quad[3]) {
     return {Point::zero(), ReductionType::Quad};
   }
 
-  NormalizedF32 t = path_geometry::findQuadMaxCurvature(quad);
+  NormalizedF32 t = pathGeometry::findQuadMaxCurvature(quad);
   if (t == NormalizedF32::ZERO || t == NormalizedF32::ONE) {
     return {Point::zero(), ReductionType::Line};
   }
 
-  return {path_geometry::evalQuadAt(quad, t), ReductionType::Degenerate};
+  return {pathGeometry::evalQuadAt(quad, t), ReductionType::Degenerate};
 }
 
 ReductionType checkCubicLinear(const Point cubic[4], Point reduction[3], Point* tangentPt) {
@@ -225,14 +225,14 @@ ReductionType checkCubicLinear(const Point cubic[4], Point reduction[3], Point* 
   }
 
   NormalizedF32 tValues[3] = {NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
-  auto tSlice = path_geometry::findCubicMaxCurvatureTs(cubic, tValues);
+  auto tSlice = pathGeometry::findCubicMaxCurvatureTs(cubic, tValues);
   int rCount = 0;
   for (std::size_t i = 0; i < tSlice; ++i) {
     float tv = tValues[i].get();
     if (0.0f >= tv || tv >= 1.0f) {
       continue;
     }
-    reduction[rCount] = path_geometry::evalCubicPosAt(cubic, tValues[i]);
+    reduction[rCount] = pathGeometry::evalCubicPosAt(cubic, tValues[i]);
     if (!(reduction[rCount] == cubic[0]) && !(reduction[rCount] == cubic[3])) {
       rCount += 1;
     }
@@ -265,7 +265,7 @@ std::size_t intersectQuadRay(const Point line[2], const Point quad[3],
   a += c - 2.0f * b;  // A = a - 2*b + c
   b -= c;             // B = -(b - c)
 
-  return path_geometry::findUnitQuadRoots(a, 2.0f * b, c, roots);
+  return pathGeometry::findUnitQuadRoots(a, 2.0f * b, c, roots);
 }
 
 bool pointsWithinDist(Point nearPt, Point farPt, float limit) {
@@ -403,8 +403,8 @@ void roundJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, flo
 
   Transform ts = Transform::fromRow(radius, 0.0f, 0.0f, radius, pivot.x, pivot.y);
 
-  path_geometry::Conic conics[5];
-  auto conicsSpan = path_geometry::Conic::buildUnitArc(before, after, dir, ts, conics);
+  pathGeometry::Conic conics[5];
+  auto conicsSpan = pathGeometry::Conic::buildUnitArc(before, after, dir, ts, conics);
   if (conicsSpan.has_value()) {
     for (const auto& conic : conicsSpan.value()) {
       builders.outer->conicPointsTo(conic.points[1], conic.points[2], conic.weight);
@@ -837,7 +837,7 @@ void PathStroker::cubicTo(Point pt1, Point pt2, Point pt3) {
 
   NormalizedF32Exclusive tValuesStorage[3] = {
       NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
-  std::size_t tCount = path_geometry::findCubicInflections(cubic, tValuesStorage);
+  std::size_t tCount = pathGeometry::findCubicInflections(cubic, tValuesStorage);
 
   NormalizedF32 lastT = NormalizedF32::ZERO;
   for (std::size_t index = 0; index <= tCount; ++index) {
@@ -856,9 +856,9 @@ void PathStroker::cubicTo(Point pt1, Point pt2, Point pt3) {
     lastT = nextT;
   }
 
-  auto cusp = path_geometry::findCubicCusp(cubic);
+  auto cusp = pathGeometry::findCubicCusp(cubic);
   if (cusp.has_value()) {
-    Point cuspLoc = path_geometry::evalCubicPosAt(cubic, cusp->toNormalized());
+    Point cuspLoc = pathGeometry::evalCubicPosAt(cubic, cusp->toNormalized());
     cusper_.pushCircle(cuspLoc.x, cuspLoc.y, radius_);
   }
 
@@ -950,8 +950,8 @@ void PathStroker::cubicQuadMid(const Point cubic[4], QuadConstruct& quadPoints, 
 
 void PathStroker::cubicPerpRay(const Point cubic[4], NormalizedF32 t, Point& tPt, Point& onPt,
                                Point* tangent) {
-  tPt = path_geometry::evalCubicPosAt(cubic, t);
-  Point dxy = path_geometry::evalCubicTangentAt(cubic, t);
+  tPt = pathGeometry::evalCubicPosAt(cubic, t);
+  Point dxy = pathGeometry::evalCubicTangentAt(cubic, t);
 
   Point chopped[7];
   const Point* cPoints = cubic;
@@ -965,7 +965,7 @@ void PathStroker::cubicPerpRay(const Point cubic[4], NormalizedF32 t, Point& tPt
       // to find the tangent at that point.
       auto tExcl = NormalizedF32Exclusive::create(t.get());
       if (tExcl.has_value()) {
-        path_geometry::chopCubicAt2(cubic, *tExcl, chopped);
+        pathGeometry::chopCubicAt2(cubic, *tExcl, chopped);
         dxy = chopped[3] - chopped[2];
         if (dxy.x == 0.0f && dxy.y == 0.0f) {
           dxy = chopped[3] - chopped[1];
@@ -1222,8 +1222,8 @@ void PathStroker::setRayPoints(Point tp, Point& dxy, Point& onP, Point* tangent)
 
 void PathStroker::quadPerpRay(const Point quad[3], NormalizedF32 t, Point& tp, Point& onP,
                               Point* tangent) {
-  tp = path_geometry::evalQuadAt(quad, t);
-  Point dxy = path_geometry::evalQuadTangentAt(quad, t);
+  tp = pathGeometry::evalQuadAt(quad, t);
+  Point dxy = pathGeometry::evalQuadTangentAt(quad, t);
 
   if (dxy.isZero()) {
     dxy = quad[2] - quad[0];
@@ -1243,7 +1243,7 @@ void PathStroker::addDegenerateLine(const QuadConstruct& quadPoints) {
 ResultType PathStroker::strokeCloseEnough(const Point stroke[3], const Point ray[2],
                                           QuadConstruct& quadPoints) {
   NormalizedF32 half = NormalizedF32::newClamped(0.5f);
-  Point strokeMid = path_geometry::evalQuadAt(stroke, half);
+  Point strokeMid = pathGeometry::evalQuadAt(stroke, half);
   // measure the distance from the curve to the quad-stroke midpoint
   if (pointsWithinDist(ray[0], strokeMid, invResScale_)) {
     if (sharpAngle(quadPoints.quad)) {
@@ -1265,7 +1265,7 @@ ResultType PathStroker::strokeCloseEnough(const Point stroke[3], const Point ray
     return ResultType::Split;
   }
 
-  Point quadPt = path_geometry::evalQuadAt(stroke, roots[0].toNormalized());
+  Point quadPt = pathGeometry::evalQuadAt(stroke, roots[0].toNormalized());
   float error = invResScale_ * (1.0f - std::abs(roots[0].get() - 0.5f) * 2.0f);
   if (pointsWithinDist(ray[0], quadPt, error)) {
     if (sharpAngle(quadPoints.quad)) {

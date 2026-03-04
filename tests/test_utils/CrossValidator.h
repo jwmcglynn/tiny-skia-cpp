@@ -23,7 +23,7 @@ namespace tiny_skia::test_utils {
 /// Compares a C++ Pixmap against a Rust-reference Pixmap.
 /// Both must contain premultiplied RGBA8 data of the same dimensions.
 /// Returns the number of mismatched pixels (0 = bit-exact parity).
-inline int comparePixmaps(const Pixmap& cpp, const rust_ref::Pixmap& rust) {
+inline int comparePixmaps(const Pixmap& cpp, const rustRef::Pixmap& rust) {
   if (cpp.width() != rust.width() || cpp.height() != rust.height()) {
     ADD_FAILURE() << "Size mismatch: C++=" << cpp.width() << "x"
                   << cpp.height() << " Rust=" << rust.width() << "x"

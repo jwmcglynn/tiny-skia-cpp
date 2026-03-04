@@ -11,7 +11,7 @@
 #include "tiny_skia/path64/Point64.h"
 #include "tiny_skia/path64/Quad64.h"
 
-namespace tiny_skia::path_geometry {
+namespace tiny_skia::pathGeometry {
 
 // Forward declarations for functions defined later in this file.
 std::size_t findUnitQuadRoots(float a, float b, float c, NormalizedF32Exclusive roots[3]);
@@ -169,7 +169,7 @@ std::size_t chopQuadAtXExtrema(const std::array<Point, 3>& src, std::array<Point
   const auto c = src[2].x;
 
   if (isNotMonotonic(a, b, c)) {
-    // Use f32 valid_unit_divide (not double).
+    // Use f32 validUnitDivide (not double).
     if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
       chopQuadAt(src, tOpt->get(), dst);
       dst[1].x = dst[2].x;
@@ -192,7 +192,7 @@ std::size_t chopQuadAtYExtrema(const std::array<Point, 3>& src, std::array<Point
   const auto c = src[2].y;
 
   if (isNotMonotonic(a, b, c)) {
-    // Use f32 valid_unit_divide (not double).
+    // Use f32 validUnitDivide (not double).
     if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
       chopQuadAt(src, tOpt->get(), dst);
       dst[1].y = dst[2].y;
@@ -253,7 +253,7 @@ std::size_t chopCubicAt(std::span<const Point> src, std::span<const NormalizedF3
     // Use output from chopCubicAt2 as next iteration's source.
     srcWork = {dst[offset + 0], dst[offset + 1], dst[offset + 2], dst[offset + 3]};
 
-    // Renormalize t using f32 valid_unit_divide.
+    // Renormalize t using f32 validUnitDivide.
     auto nextT =
         validUnitDivideF32(tValues[i + 1].get() - tValues[i].get(), 1.0f - tValues[i].get());
     if (!nextT.has_value()) {
@@ -309,7 +309,7 @@ std::size_t chopCubicAtMaxCurvature(const std::array<Point, 4>& src,
     return 0;
   }
 
-  // Use f32 root-finding (findCubicMaxCurvatureTs / solve_cubic_poly)
+  // Use f32 root-finding (findCubicMaxCurvatureTs / solveCubicPoly)
   // NOT the f64 findMaxCurvatureRoots / cubic64::rootsValidT path.
   auto roots =
       std::array<NormalizedF32, 3>{NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
@@ -426,7 +426,7 @@ Point evalCubicDerivative(const Point src[4], NormalizedF32 t) {
   return Point::fromXy((ax * tv + bx) * tv + cx, (ay * tv + by) * tv + cy);
 }
 
-// formulate_f1_dot_f2 (float variant for cubic max curvature)
+// formulateF1DotF2 (float variant for cubic max curvature)
 std::array<float, 4> formulateF1DotF2f(const float src[4]) {
   float a = src[1] - src[0];
   float b = src[2] - 2.0f * src[1] + src[0];
@@ -895,8 +895,8 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uS
     float cosThetaOver2 = std::sqrt((1.0f + dotVal) / 2.0f);
     offCurve.setLength(1.0f / cosThetaOver2);
     // Check that lastQ and offCurve are not almost equal.
-    // almost_equal returns true when the diff vector can't normalize
-    // (both components zero or non-finite). We add conic when NOT almost_equal.
+    // almostEqual returns true when the diff vector can't normalize
+    // (both components zero or non-finite). We add conic when NOT almostEqual.
     Point diff = Point::fromXy(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
     bool canNormalize =
         std::isfinite(diff.x) && std::isfinite(diff.y) && (diff.x != 0.0f || diff.y != 0.0f);
@@ -931,4 +931,4 @@ std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1, Point pt2
   return result;
 }
 
-}  // namespace tiny_skia::path_geometry
+}  // namespace tiny_skia::pathGeometry

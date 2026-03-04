@@ -31,7 +31,7 @@ using tiny_skia::Stroke;
 using tiny_skia::StrokeDash;
 using tiny_skia::Transform;
 
-namespace rr = tiny_skia::rust_ref;
+namespace rr = tiny_skia::rustRef;
 
 // ===========================================================================
 // Fill – rectangles

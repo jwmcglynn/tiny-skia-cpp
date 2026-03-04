@@ -69,7 +69,7 @@ void PathBuilder::conicTo(float x1, float y1, float x, float y, float weight) {
     injectMoveToIfNeeded();
     auto last = lastPoint().value_or(Point::zero());
     auto quadder =
-        path_geometry::autoConicToQuads(last, Point::fromXy(x1, y1), Point::fromXy(x, y), weight);
+        pathGeometry::autoConicToQuads(last, Point::fromXy(x1, y1), Point::fromXy(x, y), weight);
     if (quadder.has_value()) {
       std::size_t offset = 1;
       for (std::uint8_t i = 0; i < quadder->len; ++i) {

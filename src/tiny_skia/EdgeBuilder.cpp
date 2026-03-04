@@ -42,7 +42,7 @@ std::size_t chopQuadAtYExtrema(const std::array<Point, 3>& src, std::array<Point
   const auto c = src[2].y;
 
   if (isNotMonotonic(a, b, c)) {
-    // Use f32 valid_unit_divide (not double).
+    // Use f32 validUnitDivide (not double).
     float numer = a - b;
     float denom = a - b - b + c;
     if (numer < 0.0f) {
@@ -160,9 +160,9 @@ std::size_t chopCubicAt(std::array<Point, 4> src, std::span<const float> tValues
 }
 
 std::size_t chopCubicAtYExtrema(const std::array<Point, 4>& src, std::array<Point, 10>& dst) {
-  auto tValuesF = path_geometry::newTValues();
+  auto tValuesF = pathGeometry::newTValues();
   auto rawCount =
-      path_geometry::findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
+      pathGeometry::findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
 
   auto tValues = std::array<float, 3>{};
   for (std::size_t i = 0; i < rawCount; ++i) {

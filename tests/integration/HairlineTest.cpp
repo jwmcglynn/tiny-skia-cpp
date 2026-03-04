@@ -105,67 +105,67 @@ Pixmap drawCubic(const float (&points)[8], bool antiAlias, float width,
 // Line tests
 // ===========================================================================
 
-TEST(Hairline, hline_05) {
+TEST(Hairline, Hline05) {
     auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
                            false, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05.png");
 }
 
-TEST(Hairline, hline_05_aa) {
+TEST(Hairline, Hline05Aa) {
     auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
                            true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05-aa.png");
 }
 
-TEST(Hairline, hline_05_aa_round) {
+TEST(Hairline, Hline05AaRound) {
     auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 10.0f,
                            true, 0.5f, LineCap::Round);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/hline-05-aa-round.png");
 }
 
-TEST(Hairline, vline_05) {
+TEST(Hairline, Vline05) {
     auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
                            false, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05.png");
 }
 
-TEST(Hairline, vline_05_aa) {
+TEST(Hairline, Vline05Aa) {
     auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
                            true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05-aa.png");
 }
 
-TEST(Hairline, vline_05_aa_round) {
+TEST(Hairline, Vline05AaRound) {
     auto pixmap = drawLine(10.0f, 10.0f, 10.0f, 90.0f,
                            true, 0.5f, LineCap::Round);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/vline-05-aa-round.png");
 }
 
-TEST(Hairline, horish_05_aa) {
+TEST(Hairline, Horish05Aa) {
     auto pixmap = drawLine(10.0f, 10.0f, 90.0f, 70.0f,
                            true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/horish-05-aa.png");
 }
 
-TEST(Hairline, vertish_05_aa) {
+TEST(Hairline, Vertish05Aa) {
     auto pixmap = drawLine(10.0f, 10.0f, 70.0f, 90.0f,
                            true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/vertish-05-aa.png");
 }
 
-TEST(Hairline, clip_line_05_aa) {
+TEST(Hairline, ClipLine05Aa) {
     auto pixmap = drawLine(-10.0f, 10.0f, 110.0f, 70.0f,
                            true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-line-05-aa.png");
 }
 
-TEST(Hairline, clip_line_00) {
+TEST(Hairline, ClipLine00) {
     auto pixmap = drawLine(-10.0f, 10.0f, 110.0f, 70.0f,
                            false, 0.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-line-00.png");
 }
 
-TEST(Hairline, clip_line_00_v2) {
+TEST(Hairline, ClipLine00V2) {
     auto pixmap = Pixmap::fromSize(512, 512);
     ASSERT_TRUE(pixmap.has_value());
 
@@ -188,25 +188,25 @@ TEST(Hairline, clip_line_00_v2) {
     EXPECT_GOLDEN_MATCH(*pixmap, "hairline/clip-line-00-v2.png");
 }
 
-TEST(Hairline, clip_hline_top_aa) {
+TEST(Hairline, ClipHlineTopAa) {
     auto pixmap = drawLine(-1.0f, 0.0f, 101.0f, 0.0f,
                            true, 1.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-hline-top-aa.png");
 }
 
-TEST(Hairline, clip_hline_bottom_aa) {
+TEST(Hairline, ClipHlineBottomAa) {
     auto pixmap = drawLine(-1.0f, 100.0f, 101.0f, 100.0f,
                            true, 1.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-hline-bottom-aa.png");
 }
 
-TEST(Hairline, clip_vline_left_aa) {
+TEST(Hairline, ClipVlineLeftAa) {
     auto pixmap = drawLine(0.0f, -1.0f, 0.0f, 101.0f,
                            true, 1.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-vline-left-aa.png");
 }
 
-TEST(Hairline, clip_vline_right_aa) {
+TEST(Hairline, ClipVlineRightAa) {
     auto pixmap = drawLine(100.0f, -1.0f, 100.0f, 101.0f,
                            true, 1.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-vline-right-aa.png");
@@ -216,17 +216,17 @@ TEST(Hairline, clip_vline_right_aa) {
 // Quad tests
 // ===========================================================================
 
-TEST(Hairline, quad_width_05_aa) {
+TEST(Hairline, QuadWidth05Aa) {
     auto pixmap = drawQuad(true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-05-aa.png");
 }
 
-TEST(Hairline, quad_width_05_aa_round) {
+TEST(Hairline, QuadWidth05AaRound) {
     auto pixmap = drawQuad(true, 0.5f, LineCap::Round);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-05-aa-round.png");
 }
 
-TEST(Hairline, quad_width_00) {
+TEST(Hairline, QuadWidth00) {
     auto pixmap = drawQuad(false, 0.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/quad-width-00.png");
 }
@@ -235,49 +235,49 @@ TEST(Hairline, quad_width_00) {
 // Cubic tests
 // ===========================================================================
 
-TEST(Hairline, cubic_width_10_aa) {
+TEST(Hairline, CubicWidth10Aa) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, true, 1.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-10-aa.png");
 }
 
-TEST(Hairline, cubic_width_05_aa) {
+TEST(Hairline, CubicWidth05Aa) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-05-aa.png");
 }
 
-TEST(Hairline, cubic_width_00_aa) {
+TEST(Hairline, CubicWidth00Aa) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, true, 0.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00-aa.png");
 }
 
-TEST(Hairline, cubic_width_00) {
+TEST(Hairline, CubicWidth00) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00.png");
 }
 
-TEST(Hairline, cubic_width_05_aa_round) {
+TEST(Hairline, CubicWidth05AaRound) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Round);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-05-aa-round.png");
 }
 
-TEST(Hairline, cubic_width_00_round) {
+TEST(Hairline, CubicWidth00Round) {
     const float pts[] = {25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Round);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/cubic-width-00-round.png");
 }
 
-TEST(Hairline, chop_cubic_01) {
+TEST(Hairline, ChopCubic01) {
     // This curve invokes the chop_cubic_at_max_curvature branch of hair_cubic.
     const float pts[] = {57.0f, 13.0f, 17.0f, 15.0f,
                          55.0f, 97.0f, 89.0f, 62.0f};
@@ -285,14 +285,14 @@ TEST(Hairline, chop_cubic_01) {
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/chop-cubic-01.png");
 }
 
-TEST(Hairline, clip_cubic_05_aa) {
+TEST(Hairline, ClipCubic05Aa) {
     const float pts[] = {-25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, true, 0.5f, LineCap::Butt);
     EXPECT_GOLDEN_MATCH(pixmap, "hairline/clip-cubic-05-aa.png");
 }
 
-TEST(Hairline, clip_cubic_00) {
+TEST(Hairline, ClipCubic00) {
     const float pts[] = {-25.0f, 80.0f, 55.0f, 25.0f,
                          155.0f, 75.0f, 175.0f, 20.0f};
     auto pixmap = drawCubic(pts, false, 0.0f, LineCap::Butt);
@@ -303,7 +303,7 @@ TEST(Hairline, clip_cubic_00) {
 // Circle test
 // ===========================================================================
 
-TEST(Hairline, clipped_circle_aa) {
+TEST(Hairline, ClippedCircleAa) {
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
 

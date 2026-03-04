@@ -10,8 +10,8 @@ Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transfo
                    Transform pointsToUnit)
     : transform(transform),
       stops_(std::move(stops)),
-      tile_mode_(tileMode),
-      points_to_unit_(pointsToUnit) {
+      tileMode_(tileMode),
+      pointsToUnit_(pointsToUnit) {
   // Insert dummy endpoints if needed (matching Rust Gradient::new).
   const bool dummyFirst = stops_[0].position.get() != 0.0f;
   const bool dummyLast = stops_[stops_.size() - 1].position.get() != 1.0f;
@@ -23,10 +23,10 @@ Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transfo
     stops_.push_back(GradientStop::create(1.0f, stops_[stops_.size() - 1].color));
   }
 
-  colors_are_opaque_ = true;
+  colorsAreOpaque_ = true;
   for (const auto& s : stops_) {
     if (!s.color.isOpaque()) {
-      colors_are_opaque_ = false;
+      colorsAreOpaque_ = false;
       break;
     }
   }
@@ -34,7 +34,7 @@ Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transfo
   // Ensure monotonic positions and check for uniform stops.
   const std::size_t startIndex = dummyFirst ? 0 : 1;
   float prev = 0.0f;
-  has_uniform_stops_ = true;
+  hasUniformStops_ = true;
   const float uniformStep = stops_[startIndex].position.get() - prev;
 
   for (std::size_t i = startIndex; i < stops_.size(); ++i) {
@@ -44,7 +44,7 @@ Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transfo
     } else {
       curr = bound(prev, stops_[i].position.get(), 1.0f);
     }
-    has_uniform_stops_ &= isNearlyEqual(uniformStep, curr - prev);
+    hasUniformStops_ &= isNearlyEqual(uniformStep, curr - prev);
     stops_[i].position = NormalizedF32::newClamped(curr);
     prev = curr;
   }
@@ -62,12 +62,12 @@ bool Gradient::pushStages(
   if (!ts.has_value()) {
     return false;
   }
-  const auto finalTs = ts->postConcat(points_to_unit_);
+  const auto finalTs = ts->postConcat(pointsToUnit_);
   p.pushTransform(finalTs);
 
   pushStagesPre(p);
 
-  switch (tile_mode_) {
+  switch (tileMode_) {
     case SpreadMode::Reflect:
       p.push(Stage::ReflectX1);
       break;
@@ -75,7 +75,7 @@ bool Gradient::pushStages(
       p.push(Stage::RepeatX1);
       break;
     case SpreadMode::Pad:
-      if (has_uniform_stops_) {
+      if (hasUniformStops_) {
         p.push(Stage::PadX1);
       }
       break;
@@ -153,7 +153,7 @@ bool Gradient::pushStages(
     p.ctx().gradient = std::move(ctx);
   }
 
-  if (!colors_are_opaque_) {
+  if (!colorsAreOpaque_) {
     p.push(Stage::Premultiply);
   }
 
@@ -166,10 +166,10 @@ void Gradient::applyOpacity(float opacity) {
   for (auto& stop : stops_) {
     stop.color.applyOpacity(opacity);
   }
-  colors_are_opaque_ = true;
+  colorsAreOpaque_ = true;
   for (const auto& s : stops_) {
     if (!s.color.isOpaque()) {
-      colors_are_opaque_ = false;
+      colorsAreOpaque_ = false;
       break;
     }
   }

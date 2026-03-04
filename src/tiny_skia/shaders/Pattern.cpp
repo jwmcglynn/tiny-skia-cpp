@@ -10,7 +10,7 @@ Pattern::Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality,
       opacity_(NormalizedF32::newClamped(opacity)),
       transform_(transform),
       quality_(quality),
-      spread_mode_(spreadMode) {}
+      spreadMode_(spreadMode) {}
 
 bool Pattern::isOpaque() const {
   // Pattern always reports as non-opaque.
@@ -46,7 +46,7 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
       p.ctx().limitY = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.height()),
                                           .invScale = 1.0f / static_cast<float>(pixmap_.height())};
 
-      switch (spread_mode_) {
+      switch (spreadMode_) {
         case SpreadMode::Pad:
           break;  // Gather stage will clamp.
         case SpreadMode::Repeat:
@@ -62,7 +62,7 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
     }
     case FilterQuality::Bilinear: {
       p.ctx().sampler =
-          pipeline::SamplerCtx{.spreadMode = spread_mode_,
+          pipeline::SamplerCtx{.spreadMode = spreadMode_,
                                .invWidth = 1.0f / static_cast<float>(pixmap_.width()),
                                .invHeight = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bilinear);
@@ -70,7 +70,7 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
     }
     case FilterQuality::Bicubic: {
       p.ctx().sampler =
-          pipeline::SamplerCtx{.spreadMode = spread_mode_,
+          pipeline::SamplerCtx{.spreadMode = spreadMode_,
                                .invWidth = 1.0f / static_cast<float>(pixmap_.width()),
                                .invHeight = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bicubic);

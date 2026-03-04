@@ -8,7 +8,7 @@
 
 namespace tiny_skia {
 
-namespace line_clipper {
+namespace lineClipper {
 
 constexpr int kLineClipperMaxPoints = 4;
 
@@ -17,6 +17,6 @@ std::span<const Point> clip(std::span<const Point, 2> src, const Rect& clip, boo
 
 bool intersect(std::span<const Point, 2> src, const Rect& clip, std::span<Point, 2> dst);
 
-}  // namespace line_clipper
+}  // namespace lineClipper
 
 }  // namespace tiny_skia
