@@ -5,6 +5,8 @@
 #include <limits>
 #include <utility>
 
+#include "tiny_skia/Painter.h"
+
 namespace tiny_skia {
 
 namespace {
@@ -225,6 +227,60 @@ std::vector<std::uint8_t> Pixmap::takeDemultiplied() {
     p = PremultipliedColorU8::fromRgbaUnchecked(c.red(), c.green(), c.blue(), c.alpha());
   }
   return take();
+}
+
+// MutablePixmapView drawing methods (delegate to Painter).
+
+void MutablePixmapView::fillRect(const Rect& rect, const Paint& paint, Transform transform,
+                                 const Mask* mask) {
+  Painter::fillRect(*this, rect, paint, transform, mask);
+}
+
+void MutablePixmapView::fillPath(const Path& path, const Paint& paint, FillRule fillRule,
+                                 Transform transform, const Mask* mask) {
+  Painter::fillPath(*this, path, paint, fillRule, transform, mask);
+}
+
+void MutablePixmapView::strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
+                                   Transform transform, const Mask* mask) {
+  Painter::strokePath(*this, path, paint, stroke, transform, mask);
+}
+
+void MutablePixmapView::drawPixmap(std::int32_t x, std::int32_t y, PixmapView src,
+                                   const PixmapPaint& ppaint, Transform transform, const Mask* mask) {
+  Painter::drawPixmap(*this, x, y, src, ppaint, transform, mask);
+}
+
+void MutablePixmapView::applyMask(const Mask& mask) { Painter::applyMask(*this, mask); }
+
+// Pixmap drawing methods (delegate through mutableView()).
+
+void Pixmap::fillRect(const Rect& rect, const Paint& paint, Transform transform, const Mask* mask) {
+  auto view = mutableView();
+  Painter::fillRect(view, rect, paint, transform, mask);
+}
+
+void Pixmap::fillPath(const Path& path, const Paint& paint, FillRule fillRule, Transform transform,
+                      const Mask* mask) {
+  auto view = mutableView();
+  Painter::fillPath(view, path, paint, fillRule, transform, mask);
+}
+
+void Pixmap::strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
+                        Transform transform, const Mask* mask) {
+  auto view = mutableView();
+  Painter::strokePath(view, path, paint, stroke, transform, mask);
+}
+
+void Pixmap::drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& ppaint,
+                        Transform transform, const Mask* mask) {
+  auto view = mutableView();
+  Painter::drawPixmap(view, x, y, src, ppaint, transform, mask);
+}
+
+void Pixmap::applyMask(const Mask& mask) {
+  auto view = mutableView();
+  Painter::applyMask(view, mask);
 }
 
 }  // namespace tiny_skia
