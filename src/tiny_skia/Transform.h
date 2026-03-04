@@ -8,7 +8,6 @@ namespace tiny_skia {
 struct Point;
 
 /// Affine transformation matrix [sx kx tx; ky sy ty; 0 0 1].
-/// Matches Rust `tiny_skia_path::Transform`.
 class Transform {
  public:
   float sx = 1.0f;

@@ -15,7 +15,6 @@
 namespace tiny_skia {
 
 /// Controls how a shape should be painted.
-/// Matches Rust `Paint`.
 struct Paint {
   /// A paint shader.  Default: black color.
   Shader shader = Color::black;
@@ -45,7 +44,6 @@ struct Paint {
 };
 
 /// Splits the target pixmap into a list of tiles for large pixmaps.
-/// Matches Rust `DrawTiler`.
 class DrawTiler {
  public:
   static constexpr std::uint32_t kMaxDimensions = 8192 - 1;
@@ -102,43 +100,35 @@ class DrawTiler {
 };
 
 /// Returns true if the path's bounds are too large for fixed-point math.
-/// Matches Rust `is_too_big_for_math`.
 [[nodiscard]] bool isTooBigForMath(const Path& path);
 
 /// Determines if a stroke should be treated as a hairline.
 /// Returns the coverage scaling factor, or nullopt for thick strokes.
-/// Matches Rust `treat_as_hairline`.
 [[nodiscard]] std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
                                                    Transform ts);
 
 // ---- Drawing functions (on PixmapMut) ----
 
 /// Draws a filled rectangle onto the pixmap.
-/// Matches Rust `PixmapMut::fill_rect`.
 void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint, Transform transform,
               const Mask* mask = nullptr);
 
 /// Draws a filled path onto the pixmap.
-/// Matches Rust `PixmapMut::fill_path`.
 void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
               Transform transform, const Mask* mask = nullptr);
 
 /// Draws a pixmap on top of the current pixmap.
-/// Matches Rust `PixmapMut::draw_pixmap`.
 void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y, PixmapRef src,
                 const PixmapPaint& paint, Transform transform, const Mask* mask = nullptr);
 
 /// Applies a mask to already-drawn content.
-/// Matches Rust `PixmapMut::apply_mask`.
 void applyMask(PixmapMut& pixmap, const Mask& mask);
 
 /// Strokes a path onto the pixmap.
-/// Matches Rust `PixmapMut::stroke_path`.
 void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
                 Transform transform, const Mask* mask = nullptr);
 
 /// Strokes a path with a hairline (subpixel width).
-/// Private helper. Matches Rust `PixmapMut::stroke_hairline`.
 void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
                     std::optional<SubMaskRef> mask, SubPixmapMut& subpix);
 

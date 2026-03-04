@@ -20,7 +20,7 @@ inline constexpr float pmin(float a, float b) { return b < a ? b : a; }
 
 }  // namespace path_f32x2_detail
 
-/// A pair of f32 numbers. Matches Rust `f32x2`.
+/// A pair of f32 numbers.
 struct F32x2 {
   float x = 0.0f;
   float y = 0.0f;

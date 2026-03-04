@@ -82,7 +82,7 @@ class PixmapMut {
 
 struct SubPixmapMut {
   IntSize size{};
-  std::size_t real_width = 0;
+  std::size_t realWidth = 0;
   std::uint8_t* data = nullptr;
 
   [[nodiscard]] std::size_t width() const { return size.width(); }
@@ -125,8 +125,8 @@ class Pixmap {
 
   void fill(const Color& color);
 
-  std::vector<std::uint8_t> take();
-  std::vector<std::uint8_t> takeDemultiplied();
+  [[nodiscard]] std::vector<std::uint8_t> take();
+  [[nodiscard]] std::vector<std::uint8_t> takeDemultiplied();
 
  private:
   explicit Pixmap(std::vector<std::uint8_t> data, IntSize size)

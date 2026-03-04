@@ -4,7 +4,7 @@
 
 namespace tiny_skia {
 
-/// Scalar helper: matches Rust SCALAR_ROOT_2_OVER_2.
+/// Scalar helper constant.
 constexpr float kScalarRoot2Over2 = 0.707106781f;
 
 struct Point {
@@ -20,7 +20,7 @@ struct Point {
   [[nodiscard]] bool isFinite() const { return std::isfinite(x) && std::isfinite(y); }
 
   [[nodiscard]] float length() const {
-    // Match Rust: use f32 normally, fall back to f64 only on overflow.
+    // Use f32 normally, fall back to f64 on overflow.
     float mag2 = x * x + y * y;
     if (std::isfinite(mag2)) {
       return std::sqrt(mag2);
@@ -32,7 +32,7 @@ struct Point {
   [[nodiscard]] float lengthSqd() const { return x * x + y * y; }
 
   [[nodiscard]] float distance(const Point& other) const {
-    // Match Rust: subtract in f32, then call length().
+    // Subtract in f32, then call length().
     return Point{x - other.x, y - other.y}.length();
   }
 
@@ -61,7 +61,7 @@ struct Point {
   }
 
   bool setLength(float len) {
-    // Match Rust set_point_length: use f64 for the scale computation.
+    // Use f64 for the scale computation.
     double xx = x, yy = y;
     double dmag = std::sqrt(xx * xx + yy * yy);
     double dscale = static_cast<double>(len) / dmag;

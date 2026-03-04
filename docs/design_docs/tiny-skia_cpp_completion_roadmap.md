@@ -116,11 +116,11 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Publish and maintain a comprehensive API documentation site artifact.
 
 - [ ] Milestone 5: Code Review and C++20 Readability Hardening
-  - [ ] Execute module-by-module readability pass with deterministic review notes.
-  - [ ] Normalize style for const-correctness, references/spans, and naming.
+  - [x] Execute module-by-module readability pass with deterministic review notes.
+  - [x] Normalize style for const-correctness, references/spans, and naming.
   - [ ] Adopt modern C++20 patterns where semantics remain unchanged.
-  - [ ] Remove TODOs and comments tied to intermediate porting steps.
-  - [ ] Audit and eliminate temporary references to partial-port decisions.
+  - [x] Remove TODOs and comments tied to intermediate porting steps.
+  - [x] Audit and eliminate temporary references to partial-port decisions.
 
 - [ ] Milestone 6: Security and Reliability Hardening
   - [ ] Add fuzzing targets for input-heavy rendering/path APIs.

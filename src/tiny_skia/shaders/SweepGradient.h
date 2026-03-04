@@ -8,7 +8,7 @@
 
 namespace tiny_skia {
 
-// A sweep gradient shader. Matches Rust `SweepGradient`.
+// A sweep gradient shader.
 class SweepGradient {
  public:
   explicit SweepGradient(Gradient base) : base_(std::move(base)) {}

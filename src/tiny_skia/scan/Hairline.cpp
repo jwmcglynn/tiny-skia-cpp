@@ -201,7 +201,7 @@ std::uint32_t computeCubicSegments(const std::array<Point, 4>& points) {
   return 1u << kMaxCubicSubdivideLevel;
 }
 
-// Quad coefficient representation matching Rust's QuadCoeff.
+// Quad coefficient representation.
 struct QuadCoeffLocal {
   float ax, ay, bx, by, cx, cy;
 
@@ -227,7 +227,7 @@ std::optional<Rect> intRectToRect(const IntRect& rect) {
                         static_cast<float>(rect.y()) + rect.height());
 }
 
-// Cubic coefficient representation matching Rust's CubicCoeff.
+// Cubic coefficient representation.
 struct CubicCoeffLocal {
   float ax, ay, bx, by, cx, cy, dx, dy;
 
@@ -295,7 +295,7 @@ void hairQuad2(const std::array<Point, 3>& points, const ScreenIntRect* clip, Li
     return;
   }
 
-  // Match Rust: use coefficient-based evaluation with incremental t.
+  // Use coefficient-based evaluation with incremental t.
   const auto coeff = QuadCoeffLocal::fromPoints(points);
   const float dt = 1.0f / static_cast<float>(lines);
   float t = 0.0f;
@@ -326,7 +326,7 @@ void hairCubic2(const std::array<Point, 4>& points, const ScreenIntRect* clip, L
     return;
   }
 
-  // Match Rust: use coefficient-based evaluation with incremental t.
+  // Use coefficient-based evaluation with incremental t.
   const auto coeff = CubicCoeffLocal::fromPoints(points);
   const float dt = 1.0f / static_cast<float>(lines);
   float t = 0.0f;

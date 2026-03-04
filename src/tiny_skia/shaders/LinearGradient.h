@@ -8,7 +8,7 @@
 
 namespace tiny_skia {
 
-// A linear gradient shader. Matches Rust `LinearGradient`.
+// A linear gradient shader.
 class LinearGradient {
  public:
   // Creates a new linear gradient. Returns Shader or nullopt.

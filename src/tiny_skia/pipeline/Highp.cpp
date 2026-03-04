@@ -464,7 +464,7 @@ void load_8888(const std::uint8_t* data, std::size_t stride, std::size_t dx, std
   (void)p;
 }
 
-// Matches Rust's unnorm: clamp to [0,1], multiply by 255, round-to-nearest-even.
+// Clamp to [0,1], multiply by 255, round-to-nearest-even.
 // Uses std::nearbyintf which follows the current rounding mode (FE_TONEAREST by default),
 // matching ARM NEON vcvtnq_s32_f32 used by Rust's round_int().
 inline std::uint8_t unnorm(float v) {
@@ -491,7 +491,7 @@ void load_dst(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
             pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
@@ -501,7 +501,7 @@ void store(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
              pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
@@ -545,7 +545,7 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
             pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto inv_a = 1.0f - pipeline.a[i];
@@ -554,7 +554,7 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.b[i] = pipeline.db[i] * inv_a + pipeline.b[i];
     pipeline.a[i] = pipeline.da[i] * inv_a + pipeline.a[i];
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
              pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }

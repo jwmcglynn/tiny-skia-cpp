@@ -92,7 +92,7 @@ TEST(TransformTest, InvertSingularReturnsNullopt) {
 }
 
 TEST(TransformTest, PreScale) {
-  // Matches Rust concat test: pre_scale(2.0, -4.0)
+  // pre_scale(2.0, -4.0)
   const auto ts = Transform::fromRow(1.2f, 3.4f, -5.6f, -7.8f, 1.2f, 3.4f);
   const auto result = ts.preScale(2.0f, -4.0f);
   EXPECT_NEAR(result.sx, 2.4f, 1e-5f);
@@ -104,7 +104,7 @@ TEST(TransformTest, PreScale) {
 }
 
 TEST(TransformTest, PostScale) {
-  // Matches Rust concat test: post_scale(2.0, -4.0)
+  // post_scale(2.0, -4.0)
   const auto ts = Transform::fromRow(1.2f, 3.4f, -5.6f, -7.8f, 1.2f, 3.4f);
   const auto result = ts.postScale(2.0f, -4.0f);
   EXPECT_NEAR(result.sx, 2.4f, 1e-5f);

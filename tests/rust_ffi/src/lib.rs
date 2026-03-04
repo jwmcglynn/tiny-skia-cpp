@@ -439,6 +439,7 @@ pub unsafe extern "C" fn ts_ffi_fill_rect(
 /// `transform` must point to 6 floats: [sx, kx, tx, ky, sy, ty].
 /// `dash_array` / `dash_count` are optional (pass null / 0 for no dash).
 #[no_mangle]
+#[allow(non_snake_case)]
 pub unsafe extern "C" fn ts_ffi_stroke_path(
     pixmap: *mut Pixmap,
     path: *const Path,
@@ -447,9 +448,9 @@ pub unsafe extern "C" fn ts_ffi_stroke_path(
     b: u8,
     a: u8,
     width: f32,
-    miter_limit: f32,
-    line_cap: u8,
-    line_join: u8,
+    miterLimit: f32,
+    lineCap: u8,
+    lineJoin: u8,
     anti_alias: bool,
     blend_mode: u8,
     transform: *const f32,
@@ -467,9 +468,9 @@ pub unsafe extern "C" fn ts_ffi_stroke_path(
 
     let mut stroke = Stroke {
         width,
-        miter_limit,
-        line_cap: line_cap_from_u8(line_cap),
-        line_join: line_join_from_u8(line_join),
+        miter_limit: miterLimit,
+        line_cap: line_cap_from_u8(lineCap),
+        line_join: line_join_from_u8(lineJoin),
         dash: None,
     };
 

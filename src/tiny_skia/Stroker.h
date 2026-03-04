@@ -70,7 +70,7 @@ using JoinProc = void (*)(Point beforeUnitNormal, Point pivot, Point afterUnitNo
                           float invMiterLimit, bool prevIsLine, bool currIsLine,
                           SwappableBuilders builders);
 
-/// A path stroker. Matches Rust `PathStroker`.
+/// A path stroker.
 class PathStroker {
  public:
   PathStroker();

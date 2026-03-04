@@ -9,11 +9,10 @@
 namespace tiny_skia {
 
 // Focal point data for two-point conical gradients.
-// Matches Rust `FocalData`.
 struct FocalData {
   float r1 = 0.0f;
-  float focal_x = 0.0f;
-  bool is_swapped = false;
+  float focalX = 0.0f;
+  bool isSwapped = false;
 
   [[nodiscard]] bool isFocalOnCircle() const;
   [[nodiscard]] bool isWellBehaved() const;
@@ -23,7 +22,6 @@ struct FocalData {
 };
 
 // Gradient type classification for radial gradients.
-// Matches Rust `GradientType`.
 struct RadialType {
   float radius1 = 0.0f;
   float radius2 = 0.0f;
@@ -36,7 +34,6 @@ struct StripType {
 using GradientType = std::variant<RadialType, StripType, FocalData>;
 
 // A radial (two-point conical) gradient shader.
-// Matches Rust `RadialGradient`.
 class RadialGradient {
  public:
   explicit RadialGradient(Gradient base) : base_(std::move(base)) {}

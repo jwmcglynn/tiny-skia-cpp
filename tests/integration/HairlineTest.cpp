@@ -33,7 +33,7 @@ Pixmap drawLine(float x0, float y0, float x1, float y1,
 
     Stroke stroke;
     stroke.width = width;
-    stroke.line_cap = lineCap;
+    stroke.lineCap = lineCap;
 
     auto mut = pixmap->asMut();
     strokePath(mut, *path, paint, stroke, Transform::identity());
@@ -61,7 +61,7 @@ Pixmap drawQuad(bool antiAlias, float width, LineCap lineCap) {
 
     Stroke stroke;
     stroke.width = width;
-    stroke.line_cap = lineCap;
+    stroke.lineCap = lineCap;
 
     auto mut = pixmap->asMut();
     strokePath(mut, *path, paint, stroke, Transform::identity());
@@ -91,7 +91,7 @@ Pixmap drawCubic(const float (&points)[8], bool antiAlias, float width,
 
     Stroke stroke;
     stroke.width = width;
-    stroke.line_cap = lineCap;
+    stroke.lineCap = lineCap;
 
     auto mut = pixmap->asMut();
     strokePath(mut, *path, paint, stroke, Transform::identity());

@@ -16,7 +16,7 @@ namespace tiny_skia {
 
 namespace {
 
-/// Matches Rust `SCALAR_MAX` from tiny-skia-path.
+/// Maximum float scalar value.
 constexpr float kScalarMax = std::numeric_limits<float>::max();
 
 }  // namespace
@@ -282,7 +282,7 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const S
         }
         auto submaskOpt = mask ? mask->submask(tile->toIntRect()) : std::nullopt;
 
-        strokeHairline(pathCopy, paintCopy, stroke.line_cap, submaskOpt, *subpix);
+        strokeHairline(pathCopy, paintCopy, stroke.lineCap, submaskOpt, *subpix);
 
         const auto tsBack =
             Transform::fromTranslate(static_cast<float>(tile->x()), static_cast<float>(tile->y()));
@@ -302,9 +302,9 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const S
         if (!transformed.has_value()) {
           return;
         }
-        strokeHairline(*transformed, paintCopy, stroke.line_cap, submaskOpt, subpix);
+        strokeHairline(*transformed, paintCopy, stroke.lineCap, submaskOpt, subpix);
       } else {
-        strokeHairline(*pathPtr, paintCopy, stroke.line_cap, submaskOpt, subpix);
+        strokeHairline(*pathPtr, paintCopy, stroke.lineCap, submaskOpt, subpix);
       }
     }
   } else {

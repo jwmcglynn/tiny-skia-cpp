@@ -34,7 +34,7 @@ int main() {
 
   Stroke stroke;
   stroke.width = 6.0f;
-  stroke.line_cap = LineCap::Round;
+  stroke.lineCap = LineCap::Round;
   stroke.dash = StrokeDash::create({20.0f, 40.0f}, 0.0f);
 
   auto pixmap = Pixmap::fromSize(500, 500);

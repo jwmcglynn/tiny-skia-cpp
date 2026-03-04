@@ -10,7 +10,7 @@
 
 namespace tiny_skia {
 
-// The Shader variant type. Matches Rust `enum Shader`.
+// The Shader variant type.
 // Uses std::variant to dispatch between shader types.
 using Shader = std::variant<Color, LinearGradient, SweepGradient, RadialGradient, Pattern>;
 

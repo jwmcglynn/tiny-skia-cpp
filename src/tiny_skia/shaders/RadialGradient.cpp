@@ -30,25 +30,25 @@ bool FocalData::isFocalOnCircle() const { return isNearlyEqual(1.0f, r1); }
 
 bool FocalData::isWellBehaved() const { return !isFocalOnCircle() && r1 > 1.0f; }
 
-bool FocalData::isNativelyFocal() const { return isNearlyZero(focal_x); }
+bool FocalData::isNativelyFocal() const { return isNearlyZero(focalX); }
 
 bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
-  is_swapped = false;
-  focal_x = r0_in / (r0_in - r1_in);
+  isSwapped = false;
+  focalX = r0_in / (r0_in - r1_in);
 
-  if (isNearlyEqual(focal_x, 1.0f)) {
+  if (isNearlyEqual(focalX, 1.0f)) {
     matrix = matrix.postTranslate(-1.0f, 0.0f).postScale(-1.0f, 1.0f);
     std::swap(r0_in, r1_in);
-    focal_x = 0.0f;
-    is_swapped = true;
+    focalX = 0.0f;
+    isSwapped = true;
   }
 
-  const auto focalMatrix = tsFromPolyToPoly(Point::fromXy(focal_x, 0.0f), Point::fromXy(1.0f, 0.0f),
+  const auto focalMatrix = tsFromPolyToPoly(Point::fromXy(focalX, 0.0f), Point::fromXy(1.0f, 0.0f),
                                             Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
   if (!focalMatrix.has_value()) return false;
 
   matrix = matrix.postConcat(*focalMatrix);
-  r1 = r1_in / std::abs(1.0f - focal_x);
+  r1 = r1_in / std::abs(1.0f - focalX);
 
   if (isFocalOnCircle()) {
     matrix = matrix.postScale(0.5f, 0.5f);
@@ -56,7 +56,7 @@ bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
     matrix = matrix.postScale(r1 / (r1 * r1 - 1.0f), 1.0f / std::sqrt(std::abs(r1 * r1 - 1.0f)));
   }
 
-  matrix = matrix.postScale(std::abs(1.0f - focal_x), std::abs(1.0f - focal_x));
+  matrix = matrix.postScale(std::abs(1.0f - focalX), std::abs(1.0f - focalX));
   return true;
 }
 
@@ -173,7 +173,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
     p1 = 0.0f;
   } else if (const auto* fd = std::get_if<FocalData>(&gradient_type_)) {
     p0 = 1.0f / fd->r1;
-    p1 = fd->focal_x;
+    p1 = fd->focalX;
   }
 
   p.ctx().two_point_conical_gradient =
@@ -196,7 +196,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
             b.push(Stage::XYTo2PtConicalFocalOnCircle);
           } else if (fd->isWellBehaved()) {
             b.push(Stage::XYTo2PtConicalWellBehaved);
-          } else if (fd->is_swapped || (1.0f - fd->focal_x) < 0.0f) {
+          } else if (fd->isSwapped || (1.0f - fd->focalX) < 0.0f) {
             b.push(Stage::XYTo2PtConicalSmaller);
           } else {
             b.push(Stage::XYTo2PtConicalGreater);
@@ -206,7 +206,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
             b.push(Stage::Mask2PtConicalDegenerates);
           }
 
-          if ((1.0f - fd->focal_x) < 0.0f) {
+          if ((1.0f - fd->focalX) < 0.0f) {
             b.push(Stage::NegateX);
           }
 
@@ -214,7 +214,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
             b.push(Stage::Alter2PtConicalCompensateFocal);
           }
 
-          if (fd->is_swapped) {
+          if (fd->isSwapped) {
             b.push(Stage::Alter2PtConicalUnswap);
           }
         }

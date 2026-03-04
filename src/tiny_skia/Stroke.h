@@ -9,7 +9,7 @@
 
 namespace tiny_skia {
 
-/// Line join for stroked paths. Matches Rust `LineJoin`.
+/// Line join for stroked paths.
 enum class LineJoin : std::uint8_t {
   Miter,
   MiterClip,
@@ -17,7 +17,7 @@ enum class LineJoin : std::uint8_t {
   Bevel,
 };
 
-/// Dash pattern for stroked paths. Matches Rust `StrokeDash`.
+/// Dash pattern for stroked paths.
 struct StrokeDash {
   /// Dash array. Must have an even number of entries > 0.
   std::vector<float> array;
@@ -28,12 +28,12 @@ struct StrokeDash {
                                                         float dashOffset);
 };
 
-/// Stroke properties. Matches Rust `Stroke`.
+/// Stroke properties.
 struct Stroke {
   float width = 1.0f;
-  float miter_limit = 4.0f;
-  LineCap line_cap = LineCap::Butt;
-  LineJoin line_join = LineJoin::Miter;
+  float miterLimit = 4.0f;
+  LineCap lineCap = LineCap::Butt;
+  LineJoin lineJoin = LineJoin::Miter;
   std::optional<StrokeDash> dash;
 };
 

@@ -10,10 +10,9 @@
 namespace tiny_skia {
 
 // The default SCALAR_NEARLY_ZERO threshold is too big for gradients.
-// Matches Rust `gradient::DEGENERATE_THRESHOLD`.
 constexpr float kDegenerateThreshold = 1.0f / (1 << 15);
 
-// A gradient stop. Matches Rust `GradientStop`.
+// A gradient stop.
 struct GradientStop {
   NormalizedF32 position;
   Color color;
@@ -23,7 +22,7 @@ struct GradientStop {
   }
 };
 
-// Base gradient data. Matches Rust `Gradient`.
+// Base gradient data.
 class Gradient {
  public:
   Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transform transform,

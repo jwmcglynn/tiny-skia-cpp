@@ -264,9 +264,9 @@ inline bool strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
   }
 
   return ts_ffi_stroke_path(
-      pixmap.raw(), path.raw(), r, g, b, a, stroke.width, stroke.miter_limit,
-      detail::lineCapToU8(stroke.line_cap),
-      detail::lineJoinToU8(stroke.line_join), antiAlias,
+      pixmap.raw(), path.raw(), r, g, b, a, stroke.width, stroke.miterLimit,
+      detail::lineCapToU8(stroke.lineCap),
+      detail::lineJoinToU8(stroke.lineJoin), antiAlias,
       detail::blendModeToU8(blendMode), ts, dashArray, dashCount, dashOffset);
 }
 

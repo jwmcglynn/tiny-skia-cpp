@@ -35,7 +35,7 @@ class PathBuilder;
 struct Stroke;
 struct StrokeDash;
 
-/// A path segment for iteration. Matches Rust `PathSegment`.
+/// A path segment for iteration.
 struct PathSegment {
   enum class Kind : std::uint8_t { MoveTo, LineTo, QuadTo, CubicTo, Close };
   Kind kind;
@@ -91,11 +91,10 @@ class Path {
 
   /// Computes tight bounds by finding curve extrema.
   /// Unlike bounds() which uses control points, this finds exact extrema.
-  /// Matches Rust `Path::compute_tight_bounds`.
   [[nodiscard]] std::optional<Rect> computeTightBounds() const;
 
   /// Clears the path and returns a PathBuilder reusing the allocations.
-  /// Matches Rust `Path::clear`. Consumes (moves from) this path.
+  /// Consumes (moves from) this path.
   [[nodiscard]] PathBuilder clear();
 
   /// Stroke this path. Returns a filled path representing the stroke outline.
@@ -137,7 +136,6 @@ enum class FillRule : std::uint8_t {
 };
 
 /// Creates a rectangular path from a Rect.
-/// Matches Rust `PathBuilder::from_rect`.
 inline Path pathFromRect(const Rect& rect) {
   std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
                                  PathVerb::Close};
@@ -147,7 +145,7 @@ inline Path pathFromRect(const Rect& rect) {
   return Path(std::move(verbs), std::move(points));
 }
 
-/// Path segments iterator. Matches Rust `PathSegmentsIter`.
+/// Path segments iterator.
 class PathSegmentsIter {
  public:
   explicit PathSegmentsIter(const Path& path) : path_(&path) {}

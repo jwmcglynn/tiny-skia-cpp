@@ -42,7 +42,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   const auto c = src[2].y;
 
   if (isNotMonotonic(a, b, c)) {
-    // Match Rust: use f32 valid_unit_divide (not double).
+    // Use f32 valid_unit_divide (not double).
     float numer = a - b;
     float denom = a - b - b + c;
     if (numer < 0.0f) {
@@ -59,7 +59,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
       }
     }
 
-    // Match Rust: only modify Y coordinate, not X.
+    // Only modify Y coordinate, not X.
     b = std::abs(a - b) < std::abs(b - c) ? a : c;
   }
 
@@ -69,7 +69,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   return 0;
 }
 
-// Pure f32 de Casteljau's, matching Rust's chop_cubic_at2.
+// Pure f32 de Casteljau's algorithm.
 void chopCubicAt2Local(std::array<Point, 4> src, float t, std::array<Point, 7>& dst) {
   auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
   float abx = interp(src[0].x, src[1].x, t);
@@ -142,7 +142,7 @@ std::size_t chopCubicAt(std::array<Point, 4> src, std::span<const float> tValues
     }
 
     offset += 3;
-    // Use output from chop as next iteration's source (matches Rust).
+    // Use output from chop as next iteration's source.
     src = {split[3], split[4], split[5], split[6]};
 
     float diff = tValues[i + 1] - tValues[i];

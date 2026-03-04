@@ -413,7 +413,7 @@ TEST(CrossValidation, StrokeRoundCaps) {
 
   Stroke stroke;
   stroke.width = 10.0f;
-  stroke.line_cap = LineCap::Round;
+  stroke.lineCap = LineCap::Round;
 
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
@@ -450,7 +450,7 @@ TEST(CrossValidation, StrokeRoundJoinTriangle) {
 
   Stroke stroke;
   stroke.width = 4.0f;
-  stroke.line_join = LineJoin::Round;
+  stroke.lineJoin = LineJoin::Round;
 
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());

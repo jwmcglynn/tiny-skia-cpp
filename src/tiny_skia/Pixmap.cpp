@@ -128,7 +128,7 @@ std::span<PremultipliedColorU8> PixmapMut::pixelsMut() const {
 SubPixmapMut PixmapMut::asSubpixmap() const {
   return SubPixmapMut{
       .size = size_,
-      .real_width = static_cast<std::size_t>(size_.width()),
+      .realWidth = static_cast<std::size_t>(size_.width()),
       .data = data_,
   };
 }
@@ -155,13 +155,13 @@ std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
 
   return SubPixmapMut{
       .size = subSize.value(),
-      .real_width = srcWidth,
+      .realWidth = srcWidth,
       .data = data_ + offset,
   };
 }
 
 std::span<std::uint8_t> SubPixmapMut::dataMut() const {
-  const auto len = static_cast<std::size_t>(real_width) * static_cast<std::size_t>(size.height()) *
+  const auto len = static_cast<std::size_t>(realWidth) * static_cast<std::size_t>(size.height()) *
                    kBytesPerPixel;
   return std::span<std::uint8_t>(data, len);
 }

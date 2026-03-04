@@ -29,9 +29,8 @@ inline std::string goldenImagePath(const std::string& relativePath) {
 }
 
 /// Premultiplies straight-alpha RGBA8 data in-place.
-/// Matches Rust's PremultipliedColorU8::premultiply():
 ///   channel = (channel * alpha + 128 + ((channel * alpha + 128) >> 8)) >> 8
-/// Which is equivalent to: round(channel * alpha / 255).
+/// Equivalent to: round(channel * alpha / 255).
 inline void premultiplyRgba(std::vector<std::uint8_t>& data) {
   for (std::size_t i = 0; i + 3 < data.size(); i += 4) {
     std::uint8_t a = data[i + 3];

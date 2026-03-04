@@ -74,7 +74,7 @@ inline ::testing::Matcher<const tiny_skia::SubPixmapMut&> SubPixmapMutEq(std::si
   using ::testing::Field;
   using ::testing::Property;
 
-  return AllOf(Field("real_width", &tiny_skia::SubPixmapMut::real_width, Eq(realWidth)),
+  return AllOf(Field("realWidth", &tiny_skia::SubPixmapMut::realWidth, Eq(realWidth)),
                Property("width", &tiny_skia::SubPixmapMut::width, Eq(width)),
                Property("height", &tiny_skia::SubPixmapMut::height, Eq(height)));
 }

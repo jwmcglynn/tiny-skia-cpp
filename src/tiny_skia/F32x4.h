@@ -10,7 +10,7 @@
 
 namespace tiny_skia {
 
-/// A quartet of f32 numbers. Matches Rust `f32x4`.
+/// A quartet of f32 numbers.
 struct F32x4 {
   float a = 0.0f;
   float b = 0.0f;

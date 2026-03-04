@@ -463,14 +463,14 @@ void RasterPipelineBlitter::blitRect(const ScreenIntRect& rect) {
     if (is_mask_only_) {
       for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
         for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-          const auto offset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
+          const auto offset = (yy * pixmap_->realWidth + xx) * kBytesPerPixel;
           data[offset + 3] = c.alpha();
         }
       }
     } else {
       for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
         for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-          const auto offset = (yy * pixmap_->real_width + xx) * kBytesPerPixel;
+          const auto offset = (yy * pixmap_->realWidth + xx) * kBytesPerPixel;
           data[offset + 0] = c.red();
           data[offset + 1] = c.green();
           data[offset + 2] = c.blue();

@@ -45,19 +45,19 @@ bool chopMonoCubicAtY(std::array<Point, 4> src, float y, std::array<Point, 7>& d
 
 // --- New functions needed by stroker/dash ---
 
-/// Chop a quad at parameter t. Matches Rust chop_quad_at with NormalizedF32Exclusive.
+/// Chop a quad at parameter t.
 void chopQuadAtT(const Point src[3], NormalizedF32Exclusive t, Point dst[5]);
 
-/// Chop a cubic at parameter t. Matches Rust chop_cubic_at2 (single t).
+/// Chop a cubic at parameter t.
 void chopCubicAt2(const Point src[4], NormalizedF32Exclusive t, Point dst[7]);
 
-/// Evaluate a quad at parameter t. Matches Rust eval_quad_at.
+/// Evaluate a quad at parameter t.
 Point evalQuadAt(const Point src[3], NormalizedF32 t);
 
 /// Evaluate the tangent of a quad at parameter t.
 Point evalQuadTangentAt(const Point src[3], NormalizedF32 t);
 
-/// Evaluate a cubic at parameter t. Matches Rust eval_cubic_pos_at.
+/// Evaluate a cubic at parameter t.
 Point evalCubicPosAt(const Point src[4], NormalizedF32 t);
 
 /// Evaluate the tangent of a cubic at parameter t.
@@ -69,7 +69,7 @@ NormalizedF32 findQuadMaxCurvature(const Point src[3]);
 /// Find extrema of a quadratic component.
 std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b, float c);
 
-/// Find extrema of a cubic component. Matches Rust find_cubic_extrema.
+/// Find extrema of a cubic component.
 /// Returns the number of extrema found (0..3), stored in tValues.
 std::size_t findCubicExtremaT(float a, float b, float c, float d,
                               NormalizedF32Exclusive tValues[3]);
@@ -86,12 +86,12 @@ std::optional<NormalizedF32Exclusive> findCubicCusp(const Point src[4]);
 /// Find roots of a*t^2 + b*t + c = 0 in (0,1).
 std::size_t findUnitQuadRoots(float a, float b, float c, NormalizedF32Exclusive roots[3]);
 
-/// Array for t values. Matches Rust new_t_values.
+/// Array for t values.
 inline std::array<NormalizedF32Exclusive, 3> newTValues() {
   return {NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
 }
 
-/// Conic (rational quadratic) representation. Matches Rust Conic.
+/// Conic (rational quadratic) representation.
 struct Conic {
   Point points[3] = {};
   float weight = 0.0f;
@@ -109,7 +109,7 @@ struct Conic {
                                                             Conic dst[5]);
 };
 
-/// Auto conic to quads converter. Matches Rust AutoConicToQuads.
+/// Auto conic to quads converter.
 struct AutoConicToQuads {
   Point points[64] = {};
   std::uint8_t len = 0;  // number of quads

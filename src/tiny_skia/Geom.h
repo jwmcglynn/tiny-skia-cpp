@@ -109,7 +109,6 @@ class Rect {
   static std::optional<Rect> fromLtrb(float left, float top, float right, float bottom);
 
   /// Creates a Rect from (x, y, width, height).
-  /// Matches Rust `Rect::from_xywh`.
   static std::optional<Rect> fromXywh(float x, float y, float w, float h) {
     return fromLtrb(x, y, x + w, y + h);
   }

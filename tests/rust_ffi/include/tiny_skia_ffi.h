@@ -159,14 +159,14 @@ bool ts_ffi_fill_rect(TsFfiPixmap* pixmap, float left, float top, float right,
 
 /// Strokes `path` onto `pixmap` using a solid-color paint.
 ///
-/// @param line_cap   0 = Butt, 1 = Round, 2 = Square.
-/// @param line_join  0 = Miter, 1 = MiterClip, 2 = Round, 3 = Bevel.
+/// @param lineCap    0 = Butt, 1 = Round, 2 = Square.
+/// @param lineJoin   0 = Miter, 1 = MiterClip, 2 = Round, 3 = Bevel.
 /// @param dash_array Pointer to dash values (may be NULL for no dash).
 /// @param dash_count Number of elements in dash_array.
 /// @param dash_offset Offset into the dash pattern.
 bool ts_ffi_stroke_path(TsFfiPixmap* pixmap, const TsFfiPath* path, uint8_t r,
                         uint8_t g, uint8_t b, uint8_t a, float width,
-                        float miter_limit, uint8_t line_cap, uint8_t line_join,
+                        float miterLimit, uint8_t lineCap, uint8_t lineJoin,
                         bool anti_alias, uint8_t blend_mode,
                         const float transform[6], const float* dash_array,
                         uint32_t dash_count, float dash_offset);

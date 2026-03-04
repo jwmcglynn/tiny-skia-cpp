@@ -500,7 +500,7 @@ TEST(ColorTest, PipelineContextDefaultsMatchExpectedMembers) {
 
 TEST(ColorTest, MaskCtxOffsetMatchesPackedCoordinateFormula) {
   tiny_skia::pipeline::MaskCtx ctx{};
-  ctx.real_width = 7;
+  ctx.realWidth = 7;
 
   const std::array offsets{ctx.byteOffset(0, 0), ctx.byteOffset(3, 0), ctx.byteOffset(2, 1),
                            ctx.byteOffset(6, 2)};

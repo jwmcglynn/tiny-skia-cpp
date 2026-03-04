@@ -612,7 +612,7 @@ std::optional<Path> PathStroker::stroke(const Path& path, const Stroke& stroke,
   if (stroke.width <= 0.0f || !std::isfinite(stroke.width)) {
     return std::nullopt;
   }
-  return strokeInner(path, stroke.width, stroke.miter_limit, stroke.line_cap, stroke.line_join,
+  return strokeInner(path, stroke.width, stroke.miterLimit, stroke.lineCap, stroke.lineJoin,
                      resolutionScale);
 }
 

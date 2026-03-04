@@ -7,21 +7,21 @@
 
 namespace tiny_skia {
 
-// Filter quality for pattern sampling. Matches Rust `FilterQuality`.
+// Filter quality for pattern sampling.
 enum class FilterQuality {
   Nearest,
   Bilinear,
   Bicubic,
 };
 
-// Paint settings for pixmap drawing. Matches Rust `PixmapPaint`.
+// Paint settings for pixmap drawing.
 struct PixmapPaint {
   float opacity = 1.0f;
   BlendMode blend_mode = BlendMode::SourceOver;
   FilterQuality quality = FilterQuality::Nearest;
 };
 
-// A pattern shader (pixmap-based). Matches Rust `Pattern`.
+// A pattern shader (pixmap-based).
 class Pattern {
  public:
   Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,

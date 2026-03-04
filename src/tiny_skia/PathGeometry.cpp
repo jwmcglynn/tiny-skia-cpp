@@ -75,7 +75,7 @@ void interpCubicAt(std::span<const Point, 4> src, double t, std::span<Point, 7> 
   dst[6] = src[3];
 }
 
-// Matches Rust's chop_cubic_at2: pure f32 de Casteljau's algorithm.
+// Pure f32 de Casteljau's algorithm.
 // Uses interp(v0, v1, t) = v0 + (v1 - v0) * t in f32 precision.
 void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) {
   if (dst.size() < 7 || t <= 0.0f || t >= 1.0f) {
@@ -129,7 +129,7 @@ bool chopMonoCubicAt(std::array<Point, 4> src, float intercept, bool isVertical,
 }
 
 bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, float& t) {
-  // Match Rust: use f32 find_unit_quad_roots (not double quad64::rootsValidT).
+  // Use f32 find_unit_quad_roots (not double quad64::rootsValidT).
   const auto c0 = isVertical ? src[0].x : src[0].y;
   const auto c1 = isVertical ? src[1].x : src[1].y;
   const auto c2 = isVertical ? src[2].x : src[2].y;
@@ -149,7 +149,7 @@ bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, 
 }  // namespace
 
 std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
-  // Match Rust: pure f32 interpolation via interp(v0, v1, t) = v0 + (v1 - v0) * t
+  // Pure f32 interpolation via interp(v0, v1, t) = v0 + (v1 - v0) * t
   auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
   const auto p01 = Point{interp(src[0].x, src[1].x, t), interp(src[0].y, src[1].y, t)};
   const auto p12 = Point{interp(src[1].x, src[2].x, t), interp(src[1].y, src[2].y, t)};
@@ -169,7 +169,7 @@ std::size_t chopQuadAtXExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   const auto c = src[2].x;
 
   if (isNotMonotonic(a, b, c)) {
-    // Match Rust: use f32 valid_unit_divide (not double).
+    // Use f32 valid_unit_divide (not double).
     if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
       chopQuadAt(src, tOpt->get(), dst);
       dst[1].x = dst[2].x;
@@ -192,7 +192,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   const auto c = src[2].y;
 
   if (isNotMonotonic(a, b, c)) {
-    // Match Rust: use f32 valid_unit_divide (not double).
+    // Use f32 valid_unit_divide (not double).
     if (auto tOpt = validUnitDivideF32(a - b, a - b - b + c)) {
       chopQuadAt(src, tOpt->get(), dst);
       dst[1].y = dst[2].y;
@@ -221,7 +221,7 @@ std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer, float deno
   return NormalizedF32Exclusive::create(r);
 }
 
-// Matches Rust's chop_cubic_at: uses f32 t values and pure f32 de Casteljau's.
+// Uses f32 t values and pure f32 de Casteljau's.
 std::size_t chopCubicAt(std::span<const Point> src, std::span<const NormalizedF32Exclusive> tValues,
                         std::span<Point> dst) {
   if (src.size() != 4 || dst.size() < 4) {
@@ -250,10 +250,10 @@ std::size_t chopCubicAt(std::span<const Point> src, std::span<const NormalizedF3
     }
 
     offset += 3;
-    // Use output from chopCubicAt2 as next iteration's source (matches Rust).
+    // Use output from chopCubicAt2 as next iteration's source.
     srcWork = {dst[offset + 0], dst[offset + 1], dst[offset + 2], dst[offset + 3]};
 
-    // Renormalize t using f32 valid_unit_divide (matches Rust).
+    // Renormalize t using f32 valid_unit_divide.
     auto nextT =
         validUnitDivideF32(tValues[i + 1].get() - tValues[i].get(), 1.0f - tValues[i].get());
     if (!nextT.has_value()) {
@@ -309,7 +309,7 @@ std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
     return 0;
   }
 
-  // Match Rust: use f32 root-finding (findCubicMaxCurvatureTs / solve_cubic_poly)
+  // Use f32 root-finding (findCubicMaxCurvatureTs / solve_cubic_poly)
   // NOT the f64 findMaxCurvatureRoots / cubic64::rootsValidT path.
   auto roots =
       std::array<NormalizedF32, 3>{NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
@@ -618,7 +618,7 @@ std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b, float c)
 
 std::size_t findCubicExtremaT(float a, float b, float c, float d,
                               NormalizedF32Exclusive tValues[3]) {
-  // We divide A, B, C by 3 to simplify (matches Rust find_cubic_extrema).
+  // We divide A, B, C by 3 to simplify.
   const float aa = d - a + 3.0f * (b - c);
   const float bb = 2.0f * (a - b - b + c);
   const float cc = b - a;
@@ -728,7 +728,7 @@ void Conic::chop(Conic dst[2]) const {
   Point m = Point::fromXy((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale * 0.5f,
                           (points[0].y + (wp1.y + wp1.y) + points[2].y) * scale * 0.5f);
 
-  // Match Rust: if m is not finite, recompute using f64 for precision.
+  // If m is not finite, recompute using f64 for precision.
   if (!std::isfinite(m.x) || !std::isfinite(m.y)) {
     double wD = static_cast<double>(weight);
     double w2 = wD * 2.0;
@@ -782,7 +782,6 @@ namespace {
 bool between(float a, float b, float c) { return (a - b) * (c - b) <= 0.0f; }
 
 // Recursive conic subdivision with Y-monotonicity preservation.
-// Matches Rust's subdivide() in path_geometry.rs.
 Point* subdivideRecursive(const Conic& src, Point* points, std::uint8_t level) {
   if (level == 0) {
     points[0] = src.points[1];
@@ -895,7 +894,7 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uS
     Point offCurve = Point::fromXy(lastQ.x + x, lastQ.y + y);
     float cosThetaOver2 = std::sqrt((1.0f + dotVal) / 2.0f);
     offCurve.setLength(1.0f / cosThetaOver2);
-    // Match Rust: !last_q.almost_equal(off_curve)
+    // Check that lastQ and offCurve are not almost equal.
     // almost_equal returns true when the diff vector can't normalize
     // (both components zero or non-finite). We add conic when NOT almost_equal.
     Point diff = Point::fromXy(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
@@ -908,7 +907,7 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uS
   }
 
   // Compose transform: rotate by uStart, optionally pre-scale for CCW,
-  // then post-concat user transform.  Matches Rust's transform composition.
+  // then post-concat user transform.
   auto transform = Transform::fromRow(uStart.x, uStart.y, -uStart.y, uStart.x, 0.0f, 0.0f);
   if (dir == PathDirection::CCW) {
     transform = transform.preScale(1.0f, -1.0f);

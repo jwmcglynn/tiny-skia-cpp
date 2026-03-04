@@ -62,8 +62,8 @@ Legend: `☐` Not started, `🧩` Stub only, `🟡` Implemented/tested (Rust com
 ### `third_party/tiny-skia/src/shaders/radial_gradient.rs`
 | Rust function/item | C++ function/item | Status | Evidence / Notes |
 | --- | --- | --- | --- |
-| `FocalData` struct | `FocalData` struct | 🟢 | Line-by-line audited: r1, focal_x, is_swapped fields and methods match Rust. Validated in audit 2026-03-02. |
-| `FocalData::set` | `FocalData::set()` | 🟢 | Line-by-line audited: Focal point mapping with tsFromPolyToPoly and focal_x=1 edge case match Rust. Validated in audit 2026-03-02. |
+| `FocalData` struct | `FocalData` struct | 🟢 | Line-by-line audited: r1, focalX, isSwapped fields and methods match Rust. Validated in audit 2026-03-02. |
+| `FocalData::set` | `FocalData::set()` | 🟢 | Line-by-line audited: Focal point mapping with tsFromPolyToPoly and focalX=1 edge case match Rust. Validated in audit 2026-03-02. |
 | `GradientType` enum | `GradientType` (`variant<RadialType, StripType, FocalData>`) | 🟢 | Line-by-line audited: Radial/Strip/Focal variant dispatch matches Rust enum. Validated in audit 2026-03-02. |
 | `RadialGradient` struct | `RadialGradient` class | 🟢 | Line-by-line audited: Gradient base + GradientType layout matches Rust. Validated in audit 2026-03-02. |
 | `RadialGradient::new` | `RadialGradient::create()` | 🟢 | Line-by-line audited: Factory with all degenerate/edge-case handling matches Rust. Validated in audit 2026-03-02. |

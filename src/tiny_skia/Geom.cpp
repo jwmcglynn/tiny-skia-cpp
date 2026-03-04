@@ -83,8 +83,7 @@ std::optional<IntRect> IntRect::fromXYWH(std::int32_t x, std::int32_t y, std::ui
     return std::nullopt;
   }
 
-  // Check that right = x + width and bottom = y + height don't overflow int32.
-  // Matches Rust's checked_add: i32::try_from(width).ok()?.checked_add(x)?
+  // Check that right = x + width doesn't overflow int32.
   const auto right = static_cast<std::int64_t>(x) + static_cast<std::int64_t>(width);
   const auto bottom = static_cast<std::int64_t>(y) + static_cast<std::int64_t>(height);
   if (right > static_cast<std::int64_t>(std::numeric_limits<std::int32_t>::max()) ||

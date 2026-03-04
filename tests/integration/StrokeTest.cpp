@@ -27,7 +27,7 @@ TEST(StrokeTest, RoundCapsAndLargeScale) {
 
     Stroke stroke;
     stroke.width = 6.0f;
-    stroke.line_cap = LineCap::Round;
+    stroke.lineCap = LineCap::Round;
 
     auto ts = Transform::fromScale(16.0f, 16.0f);
 
@@ -73,7 +73,7 @@ TEST(StrokeTest, ZeroLenSubpathButtCap) {
 
     Stroke stroke;
     stroke.width = 20.0f;
-    stroke.line_cap = LineCap::Butt;
+    stroke.lineCap = LineCap::Butt;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -96,7 +96,7 @@ TEST(StrokeTest, ZeroLenSubpathRoundCap) {
 
     Stroke stroke;
     stroke.width = 20.0f;
-    stroke.line_cap = LineCap::Round;
+    stroke.lineCap = LineCap::Round;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -119,7 +119,7 @@ TEST(StrokeTest, ZeroLenSubpathSquareCap) {
 
     Stroke stroke;
     stroke.width = 20.0f;
-    stroke.line_cap = LineCap::Square;
+    stroke.lineCap = LineCap::Square;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -143,8 +143,8 @@ TEST(StrokeTest, RoundCapJoin) {
 
     Stroke stroke;
     stroke.width = 30.0f;
-    stroke.line_cap = LineCap::Round;
-    stroke.line_join = LineJoin::Round;
+    stroke.lineCap = LineCap::Round;
+    stroke.lineJoin = LineJoin::Round;
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());

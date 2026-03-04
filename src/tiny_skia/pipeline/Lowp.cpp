@@ -108,7 +108,7 @@ namespace {
 #endif
 }
 
-// Matches Rust split(): reinterpret f32x16 (64 bytes) as two u16x16 (32 bytes each)
+// split(): reinterpret f32x16 (64 bytes) as two u16x16 (32 bytes each)
 inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
   auto lo_lanes = v.lo().lanes();
   auto hi_lanes = v.hi().lanes();
@@ -116,7 +116,7 @@ inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
   std::memcpy(&hi.lanes(), &hi_lanes, sizeof(hi.lanes()));
 }
 
-// Matches Rust join(): reinterpret two u16x16 (32 bytes each) as f32x16 (64 bytes)
+// join(): reinterpret two u16x16 (32 bytes each) as f32x16 (64 bytes)
 inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
   std::array<float, 8> lo_f{}, hi_f{};
   std::memcpy(&lo_f, &lo.lanes(), sizeof(lo_f));
@@ -124,7 +124,7 @@ inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
   return F32x16T(F32x8T(lo_f), F32x8T(hi_f));
 }
 
-// Matches Rust lowp: (v + 255) >> 8
+// div255: (v + 255) >> 8
 inline U16x16T div255(U16x16T v) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16Div255(v);
@@ -171,12 +171,12 @@ inline U16x16T sourceOverChannel(const U16x16T& source, const U16x16T& dest,
 #endif
 }
 
-// Matches Rust from_float(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
+// from_float(f): (f * 255.0 + 0.5) as u16, splatted to all lanes
 inline U16x16T fromFloat(float f) {
   return U16x16T::splat(static_cast<std::uint16_t>(f * 255.0f + 0.5f));
 }
 
-// Matches Rust round_f32_to_u16(): normalize, scale to [0,255], truncate
+// round_f32_to_u16(): normalize, scale to [0,255], truncate
 inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16T& r, U16x16T& g,
                           U16x16T& b, U16x16T& a) {
   rf = rf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
@@ -282,7 +282,7 @@ void lerp_1_float(Pipeline& pipeline) {
   pipeline.nextStage();
 }
 
-// --- Blend-mode helpers (mirrors Rust's blend_fn! / blend_fn2! macros) ---
+// --- Blend-mode helpers ---
 //
 // blend_fn:  applies F(s, d, sa, da) uniformly to all four channels (r, g, b, a).
 // blend_fn2: applies F(s, d, sa, da) to r, g, b only; alpha uses source_over:
@@ -392,16 +392,14 @@ void x_or(Pipeline& pipeline) {
 void null_fn(Pipeline& pipeline) { (void)pipeline; }
 
 // Returns a span of PremultipliedColorU8 pixels starting at (dx, dy) in the pixmap.
-// Matches Rust's pixmap.slice_at_xy(dx, dy) / pixmap.slice16_at_xy(dx, dy).
 inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap, std::size_t dx,
                                                   std::size_t dy) {
-  const auto pixel_offset = dy * pixmap.real_width + dx;
+  const auto pixel_offset = dy * pixmap.realWidth + dx;
   auto* pixels = reinterpret_cast<PremultipliedColorU8*>(pixmap.data);
-  const auto total_pixels = pixmap.real_width * pixmap.size.height();
+  const auto total_pixels = pixmap.realWidth * pixmap.size.height();
   return std::span<PremultipliedColorU8>(pixels + pixel_offset, total_pixels - pixel_offset);
 }
 
-// Matches Rust load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...).
 // Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
 void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
@@ -560,7 +558,6 @@ void load_8888_tail(std::size_t count, std::span<const PremultipliedColorU8> pix
   load_8888_lowp(tmp, or_, og, ob, oa);
 }
 
-// Matches Rust store_8888(&u16x16, ..., &mut [PremultipliedColorU8; STAGE_WIDTH]).
 // Stores U16x16T pixel channels to u8 pixels.
 void store_8888_lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
                      const U16x16T& b, const U16x16T& a) {
@@ -779,7 +776,7 @@ void store_tail(Pipeline& pipeline) {
 
 void load_dst_u8(Pipeline& pipeline) {
   assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
   load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, kStageWidth),
               pipeline.da);
   pipeline.nextStage();
@@ -787,7 +784,7 @@ void load_dst_u8(Pipeline& pipeline) {
 
 void load_dst_u8_tail(Pipeline& pipeline) {
   assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
   load_8_tail(pipeline.tail,
               std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, pipeline.tail),
               pipeline.da);
@@ -796,7 +793,7 @@ void load_dst_u8_tail(Pipeline& pipeline) {
 
 void store_u8(Pipeline& pipeline) {
   assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
@@ -843,7 +840,7 @@ void store_u8(Pipeline& pipeline) {
 
 void store_u8_tail(Pipeline& pipeline) {
   assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->real_width + pipeline.dx;
+  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
@@ -985,7 +982,7 @@ void transform(Pipeline& pipeline) {
   const auto& ts = pipeline.ctx->transform;
   auto x = join(pipeline.r, pipeline.g);
   auto y = join(pipeline.b, pipeline.a);
-  // Match Rust's nested mad: x * sx + (y * kx + tx)
+  // Nested multiply-add: x * sx + (y * kx + tx)
   auto nx = x * F32x16T::splat(ts.sx) + (y * F32x16T::splat(ts.kx) + F32x16T::splat(ts.tx));
   auto ny = x * F32x16T::splat(ts.ky) + (y * F32x16T::splat(ts.sy) + F32x16T::splat(ts.ty));
   split(nx, pipeline.r, pipeline.g);

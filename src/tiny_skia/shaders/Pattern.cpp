@@ -13,7 +13,7 @@ Pattern::Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality,
       spread_mode_(spreadMode) {}
 
 bool Pattern::isOpaque() const {
-  // Matches Rust: Pattern always reports as non-opaque.
+  // Pattern always reports as non-opaque.
   return false;
 }
 

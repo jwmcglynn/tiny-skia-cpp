@@ -24,7 +24,6 @@ class RasterPipelineBlitter final : public tiny_skia::Blitter {
                                                      std::optional<SubMaskRef> mask = std::nullopt);
 
   /// Creates a blitter from a Paint (with Shader support).
-  /// Matches Rust `RasterPipelineBlitter::new(paint, mask, pixmap)`.
   static std::optional<RasterPipelineBlitter> create(const tiny_skia::Paint& paint,
                                                      std::optional<SubMaskRef> mask,
                                                      SubPixmapMut* pixmap);

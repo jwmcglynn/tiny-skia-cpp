@@ -6,7 +6,6 @@
 namespace tiny_skia {
 
 /// A float value in [0, 1].
-/// Matches Rust `NormalizedF32`.
 class NormalizedF32 {
  public:
   static const NormalizedF32 ZERO;
@@ -42,7 +41,6 @@ inline constexpr NormalizedF32 NormalizedF32::ZERO = NormalizedF32(0.0f);
 inline constexpr NormalizedF32 NormalizedF32::ONE = NormalizedF32(1.0f);
 
 /// A float value in (0, 1) exclusive.
-/// Matches Rust `NormalizedF32Exclusive`.
 class NormalizedF32Exclusive {
  public:
   static const NormalizedF32Exclusive ANY;
@@ -66,7 +64,6 @@ inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::ANY = Normalized
 inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::HALF = NormalizedF32Exclusive(0.5f);
 
 /// A float value guaranteed to be > 0 and finite.
-/// Matches Rust `NonZeroPositiveF32`.
 class NonZeroPositiveF32 {
  public:
   [[nodiscard]] static std::optional<NonZeroPositiveF32> create(float v);
@@ -78,7 +75,6 @@ class NonZeroPositiveF32 {
 };
 
 /// A float value guaranteed to be finite.
-/// Matches Rust `FiniteF32`.
 class FiniteF32 {
  public:
   [[nodiscard]] static std::optional<FiniteF32> create(float v);
@@ -104,11 +100,9 @@ class FiniteF32 {
 [[nodiscard]] std::int32_t saturateCeilToI32(float x);
 
 /// Saturating round conversion from float to `int32_t`.
-/// Matches Rust `SaturateRound<f32>::saturate_round`.
 [[nodiscard]] std::int32_t saturateRoundToI32(float x);
 
 /// Converts a float bit pattern to a comparable two's-complement int ordering.
-/// Matches Rust `f32_as_2s_compliment`.
 [[nodiscard]] std::int32_t f32As2sCompliment(float x);
 
 }  // namespace tiny_skia
