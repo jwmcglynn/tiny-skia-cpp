@@ -59,8 +59,8 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
         (or a `detail` namespace)
   - [ ] Move `Paint` and `PixmapPaint` out of `Painter.h` into their own
         header `Paint.h` (they are value types, not painter internals)
-  - [ ] Keep old free functions as deprecated inline wrappers that delegate to
-        `Painter::*` (allows incremental migration)
+  - [ ] Remove old free functions entirely; migrate all call sites (~180)
+        to `Painter::*`
   - [ ] Add default `Transform` parameter:
         `Transform transform = Transform::identity()`
   - [ ] Build and test gate
@@ -72,7 +72,7 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
 - [ ] Milestone 3: Path convenience factories
   - [ ] Add `Path::fromRect(const Rect&)` static method
   - [ ] Add `Path::fromCircle(float cx, float cy, float radius)` static
-  - [ ] Keep `pathFromRect()` as deprecated inline wrapper
+  - [ ] Remove `pathFromRect()` free function; migrate all call sites
   - [ ] Build and test gate
 
 ## Proposed Architecture
@@ -245,23 +245,25 @@ void PixmapMut::fillRect(const Rect& rect, const Paint& paint,
 }
 ```
 
-### Deprecated free-function wrappers
+### Call-site migration
 
-To avoid breaking the ~180 existing call sites immediately, the old free
-functions remain as deprecated inline wrappers:
+All ~180 call sites are updated in the same change. No deprecated wrappers.
+The free functions (`fillRect`, `fillPath`, `strokePath`, `drawPixmap`,
+`applyMask`, `strokeHairline`, `pathFromRect`) are removed entirely.
 
-```cpp
-[[deprecated("Use Painter::fillRect or pixmap.fillRect()")]]
-inline void fillRect(PixmapMut& pixmap, const Rect& rect,
-                     const Paint& paint, Transform transform,
-                     const Mask* mask = nullptr) {
-  Painter::fillRect(pixmap, rect, paint, transform, mask);
-}
-// ... same for fillPath, strokePath, drawPixmap, applyMask
-```
+Migration patterns:
 
-This allows incremental migration of call sites. The wrappers can be
-removed in a follow-up once all callers are updated.
+| Before | After |
+|--------|-------|
+| `fillRect(mut, *rect, paint, Transform::identity())` | `Painter::fillRect(mut, *rect, paint)` |
+| `fillPath(mut, path, paint, FillRule::Winding, ts)` | `Painter::fillPath(mut, path, paint, FillRule::Winding, ts)` |
+| `strokePath(mut, path, paint, stroke, ts)` | `Painter::strokePath(mut, path, paint, stroke, ts)` |
+| `drawPixmap(mut, x, y, src, ppaint, ts)` | `Painter::drawPixmap(mut, x, y, src, ppaint, ts)` |
+| `applyMask(mut, mask)` | `Painter::applyMask(mut, mask)` |
+| `pathFromRect(*rect)` | `Path::fromRect(*rect)` |
+
+Where `Transform::identity()` was the only transform argument, it can now
+be omitted entirely thanks to the default parameter.
 
 ### Path convenience factories
 
@@ -294,7 +296,7 @@ only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
 | File | Change |
 |------|--------|
 | `Paint.h` (new) | `Paint`, `PixmapPaint` extracted from `Painter.h` |
-| `Painter.h` | `Painter` class with static methods; `detail::DrawTiler`; deprecated free-function wrappers; includes `Paint.h` |
+| `Painter.h` | `Painter` class with static methods; `detail::DrawTiler`; no free functions; includes `Paint.h` |
 | `Painter.cpp` | Rename free functions to `Painter::` static methods |
 | `Pixmap.h` | Forward declarations + drawing method declarations |
 | `Pixmap.cpp` | Drawing method implementations delegating to `Painter` |
@@ -303,10 +305,9 @@ only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
 
 ## Testing and Validation
 
-- Existing tests continue to pass unchanged (deprecated wrappers maintain
-  backward compatibility).
-- Add a small set of tests exercising `Painter::fillRect(...)` and
-  `pixmap.fillRect(...)` to verify delegation.
+- All existing tests updated to use `Painter::*` methods.
+- Add a small set of tests exercising `pixmap.fillRect(...)` instance
+  methods to verify delegation.
 - No golden-image changes expected since behavior is identical.
 - Build and test gate: `bazel build //...` and `bazel test //...`.
 
