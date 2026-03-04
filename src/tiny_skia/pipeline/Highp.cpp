@@ -35,14 +35,14 @@ struct Pipeline {
   const AAMaskCtx* aaMaskCtx = nullptr;
   const MaskCtx* maskCtx = nullptr;
   Context* ctx = nullptr;
-  const PixmapRef* pixmapSrc = nullptr;
-  SubPixmapMut* pixmapDst = nullptr;
+  const PixmapView* pixmapSrc = nullptr;
+  MutableSubPixmapView* pixmapDst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>&,
            const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg,
-           const MaskCtx& maskCtxArg, Context& ctxArg, const PixmapRef& pixmapSrcArg,
-           SubPixmapMut* pixmapDstArg)
+           const MaskCtx& maskCtxArg, Context& ctxArg, const PixmapView& pixmapSrcArg,
+           MutableSubPixmapView* pixmapDstArg)
       : functions(&fun),
         rect(&rectArg),
         aaMaskCtx(&aaMaskCtxArg),
@@ -602,7 +602,7 @@ inline float tile(float v, SpreadMode mode, float limit, float invLimit) {
 }
 
 /// Compute pixel indices from clamped x,y coordinates.
-inline std::uint32_t gatherIxScalar(const PixmapRef& pixmap, float x, float y) {
+inline std::uint32_t gatherIxScalar(const PixmapView& pixmap, float x, float y) {
   const float w = ulpSub(static_cast<float>(pixmap.width()));
   const float h = ulpSub(static_cast<float>(pixmap.height()));
   x = std::max(0.0f, std::min(w, x));
@@ -612,7 +612,7 @@ inline std::uint32_t gatherIxScalar(const PixmapRef& pixmap, float x, float y) {
 }
 
 /// Load a gathered pixel into float channels.
-inline void loadGatheredPixel(const PixmapRef& pixmap, std::uint32_t ix, float& r, float& g,
+inline void loadGatheredPixel(const PixmapView& pixmap, std::uint32_t ix, float& r, float& g,
                                 float& b, float& a) {
   const auto pixels = pixmap.pixels();
   const auto idx = std::min(static_cast<std::size_t>(ix), pixels.size() - 1);
@@ -624,7 +624,7 @@ inline void loadGatheredPixel(const PixmapRef& pixmap, std::uint32_t ix, float& 
 }
 
 /// Sample a single pixel with tiling applied.
-inline void sample(const PixmapRef& pixmap, const SamplerCtx& ctx, float x, float y, float& r,
+inline void sample(const PixmapView& pixmap, const SamplerCtx& ctx, float x, float y, float& r,
                    float& g, float& b, float& a) {
   x = tile(x, ctx.spreadMode, static_cast<float>(pixmap.width()), ctx.invWidth);
   y = tile(y, ctx.spreadMode, static_cast<float>(pixmap.height()), ctx.invHeight);
@@ -1329,7 +1329,7 @@ void justReturn(Pipeline& pipeline) { (void)pipeline; }
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFunctions,
            const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
-           Context& ctx, const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst) {
+           Context& ctx, const PixmapView& pixmapSrc, MutableSubPixmapView* pixmapDst) {
   Pipeline p(functions, tailFunctions, rect, aaMaskCtx, maskCtx, ctx, pixmapSrc, pixmapDst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {

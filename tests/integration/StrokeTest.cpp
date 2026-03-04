@@ -33,7 +33,7 @@ TEST(StrokeTest, RoundCapsAndLargeScale) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, ts);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/round-caps-and-large-scale.png");
@@ -54,7 +54,7 @@ TEST(StrokeTest, Circle) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/circle.png");
@@ -77,7 +77,7 @@ TEST(StrokeTest, ZeroLenSubpathButtCap) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/zero-len-subpath-butt-cap.png");
@@ -100,7 +100,7 @@ TEST(StrokeTest, ZeroLenSubpathRoundCap) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/zero-len-subpath-round-cap.png");
@@ -123,7 +123,7 @@ TEST(StrokeTest, ZeroLenSubpathSquareCap) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/zero-len-subpath-square-cap.png");
@@ -148,7 +148,7 @@ TEST(StrokeTest, RoundCapJoin) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "stroke/round-cap-join.png");

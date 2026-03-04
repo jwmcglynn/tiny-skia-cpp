@@ -14,7 +14,7 @@
 #include "tiny_skia/pipeline/Lowp.h"
 
 namespace tiny_skia {
-class PixmapRef {};
+class PixmapView {};
 }  // namespace tiny_skia
 
 namespace {
@@ -465,7 +465,7 @@ TEST(ColorTest, PipelineHighpStartUsesFullAndTailChunks) {
   tiny_skia::pipeline::AAMaskCtx aaMask{};
   tiny_skia::pipeline::MaskCtx maskCtx{};
   tiny_skia::pipeline::Context context{};
-  const tiny_skia::PixmapRef source{};
+  const tiny_skia::PixmapView source{};
   resetHighpDispatchCounters();
 
   tiny_skia::pipeline::highp::start(highpFull, highpTail, *rect, aaMask, maskCtx, context, source,

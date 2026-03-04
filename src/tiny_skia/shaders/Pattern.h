@@ -24,14 +24,14 @@ struct PixmapPaint {
 // A pattern shader (pixmap-based).
 class Pattern {
  public:
-  Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,
+  Pattern(PixmapView pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,
           Transform transform);
 
   [[nodiscard]] bool isOpaque() const;
 
   [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
-  PixmapRef pixmap_;
+  PixmapView pixmap_;
   NormalizedF32 opacity_;
   Transform transform_;
 

@@ -25,12 +25,12 @@ TEST(PixmapTest, CloneRect1) {
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, *circle, paint, FillRule::Winding, Transform::identity());
 
     auto rect = IntRect::fromXYWH(10, 15, 80, 90);
     ASSERT_TRUE(rect.has_value());
-    auto part = pixmap->asRef().cloneRect(*rect);
+    auto part = pixmap->view().cloneRect(*rect);
     ASSERT_TRUE(part.has_value());
 
     EXPECT_GOLDEN_MATCH(*part, "pixmap/clone-rect-1.png");
@@ -50,12 +50,12 @@ TEST(PixmapTest, CloneRect2) {
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, *circle, paint, FillRule::Winding, Transform::identity());
 
     auto rect = IntRect::fromXYWH(130, 120, 80, 90);
     ASSERT_TRUE(rect.has_value());
-    auto part = pixmap->asRef().cloneRect(*rect);
+    auto part = pixmap->view().cloneRect(*rect);
     ASSERT_TRUE(part.has_value());
 
     EXPECT_GOLDEN_MATCH(*part, "pixmap/clone-rect-2.png");
@@ -75,23 +75,23 @@ TEST(PixmapTest, CloneRectOutOfBound) {
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, *circle, paint, FillRule::Winding, Transform::identity());
 
     // x=250 is out of bounds for a 200-wide pixmap
     auto rect1 = IntRect::fromXYWH(250, 15, 80, 90);
     ASSERT_TRUE(rect1.has_value());
-    EXPECT_FALSE(pixmap->asRef().cloneRect(*rect1).has_value());
+    EXPECT_FALSE(pixmap->view().cloneRect(*rect1).has_value());
 
     // y=250 is out of bounds for a 200-tall pixmap
     auto rect2 = IntRect::fromXYWH(10, 250, 80, 90);
     ASSERT_TRUE(rect2.has_value());
-    EXPECT_FALSE(pixmap->asRef().cloneRect(*rect2).has_value());
+    EXPECT_FALSE(pixmap->view().cloneRect(*rect2).has_value());
 
     // y=-250 is out of bounds (negative)
     auto rect3 = IntRect::fromXYWH(10, -250, 80, 90);
     ASSERT_TRUE(rect3.has_value());
-    EXPECT_FALSE(pixmap->asRef().cloneRect(*rect3).has_value());
+    EXPECT_FALSE(pixmap->view().cloneRect(*rect3).has_value());
 }
 
 // ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ TEST(PixmapTest, DrawPixmap) {
         auto rect = Rect::fromLtrb(0.0f, 50.0f, 100.0f, 100.0f);
         ASSERT_TRUE(rect.has_value());
 
-        auto mut = subPixmap->asMut();
+        auto mut = subPixmap->mutableView();
         fillRect(mut, *rect, paint, Transform::identity());
     }
 
@@ -137,8 +137,8 @@ TEST(PixmapTest, DrawPixmap) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
-    auto mut = pixmap->asMut();
-    drawPixmap(mut, 20, 20, subPixmap->asRef(), ppaint, Transform::identity());
+    auto mut = pixmap->mutableView();
+    drawPixmap(mut, 20, 20, subPixmap->view(), ppaint, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "canvas/draw-pixmap.png");
 }
@@ -163,7 +163,7 @@ TEST(PixmapTest, DrawPixmapTs) {
         auto path = pb.finish();
         ASSERT_TRUE(path.has_value());
 
-        auto mut = triangle->asMut();
+        auto mut = triangle->mutableView();
         fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     }
 
@@ -173,8 +173,8 @@ TEST(PixmapTest, DrawPixmapTs) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
-    auto mut = pixmap->asMut();
-    drawPixmap(mut, 5, 10, triangle->asRef(), ppaint,
+    auto mut = pixmap->mutableView();
+    drawPixmap(mut, 5, 10, triangle->view(), ppaint,
                Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
     EXPECT_GOLDEN_MATCH(*pixmap, "canvas/draw-pixmap-ts.png");
@@ -200,7 +200,7 @@ TEST(PixmapTest, DrawPixmapOpacity) {
         auto path = pb.finish();
         ASSERT_TRUE(path.has_value());
 
-        auto mut = triangle->asMut();
+        auto mut = triangle->mutableView();
         fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     }
 
@@ -211,8 +211,8 @@ TEST(PixmapTest, DrawPixmapOpacity) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
 
-    auto mut = pixmap->asMut();
-    drawPixmap(mut, 5, 10, triangle->asRef(), ppaint,
+    auto mut = pixmap->mutableView();
+    drawPixmap(mut, 5, 10, triangle->view(), ppaint,
                Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
     EXPECT_GOLDEN_MATCH(*pixmap, "canvas/draw-pixmap-opacity.png");

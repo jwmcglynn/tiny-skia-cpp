@@ -22,7 +22,7 @@ inline ::testing::Matcher<const tiny_skia::PremultipliedColorU8&> PremultipliedC
                Property("alpha", &tiny_skia::PremultipliedColorU8::alpha, Eq(alpha)));
 }
 
-inline ::testing::Matcher<const tiny_skia::SubMaskRef&> SubMaskRefEq(std::uint32_t width,
+inline ::testing::Matcher<const tiny_skia::SubMaskView&> SubMaskViewEq(std::uint32_t width,
                                                                      std::uint32_t height,
                                                                      std::uint32_t realWidth) {
   using ::testing::AllOf;
@@ -30,21 +30,21 @@ inline ::testing::Matcher<const tiny_skia::SubMaskRef&> SubMaskRefEq(std::uint32
   using ::testing::Field;
   using ::testing::ResultOf;
 
-  return AllOf(Field("realWidth", &tiny_skia::SubMaskRef::realWidth, Eq(realWidth)),
+  return AllOf(Field("realWidth", &tiny_skia::SubMaskView::realWidth, Eq(realWidth)),
                ResultOf(
-                   "width", [](const tiny_skia::SubMaskRef& value) { return value.size.width(); },
+                   "width", [](const tiny_skia::SubMaskView& value) { return value.size.width(); },
                    Eq(width)),
                ResultOf(
-                   "height", [](const tiny_skia::SubMaskRef& value) { return value.size.height(); },
+                   "height", [](const tiny_skia::SubMaskView& value) { return value.size.height(); },
                    Eq(height)));
 }
 
-inline ::testing::Matcher<const std::optional<tiny_skia::SubMaskRef>&> OptionalSubMaskRefEq(
+inline ::testing::Matcher<const std::optional<tiny_skia::SubMaskView>&> OptionalSubMaskViewEq(
     std::uint32_t width, std::uint32_t height, std::uint32_t realWidth) {
-  return ::testing::Optional(SubMaskRefEq(width, height, realWidth));
+  return ::testing::Optional(SubMaskViewEq(width, height, realWidth));
 }
 
-inline ::testing::Matcher<const tiny_skia::SubMaskMut&> SubMaskMutEq(std::uint32_t width,
+inline ::testing::Matcher<const tiny_skia::MutableSubMaskView&> MutableSubMaskViewEq(std::uint32_t width,
                                                                      std::uint32_t height,
                                                                      std::uint32_t realWidth) {
   using ::testing::AllOf;
@@ -52,21 +52,21 @@ inline ::testing::Matcher<const tiny_skia::SubMaskMut&> SubMaskMutEq(std::uint32
   using ::testing::Field;
   using ::testing::ResultOf;
 
-  return AllOf(Field("realWidth", &tiny_skia::SubMaskMut::realWidth, Eq(realWidth)),
+  return AllOf(Field("realWidth", &tiny_skia::MutableSubMaskView::realWidth, Eq(realWidth)),
                ResultOf(
-                   "width", [](const tiny_skia::SubMaskMut& value) { return value.size.width(); },
+                   "width", [](const tiny_skia::MutableSubMaskView& value) { return value.size.width(); },
                    Eq(width)),
                ResultOf(
-                   "height", [](const tiny_skia::SubMaskMut& value) { return value.size.height(); },
+                   "height", [](const tiny_skia::MutableSubMaskView& value) { return value.size.height(); },
                    Eq(height)));
 }
 
-inline ::testing::Matcher<const std::optional<tiny_skia::SubMaskMut>&> OptionalSubMaskMutEq(
+inline ::testing::Matcher<const std::optional<tiny_skia::MutableSubMaskView>&> OptionalMutableSubMaskViewEq(
     std::uint32_t width, std::uint32_t height, std::uint32_t realWidth) {
-  return ::testing::Optional(SubMaskMutEq(width, height, realWidth));
+  return ::testing::Optional(MutableSubMaskViewEq(width, height, realWidth));
 }
 
-inline ::testing::Matcher<const tiny_skia::SubPixmapMut&> SubPixmapMutEq(std::size_t width,
+inline ::testing::Matcher<const tiny_skia::MutableSubPixmapView&> MutableSubPixmapViewEq(std::size_t width,
                                                                          std::size_t height,
                                                                          std::size_t realWidth) {
   using ::testing::AllOf;
@@ -74,14 +74,14 @@ inline ::testing::Matcher<const tiny_skia::SubPixmapMut&> SubPixmapMutEq(std::si
   using ::testing::Field;
   using ::testing::Property;
 
-  return AllOf(Field("realWidth", &tiny_skia::SubPixmapMut::realWidth, Eq(realWidth)),
-               Property("width", &tiny_skia::SubPixmapMut::width, Eq(width)),
-               Property("height", &tiny_skia::SubPixmapMut::height, Eq(height)));
+  return AllOf(Field("realWidth", &tiny_skia::MutableSubPixmapView::realWidth, Eq(realWidth)),
+               Property("width", &tiny_skia::MutableSubPixmapView::width, Eq(width)),
+               Property("height", &tiny_skia::MutableSubPixmapView::height, Eq(height)));
 }
 
-inline ::testing::Matcher<const std::optional<tiny_skia::SubPixmapMut>&> OptionalSubPixmapMutEq(
+inline ::testing::Matcher<const std::optional<tiny_skia::MutableSubPixmapView>&> OptionalMutableSubPixmapViewEq(
     std::size_t width, std::size_t height, std::size_t realWidth) {
-  return ::testing::Optional(SubPixmapMutEq(width, height, realWidth));
+  return ::testing::Optional(MutableSubPixmapViewEq(width, height, realWidth));
 }
 
 }  // namespace tiny_skia::tests::matchers

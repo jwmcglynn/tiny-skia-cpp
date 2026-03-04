@@ -38,7 +38,7 @@ int main() {
   stroke.dash = StrokeDash::create({20.0f, 40.0f}, 0.0f);
 
   auto pixmap = Pixmap::fromSize(500, 500);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   strokePath(mut, *path, paint, stroke, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();

@@ -36,7 +36,7 @@ TEST(FillTest, HorizontalLine) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/empty.png");
@@ -56,7 +56,7 @@ TEST(FillTest, VerticalLine) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/empty.png");
@@ -76,7 +76,7 @@ TEST(FillTest, SingleLine) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/empty.png");
@@ -93,7 +93,7 @@ TEST(FillTest, IntRect) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/int-rect.png");
@@ -110,7 +110,7 @@ TEST(FillTest, FloatRect) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect.png");
@@ -127,7 +127,7 @@ TEST(FillTest, IntRectAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/int-rect-aa.png");
@@ -144,7 +144,7 @@ TEST(FillTest, FloatRectAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect-aa.png");
@@ -162,7 +162,7 @@ TEST(FillTest, FloatRectAaHighp) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect-aa-highp.png");
@@ -179,7 +179,7 @@ TEST(FillTest, TinyFloatRect) {
 
   auto pixmap = Pixmap::fromSize(3, 3);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   auto transparent = ColorU8::fromRgba(0, 0, 0, 0).premultiply();
@@ -212,7 +212,7 @@ TEST(FillTest, TinyFloatRectAa) {
 
   auto pixmap = Pixmap::fromSize(3, 3);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   auto transparent = ColorU8::fromRgba(0, 0, 0, 0).premultiply();
@@ -245,7 +245,7 @@ TEST(FillTest, TinyRectAa) {
 
   auto pixmap = Pixmap::fromSize(10, 10);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 }
 
@@ -260,7 +260,7 @@ TEST(FillTest, FloatRectClipTopLeftAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect-clip-top-left-aa.png");
@@ -277,7 +277,7 @@ TEST(FillTest, FloatRectClipTopRightAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect-clip-top-right-aa.png");
@@ -294,7 +294,7 @@ TEST(FillTest, FloatRectClipBottomRightAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/float-rect-clip-bottom-right-aa.png");
@@ -311,7 +311,7 @@ TEST(FillTest, IntRectWithTsClipRight) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint,
                        Transform::fromRow(1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f));
 
@@ -335,7 +335,7 @@ TEST(FillTest, OpenPolygon) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/polygon.png");
@@ -359,7 +359,7 @@ TEST(FillTest, ClosedPolygon) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/polygon.png");
@@ -382,7 +382,7 @@ TEST(FillTest, WindingStar) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/winding-star.png");
@@ -405,7 +405,7 @@ TEST(FillTest, EvenOddStar) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::EvenOdd, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/even-odd-star.png");
@@ -425,7 +425,7 @@ TEST(FillTest, QuadCurve) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::EvenOdd, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/quad.png");
@@ -445,7 +445,7 @@ TEST(FillTest, CubicCurve) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::EvenOdd, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/cubic.png");
@@ -463,7 +463,7 @@ TEST(FillTest, Memset2d) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/memset2d.png");
@@ -481,7 +481,7 @@ TEST(FillTest, Memset2dOutOfBounds) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/memset2d-2.png");
@@ -504,7 +504,7 @@ TEST(FillTest, FillAa) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::EvenOdd, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/star-aa.png");
@@ -524,7 +524,7 @@ TEST(FillTest, OverflowInWalkEdges1) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 }
 
@@ -545,7 +545,7 @@ TEST(FillTest, ClipLine1) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clip-line-1.png");
@@ -569,7 +569,7 @@ TEST(FillTest, ClipLine2) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clip-line-2.png");
@@ -589,7 +589,7 @@ TEST(FillTest, ClipQuad) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clip-quad.png");
@@ -610,7 +610,7 @@ TEST(FillTest, ClipCubic1) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clip-cubic-1.png");
@@ -631,7 +631,7 @@ TEST(FillTest, ClipCubic2) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clip-cubic-2.png");
@@ -651,7 +651,7 @@ TEST(FillTest, AaEndlessLoop) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 }
 
@@ -671,7 +671,7 @@ TEST(FillTest, ClearAa) {
   auto path = pb.finish();
   ASSERT_TRUE(path.has_value());
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   EXPECT_GOLDEN_MATCH(*pixmap, "fill/clear-aa.png");
@@ -690,7 +690,7 @@ TEST(FillTest, LineCurve) {
 
   auto pixmap = Pixmap::fromSize(200, 200);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 }
 
@@ -713,7 +713,7 @@ TEST(FillTest, VerticalLinesMergingBug) {
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillPath(mut, *path, paint, FillRule::Winding,
                        Transform::fromRow(5.4f, 0.0f, 0.0f, 5.4f, -4050.0f, -840.0f));
 
@@ -732,7 +732,7 @@ TEST(FillTest, FillRectCanvas) {
   auto rect = Rect::fromXywh(20.3f, 10.4f, 50.5f, 30.2f);
   ASSERT_TRUE(rect.has_value());
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::fillRect(mut, *rect, paint,
                        Transform::fromRow(1.2f, 0.3f, -0.7f, 0.8f, 12.0f, 15.3f));
 

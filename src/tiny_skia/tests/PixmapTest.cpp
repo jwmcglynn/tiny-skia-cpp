@@ -14,7 +14,7 @@
 using ::testing::Each;
 using ::testing::ElementsAre;
 using ::testing::Optional;
-using tiny_skia::tests::matchers::OptionalSubPixmapMutEq;
+using tiny_skia::tests::matchers::OptionalMutableSubPixmapViewEq;
 using tiny_skia::tests::matchers::PremultipliedColorU8Eq;
 
 TEST(PixmapTest, FromSizeRejectsZeroAndTooWideInputs) {
@@ -47,12 +47,12 @@ TEST(PixmapTest, FromVecValidatesExactByteLength) {
               Optional(testing::_));
 }
 
-TEST(PixmapTest, PixmapRefFromBytesAndPixelAccessMatchRgbaPacking) {
+TEST(PixmapTest, PixmapViewFromBytesAndPixelAccessMatchRgbaPacking) {
   const std::vector<std::uint8_t> bytes{
       1, 2, 3, 4, 5, 6, 7, 8,
   };
 
-  auto refOpt = tiny_skia::PixmapRef::fromBytes(bytes, 2, 1);
+  auto refOpt = tiny_skia::PixmapView::fromBytes(bytes, 2, 1);
   ASSERT_THAT(refOpt, Optional(testing::_));
   const auto ref = *refOpt;
 
@@ -126,11 +126,11 @@ TEST(PixmapTest, CloneRectCopiesContainedRegion) {
                                           21u, 22u, 23u, 24u));
 }
 
-TEST(PixmapTest, PixmapMutFromBytesAndSubpixmapProvideMutableSubview) {
+TEST(PixmapTest, MutablePixmapViewFromBytesAndSubpixmapProvideMutableSubview) {
   std::vector<std::uint8_t> bytes{
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
   };
-  auto mut = tiny_skia::PixmapMut::fromBytes(bytes, 2, 2);
+  auto mut = tiny_skia::MutablePixmapView::fromBytes(bytes, 2, 2);
   ASSERT_THAT(mut, Optional(testing::_));
   ASSERT_EQ(mut->pixelsMut().size(), 4u);
   EXPECT_THAT(mut->pixelsMut()[0], PremultipliedColorU8Eq(1u, 2u, 3u, 4u));
@@ -138,7 +138,7 @@ TEST(PixmapTest, PixmapMutFromBytesAndSubpixmapProvideMutableSubview) {
   const auto rect = tiny_skia::IntRect::fromXYWH(1, 1, 1, 1);
   ASSERT_THAT(rect, Optional(testing::_));
   const auto sub = mut->subpixmap(*rect);
-  ASSERT_THAT(sub, OptionalSubPixmapMutEq(1u, 1u, 2u));
+  ASSERT_THAT(sub, OptionalMutableSubPixmapViewEq(1u, 1u, 2u));
   EXPECT_EQ(sub->data[0], 13u);
   sub->data[0] = 99u;
   EXPECT_EQ(bytes[12], 99u);

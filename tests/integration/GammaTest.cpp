@@ -77,7 +77,7 @@ TEST(GammaTest, gamma) {
 
         paint.colorspace = colors[i];
         paint.shader = solid;
-        auto mut = pixmap->asMut();
+        auto mut = pixmap->mutableView();
         strokePath(mut, *path, paint, stroke, xf);
 
         auto xf2 = Transform::fromTranslate(0.0f, 20.0f + 10.0f * static_cast<float>(i));

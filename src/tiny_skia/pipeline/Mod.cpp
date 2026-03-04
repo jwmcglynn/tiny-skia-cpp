@@ -218,7 +218,7 @@ RasterPipeline RasterPipelineBuilder::compile() {
 }
 
 void RasterPipeline::run(const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, MaskCtx maskCtx,
-                         const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst) {
+                         const PixmapView& pixmapSrc, MutableSubPixmapView* pixmapDst) {
   if (stageCount_ == 0) {
     return;
   }

@@ -19,8 +19,8 @@
 using ::testing::Each;
 using ::testing::ElementsAre;
 using ::testing::Optional;
-using tiny_skia::tests::matchers::OptionalSubMaskMutEq;
-using tiny_skia::tests::matchers::OptionalSubMaskRefEq;
+using tiny_skia::tests::matchers::OptionalMutableSubMaskViewEq;
+using tiny_skia::tests::matchers::OptionalSubMaskViewEq;
 
 TEST(MaskTest, FromSizeRejectsZeroDimensions) {
   EXPECT_THAT(tiny_skia::Mask::fromSize(0, 1), testing::Eq(std::nullopt));
@@ -74,7 +74,7 @@ TEST(MaskTest, FromPixmapAlphaCopiesAlphaChannel) {
       tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>{10, 20, 30, 40, 50, 60, 70, 80}, *size);
   ASSERT_THAT(pixmap, Optional(testing::_));
 
-  const auto mask = tiny_skia::Mask::fromPixmap(pixmap->asRef(), tiny_skia::MaskType::Alpha);
+  const auto mask = tiny_skia::Mask::fromPixmap(pixmap->view(), tiny_skia::MaskType::Alpha);
   ASSERT_EQ(mask.data().size(), 2u);
   EXPECT_THAT(mask.data(), ElementsAre(40u, 80u));
 }
@@ -100,7 +100,7 @@ TEST(MaskTest, FromPixmapLuminanceUsesDemultiplyThenLumaTimesAlpha) {
       *size);
   ASSERT_THAT(pixmap, Optional(testing::_));
 
-  const auto mask = tiny_skia::Mask::fromPixmap(pixmap->asRef(), tiny_skia::MaskType::Luminance);
+  const auto mask = tiny_skia::Mask::fromPixmap(pixmap->view(), tiny_skia::MaskType::Luminance);
   ASSERT_EQ(mask.data().size(), 3u);
   EXPECT_THAT(mask.data(), ElementsAre(55u, 14u, 0u));
 }
@@ -117,7 +117,7 @@ TEST(MaskTest, SubmaskComputesIntersectedViewAndOffset) {
   const auto rect = tiny_skia::IntRect::fromXYWH(1, 1, 2, 1);
   ASSERT_THAT(rect, Optional(testing::_));
   const auto sub = mask.submask(*rect);
-  ASSERT_THAT(sub, OptionalSubMaskRefEq(2u, 1u, 4u));
+  ASSERT_THAT(sub, OptionalSubMaskViewEq(2u, 1u, 4u));
   const std::span<const std::uint8_t> subBytes(sub->data, 2);
   EXPECT_THAT(subBytes, ElementsAre(5u, 6u));
 }
@@ -134,7 +134,7 @@ TEST(MaskTest, SubpixmapComputesIntersectedMutableView) {
   const auto rect = tiny_skia::IntRect::fromXYWH(3, 2, 3, 2);
   ASSERT_THAT(rect, Optional(testing::_));
   const auto sub = mask.subpixmap(*rect);
-  ASSERT_THAT(sub, OptionalSubMaskMutEq(1u, 1u, 4u));
+  ASSERT_THAT(sub, OptionalMutableSubMaskViewEq(1u, 1u, 4u));
   EXPECT_EQ(sub->data[0], 11u);
 
   sub->data[0] = 99u;

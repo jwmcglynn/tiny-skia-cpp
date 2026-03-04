@@ -31,7 +31,7 @@ TEST(MaskTest, Rect) {
     ASSERT_TRUE(pixmap.has_value());
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect.png");
@@ -54,7 +54,7 @@ TEST(MaskTest, RectAa) {
     ASSERT_TRUE(pixmap.has_value());
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect-aa.png");
@@ -80,7 +80,7 @@ TEST(MaskTest, RectTs) {
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect-ts.png");
@@ -105,7 +105,7 @@ TEST(MaskTest, CircleBottomRightAa) {
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/circle-bottom-right-aa.png");
@@ -134,7 +134,7 @@ TEST(MaskTest, Stroke) {
     ASSERT_TRUE(pathRect.has_value());
     auto path = pathFromRect(*pathRect);
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, path, paint, stroke, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/stroke.png");
@@ -153,7 +153,7 @@ TEST(MaskTest, SkipDest) {
     ASSERT_TRUE(rectPath1.has_value());
     auto path1 = pathFromRect(*rectPath1);
     {
-        auto mut = pixmap->asMut();
+        auto mut = pixmap->mutableView();
         fillPath(mut, path1, paint, FillRule::Winding, Transform::identity());
     }
 
@@ -164,7 +164,7 @@ TEST(MaskTest, SkipDest) {
     ASSERT_TRUE(rectPath2.has_value());
     auto path2 = pathFromRect(*rectPath2);
     {
-        auto mut2 = pixmap2->asMut();
+        auto mut2 = pixmap2->mutableView();
         fillPath(mut2, path2, paint, FillRule::Winding, Transform::identity());
     }
 
@@ -178,8 +178,8 @@ TEST(MaskTest, SkipDest) {
 
     // Draw pixmap2 onto pixmap with mask
     PixmapPaint ppaint;
-    auto mut = pixmap->asMut();
-    drawPixmap(mut, 0, 0, pixmap2->asRef(), ppaint, Transform::identity(), &*mask);
+    auto mut = pixmap->mutableView();
+    drawPixmap(mut, 0, 0, pixmap2->view(), ppaint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/skip-dest.png");
 }
@@ -208,7 +208,7 @@ TEST(MaskTest, IntersectAa) {
     ASSERT_TRUE(pixmap.has_value());
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/intersect-aa.png");
@@ -231,7 +231,7 @@ TEST(MaskTest, IgnoreMemset) {
     ASSERT_TRUE(pixmap.has_value());
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/ignore-memset.png");
@@ -257,7 +257,7 @@ TEST(MaskTest, IgnoreSource) {
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/ignore-source.png");
@@ -283,11 +283,11 @@ TEST(MaskTest, ApplyMask) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     {
-        auto mut = pixmap->asMut();
+        auto mut = pixmap->mutableView();
         fillRect(mut, *rect, paint, Transform::identity());
     }
     {
-        auto mut = pixmap->asMut();
+        auto mut = pixmap->mutableView();
         applyMask(mut, *mask);
     }
 

@@ -21,13 +21,13 @@ enum class MaskType : std::uint8_t {
   Luminance = 1,
 };
 
-struct SubMaskRef {
+struct SubMaskView {
   IntSize size{};
   std::uint32_t realWidth = 0;
   const std::uint8_t* data = nullptr;
 };
 
-struct SubMaskMut {
+struct MutableSubMaskView {
   IntSize size{};
   std::uint32_t realWidth = 0;
   std::uint8_t* data = nullptr;
@@ -39,7 +39,7 @@ class Mask {
 
   static std::optional<Mask> fromSize(std::uint32_t width, std::uint32_t height);
   static std::optional<Mask> fromVec(std::vector<std::uint8_t> data, IntSize size);
-  static Mask fromPixmap(const PixmapRef& pixmap, MaskType maskType);
+  static Mask fromPixmap(const PixmapView& pixmap, MaskType maskType);
 
   [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 
@@ -55,11 +55,11 @@ class Mask {
     return std::span<std::uint8_t>(data_.data(), data_.size());
   }
 
-  [[nodiscard]] SubMaskRef asSubmask() const;
-  [[nodiscard]] std::optional<SubMaskRef> submask(IntRect rect) const;
+  [[nodiscard]] SubMaskView submask() const;
+  [[nodiscard]] std::optional<SubMaskView> submask(IntRect rect) const;
 
-  [[nodiscard]] SubMaskMut asSubpixmap();
-  [[nodiscard]] std::optional<SubMaskMut> subpixmap(IntRect rect);
+  [[nodiscard]] MutableSubMaskView subpixmap();
+  [[nodiscard]] std::optional<MutableSubMaskView> subpixmap(IntRect rect);
 
   [[nodiscard]] std::vector<std::uint8_t> take();
 

@@ -64,7 +64,7 @@ TEST(SkiaDashTest, InfiniteDash) {
     ASSERT_TRUE(pixmap.has_value());
 
     // Should not hang or crash. Doesn't draw anything visible.
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_TRUE(true);
