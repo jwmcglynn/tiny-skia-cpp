@@ -129,17 +129,3 @@ if(TINY_SKIA_BUILD_EXAMPLES)
   endforeach()
 endif()
 
-# ── Doxygen (opt-in via -DTINY_SKIA_BUILD_DOCS=ON) ───────────────────────────
-option(TINY_SKIA_BUILD_DOCS "Build Doxygen HTML documentation" OFF)
-
-if(TINY_SKIA_BUILD_DOCS)
-  find_package(Doxygen REQUIRED)
-  set(DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
-  configure_file(Doxyfile.in "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile" @ONLY)
-  add_custom_target(docs
-    COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Generating API documentation with Doxygen"
-    VERBATIM
-  )
-endif()

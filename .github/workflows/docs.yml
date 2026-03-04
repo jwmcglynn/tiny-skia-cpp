@@ -23,11 +23,8 @@ jobs:
       - name: Install Doxygen
         run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
 
-      - name: Configure
-        run: cmake -B build -DTINY_SKIA_BUILD_DOCS=ON
-
       - name: Build docs
-        run: cmake --build build --target docs
+        run: doxygen Doxyfile
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
