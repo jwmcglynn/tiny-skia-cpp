@@ -51,7 +51,7 @@ int main() {
     std::fprintf(stderr, "Failed to allocate mask\n");
     return 1;
   }
-  mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+  mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
   // Fill a large background rect.
   Paint paint;

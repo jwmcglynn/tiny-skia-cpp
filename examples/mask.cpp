@@ -26,7 +26,7 @@ int main() {
 
   // Create a mask from the clip path.
   auto mask = Mask::fromSize(500, 500);
-  mask->Painter::fillPath(*transformed, FillRule::EvenOdd, true, Transform::identity());
+  mask->fillPath(*transformed, FillRule::EvenOdd, true, Transform::identity());
 
   Paint paint;
   paint.antiAlias = false;
