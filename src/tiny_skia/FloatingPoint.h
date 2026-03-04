@@ -1,11 +1,14 @@
 #pragma once
 
+/// @file FloatingPoint.h
+/// @brief Validated floating-point types: NormalizedF32 [0,1], FiniteF32, etc.
+
 #include <cstdint>
 #include <optional>
 
 namespace tiny_skia {
 
-/// A float value in [0, 1].
+/// A float guaranteed to be in [0, 1].
 class NormalizedF32 {
  public:
   static const NormalizedF32 ZERO;
@@ -16,9 +19,11 @@ class NormalizedF32 {
 
   static constexpr NormalizedF32 newUnchecked(float value) { return NormalizedF32(value); }
 
+  /// Returns nullopt if outside [0,1] or non-finite.
   [[nodiscard]] static std::optional<NormalizedF32> create(float value) { return newFloat(value); }
 
   [[nodiscard]] static std::optional<NormalizedF32> newFloat(float value);
+  /// Clamps to [0,1].
   [[nodiscard]] static NormalizedF32 newClamped(float value);
   [[nodiscard]] static NormalizedF32 fromU8(std::uint8_t value);
 
@@ -40,7 +45,8 @@ class NormalizedF32 {
 inline constexpr NormalizedF32 NormalizedF32::ZERO = NormalizedF32(0.0f);
 inline constexpr NormalizedF32 NormalizedF32::ONE = NormalizedF32(1.0f);
 
-/// A float value in (0, 1) exclusive.
+/// @internal
+/// A float in (0, 1) exclusive.
 class NormalizedF32Exclusive {
  public:
   static const NormalizedF32Exclusive ANY;
@@ -63,7 +69,8 @@ class NormalizedF32Exclusive {
 inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::ANY = NormalizedF32Exclusive(0.5f);
 inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::HALF = NormalizedF32Exclusive(0.5f);
 
-/// A float value guaranteed to be > 0 and finite.
+/// @internal
+/// A float guaranteed to be > 0 and finite.
 class NonZeroPositiveF32 {
  public:
   [[nodiscard]] static std::optional<NonZeroPositiveF32> create(float v);
@@ -74,7 +81,8 @@ class NonZeroPositiveF32 {
   float value_ = 1.0f;
 };
 
-/// A float value guaranteed to be finite.
+/// @internal
+/// A float guaranteed to be finite.
 class FiniteF32 {
  public:
   [[nodiscard]] static std::optional<FiniteF32> create(float v);
@@ -85,24 +93,17 @@ class FiniteF32 {
   float value_ = 0.0f;
 };
 
-/// Returns the closest `int32_t` for the given float, clamping into
-/// [`-2147483520.0f`, `2147483520.0f`].
+/// @internal
 [[nodiscard]] std::int32_t saturateCastI32(float x);
-
-/// Returns the closest `int32_t` for the given double, clamping into
-/// [`INT32_MIN`, `INT32_MAX`].
+/// @internal
 [[nodiscard]] std::int32_t saturateCastI32(double x);
-
-/// Saturating floor conversion from float to `int32_t`.
+/// @internal
 [[nodiscard]] std::int32_t saturateFloorToI32(float x);
-
-/// Saturating ceil conversion from float to `int32_t`.
+/// @internal
 [[nodiscard]] std::int32_t saturateCeilToI32(float x);
-
-/// Saturating round conversion from float to `int32_t`.
+/// @internal
 [[nodiscard]] std::int32_t saturateRoundToI32(float x);
-
-/// Converts a float bit pattern to a comparable two's-complement int ordering.
+/// @internal
 [[nodiscard]] std::int32_t f32As2sCompliment(float x);
 
 }  // namespace tiny_skia

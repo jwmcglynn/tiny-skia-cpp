@@ -1,26 +1,28 @@
 #pragma once
 
+/// @file Point.h
+/// @brief 2D point (float x, y) with vector math operations.
+
 #include <cmath>
 
 namespace tiny_skia {
 
-/// Scalar helper constant.
+/// @internal
 constexpr float kScalarRoot2Over2 = 0.707106781f;
 
+/// 2D point / vector with float components.
 struct Point {
   float x = 0.0f;
   float y = 0.0f;
 
   [[nodiscard]] static constexpr Point zero() { return Point{0.0f, 0.0f}; }
-
   [[nodiscard]] static constexpr Point fromXY(float px, float py) { return Point{px, py}; }
 
   [[nodiscard]] bool isZero() const { return x == 0.0f && y == 0.0f; }
-
   [[nodiscard]] bool isFinite() const { return std::isfinite(x) && std::isfinite(y); }
 
+  /// Euclidean length.
   [[nodiscard]] float length() const {
-    // Use f32 normally, fall back to f64 on overflow.
     float mag2 = x * x + y * y;
     if (std::isfinite(mag2)) {
       return std::sqrt(mag2);
@@ -31,8 +33,8 @@ struct Point {
 
   [[nodiscard]] float lengthSquared() const { return x * x + y * y; }
 
+  /// Distance to another point.
   [[nodiscard]] float distance(const Point& other) const {
-    // Subtract in f32, then call length().
     return Point{x - other.x, y - other.y}.length();
   }
 
@@ -52,6 +54,7 @@ struct Point {
     return std::isfinite(x) && std::isfinite(y) && (x != 0.0f || y != 0.0f);
   }
 
+  /// Normalizes in-place. Returns false if zero-length.
   bool normalize() { return setLength(1.0f); }
 
   bool setNormalize(float px, float py) {
@@ -60,8 +63,8 @@ struct Point {
     return setLength(1.0f);
   }
 
+  /// Sets the length, preserving direction. Returns false on failure.
   bool setLength(float len) {
-    // Use f64 for the scale computation.
     double xx = x, yy = y;
     double dmag = std::sqrt(xx * xx + yy * yy);
     double dscale = static_cast<double>(len) / dmag;
@@ -82,12 +85,14 @@ struct Point {
 
   [[nodiscard]] constexpr Point scaled(float factor) const { return Point{x * factor, y * factor}; }
 
+  /// Rotates 90 degrees clockwise.
   void rotateClockwise() {
     float tmp = x;
     x = -y;
     y = tmp;
   }
 
+  /// Rotates 90 degrees counter-clockwise.
   void rotateCounterClockwise() {
     float tmp = x;
     x = y;

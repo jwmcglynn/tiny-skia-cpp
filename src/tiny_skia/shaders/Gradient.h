@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file shaders/Gradient.h
+/// @brief Base gradient data and gradient stop type.
+
 #include <functional>
 #include <vector>
 
@@ -9,20 +12,22 @@
 
 namespace tiny_skia {
 
-// The default SCALAR_NEARLY_ZERO threshold is too big for gradients.
+/// @internal
 constexpr float kDegenerateThreshold = 1.0f / (1 << 15);
 
-// A gradient stop.
+/// A color stop in a gradient.
 struct GradientStop {
-  NormalizedF32 position;
-  Color color;
+  NormalizedF32 position; ///< Position along the gradient [0,1].
+  Color color;            ///< Color at this position.
 
+  /// Creates a stop, clamping position to [0,1].
   static GradientStop create(float position, Color color) {
     return GradientStop{NormalizedF32::newClamped(position), color};
   }
 };
 
-// Base gradient data.
+/// @internal
+/// Base gradient data shared by all gradient types.
 class Gradient {
  public:
   Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transform transform,

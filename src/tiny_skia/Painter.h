@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file Painter.h
+/// @brief Static drawing operations for rendering onto pixmaps.
+
 #include <cstdint>
 #include <optional>
 #include <vector>
@@ -13,8 +16,10 @@
 
 namespace tiny_skia {
 
+/// @internal
 namespace detail {
 
+/// @internal
 /// Splits the target pixmap into a list of tiles for large pixmaps.
 class DrawTiler {
  public:
@@ -71,32 +76,39 @@ class DrawTiler {
   bool finished_ = false;
 };
 
+/// @internal
 /// Returns true if the path's bounds are too large for fixed-point math.
 [[nodiscard]] bool isTooBigForMath(const Path& path);
 
+/// @internal
 /// Determines if a stroke should be treated as a hairline.
-/// Returns the coverage scaling factor, or nullopt for thick strokes.
 [[nodiscard]] std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
                                                    Transform ts);
 
 }  // namespace detail
 
-/// Groups all drawing operations. All methods are static — Painter has no
-/// state and cannot be instantiated.
+/// All drawing operations. Stateless — all methods are static.
+///
+/// Each method renders onto a MutablePixmapView. An optional Transform
+/// and Mask can be supplied to any operation.
+///
+/// @par Example
+/// @snippet fill.cpp fill_example
 class Painter {
  public:
   Painter() = delete;
 
-  /// Fills an axis-aligned rectangle onto the pixmap.
+  /// Fills an axis-aligned rectangle.
   static void fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint& paint,
                        Transform transform = Transform::identity(), const Mask* mask = nullptr);
 
-  /// Fills a path onto the pixmap.
+  /// Fills a path using the given fill rule.
   static void fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
                        FillRule fillRule, Transform transform = Transform::identity(),
                        const Mask* mask = nullptr);
 
-  /// Composites a source pixmap onto a destination pixmap.
+  /// Composites a source pixmap onto a destination.
+  /// @param x,y Destination offset in pixels.
   static void drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, PixmapView src,
                          const PixmapPaint& paint = {}, Transform transform = Transform::identity(),
                          const Mask* mask = nullptr);
@@ -104,13 +116,13 @@ class Painter {
   /// Applies a mask to already-drawn content.
   static void applyMask(MutablePixmapView& pixmap, const Mask& mask);
 
-  /// Strokes a path onto the pixmap.
+  /// Strokes a path with the given stroke settings.
   static void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
                          const Stroke& stroke, Transform transform = Transform::identity(),
                          const Mask* mask = nullptr);
 
  private:
-  /// Strokes a path with a hairline (subpixel width).
+  /// @internal
   static void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
                              std::optional<SubMaskView> mask, MutableSubPixmapView& subpix);
 };

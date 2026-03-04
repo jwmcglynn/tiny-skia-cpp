@@ -1,5 +1,8 @@
 #pragma once
 
+/// @file shaders/RadialGradient.h
+/// @brief Two-point conical (radial) gradient shader.
+
 #include <optional>
 #include <variant>
 #include <vector>
@@ -8,7 +11,8 @@
 
 namespace tiny_skia {
 
-// Focal point data for two-point conical gradients.
+/// @internal
+/// Focal point data for two-point conical gradients.
 struct FocalData {
   float r1 = 0.0f;
   float focalX = 0.0f;
@@ -21,32 +25,41 @@ struct FocalData {
   bool set(float r0, float r1, Transform& matrix);
 };
 
-// Gradient type classification for radial gradients.
+/// @internal
 struct RadialType {
   float radius1 = 0.0f;
   float radius2 = 0.0f;
 };
 
+/// @internal
 struct StripType {
   float scaledR0 = 0.0f;
 };
 
+/// @internal
 using GradientType = std::variant<RadialType, StripType, FocalData>;
 
-// A radial (two-point conical) gradient shader.
+/// Two-point conical (radial) gradient shader.
+///
+/// Supports equal-radius (simple radial), different-radius, and
+/// focal (zero-radius start) configurations.
 class RadialGradient {
  public:
   explicit RadialGradient(Gradient base) : base_(std::move(base)) {}
 
-  // Creates a new radial gradient. Returns Shader or nullopt.
+  /// Creates a radial gradient between two circles.
+  /// Returns a Color if the gradient degenerates to a single color.
   static std::optional<std::variant<Color, RadialGradient>> create(
       Point startPoint, float startRadius, Point endPoint, float endRadius,
       std::vector<GradientStop> stops, SpreadMode mode, Transform transform);
 
+  /// @internal
   [[nodiscard]] bool isOpaque() const { return base_.colorsAreOpaque(); }
 
+  /// @internal
   [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
+  /// @internal
   Gradient base_;
 
  private:
