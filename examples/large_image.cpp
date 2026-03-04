@@ -51,7 +51,7 @@ int main() {
     std::fprintf(stderr, "Failed to allocate mask\n");
     return 1;
   }
-  mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+  mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
   // Fill a large background rect.
   Paint paint;
@@ -59,24 +59,24 @@ int main() {
   paint.antiAlias = true;
   auto largeRect = Rect::fromXywh(500.0f, 500.0f, 19000.0f, 19000.0f);
   auto mut = pixmap->mutableView();
-  fillRect(mut, *largeRect, paint, Transform::identity());
+  Painter::fillRect(mut, *largeRect, paint, Transform::identity());
 
   // Fill path1 with mask.
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
-  fillPath(mut, *path1, paint, FillRule::Winding, Transform::identity(), &*mask);
+  Painter::fillPath(mut, *path1, paint, FillRule::Winding, Transform::identity(), &*mask);
 
   // Fill path2 without mask.
   paint.setColorRgba8(220, 140, 75, 180);
   paint.antiAlias = false;
-  fillPath(mut, *path2, paint, FillRule::Winding, Transform::identity());
+  Painter::fillPath(mut, *path2, paint, FillRule::Winding, Transform::identity());
 
   // Stroke path2 as a hairline.
   paint.setColorRgba8(255, 10, 15, 180);
   paint.antiAlias = true;
   Stroke stroke;
   stroke.width = 0.8f;
-  strokePath(mut, *path2, paint, stroke, Transform::identity());
+  Painter::strokePath(mut, *path2, paint, stroke, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();
   if (examples::writePng("large_image.png", data.data(), kSize, kSize)) {

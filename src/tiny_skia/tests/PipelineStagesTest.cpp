@@ -55,7 +55,7 @@ TEST(PipelineGatherTest, DrawPixmapCopiesPixels) {
   ppaint.opacity = 1.0f;
 
   auto dstMut = dst.mutableView();
-  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
+  Painter::drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // The destination should now be red.
   const auto px = readPx(dst, 0, 0);
@@ -76,7 +76,7 @@ TEST(PipelineGatherTest, DrawPixmapWithOffset) {
   ppaint.opacity = 1.0f;
 
   auto dstMut = dst.mutableView();
-  drawPixmap(dstMut, 2, 2, src.view(), ppaint, Transform::identity());
+  Painter::drawPixmap(dstMut, 2, 2, src.view(), ppaint, Transform::identity());
 
   // (0,0) should still be black, (2,2) should be green.
   const auto black = readPx(dst, 0, 0);
@@ -106,7 +106,7 @@ TEST(PipelineTransformTest, ScaledFillRect) {
   const auto ts = Transform::fromScale(2.0f, 2.0f);
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 1.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, ts);
+  Painter::fillRect(mut, *rect, paint, ts);
 
   // (0,0) and (1,1) should be red.
   EXPECT_EQ(readPx(pm, 0, 0).red(), 255);
@@ -139,7 +139,7 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // First pixel should be close to red.
   const auto first = readPx(pm, 0, 0);
@@ -184,7 +184,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // First pixel ~ red.
   const auto first = readPx(pm, 0, 0);
@@ -225,7 +225,7 @@ TEST(PipelineGradientTest, RadialGradient) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Center pixel should be red.
   const auto center = readPx(pm, 5, 5);
@@ -262,7 +262,7 @@ TEST(PipelineGradientTest, SweepGradient) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Just verify we got non-transparent pixels at center and edges.
   EXPECT_EQ(readPx(pm, 5, 5).alpha(), 255);
@@ -294,7 +294,7 @@ TEST(PipelineTileModeTest, PadGradient) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Pixel at x=15 (past the gradient end) should be blue (padded).
   const auto padded = readPx(pm, 15, 0);
@@ -321,7 +321,7 @@ TEST(PipelineTileModeTest, RepeatGradient) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // At x=10, the gradient repeats, so pixel at x=10 should be reddish.
   // x=10 is start of second cycle.
@@ -349,7 +349,7 @@ TEST(PipelineTileModeTest, ReflectGradient) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // At x=19, the gradient reflects back, so pixel should be reddish.
   const auto reflected = readPx(pm, 19, 0);
@@ -373,7 +373,7 @@ TEST(PipelineBlendTest, DarkenBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Darken takes min per channel.
   const auto px = readPx(pm, 0, 0);
@@ -395,7 +395,7 @@ TEST(PipelineBlendTest, LightenBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_GE(px.red(), 198);    // max(200, 128) = 200, lowp ±2
@@ -415,7 +415,7 @@ TEST(PipelineBlendTest, DifferenceBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Difference of same color should be ~0.
   // Lowp approximation can produce slightly non-zero results.
@@ -437,7 +437,7 @@ TEST(PipelineBlendTest, ExclusionBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Exclusion with black gives the source color.
   // Lowp approximation may be ±2 off.
@@ -459,7 +459,7 @@ TEST(PipelineBlendTest, ScreenBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Screen of gray+gray should be lighter.
   const auto px = readPx(pm, 0, 0);
@@ -478,7 +478,7 @@ TEST(PipelineBlendTest, OverlayBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Just verify it doesn't crash and produces non-transparent output.
   const auto px = readPx(pm, 0, 0);
@@ -497,7 +497,7 @@ TEST(PipelineBlendTest, HardLightBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -515,7 +515,7 @@ TEST(PipelineBlendTest, SoftLightBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -533,7 +533,7 @@ TEST(PipelineBlendTest, ColorDodgeBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // ColorDodge should brighten.
   const auto px = readPx(pm, 0, 0);
@@ -552,7 +552,7 @@ TEST(PipelineBlendTest, ColorBurnBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // ColorBurn should darken.
   const auto px = readPx(pm, 0, 0);
@@ -575,7 +575,7 @@ TEST(PipelineBlendTest, HueBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -595,7 +595,7 @@ TEST(PipelineBlendTest, SaturationBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -613,7 +613,7 @@ TEST(PipelineBlendTest, ColorBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -632,7 +632,7 @@ TEST(PipelineBlendTest, LuminosityBlend) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -654,7 +654,7 @@ TEST(PipelineGammaTest, SrgbColorspace) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Should produce some result (may differ from Linear).
   const auto px = readPx(pm, 0, 0);
@@ -676,7 +676,7 @@ TEST(PipelineGammaTest, Gamma2Colorspace) {
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
-  fillRect(mut, *rect, paint, Transform::identity());
+  Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   const auto px = readPx(pm, 0, 0);
   EXPECT_EQ(px.alpha(), 255);
@@ -697,7 +697,7 @@ TEST(PipelineFilterTest, BilinearDrawPixmap) {
   ppaint.opacity = 1.0f;
 
   auto dstMut = dst.mutableView();
-  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
+  Painter::drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // Should copy red over blue.
   const auto px = readPx(dst, 1, 1);
@@ -715,7 +715,7 @@ TEST(PipelineFilterTest, BicubicDrawPixmap) {
   ppaint.opacity = 1.0f;
 
   auto dstMut = dst.mutableView();
-  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
+  Painter::drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // Should copy red over blue.
   const auto px = readPx(dst, 1, 1);

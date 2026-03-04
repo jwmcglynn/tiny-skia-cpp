@@ -38,7 +38,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
   auto mut = pixmap->mutableView();
-  fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();
   if (examples::writePng("linear_gradient.png", data.data(), 1000, 1000)) {

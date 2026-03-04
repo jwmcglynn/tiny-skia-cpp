@@ -26,7 +26,7 @@ int main() {
 
   // Create a mask from the clip path.
   auto mask = Mask::fromSize(500, 500);
-  mask->fillPath(*transformed, FillRule::EvenOdd, true, Transform::identity());
+  mask->Painter::fillPath(*transformed, FillRule::EvenOdd, true, Transform::identity());
 
   Paint paint;
   paint.antiAlias = false;
@@ -35,7 +35,7 @@ int main() {
   auto pixmap = Pixmap::fromSize(500, 500);
   auto rect = Rect::fromXywh(0.0f, 0.0f, 500.0f, 500.0f);
   auto mut = pixmap->mutableView();
-  fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+  Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
   auto data = pixmap->takeDemultiplied();
   if (examples::writePng("mask.png", data.data(), 500, 500)) {

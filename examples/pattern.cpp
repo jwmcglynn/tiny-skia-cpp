@@ -29,7 +29,7 @@ tiny_skia::Pixmap createTriangle() {
 
   auto pixmap = Pixmap::fromSize(20, 20);
   auto mut = pixmap->mutableView();
-  fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
   return std::move(*pixmap);
 }
 
@@ -49,7 +49,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(400, 400);
   auto mut = pixmap->mutableView();
-  fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();
   if (examples::writePng("pattern.png", data.data(), 400, 400)) {

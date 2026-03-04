@@ -208,7 +208,7 @@ inline std::uint8_t lineJoinToU8(LineJoin j) {
 // Fill path
 // ---------------------------------------------------------------------------
 
-inline bool fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
+inline bool Painter::fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
                      std::uint8_t g, std::uint8_t b, std::uint8_t a,
                      FillRule fillRule, bool antiAlias, BlendMode blendMode,
                      const Transform& transform) {
@@ -220,12 +220,12 @@ inline bool fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
 }
 
 /// Convenience overload using the C++ Paint-like defaults.
-inline bool fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
+inline bool Painter::fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
                      std::uint8_t g, std::uint8_t b, std::uint8_t a,
                      FillRule fillRule, const Transform& transform,
                      bool antiAlias = true,
                      BlendMode blendMode = BlendMode::SourceOver) {
-  return fillPath(pixmap, path, r, g, b, a, fillRule, antiAlias, blendMode,
+  return Painter::fillPath(pixmap, path, r, g, b, a, fillRule, antiAlias, blendMode,
                   transform);
 }
 
@@ -233,7 +233,7 @@ inline bool fillPath(Pixmap& pixmap, const Path& path, std::uint8_t r,
 // Fill rect
 // ---------------------------------------------------------------------------
 
-inline bool fillRect(Pixmap& pixmap, float left, float top, float right,
+inline bool Painter::fillRect(Pixmap& pixmap, float left, float top, float right,
                      float bottom, std::uint8_t r, std::uint8_t g,
                      std::uint8_t b, std::uint8_t a, bool antiAlias,
                      BlendMode blendMode, const Transform& transform) {
@@ -247,7 +247,7 @@ inline bool fillRect(Pixmap& pixmap, float left, float top, float right,
 // Stroke path
 // ---------------------------------------------------------------------------
 
-inline bool strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
+inline bool Painter::strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
                        std::uint8_t g, std::uint8_t b, std::uint8_t a,
                        const Stroke& stroke, bool antiAlias,
                        BlendMode blendMode, const Transform& transform) {
@@ -271,12 +271,12 @@ inline bool strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
 }
 
 /// Convenience overload with default paint settings.
-inline bool strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
+inline bool Painter::strokePath(Pixmap& pixmap, const Path& path, std::uint8_t r,
                        std::uint8_t g, std::uint8_t b, std::uint8_t a,
                        const Stroke& stroke, const Transform& transform,
                        bool antiAlias = true,
                        BlendMode blendMode = BlendMode::SourceOver) {
-  return strokePath(pixmap, path, r, g, b, a, stroke, antiAlias, blendMode,
+  return Painter::strokePath(pixmap, path, r, g, b, a, stroke, antiAlias, blendMode,
                     transform);
 }
 

@@ -21,7 +21,7 @@ constexpr float kScalarMax = std::numeric_limits<float>::max();
 
 }  // namespace
 
-bool isTooBigForMath(const Path& path) {
+bool detail::isTooBigForMath(const Path& path) {
   constexpr float kScaleDownToAllowForSmallMultiplies = 0.25f;
   constexpr float kMax = kScalarMax * kScaleDownToAllowForSmallMultiplies;
 
@@ -31,7 +31,7 @@ bool isTooBigForMath(const Path& path) {
   return !(b.left() >= -kMax && b.top() >= -kMax && b.right() <= kMax && b.bottom() <= kMax);
 }
 
-std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth, Transform ts) {
+std::optional<float> detail::treatAsHairline(const Paint& paint, float strokeWidth, Transform ts) {
   if (strokeWidth == 0.0f) {
     return 1.0f;
   }
@@ -68,9 +68,9 @@ std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth, Tran
   return std::nullopt;
 }
 
-void fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint& paint, Transform transform,
-              const Mask* mask) {
-  if (transform.isIdentity() && !DrawTiler::required(pixmap.width(), pixmap.height())) {
+void Painter::fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint& paint,
+                       Transform transform, const Mask* mask) {
+  if (transform.isIdentity() && !detail::DrawTiler::required(pixmap.width(), pixmap.height())) {
     const auto clip = pixmap.size().toScreenIntRect(0, 0);
 
     auto submaskOpt = mask ? std::optional<SubMaskView>(mask->submask()) : std::nullopt;
@@ -87,12 +87,12 @@ void fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint& paint, T
     }
   } else {
     const auto path = pathFromRect(rect);
-    fillPath(pixmap, path, paint, FillRule::Winding, transform, mask);
+    Painter::fillPath(pixmap, path, paint, FillRule::Winding, transform, mask);
   }
 }
 
-void fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
-              Transform transform, const Mask* mask) {
+void Painter::fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
+                       FillRule fillRule, Transform transform, const Mask* mask) {
   if (transform.isIdentity()) {
     // Skip empty paths and horizontal/vertical lines.
     const auto pathBounds = path.bounds();
@@ -100,11 +100,11 @@ void fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, F
       return;
     }
 
-    if (isTooBigForMath(path)) {
+    if (detail::isTooBigForMath(path)) {
       return;
     }
 
-    if (auto tiler = DrawTiler::create(pixmap.width(), pixmap.height())) {
+    if (auto tiler = detail::DrawTiler::create(pixmap.width(), pixmap.height())) {
       auto pathCopy = path;
       auto paintCopy = paint;
 
@@ -169,12 +169,12 @@ void fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, F
     auto paintCopy = paint;
     transformShader(paintCopy.shader, transform);
 
-    fillPath(pixmap, *transformed, paintCopy, fillRule, Transform::identity(), mask);
+    Painter::fillPath(pixmap, *transformed, paintCopy, fillRule, Transform::identity(), mask);
   }
 }
 
-void drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, PixmapView src,
-                const PixmapPaint& ppaint, Transform transform, const Mask* mask) {
+void Painter::drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, PixmapView src,
+                         const PixmapPaint& ppaint, Transform transform, const Mask* mask) {
   const auto intRect = src.size().toIntRect(x, y);
   if (!intRect.has_value()) {
     return;
@@ -195,10 +195,10 @@ void drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, Pixma
   paint.forceHqPipeline = false;
   paint.colorspace = ColorSpace::Linear;
 
-  fillRect(pixmap, rect, paint, transform, mask);
+  Painter::fillRect(pixmap, rect, paint, transform, mask);
 }
 
-void applyMask(MutablePixmapView& pixmap, const Mask& mask) {
+void Painter::applyMask(MutablePixmapView& pixmap, const Mask& mask) {
   if (pixmap.size() != mask.size()) {
     return;
   }
@@ -223,8 +223,8 @@ void applyMask(MutablePixmapView& pixmap, const Mask& mask) {
   rp.run(rect, pipeline::AAMaskCtx{}, maskCtx, *pixmapSrc, &subpix);
 }
 
-void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
-                Transform transform, const Mask* mask) {
+void Painter::strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
+                         const Stroke& stroke, Transform transform, const Mask* mask) {
   if (stroke.width < 0.0f) {
     return;
   }
@@ -242,7 +242,7 @@ void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
     pathPtr = &(*dashPath);
   }
 
-  auto coverage = treatAsHairline(paint, stroke.width, transform);
+  auto coverage = detail::treatAsHairline(paint, stroke.width, transform);
   if (coverage.has_value()) {
     // Hairline path.
     auto paintCopy = paint;
@@ -254,7 +254,7 @@ void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
       applyShaderOpacity(paintCopy.shader, static_cast<float>(newAlpha) / 255.0f);
     }
 
-    if (auto tiler = DrawTiler::create(pixmap.width(), pixmap.height())) {
+    if (auto tiler = detail::DrawTiler::create(pixmap.width(), pixmap.height())) {
       auto pathCopy = *pathPtr;
 
       if (!transform.isIdentity()) {
@@ -313,12 +313,12 @@ void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint,
     if (!strokedPath.has_value()) {
       return;
     }
-    fillPath(pixmap, *strokedPath, paint, FillRule::Winding, transform, mask);
+    Painter::fillPath(pixmap, *strokedPath, paint, FillRule::Winding, transform, mask);
   }
 }
 
-void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
-                    std::optional<SubMaskView> mask, MutableSubPixmapView& subpix) {
+void Painter::strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
+                             std::optional<SubMaskView> mask, MutableSubPixmapView& subpix) {
   const auto clip = subpix.size.toScreenIntRect(0, 0);
   auto blitter = pipeline::RasterPipelineBlitter::create(paint, mask, &subpix);
   if (!blitter.has_value()) {

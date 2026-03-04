@@ -62,11 +62,11 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias, Transfo
       return;
     }
 
-    if (isTooBigForMath(path)) {
+    if (detail::isTooBigForMath(path)) {
       return;
     }
 
-    if (auto tiler = DrawTiler::create(width(), height())) {
+    if (auto tiler = detail::DrawTiler::create(width(), height())) {
       auto pathCopy = path;
 
       while (auto tile = tiler->next()) {
