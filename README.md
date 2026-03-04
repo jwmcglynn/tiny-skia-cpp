@@ -26,6 +26,51 @@ status tables.
 
 See `docs/design_docs/` for design documents, validation audit, and function-level mapping.
 
+## Architecture
+
+The rendering pipeline flows through five major subsystems:
+
+```
+PathBuilder → Path → EdgeBuilder → Scan → Pipeline → Pixmap
+                                     ↑         ↑
+                                   path64    shaders
+                                              wide
+```
+
+1. **Core** (`src/tiny_skia/`) — fundamental types (Pixmap, Color, Path, Transform,
+   Mask, Geom) and algorithms (edge building, clipping, fixed-point math).
+2. **Scan** (`src/tiny_skia/scan/`) — converts edges into scanline spans, handling
+   both anti-aliased and non-anti-aliased rasterization for fills and hairlines.
+3. **Pipeline** (`src/tiny_skia/pipeline/`) — executes a sequence of rendering stages
+   (blend, composite, sample, store) on scanline spans. Split into high-precision
+   (`Highp`) and low-precision (`Lowp`) fast paths.
+4. **Shaders** (`src/tiny_skia/shaders/`) — push sampling stages into the pipeline
+   for solid colors, linear/radial/sweep gradients, and pixmap patterns.
+5. **Wide** (`src/tiny_skia/wide/`) — SIMD vector wrappers (F32x4T, F32x8T, I32x4T,
+   etc.) used by the pipeline for data-parallel execution.
+6. **Path64** (`src/tiny_skia/path64/`) — 64-bit path math for precision-sensitive
+   intersection and subdivision operations.
+
+The top-level drawing API lives in `Painter.h`, which orchestrates the full pipeline:
+`fillRect`, `fillPath`, `strokePath`, `drawPixmap`, and `applyMask`.
+
+### SIMD Backends
+
+The `wide/` layer provides three compile-time backends with an identical API:
+
+| Backend | Platforms | Define |
+|---------|-----------|--------|
+| **x86 AVX2+FMA** | x86_64 (Intel/AMD) | `TINYSKIA_CFG_IF_SIMD_NATIVE` |
+| **ARM64 NEON** | Apple Silicon, AArch64 | `TINYSKIA_CFG_IF_SIMD_NATIVE` |
+| **Scalar** | All platforms (portable fallback) | `TINYSKIA_CFG_IF_SIMD_SCALAR` |
+
+Backend selection happens at compile time via `wide/backend/BackendConfig.h`.
+The Bazel build uses config transitions (`bazel/simd_transition.bzl`) to produce
+paired native/scalar library and test variants automatically. The CMake build
+produces two static libraries: `tiny_skia` (native) and `tiny_skia_scalar`.
+
+All backends produce bit-exact results (enforced by `-ffp-contract=off`).
+
 ## Requirements
 
 - C++20 compiler (GCC 11+, Clang 14+, MSVC 19.30+)
@@ -85,20 +130,71 @@ bazel run //examples:image_on_image    # Compositing one pixmap onto another
 bazel run //examples:large_image       # 20000x20000 stress test with masking
 ```
 
-## Project Layout
+## Module Map
 
+| Directory | Responsibility | Key Types / Files |
+|-----------|---------------|-------------------|
+| `src/tiny_skia/` | Core types and algorithms | Pixmap, Color, Path, Transform, Mask, Geom, Edge, Blitter |
+| `src/tiny_skia/scan/` | Scanline rasterization | Hairline, HairlineAa, Path, PathAa |
+| `src/tiny_skia/pipeline/` | Rendering pipeline stages | RasterPipelineBuilder, Highp, Lowp, Blitter |
+| `src/tiny_skia/shaders/` | Fill shaders and gradients | LinearGradient, RadialGradient, SweepGradient, Pattern |
+| `src/tiny_skia/wide/` | SIMD vector wrappers | F32x4T, F32x8T, I32x4T, U32x4T, U32x8T, U16x16T |
+| `src/tiny_skia/wide/backend/` | Platform-specific SIMD implementations | Scalar*, X86Avx2Fma*, Aarch64Neon* |
+| `src/tiny_skia/path64/` | 64-bit path math | Point64, Quad64, Cubic64, LineCubicIntersections |
+| `src/tiny_skia/tests/` | Unit tests (colocated per module) | *Test.cpp files |
+| `examples/` | Runnable C++ examples (PNG output) | fill, stroke, gradient, mask, pattern, ... |
+| `tests/integration/` | Golden-image integration tests | FillTest, StrokeTest, GradientsTest, ... |
+| `tests/benchmarks/` | Performance benchmarks (native vs scalar vs Rust) | RenderPerfBench |
+| `tests/rust_ffi/` | Rust FFI for cross-validation against original tiny-skia | tiny_skia_ffi |
+| `bazel/` | Build config and SIMD transitions | simd_transition.bzl, simd_test.bzl, defs.bzl |
+| `docs/design_docs/` | Design documents and function maps | — |
+| `third_party/tiny-skia/` | Canonical Rust source (reference only) | — |
+| `tools/` | Developer tooling | env-setup.sh |
+
+## Benchmarks
+
+The benchmark suite compares rendering throughput across C++ native SIMD, C++ scalar,
+and the original Rust tiny-skia via FFI:
+
+```bash
+# Run individual benchmarks
+bazel run -c opt //tests/benchmarks:render_perf_bench_native
+bazel run -c opt //tests/benchmarks:render_perf_bench_scalar
+
+# Run comparison summary (prints speedup ratios)
+./tests/benchmarks/run_render_perf_compare.sh
+
+# Run regression guard test (enforces architecture-specific watermarks)
+bazel test -c opt //tests/benchmarks:render_perf_regression_test
 ```
-src/tiny_skia/           C++ implementation
-  pipeline/              Rendering pipeline stages
-  scan/                  Scan conversion
-  path64/                64-bit path operations
-  wide/                  SIMD vector operations
-  tests/                 Unit tests (colocated per module)
-examples/                Executable examples (C++ ports of Rust examples)
-docs/design_docs/        Design documents and function maps
-third_party/tiny-skia/   Canonical Rust source (reference only)
-tools/                   Developer tooling
+
+See `tests/benchmarks/README.md` for details on metrics and watermark thresholds.
+
+## SIMD Testing
+
+Every test target automatically runs in both native SIMD and scalar modes using the
+`tiny_skia_dual_mode_cc_test` Bazel macro (defined in `bazel/simd_test.bzl`). For
+each test `foo`, the macro creates:
+
+- `foo_native` — compiled with the platform's native SIMD backend
+- `foo_scalar` — compiled with the portable scalar backend
+- `foo` — a test suite containing both
+
+```bash
+# Run all tests in both modes
+bazel test //...
+
+# Run a specific test in both modes
+bazel test //src/tiny_skia/tests:tiny_skia_core_tests
+
+# Force a specific mode for all tests
+bazel test --//bazel/config:simd_mode=scalar //...
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, toolchain versions,
+formatting, and troubleshooting guidance.
 
 ## License
 

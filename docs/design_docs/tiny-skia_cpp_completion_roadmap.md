@@ -97,14 +97,14 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Publish CI coverage reports with trend visibility for critical modules.
   - [ ] Define and enforce minimum coverage thresholds for production-critical modules.
 
-- [ ] Milestone 3: Project Documentation and Onboarding
-  - [ ] Write top-level `README.md` project intro, architecture summary, and quickstart.
-  - [ ] Add module map linking directories to ownership/responsibility boundaries.
-  - [ ] Document benchmark and SIMD test workflows for contributors.
-  - [ ] Include contribution workflow, toolchain versions, and troubleshooting guidance.
-  - [ ] Add repository `AGENTS.md` with explicit guidance for making codebase changes
+- [x] Milestone 3: Project Documentation and Onboarding
+  - [x] Write top-level `README.md` project intro, architecture summary, and quickstart.
+  - [x] Add module map linking directories to ownership/responsibility boundaries.
+  - [x] Document benchmark and SIMD test workflows for contributors.
+  - [x] Include contribution workflow, toolchain versions, and troubleshooting guidance.
+  - [x] Add repository `AGENTS.md` with explicit guidance for making codebase changes
     (design-doc-first flow, build/test gates, coding style, and safe edit patterns).
-  - [ ] Add `AGENTS.md` section for API users (public entry points, expected usage patterns,
+  - [x] Add `AGENTS.md` section for API users (public entry points, expected usage patterns,
     ownership/lifetime expectations, and minimal end-to-end examples).
 
 - [ ] Milestone 4: API Documentation and Doxygen Delivery

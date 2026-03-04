@@ -70,6 +70,141 @@ This repository is a C++20, Bazel-first porting effort for `tiny-skia` (Rust) to
 - Prefer concise Markdown with the repository-specific section structure.
 - Keep markdown paths and links simple and stable.
 
+## Design-Doc-First Flow
+
+1. Create a design doc under `docs/design_docs/` using `design_template.md`.
+2. Include Summary, Goals, Non-Goals, Implementation Plan (checklist), and
+   Testing/Validation sections.
+3. Get user approval before implementing.
+4. Implement in batches — each batch must update the design doc's milestone
+   checkboxes and function status entries.
+5. After implementation is complete, convert to `developer_template.md` format.
+
+## Build and Test Gates
+
+Every implementation step must pass both gates:
+
+```bash
+bazel build //...    # All targets compile without errors or warnings
+bazel test //...     # All tests pass in both native and scalar SIMD modes
+```
+
+"Green" means zero failures and zero new warnings. Do not proceed to the next
+step or request a commit if either gate fails.
+
+## Safe Edit Patterns
+
+### Adding a new source file
+
+1. Create `src/tiny_skia/[subdir/]Foo.h` and `Foo.cpp`.
+2. Add to the appropriate `BUILD.bazel` (`cc_library` or `filegroup`).
+3. Add to `CMakeLists.txt` source list.
+4. Create `src/tiny_skia/[subdir/]tests/FooTest.cpp` with a dual-mode test.
+5. Run both gates.
+
+### Modifying existing code
+
+- Keep edits minimal and consistent with the touched file's existing style.
+- Any change to `wide/` types must produce identical results in native and
+  scalar modes — run the full test suite to verify.
+- Changes to `pipeline/` or `scan/` may affect rendering output — check
+  integration tests and golden images.
+- Never change behavior in a readability-only pass.
+
+### File organization and naming
+
+- Headers and sources are colocated: `Foo.h` and `Foo.cpp` in the same directory.
+- Tests live in a `tests/` subdirectory: `src/tiny_skia/tests/FooTest.cpp`.
+- Use `UpperCamelCase` for file names matching the primary type they define.
+- SIMD backend files use the pattern `{Backend}{Type}.h`
+  (e.g., `ScalarF32x4T.h`, `X86Avx2FmaF32x8T.h`, `Aarch64NeonI32x4T.h`).
+
+## API User Guide
+
+This section is for agents or developers consuming the library's public API.
+
+### Public Entry Points
+
+The main drawing API consists of free functions in `src/tiny_skia/Painter.h`:
+
+| Function | Purpose |
+|----------|---------|
+| `fillRect` | Fill an axis-aligned rectangle |
+| `fillPath` | Fill a path with a given fill rule |
+| `strokePath` | Stroke a path with configurable width, caps, joins, dash |
+| `drawPixmap` | Composite a source pixmap onto a destination |
+| `applyMask` | Apply a mask to a pixmap |
+
+Supporting types are defined in:
+- `Pixmap.h` — pixel buffer (`Pixmap`, `PixmapRef`, `PixmapMut`)
+- `PathBuilder.h` — path construction (`PathBuilder`, `Path`)
+- `Transform.h` — affine transforms (`Transform`)
+- `Color.h` — color types (`Color`, `PremultipliedColor`, `ColorSpace`)
+- `Stroke.h` — stroke properties (`Stroke`, `StrokeDash`, `LineCap`, `LineJoin`)
+- `Mask.h` — clipping masks (`Mask`)
+- `Geom.h` — geometry primitives (`Rect`, `IntRect`, `IntSize`, `Point`)
+- `shaders/LinearGradient.h`, `RadialGradient.h`, `SweepGradient.h`, `Pattern.h`
+
+### Usage Pattern
+
+The typical rendering flow:
+
+```
+1. Create a Pixmap          →  Pixmap::fromSize(width, height)
+2. Build a Path             →  PathBuilder → moveTo/lineTo/cubicTo → finish()
+3. Configure a Paint        →  Set shader (color, gradient, pattern), blend mode, AA
+4. Call a Painter function  →  fillPath(pixmap.asMut(), path, paint, fillRule, transform)
+5. Extract pixel data       →  pixmap.takeDemultiplied()
+```
+
+### Ownership and Lifetime Rules
+
+- **`Pixmap`** owns its pixel buffer. Move-only (no copies).
+- **`PixmapRef`** / **`PixmapMut`** are non-owning views into a Pixmap. They
+  must not outlive the Pixmap they reference.
+- **`Paint`** and its `Shader` variant are value types — pass and store by value.
+- **`Path`** is a value type. `PathBuilder::finish()` consumes the builder and
+  returns an `optional<Path>`. `Path::clear()` consumes the path and returns a
+  fresh `PathBuilder` reusing the path's allocations.
+- **`Transform`** is a small value type (6 floats) — pass by value.
+- **`Mask`** owns its buffer. Non-owning `SubMaskRef` views must not outlive it.
+- All factory functions that can fail return `std::optional`.
+
+### Minimal End-to-End Example
+
+```cpp
+#include "src/tiny_skia/Painter.h"
+#include "src/tiny_skia/Pixmap.h"
+#include "src/tiny_skia/Geom.h"
+#include "src/tiny_skia/Color.h"
+
+using namespace tiny_skia;
+
+// Create a 100x100 pixmap
+auto pixmap = Pixmap::fromSize(100, 100);
+
+// Fill a rectangle with a solid color
+Paint paint;
+paint.setColorRgba8(0, 128, 255, 255);
+
+auto rect = Rect::fromXywh(10.0f, 10.0f, 80.0f, 80.0f);
+auto mut = pixmap->asMut();
+fillRect(mut, *rect, paint, Transform::identity());
+
+// Extract the pixel data (RGBA, demultiplied)
+auto pixels = pixmap->takeDemultiplied();
+```
+
+### SIMD Transparency
+
+The public API is identical regardless of SIMD backend. Choose your link target:
+
+- **Bazel**: `//src:tiny_skia_lib` (native) or `//src:tiny_skia_lib_scalar`
+- **CMake**: `tiny_skia` (native) or `tiny_skia_scalar` (portable)
+
+No API changes, no `#ifdef`s, no runtime dispatch — backend selection is purely
+a compile-time decision.
+
 ## Learned Patterns and Recommendations
 
 - For `std::optional` results in tests, prefer matcher assertions over `has_value()` checks:
