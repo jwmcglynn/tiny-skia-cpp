@@ -15,6 +15,15 @@ namespace tiny_skia {
 
 inline constexpr std::size_t kBytesPerPixel = 4;
 
+// Forward declarations for drawing methods.
+struct Paint;
+struct PixmapPaint;
+class Path;
+struct Stroke;
+class Mask;
+class Transform;
+enum class FillRule : std::uint8_t;
+
 class Pixmap;
 struct MutableSubPixmapView;
 
@@ -74,6 +83,16 @@ class MutablePixmapView {
   [[nodiscard]] MutableSubPixmapView subpixmap() const;
   [[nodiscard]] std::optional<MutableSubPixmapView> subpixmap(const IntRect& rect) const;
 
+  // Drawing methods (delegate to Painter).
+  void fillRect(const Rect& rect, const Paint& paint, Transform transform, const Mask* mask = nullptr);
+  void fillPath(const Path& path, const Paint& paint, FillRule fillRule, Transform transform,
+                const Mask* mask = nullptr);
+  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke, Transform transform,
+                  const Mask* mask = nullptr);
+  void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
+                  Transform transform, const Mask* mask = nullptr);
+  void applyMask(const Mask& mask);
+
  private:
   std::uint8_t* data_ = nullptr;
   std::size_t len_ = 0;
@@ -124,6 +143,16 @@ class Pixmap {
   [[nodiscard]] std::optional<Pixmap> cloneRect(const IntRect& rect) const;
 
   void fill(const Color& color);
+
+  // Drawing methods (delegate to Painter via mutableView()).
+  void fillRect(const Rect& rect, const Paint& paint, Transform transform, const Mask* mask = nullptr);
+  void fillPath(const Path& path, const Paint& paint, FillRule fillRule, Transform transform,
+                const Mask* mask = nullptr);
+  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke, Transform transform,
+                  const Mask* mask = nullptr);
+  void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
+                  Transform transform, const Mask* mask = nullptr);
+  void applyMask(const Mask& mask);
 
   [[nodiscard]] std::vector<std::uint8_t> take();
   [[nodiscard]] std::vector<std::uint8_t> takeDemultiplied();
