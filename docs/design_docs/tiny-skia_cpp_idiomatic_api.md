@@ -1,6 +1,6 @@
 # Design: Idiomatic C++ Public API
 
-**Status:** Design
+**Status:** Implemented
 **Author:** Claude
 **Created:** 2026-03-04
 
@@ -64,61 +64,61 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
 
 ## Implementation Plan
 
-- [ ] Milestone 0: Rename view types
-  - [ ] Rename `PixmapView` → `PixmapView` throughout
-  - [ ] Rename `PixmapMut` → `MutablePixmapView` throughout
-  - [ ] Rename `MutableSubPixmapView` → `MutableSubPixmapView` throughout
-  - [ ] Rename `SubMaskView` → `MaskView` or `SubMaskView` if applicable
-  - [ ] Update `Pixmap::asRef()` → `Pixmap::view()`,
+- [x] Milestone 0: Rename view types
+  - [x] Rename `PixmapView` → `PixmapView` throughout
+  - [x] Rename `PixmapMut` → `MutablePixmapView` throughout
+  - [x] Rename `MutableSubPixmapView` → `MutableSubPixmapView` throughout
+  - [x] Rename `SubMaskView` → `MaskView` or `SubMaskView` if applicable
+  - [x] Update `Pixmap::asRef()` → `Pixmap::view()`,
         `Pixmap::asMut()` → `Pixmap::mutableView()`
-  - [ ] Build and test gate
-- [ ] Milestone 1: `Painter` class with static methods
-  - [ ] Wrap existing free functions as `Painter::fillRect`,
+  - [x] Build and test gate
+- [x] Milestone 1: `Painter` class with static methods
+  - [x] Wrap existing free functions as `Painter::fillRect`,
         `Painter::fillPath`, `Painter::strokePath`, `Painter::drawPixmap`,
         `Painter::applyMask` — all `static`
-  - [ ] Move `DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
+  - [x] Move `DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
         `strokeHairline` into `Painter` as `private` statics
         (or a `detail` namespace)
-  - [ ] Move `Paint` and `PixmapPaint` out of `Painter.h` into their own
+  - [x] Move `Paint` and `PixmapPaint` out of `Painter.h` into their own
         header `Paint.h` (they are value types, not painter internals)
-  - [ ] Remove old free functions entirely; migrate all call sites (~180)
+  - [x] Remove old free functions entirely; migrate all call sites (~180)
         to `Painter::*`
-  - [ ] Add default `Transform` parameter:
+  - [x] Add default `Transform` parameter:
         `Transform transform = Transform::identity()`
-  - [ ] Build and test gate
-- [ ] Milestone 2: Instance methods on `Pixmap` and `MutablePixmapView`
-  - [ ] Add drawing method declarations to `Pixmap` in `Pixmap.h`
-  - [ ] Add drawing method declarations to `MutablePixmapView` in `Pixmap.h`
-  - [ ] Implement in `Pixmap.cpp` (thin delegation to `Painter::*`)
-  - [ ] Build and test gate
-- [ ] Milestone 3: Path convenience factories
-  - [ ] Add `Path::fromRect(const Rect&)` static method
-  - [ ] Add `Path::fromCircle(float cx, float cy, float radius)` static
-  - [ ] Remove `pathFromRect()` free function; migrate all call sites
-  - [ ] Build and test gate
-- [ ] Milestone 4: Naming cleanup (STL conventions and abbreviations)
-  - [ ] `dataMut()` → const/non-const overloads of `data()`;
+  - [x] Build and test gate
+- [x] Milestone 2: Instance methods on `Pixmap` and `MutablePixmapView`
+  - [x] Add drawing method declarations to `Pixmap` in `Pixmap.h`
+  - [x] Add drawing method declarations to `MutablePixmapView` in `Pixmap.h`
+  - [x] Implement in `Pixmap.cpp` (thin delegation to `Painter::*`)
+  - [x] Build and test gate
+- [x] Milestone 3: Path convenience factories
+  - [x] Add `Path::fromRect(const Rect&)` static method
+  - [x] Add `Path::fromCircle(float cx, float cy, float radius)` static
+  - [x] Remove `pathFromRect()` free function; migrate all call sites
+  - [x] Build and test gate
+- [x] Milestone 4: Naming cleanup (STL conventions and abbreviations)
+  - [x] `dataMut()` → const/non-const overloads of `data()`;
         `pixelsMut()` → const/non-const overloads of `pixels()`
         (Pixmap, MutablePixmapView, Mask)
-  - [ ] `len()` → `size()` (Path, PathBuilder — STL convention)
-  - [ ] `isEmpty()` → `empty()` (Path, PathBuilder — STL convention)
-  - [ ] `take()` → `release()` (Pixmap, Mask — matches `unique_ptr`)
-  - [ ] `takeDemultiplied()` → `releaseDemultiplied()` (Pixmap)
-  - [ ] `lengthSqd()` → `lengthSquared()`,
+  - [x] `len()` → `size()` (Path, PathBuilder — STL convention)
+  - [x] `isEmpty()` → `empty()` (Path, PathBuilder — STL convention)
+  - [x] `take()` → `release()` (Pixmap, Mask — matches `unique_ptr`)
+  - [x] `takeDemultiplied()` → `releaseDemultiplied()` (Pixmap)
+  - [x] `lengthSqd()` → `lengthSquared()`,
         `distanceToSqd()` → `distanceToSquared()` (Point)
-  - [ ] `rotateCw()` → `rotateClockwise()`,
+  - [x] `rotateCw()` → `rotateClockwise()`,
         `rotateCcw()` → `rotateCounterClockwise()` (Point)
-  - [ ] `fromXywh()` → `fromXYWH()` (Rect — consistent casing)
-  - [ ] `fromLtrb()` → `fromLTRB()` (Rect — consistent casing)
-  - [ ] `fromWh()` → `fromWH()` (IntSize)
-  - [ ] `fromXy()` → `fromXY()` (Point)
-  - [ ] `asSubmask()` → `submask()`, `asSubpixmap()` → `subpixmap()`
+  - [x] `fromXywh()` → `fromXYWH()` (Rect — consistent casing)
+  - [x] `fromLtrb()` → `fromLTRB()` (Rect — consistent casing)
+  - [x] `fromWh()` → `fromWH()` (IntSize)
+  - [x] `fromXy()` → `fromXY()` (Point)
+  - [x] `asSubmask()` → `submask()`, `asSubpixmap()` → `subpixmap()`
         (Mask — drop Rust `as_` prefix)
-  - [ ] Build and test gate
-- [ ] Milestone 5: Builder fluent return (PathBuilder)
-  - [ ] `moveTo()`, `lineTo()`, `quadTo()`, `cubicTo()`, `close()`
+  - [x] Build and test gate
+- [x] Milestone 5: Builder fluent return (PathBuilder)
+  - [x] `moveTo()`, `lineTo()`, `quadTo()`, `cubicTo()`, `close()`
         return `PathBuilder&` instead of `void` (enables chaining)
-  - [ ] Build and test gate
+  - [x] Build and test gate
 
 ## Proposed Architecture
 
