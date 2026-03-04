@@ -30,13 +30,13 @@ tiny_skia::Pixmap createTriangle() {
 
   auto pixmap = Pixmap::fromSize(200, 200);
   auto mut = pixmap->mutableView();
-  fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   // Stroke a border around the triangle pixmap.
   auto rectPath = pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f));
   Stroke stroke;
   paint.setColorRgba8(200, 0, 0, 220);
-  strokePath(mut, rectPath, paint, stroke, Transform::identity());
+  Painter::strokePath(mut, rectPath, paint, stroke, Transform::identity());
 
   return std::move(*pixmap);
 }
@@ -54,7 +54,7 @@ int main() {
   ppaint.quality = FilterQuality::Bicubic;
 
   auto mut = pixmap->mutableView();
-  drawPixmap(mut, 20, 20, triangle.view(), ppaint,
+  Painter::drawPixmap(mut, 20, 20, triangle.view(), ppaint,
              Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
   auto data = pixmap->takeDemultiplied();

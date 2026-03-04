@@ -32,7 +32,7 @@ Pixmap createTriangle() {
     auto pixmap = Pixmap::fromSize(20, 20);
     EXPECT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     return std::move(*pixmap);
 }
 
@@ -56,7 +56,7 @@ TEST(PatternTest, PadNearest) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/pad-nearest.png");
 }
@@ -81,7 +81,7 @@ TEST(PatternTest, RepeatNearest) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/repeat-nearest.png");
 }
@@ -106,7 +106,7 @@ TEST(PatternTest, ReflectNearest) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/reflect-nearest.png");
 }
@@ -134,7 +134,7 @@ TEST(PatternTest, PadBicubic) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/pad-bicubic.png");
 }
@@ -160,7 +160,7 @@ TEST(PatternTest, RepeatBicubic) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/repeat-bicubic.png");
 }
@@ -186,7 +186,7 @@ TEST(PatternTest, ReflectBicubic) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/reflect-bicubic.png");
 }
@@ -211,7 +211,7 @@ TEST(PatternTest, FilterNearestNoTs) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-nearest-no-ts.png");
 }
@@ -239,7 +239,7 @@ TEST(PatternTest, FilterNearest) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-nearest.png");
 }
@@ -265,7 +265,7 @@ TEST(PatternTest, FilterBilinear) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-bilinear.png");
 }
@@ -291,7 +291,7 @@ TEST(PatternTest, FilterBicubic) {
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
     auto mut = pixmap->mutableView();
-    fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+    Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-bicubic.png");
 }

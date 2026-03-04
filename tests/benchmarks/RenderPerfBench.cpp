@@ -232,7 +232,7 @@ void BM_FillPath_Cpp(benchmark::State& state) {
   for (auto _ : state) {
     pixmap->fill(clearColor);
     auto mut = pixmap->mutableView();
-    tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    tiny_skia::Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     benchmark::DoNotOptimize(pixmap->data().data());
     benchmark::ClobberMemory();
   }
@@ -307,7 +307,7 @@ void BM_FillRect_Cpp(benchmark::State& state) {
   for (auto _ : state) {
     pixmap->fill(clearColor);
     auto mut = pixmap->mutableView();
-    tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+    tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
     benchmark::DoNotOptimize(pixmap->data().data());
     benchmark::ClobberMemory();
   }

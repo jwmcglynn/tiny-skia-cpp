@@ -49,12 +49,12 @@ TEST(CrossValidation, FillIntRect) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Rust side
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::fillRect(*rust, 10.0f, 15.0f, 90.0f, 85.0f, 50, 127, 150, 200,
+  rr::Painter::fillRect(*rust, 10.0f, 15.0f, 90.0f, 85.0f, 50, 127, 150, 200,
                /*antiAlias=*/false, BlendMode::SourceOver,
                Transform::identity());
 
@@ -72,11 +72,11 @@ TEST(CrossValidation, FillFloatRectAa) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::fillRect(*rust, 10.3f, 15.4f, 90.8f, 86.0f, 50, 127, 150, 200,
+  rr::Painter::fillRect(*rust, 10.3f, 15.4f, 90.8f, 86.0f, 50, 127, 150, 200,
                /*antiAlias=*/true, BlendMode::SourceOver,
                Transform::identity());
 
@@ -104,7 +104,7 @@ TEST(CrossValidation, FillTriangleWinding) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding,
                        Transform::identity());
 
   // Rust side
@@ -119,7 +119,7 @@ TEST(CrossValidation, FillTriangleWinding) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -141,7 +141,7 @@ TEST(CrossValidation, FillTriangleEvenOdd) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::EvenOdd,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::EvenOdd,
                        Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
@@ -155,7 +155,7 @@ TEST(CrossValidation, FillTriangleEvenOdd) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::EvenOdd,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::EvenOdd,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -176,7 +176,7 @@ TEST(CrossValidation, FillQuadCurve) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding,
                        Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
@@ -189,7 +189,7 @@ TEST(CrossValidation, FillQuadCurve) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -210,7 +210,7 @@ TEST(CrossValidation, FillCubicCurve) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding,
                        Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
@@ -223,7 +223,7 @@ TEST(CrossValidation, FillCubicCurve) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -246,11 +246,11 @@ TEST(CrossValidation, FillRectScaled) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillRect(mut, *rect, paint, ts);
+  tiny_skia::Painter::fillRect(mut, *rect, paint, ts);
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::fillRect(*rust, 5.0f, 5.0f, 45.0f, 45.0f, 50, 127, 150, 200,
+  rr::Painter::fillRect(*rust, 5.0f, 5.0f, 45.0f, 45.0f, 50, 127, 150, 200,
                /*antiAlias=*/true, BlendMode::SourceOver, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -275,7 +275,7 @@ TEST(CrossValidation, FillPathTranslated) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding, ts);
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding, ts);
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
@@ -289,7 +289,7 @@ TEST(CrossValidation, FillPathTranslated) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 200, 100, 50, 255, FillRule::Winding, ts);
+  rr::Painter::fillPath(*rust, *rustPath, 200, 100, 50, 255, FillRule::Winding, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
 }
@@ -311,7 +311,7 @@ TEST(CrossValidation, FillCircle) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding,
                        Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
@@ -322,7 +322,7 @@ TEST(CrossValidation, FillCircle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -346,13 +346,13 @@ TEST(CrossValidation, FillRectBlendXor) {
   auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
   rust->fill(0, 0, 0, 255);
 
-  rr::fillRect(*rust, 10.0f, 10.0f, 90.0f, 90.0f, 50, 127, 150, 200,
+  rr::Painter::fillRect(*rust, 10.0f, 10.0f, 90.0f, 90.0f, 50, 127, 150, 200,
                /*antiAlias=*/false, BlendMode::Xor, Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -378,7 +378,7 @@ TEST(CrossValidation, StrokeCircle) {
   auto cpp = Pixmap::fromSize(200, 200);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
+  tiny_skia::Painter::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
 
   auto rust = rr::Pixmap::create(200, 200);
   ASSERT_TRUE(rust.has_value());
@@ -388,7 +388,7 @@ TEST(CrossValidation, StrokeCircle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   // Allow up to 3 pixels of difference due to FMA contraction differences
@@ -418,7 +418,7 @@ TEST(CrossValidation, StrokeRoundCaps) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
+  tiny_skia::Painter::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
@@ -429,7 +429,7 @@ TEST(CrossValidation, StrokeRoundCaps) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -455,7 +455,7 @@ TEST(CrossValidation, StrokeRoundJoinTriangle) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
+  tiny_skia::Painter::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
@@ -468,7 +468,7 @@ TEST(CrossValidation, StrokeRoundJoinTriangle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -497,7 +497,7 @@ TEST(CrossValidation, StrokeDashedLine) {
   auto cpp = Pixmap::fromSize(200, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
+  tiny_skia::Painter::strokePath(mut, *cppPath, paint, stroke, Transform::identity());
 
   auto rust = rr::Pixmap::create(200, 100);
   ASSERT_TRUE(rust.has_value());
@@ -508,7 +508,7 @@ TEST(CrossValidation, StrokeDashedLine) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -540,7 +540,7 @@ TEST(CrossValidation, StrokeScaledPath) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::strokePath(mut, *cppPath, paint, stroke, ts);
+  tiny_skia::Painter::strokePath(mut, *cppPath, paint, stroke, ts);
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
@@ -554,7 +554,7 @@ TEST(CrossValidation, StrokeScaledPath) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke, ts);
+  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
 }
@@ -591,7 +591,7 @@ TEST(CrossValidation, FillPathNoAntiAlias) {
   auto cpp = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(cpp.has_value());
   auto mut = cpp->mutableView();
-  tiny_skia::fillPath(mut, *cppPath, paint, FillRule::Winding,
+  tiny_skia::Painter::fillPath(mut, *cppPath, paint, FillRule::Winding,
                        Transform::identity());
 
   auto rust = rr::Pixmap::create(100, 100);
@@ -606,7 +606,7 @@ TEST(CrossValidation, FillPathNoAntiAlias) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity(), /*antiAlias=*/false);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);

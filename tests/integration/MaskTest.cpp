@@ -21,7 +21,7 @@ TEST(MaskTest, Rect) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -32,7 +32,7 @@ TEST(MaskTest, Rect) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect.png");
 }
@@ -44,7 +44,7 @@ TEST(MaskTest, RectAa) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, true, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -55,7 +55,7 @@ TEST(MaskTest, RectAa) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect-aa.png");
 }
@@ -72,7 +72,7 @@ TEST(MaskTest, RectTs) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(*transformedPath, FillRule::Winding, false, Transform::identity());
+    mask->Painter::fillPath(*transformedPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -81,7 +81,7 @@ TEST(MaskTest, RectTs) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/rect-ts.png");
 }
@@ -97,7 +97,7 @@ TEST(MaskTest, CircleBottomRightAa) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+    mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -106,7 +106,7 @@ TEST(MaskTest, CircleBottomRightAa) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/circle-bottom-right-aa.png");
 }
@@ -121,7 +121,7 @@ TEST(MaskTest, Stroke) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -135,7 +135,7 @@ TEST(MaskTest, Stroke) {
     auto path = pathFromRect(*pathRect);
 
     auto mut = pixmap->mutableView();
-    strokePath(mut, path, paint, stroke, Transform::identity(), &*mask);
+    Painter::strokePath(mut, path, paint, stroke, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/stroke.png");
 }
@@ -154,7 +154,7 @@ TEST(MaskTest, SkipDest) {
     auto path1 = pathFromRect(*rectPath1);
     {
         auto mut = pixmap->mutableView();
-        fillPath(mut, path1, paint, FillRule::Winding, Transform::identity());
+        Painter::fillPath(mut, path1, paint, FillRule::Winding, Transform::identity());
     }
 
     // Draw second rect on pixmap2
@@ -165,7 +165,7 @@ TEST(MaskTest, SkipDest) {
     auto path2 = pathFromRect(*rectPath2);
     {
         auto mut2 = pixmap2->mutableView();
-        fillPath(mut2, path2, paint, FillRule::Winding, Transform::identity());
+        Painter::fillPath(mut2, path2, paint, FillRule::Winding, Transform::identity());
     }
 
     // Create mask
@@ -174,12 +174,12 @@ TEST(MaskTest, SkipDest) {
     auto clipPath = pathFromRect(*clipRect);
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, true, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, true, Transform::identity());
 
     // Draw pixmap2 onto pixmap with mask
     PixmapPaint ppaint;
     auto mut = pixmap->mutableView();
-    drawPixmap(mut, 0, 0, pixmap2->view(), ppaint, Transform::identity(), &*mask);
+    Painter::drawPixmap(mut, 0, 0, pixmap2->view(), ppaint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/skip-dest.png");
 }
@@ -197,7 +197,7 @@ TEST(MaskTest, IntersectAa) {
 
     auto mask = Mask::fromSize(200, 200);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(*circle1, FillRule::Winding, true, Transform::identity());
+    mask->Painter::fillPath(*circle1, FillRule::Winding, true, Transform::identity());
     mask->intersectPath(*circle2, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
@@ -209,7 +209,7 @@ TEST(MaskTest, IntersectAa) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 200.0f, 200.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/intersect-aa.png");
 }
@@ -221,7 +221,7 @@ TEST(MaskTest, IgnoreMemset) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);
@@ -232,7 +232,7 @@ TEST(MaskTest, IgnoreMemset) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/ignore-memset.png");
 }
@@ -244,7 +244,7 @@ TEST(MaskTest, IgnoreSource) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque.
@@ -258,7 +258,7 @@ TEST(MaskTest, IgnoreSource) {
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
     auto mut = pixmap->mutableView();
-    fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+    Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/ignore-source.png");
 }
@@ -274,7 +274,7 @@ TEST(MaskTest, ApplyMask) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+    mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -284,11 +284,11 @@ TEST(MaskTest, ApplyMask) {
     ASSERT_TRUE(rect.has_value());
     {
         auto mut = pixmap->mutableView();
-        fillRect(mut, *rect, paint, Transform::identity());
+        Painter::fillRect(mut, *rect, paint, Transform::identity());
     }
     {
         auto mut = pixmap->mutableView();
-        applyMask(mut, *mask);
+        Painter::applyMask(mut, *mask);
     }
 
     EXPECT_GOLDEN_MATCH(*pixmap, "mask/apply-mask.png");

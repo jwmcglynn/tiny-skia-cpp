@@ -29,7 +29,7 @@ int main() {
     Stroke stroke;
     stroke.width = 2.0f - (static_cast<float>(i) / 10.0f);
     auto mut = pixmap->mutableView();
-    strokePath(mut, *path, paint, stroke, transform);
+    Painter::strokePath(mut, *path, paint, stroke, transform);
     transform = transform.preTranslate(0.0f, 20.0f);
   }
 

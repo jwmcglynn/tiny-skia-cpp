@@ -14,7 +14,7 @@ namespace {
 using tiny_skia::BlendMode;
 using tiny_skia::Color;
 using tiny_skia::ColorSpace;
-using tiny_skia::DrawTiler;
+using tiny_skia::detail::DrawTiler;
 using tiny_skia::FillRule;
 using tiny_skia::LineCap;
 using tiny_skia::Mask;
@@ -172,20 +172,20 @@ TEST(DrawTilerTest, RectTiling) {
 
 TEST(PainterHelpersTest, IsTooBigForMathSmallPath) {
   auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f));
-  EXPECT_FALSE(tiny_skia::isTooBigForMath(path));
+  EXPECT_FALSE(tiny_skia::detail::isTooBigForMath(path));
 }
 
 TEST(PainterHelpersTest, IsTooBigForMathHugePath) {
   const float big = std::numeric_limits<float>::max() * 0.5f;
   auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(-big, -big, big, big));
-  EXPECT_TRUE(tiny_skia::isTooBigForMath(path));
+  EXPECT_TRUE(tiny_skia::detail::isTooBigForMath(path));
 }
 
 // ---- treatAsHairline tests ----
 
 TEST(PainterHelpersTest, TreatAsHairlineZeroWidth) {
   Paint paint;
-  auto result = tiny_skia::treatAsHairline(paint, 0.0f, Transform::identity());
+  auto result = tiny_skia::detail::treatAsHairline(paint, 0.0f, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_FLOAT_EQ(*result, 1.0f);
 }
@@ -193,14 +193,14 @@ TEST(PainterHelpersTest, TreatAsHairlineZeroWidth) {
 TEST(PainterHelpersTest, TreatAsHairlineNotAntiAliased) {
   Paint paint;
   paint.antiAlias = false;
-  auto result = tiny_skia::treatAsHairline(paint, 0.5f, Transform::identity());
+  auto result = tiny_skia::detail::treatAsHairline(paint, 0.5f, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(PainterHelpersTest, TreatAsHairlineThinStroke) {
   Paint paint;
   paint.antiAlias = true;
-  auto result = tiny_skia::treatAsHairline(paint, 0.5f, Transform::identity());
+  auto result = tiny_skia::detail::treatAsHairline(paint, 0.5f, Transform::identity());
   ASSERT_TRUE(result.has_value());
   // fastLen(0.5, 0) = 0.5, fastLen(0, 0.5) = 0.5, ave = 0.5
   EXPECT_FLOAT_EQ(*result, 0.5f);
@@ -209,7 +209,7 @@ TEST(PainterHelpersTest, TreatAsHairlineThinStroke) {
 TEST(PainterHelpersTest, TreatAsHairlineThickStroke) {
   Paint paint;
   paint.antiAlias = true;
-  auto result = tiny_skia::treatAsHairline(paint, 5.0f, Transform::identity());
+  auto result = tiny_skia::detail::treatAsHairline(paint, 5.0f, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
@@ -323,7 +323,7 @@ TEST(FillRectTest, SolidColorFill) {
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
   paint.antiAlias = false;
 
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Check center pixel is red.
   auto pixel = pixmap->pixel(5, 5);
@@ -355,7 +355,7 @@ TEST(FillRectTest, WithTransformDelegatesToFillPath) {
   paint.antiAlias = false;
 
   // Translate by (3, 3) - should put the rectangle at (3,3)-(8,8).
-  tiny_skia::fillRect(mut, *rect, paint, Transform::fromTranslate(3.0f, 3.0f));
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::fromTranslate(3.0f, 3.0f));
 
   // Pixel at (5,5) should be green.
   auto pixel = pixmap->pixel(5, 5);
@@ -383,7 +383,7 @@ TEST(FillPathTest, SimpleRectanglePath) {
   paint.setColor(Color::fromRgba8(0, 0, 255, 255));
   paint.antiAlias = false;
 
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+  tiny_skia::Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   // Center should be blue.
   auto pixel = pixmap->pixel(5, 5);
@@ -405,7 +405,7 @@ TEST(FillPathTest, EmptyPathIsNoOp) {
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
   paint.antiAlias = false;
 
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
+  tiny_skia::Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   // Should still be gray.
   auto pixel = pixmap->pixel(5, 5);
@@ -426,7 +426,7 @@ TEST(FillPathTest, WithTransform) {
   paint.antiAlias = false;
 
   // Scale 2x.
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::fromScale(2.0f, 2.0f));
+  tiny_skia::Painter::fillPath(mut, path, paint, FillRule::Winding, Transform::fromScale(2.0f, 2.0f));
 
   // Pixel at (5,5) should be yellow (inside 2x-scaled rect: 0-10).
   auto pixel = pixmap->pixel(5, 5);
@@ -461,7 +461,7 @@ TEST(DrawPixmapTest, DrawOntoPixmapDoesNotCrash) {
   ppaint.blendMode = BlendMode::Source;
 
   // Should not crash.
-  tiny_skia::drawPixmap(mut, 3, 3, src->view(), ppaint, Transform::identity());
+  tiny_skia::Painter::drawPixmap(mut, 3, 3, src->view(), ppaint, Transform::identity());
 
   // Pixel outside the drawn area should be unchanged.
   auto corner = dst->pixel(0, 0);
@@ -482,7 +482,7 @@ TEST(ApplyMaskTest, MaskMasksOutContent) {
   ASSERT_TRUE(mask.has_value());
 
   auto mut = pixmap->mutableView();
-  tiny_skia::applyMask(mut, *mask);
+  tiny_skia::Painter::applyMask(mut, *mask);
 
   // All pixels should be transparent (masked out).
   auto pixel = pixmap->pixel(2, 2);
@@ -499,7 +499,7 @@ TEST(ApplyMaskTest, MismatchedSizeIsNoOp) {
   ASSERT_TRUE(mask.has_value());
 
   auto mut = pixmap->mutableView();
-  tiny_skia::applyMask(mut, *mask);
+  tiny_skia::Painter::applyMask(mut, *mask);
 
   // Should be unchanged - still red.
   auto pixel = pixmap->pixel(2, 2);
@@ -527,7 +527,7 @@ TEST(StrokeHairlineTest, BasicStroke) {
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
   paint.antiAlias = false;
 
-  tiny_skia::strokeHairline(path, paint, LineCap::Butt, std::nullopt, subpix);
+  tiny_skia::Painter::strokeHairline(path, paint, LineCap::Butt, std::nullopt, subpix);
 
   // The hairline should have drawn on row 5.
   auto pixel = pixmap->pixel(5, 5);
@@ -551,7 +551,7 @@ TEST(FillRectTest, DestinationBlendModeIsNoOp) {
   paint.blendMode = BlendMode::Destination;
   paint.antiAlias = false;
 
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Should be unchanged (Destination blend is a no-op).
   auto pixel = pixmap->pixel(2, 2);
@@ -573,7 +573,7 @@ TEST(FillRectTest, ClearBlendMode) {
   paint.blendMode = BlendMode::Clear;
   paint.antiAlias = false;
 
-  tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
+  tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   // Should be transparent.
   auto pixel = pixmap->pixel(2, 2);

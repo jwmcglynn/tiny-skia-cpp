@@ -46,11 +46,11 @@ int main() {
     xf = xf.preTranslate(0.0f, 240.0f * static_cast<float>(i));
 
     auto mut = pixmap->mutableView();
-    strokePath(mut, *path, paint, stroke, xf);
+    Painter::strokePath(mut, *path, paint, stroke, xf);
 
     // Move down 0.5 pixel so lines start in the middle of the pixel.
     xf = xf.preTranslate(500.0f, 0.5f);
-    strokePath(mut, *path, paint, stroke, xf);
+    Painter::strokePath(mut, *path, paint, stroke, xf);
   }
 
   auto data = pixmap->takeDemultiplied();

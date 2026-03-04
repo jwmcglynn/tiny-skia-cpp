@@ -39,7 +39,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(500, 500);
   auto mut = pixmap->mutableView();
-  strokePath(mut, *path, paint, stroke, Transform::identity());
+  Painter::strokePath(mut, *path, paint, stroke, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();
   if (examples::writePng("stroke.png", data.data(), 500, 500)) {

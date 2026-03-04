@@ -78,15 +78,15 @@ TEST(GammaTest, gamma) {
         paint.colorspace = colors[i];
         paint.shader = solid;
         auto mut = pixmap->mutableView();
-        strokePath(mut, *path, paint, stroke, xf);
+        Painter::strokePath(mut, *path, paint, stroke, xf);
 
         auto xf2 = Transform::fromTranslate(0.0f, 20.0f + 10.0f * static_cast<float>(i));
         paint.shader = grad2;
-        strokePath(mut, *path, paint, wide, xf2);
+        Painter::strokePath(mut, *path, paint, wide, xf2);
 
         auto xf3 = Transform::fromTranslate(0.0f, 22.5f + 10.0f * static_cast<float>(i));
         paint.shader = grad3;
-        strokePath(mut, *path, paint, wide, xf3);
+        Painter::strokePath(mut, *path, paint, wide, xf3);
     }
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gamma.png");
