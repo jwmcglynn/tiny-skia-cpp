@@ -23,7 +23,7 @@ TEST(DashTest, Line) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{5.0f, 10.0f}, 0.0f);
@@ -46,7 +46,7 @@ TEST(DashTest, Quad) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{5.0f, 10.0f}, 0.0f);
@@ -69,7 +69,7 @@ TEST(DashTest, Cubic) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{5.0f, 10.0f}, 0.0f);
@@ -92,7 +92,7 @@ TEST(DashTest, Hairline) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{5.0f, 10.0f}, 0.0f);
@@ -121,7 +121,7 @@ TEST(DashTest, Complex) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{10.0f, 5.0f}, 2.0f);
@@ -151,7 +151,7 @@ TEST(DashTest, MultiSubpaths) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{10.0f, 5.0f}, 2.0f);
@@ -181,7 +181,7 @@ TEST(DashTest, Closed) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{10.0f, 5.0f}, 2.0f);

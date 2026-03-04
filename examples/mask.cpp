@@ -29,7 +29,7 @@ int main() {
   mask->fillPath(*transformed, FillRule::EvenOdd, true, Transform::identity());
 
   Paint paint;
-  paint.anti_alias = false;
+  paint.antiAlias = false;
   paint.setColorRgba8(50, 127, 150, 200);
 
   auto pixmap = Pixmap::fromSize(500, 500);

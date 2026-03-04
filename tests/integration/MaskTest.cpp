@@ -25,7 +25,7 @@ TEST(MaskTest, Rect) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -48,7 +48,7 @@ TEST(MaskTest, RectAa) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -76,7 +76,7 @@ TEST(MaskTest, RectTs) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
@@ -101,7 +101,7 @@ TEST(MaskTest, CircleBottomRightAa) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());
@@ -125,7 +125,7 @@ TEST(MaskTest, Stroke) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     tiny_skia::Stroke stroke;
     stroke.width = 10.0f;
@@ -146,7 +146,7 @@ TEST(MaskTest, SkipDest) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     // Draw first rect on pixmap
     auto rectPath1 = Rect::fromLtrb(5.0f, 5.0f, 65.0f, 65.0f);
@@ -202,7 +202,7 @@ TEST(MaskTest, IntersectAa) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -225,7 +225,7 @@ TEST(MaskTest, IgnoreMemset) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -248,8 +248,8 @@ TEST(MaskTest, IgnoreSource) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque.
-    paint.blend_mode = BlendMode::SourceOver;
-    paint.anti_alias = false;
+    paint.blendMode = BlendMode::SourceOver;
+    paint.antiAlias = false;
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
@@ -278,7 +278,7 @@ TEST(MaskTest, ApplyMask) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto rect = Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f);
     ASSERT_TRUE(rect.has_value());

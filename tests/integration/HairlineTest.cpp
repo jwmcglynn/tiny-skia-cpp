@@ -29,7 +29,7 @@ Pixmap drawLine(float x0, float y0, float x1, float y1,
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = antiAlias;
+    paint.antiAlias = antiAlias;
 
     Stroke stroke;
     stroke.width = width;
@@ -57,7 +57,7 @@ Pixmap drawQuad(bool antiAlias, float width, LineCap lineCap) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = antiAlias;
+    paint.antiAlias = antiAlias;
 
     Stroke stroke;
     stroke.width = width;
@@ -87,7 +87,7 @@ Pixmap drawCubic(const float (&points)[8], bool antiAlias, float width,
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = antiAlias;
+    paint.antiAlias = antiAlias;
 
     Stroke stroke;
     stroke.width = width;
@@ -171,7 +171,7 @@ TEST(Hairline, clip_line_00_v2) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     Stroke stroke;
     stroke.width = 0.0f;
@@ -309,7 +309,7 @@ TEST(Hairline, clipped_circle_aa) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.width = 0.5f;

@@ -19,7 +19,7 @@ tiny_skia::Pixmap createTriangle() {
 
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder pb;
   pb.moveTo(0.0f, 200.0f);

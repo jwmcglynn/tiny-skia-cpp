@@ -17,7 +17,7 @@ int main() {
 
   Paint paint;
   paint.shader = Color::fromRgba8(255, 100, 20, 255);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   Stroke stroke;
 

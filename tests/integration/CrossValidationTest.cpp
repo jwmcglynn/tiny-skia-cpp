@@ -41,7 +41,7 @@ TEST(CrossValidation, FillIntRect) {
   // C++ side
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(10.0f, 15.0f, 90.0f, 85.0f);
   ASSERT_TRUE(rect.has_value());
@@ -64,7 +64,7 @@ TEST(CrossValidation, FillIntRect) {
 TEST(CrossValidation, FillFloatRectAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromLtrb(10.3f, 15.4f, 90.8f, 86.0f);
   ASSERT_TRUE(rect.has_value());
@@ -91,7 +91,7 @@ TEST(CrossValidation, FillTriangleWinding) {
   // C++ side
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(50.0f, 10.0f);
@@ -128,7 +128,7 @@ TEST(CrossValidation, FillTriangleWinding) {
 TEST(CrossValidation, FillTriangleEvenOdd) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(50.0f, 10.0f);
@@ -164,7 +164,7 @@ TEST(CrossValidation, FillTriangleEvenOdd) {
 TEST(CrossValidation, FillQuadCurve) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(10.0f, 80.0f);
@@ -198,7 +198,7 @@ TEST(CrossValidation, FillQuadCurve) {
 TEST(CrossValidation, FillCubicCurve) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(10.0f, 80.0f);
@@ -236,7 +236,7 @@ TEST(CrossValidation, FillCubicCurve) {
 TEST(CrossValidation, FillRectScaled) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromLtrb(5.0f, 5.0f, 45.0f, 45.0f);
   ASSERT_TRUE(rect.has_value());
@@ -259,7 +259,7 @@ TEST(CrossValidation, FillRectScaled) {
 TEST(CrossValidation, FillPathTranslated) {
   Paint paint;
   paint.setColorRgba8(200, 100, 50, 255);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto ts = Transform::fromTranslate(20.0f, 30.0f);
 
@@ -301,7 +301,7 @@ TEST(CrossValidation, FillPathTranslated) {
 TEST(CrossValidation, FillCircle) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.pushCircle(50.0f, 50.0f, 40.0f);
@@ -340,8 +340,8 @@ TEST(CrossValidation, FillRectBlendXor) {
 
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
-  paint.blend_mode = BlendMode::Xor;
+  paint.antiAlias = false;
+  paint.blendMode = BlendMode::Xor;
 
   auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
@@ -365,7 +365,7 @@ TEST(CrossValidation, FillRectBlendXor) {
 TEST(CrossValidation, StrokeCircle) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.pushCircle(100.0f, 100.0f, 50.0f);
@@ -403,7 +403,7 @@ TEST(CrossValidation, StrokeCircle) {
 TEST(CrossValidation, StrokeRoundCaps) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(20.0f, 50.0f);
@@ -438,7 +438,7 @@ TEST(CrossValidation, StrokeRoundCaps) {
 TEST(CrossValidation, StrokeRoundJoinTriangle) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(50.0f, 10.0f);
@@ -481,7 +481,7 @@ TEST(CrossValidation, StrokeRoundJoinTriangle) {
 TEST(CrossValidation, StrokeDashedLine) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder cpb;
   cpb.moveTo(10.0f, 50.0f);
@@ -521,7 +521,7 @@ TEST(CrossValidation, StrokeDashedLine) {
 TEST(CrossValidation, StrokeScaledPath) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto ts = Transform::fromScale(2.0f, 2.0f);
 
@@ -577,7 +577,7 @@ TEST(CrossValidation, FillEmptyPixmap) {
 TEST(CrossValidation, FillPathNoAntiAlias) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder cpb;
   cpb.moveTo(10.0f, 10.0f);

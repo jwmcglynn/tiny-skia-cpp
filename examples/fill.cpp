@@ -17,11 +17,11 @@ int main() {
 
   Paint paint1;
   paint1.setColorRgba8(50, 127, 150, 200);
-  paint1.anti_alias = true;
+  paint1.antiAlias = true;
 
   Paint paint2;
   paint2.setColorRgba8(220, 140, 75, 180);
-  paint2.anti_alias = false;
+  paint2.antiAlias = false;
 
   PathBuilder pb1;
   pb1.moveTo(60.0f, 60.0f);

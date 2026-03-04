@@ -26,7 +26,7 @@ using tiny_skia::Transform;
 TEST(FillTest, HorizontalLine) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 10.0f);
@@ -46,7 +46,7 @@ TEST(FillTest, HorizontalLine) {
 TEST(FillTest, VerticalLine) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 10.0f);
@@ -66,7 +66,7 @@ TEST(FillTest, VerticalLine) {
 TEST(FillTest, SingleLine) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 10.0f);
@@ -86,7 +86,7 @@ TEST(FillTest, SingleLine) {
 TEST(FillTest, IntRect) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromXywh(10.0f, 15.0f, 80.0f, 70.0f);
   ASSERT_TRUE(rect.has_value());
@@ -103,7 +103,7 @@ TEST(FillTest, IntRect) {
 TEST(FillTest, FloatRect) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
@@ -120,7 +120,7 @@ TEST(FillTest, FloatRect) {
 TEST(FillTest, IntRectAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(10.0f, 15.0f, 80.0f, 70.0f);
   ASSERT_TRUE(rect.has_value());
@@ -137,7 +137,7 @@ TEST(FillTest, IntRectAa) {
 TEST(FillTest, FloatRectAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
@@ -154,8 +154,8 @@ TEST(FillTest, FloatRectAa) {
 TEST(FillTest, FloatRectAaHighp) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
-  paint.force_hq_pipeline = true;
+  paint.antiAlias = true;
+  paint.forceHqPipeline = true;
 
   auto rect = Rect::fromXywh(10.3f, 15.4f, 80.5f, 70.6f);
   ASSERT_TRUE(rect.has_value());
@@ -172,7 +172,7 @@ TEST(FillTest, FloatRectAaHighp) {
 TEST(FillTest, TinyFloatRect) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromXywh(1.3f, 1.4f, 0.5f, 0.6f);
   ASSERT_TRUE(rect.has_value());
@@ -205,7 +205,7 @@ TEST(FillTest, TinyFloatRect) {
 TEST(FillTest, TinyFloatRectAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(1.3f, 1.4f, 0.5f, 0.6f);
   ASSERT_TRUE(rect.has_value());
@@ -238,7 +238,7 @@ TEST(FillTest, TinyFloatRectAa) {
 TEST(FillTest, TinyRectAa) {
   Paint paint;
   paint.setColorRgba8(0, 0, 0, 0);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(0.7f, 0.0f, 1.0f, 2.0f);
   ASSERT_TRUE(rect.has_value());
@@ -253,7 +253,7 @@ TEST(FillTest, TinyRectAa) {
 TEST(FillTest, FloatRectClipTopLeftAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(-10.3f, -20.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
@@ -270,7 +270,7 @@ TEST(FillTest, FloatRectClipTopLeftAa) {
 TEST(FillTest, FloatRectClipTopRightAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(60.3f, -20.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
@@ -287,7 +287,7 @@ TEST(FillTest, FloatRectClipTopRightAa) {
 TEST(FillTest, FloatRectClipBottomRightAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto rect = Rect::fromXywh(60.3f, 40.4f, 100.5f, 70.2f);
   ASSERT_TRUE(rect.has_value());
@@ -304,7 +304,7 @@ TEST(FillTest, FloatRectClipBottomRightAa) {
 TEST(FillTest, IntRectWithTsClipRight) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromXywh(0.0f, 0.0f, 100.0f, 100.0f);
   ASSERT_TRUE(rect.has_value());
@@ -322,7 +322,7 @@ TEST(FillTest, IntRectWithTsClipRight) {
 TEST(FillTest, OpenPolygon) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(75.160671f, 88.756136f);
@@ -345,7 +345,7 @@ TEST(FillTest, OpenPolygon) {
 TEST(FillTest, ClosedPolygon) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(75.160671f, 88.756136f);
@@ -369,7 +369,7 @@ TEST(FillTest, ClosedPolygon) {
 TEST(FillTest, WindingStar) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(50.0f,  7.5f);
@@ -392,7 +392,7 @@ TEST(FillTest, WindingStar) {
 TEST(FillTest, EvenOddStar) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(50.0f,  7.5f);
@@ -415,7 +415,7 @@ TEST(FillTest, EvenOddStar) {
 TEST(FillTest, QuadCurve) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 15.0f);
@@ -435,7 +435,7 @@ TEST(FillTest, QuadCurve) {
 TEST(FillTest, CubicCurve) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 15.0f);
@@ -455,7 +455,7 @@ TEST(FillTest, CubicCurve) {
 TEST(FillTest, Memset2d) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque to trigger memset2d.
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(10.0f, 10.0f, 90.0f, 90.0f);
   ASSERT_TRUE(rect.has_value());
@@ -473,7 +473,7 @@ TEST(FillTest, Memset2d) {
 TEST(FillTest, Memset2dOutOfBounds) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque to trigger memset2d.
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(50.0f, 50.0f, 120.0f, 120.0f);
   ASSERT_TRUE(rect.has_value());
@@ -491,7 +491,7 @@ TEST(FillTest, Memset2dOutOfBounds) {
 TEST(FillTest, FillAa) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder pb;
   pb.moveTo(50.0f,  7.5f);
@@ -514,7 +514,7 @@ TEST(FillTest, FillAa) {
 TEST(FillTest, OverflowInWalkEdges1) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 20.0f);
@@ -532,7 +532,7 @@ TEST(FillTest, OverflowInWalkEdges1) {
 TEST(FillTest, ClipLine1) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(50.0f, -15.0f);
@@ -555,7 +555,7 @@ TEST(FillTest, ClipLine1) {
 TEST(FillTest, ClipLine2) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // This strange path forces line_clipper::clip to return an empty array.
   // We're checking that this case is handled correctly.
@@ -579,7 +579,7 @@ TEST(FillTest, ClipLine2) {
 TEST(FillTest, ClipQuad) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   PathBuilder pb;
   pb.moveTo(10.0f, 85.0f);
@@ -599,7 +599,7 @@ TEST(FillTest, ClipQuad) {
 TEST(FillTest, ClipCubic1) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // line_clipper::clip produces 2 points for this path.
   PathBuilder pb;
@@ -620,7 +620,7 @@ TEST(FillTest, ClipCubic1) {
 TEST(FillTest, ClipCubic2) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // line_clipper::clip produces 3 points for this path.
   PathBuilder pb;
@@ -640,7 +640,7 @@ TEST(FillTest, ClipCubic2) {
 // 31. aa_endless_loop - must not loop endlessly
 TEST(FillTest, AaEndlessLoop) {
   Paint paint;
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   // This path was causing an endless loop before.
   PathBuilder pb;
@@ -658,8 +658,8 @@ TEST(FillTest, AaEndlessLoop) {
 // 32. clear_aa - make sure that Clear with AA doesn't fallback to memset
 TEST(FillTest, ClearAa) {
   Paint paint;
-  paint.anti_alias = true;
-  paint.blend_mode = BlendMode::Clear;
+  paint.antiAlias = true;
+  paint.blendMode = BlendMode::Clear;
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
@@ -680,7 +680,7 @@ TEST(FillTest, ClearAa) {
 // 33. line_curve - must not panic/crash
 TEST(FillTest, LineCurve) {
   Paint paint;
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder pb;
   pb.moveTo(100.0f, 20.0f);
@@ -709,7 +709,7 @@ TEST(FillTest, VerticalLinesMergingBug) {
 
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());
@@ -724,7 +724,7 @@ TEST(FillTest, VerticalLinesMergingBug) {
 TEST(FillTest, FillRectCanvas) {
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto pixmap = Pixmap::fromSize(100, 100);
   ASSERT_TRUE(pixmap.has_value());

@@ -18,7 +18,7 @@ tiny_skia::Pixmap createTriangle() {
 
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   PathBuilder pb;
   pb.moveTo(0.0f, 20.0f);
@@ -41,7 +41,7 @@ int main() {
   auto triangle = createTriangle();
 
   Paint paint;
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   paint.shader = Pattern(triangle.asRef(), SpreadMode::Repeat, FilterQuality::Bicubic, 1.0f,
                          Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f));
 

@@ -19,7 +19,7 @@ using namespace tiny_skia;
 
 TEST(GradientsTest, two_stops_linear_pad_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -46,7 +46,7 @@ TEST(GradientsTest, two_stops_linear_pad_lq) {
 
 TEST(GradientsTest, two_stops_linear_repeat_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -73,7 +73,7 @@ TEST(GradientsTest, two_stops_linear_repeat_lq) {
 
 TEST(GradientsTest, two_stops_linear_reflect_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -100,7 +100,7 @@ TEST(GradientsTest, two_stops_linear_reflect_lq) {
 
 TEST(GradientsTest, three_stops_evenly_spaced_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -128,7 +128,7 @@ TEST(GradientsTest, three_stops_evenly_spaced_lq) {
 
 TEST(GradientsTest, two_stops_unevenly_spaced_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -159,8 +159,8 @@ TEST(GradientsTest, two_stops_unevenly_spaced_lq) {
 
 TEST(GradientsTest, two_stops_linear_pad_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -187,8 +187,8 @@ TEST(GradientsTest, two_stops_linear_pad_hq) {
 
 TEST(GradientsTest, two_stops_linear_repeat_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -215,8 +215,8 @@ TEST(GradientsTest, two_stops_linear_repeat_hq) {
 
 TEST(GradientsTest, two_stops_linear_reflect_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -243,8 +243,8 @@ TEST(GradientsTest, two_stops_linear_reflect_hq) {
 
 TEST(GradientsTest, three_stops_evenly_spaced_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -272,8 +272,8 @@ TEST(GradientsTest, three_stops_evenly_spaced_hq) {
 
 TEST(GradientsTest, two_stops_unevenly_spaced_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = LinearGradient::create(
         Point::fromXy(10.0f, 10.0f),
@@ -306,7 +306,7 @@ TEST(GradientsTest, two_stops_unevenly_spaced_hq) {
 
 TEST(GradientsTest, well_behaved_radial) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -335,7 +335,7 @@ TEST(GradientsTest, well_behaved_radial) {
 
 TEST(GradientsTest, focal_on_circle_radial) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -364,7 +364,7 @@ TEST(GradientsTest, focal_on_circle_radial) {
 
 TEST(GradientsTest, conical_greater_radial) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -393,7 +393,7 @@ TEST(GradientsTest, conical_greater_radial) {
 
 TEST(GradientsTest, simple_radial_lq) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -422,8 +422,8 @@ TEST(GradientsTest, simple_radial_lq) {
 
 TEST(GradientsTest, simple_radial_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -452,8 +452,8 @@ TEST(GradientsTest, simple_radial_hq) {
 
 TEST(GradientsTest, simple_radial_with_ts_hq) {
     Paint paint;
-    paint.force_hq_pipeline = true;
-    paint.anti_alias = false;
+    paint.forceHqPipeline = true;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -485,7 +485,7 @@ TEST(GradientsTest, simple_radial_with_ts_hq) {
 // calling applyShaderOpacity.
 TEST(GradientsTest, global_opacity) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -516,7 +516,7 @@ TEST(GradientsTest, global_opacity) {
 TEST(GradientsTest, strip_gradient) {
     // Equal radii, different centers creates a Strip gradient
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(50.0f, 100.0f),
@@ -546,7 +546,7 @@ TEST(GradientsTest, strip_gradient) {
 TEST(GradientsTest, concentric_radial) {
     // Same center, non-zero start radius (concentric gradient)
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -577,7 +577,7 @@ TEST(GradientsTest, conical_smaller_radial) {
     // Configuration that triggers XYTo2PtConicalSmaller stage
     // r0=60, r1=30, distance=50
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = RadialGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -610,7 +610,7 @@ TEST(GradientsTest, conical_smaller_radial) {
 
 TEST(GradientsTest, sweep_gradient) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = SweepGradient::create(
         Point::fromXy(100.0f, 100.0f),
@@ -638,7 +638,7 @@ TEST(GradientsTest, sweep_gradient) {
 
 TEST(GradientsTest, sweep_gradient_full) {
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
 
     auto result = SweepGradient::create(
         Point::fromXy(100.0f, 100.0f),

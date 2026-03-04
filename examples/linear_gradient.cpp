@@ -17,7 +17,7 @@ int main() {
   using namespace tiny_skia;
 
   Paint paint;
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto result =
       LinearGradient::create(Point::fromXy(100.0f, 100.0f), Point::fromXy(900.0f, 900.0f),

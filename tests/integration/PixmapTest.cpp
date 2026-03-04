@@ -20,7 +20,7 @@ TEST(PixmapTest, clone_rect_1) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
@@ -45,7 +45,7 @@ TEST(PixmapTest, clone_rect_2) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
@@ -70,7 +70,7 @@ TEST(PixmapTest, clone_rect_out_of_bound) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
@@ -122,7 +122,7 @@ TEST(PixmapTest, draw_pixmap) {
     {
         Paint paint;
         paint.setColorRgba8(50, 127, 150, 200);
-        paint.anti_alias = false;
+        paint.antiAlias = false;
 
         auto rect = Rect::fromLtrb(0.0f, 50.0f, 100.0f, 100.0f);
         ASSERT_TRUE(rect.has_value());
@@ -153,7 +153,7 @@ TEST(PixmapTest, draw_pixmap_ts) {
     {
         Paint paint;
         paint.setColorRgba8(50, 127, 150, 200);
-        paint.anti_alias = true;
+        paint.antiAlias = true;
 
         PathBuilder pb;
         pb.moveTo(0.0f, 100.0f);
@@ -190,7 +190,7 @@ TEST(PixmapTest, draw_pixmap_opacity) {
     {
         Paint paint;
         paint.setColorRgba8(50, 127, 150, 200);
-        paint.anti_alias = true;
+        paint.antiAlias = true;
 
         PathBuilder pb;
         pb.moveTo(0.0f, 100.0f);

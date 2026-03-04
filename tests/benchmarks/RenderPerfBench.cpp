@@ -192,7 +192,7 @@ TsFfiPath* createRustPath(float d) {
 Paint createPaint() {
   Paint paint;
   paint.setColorRgba8(22, 158, 255, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   return paint;
 }
 

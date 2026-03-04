@@ -55,7 +55,7 @@ TEST(SkiaDashTest, infinite_dash) {
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     Stroke stroke;
     stroke.dash = StrokeDash::create(std::vector<float>{0.2f, 0.2f}, 0.0f);

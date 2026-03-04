@@ -56,24 +56,24 @@ int main() {
   // Fill a large background rect.
   Paint paint;
   paint.setColorRgba8(90, 175, 100, 150);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   auto largeRect = Rect::fromXywh(500.0f, 500.0f, 19000.0f, 19000.0f);
   auto mut = pixmap->asMut();
   fillRect(mut, *largeRect, paint, Transform::identity());
 
   // Fill path1 with mask.
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   fillPath(mut, *path1, paint, FillRule::Winding, Transform::identity(), &*mask);
 
   // Fill path2 without mask.
   paint.setColorRgba8(220, 140, 75, 180);
-  paint.anti_alias = false;
+  paint.antiAlias = false;
   fillPath(mut, *path2, paint, FillRule::Winding, Transform::identity());
 
   // Stroke path2 as a hairline.
   paint.setColorRgba8(255, 10, 15, 180);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   Stroke stroke;
   stroke.width = 0.8f;
   strokePath(mut, *path2, paint, stroke, Transform::identity());

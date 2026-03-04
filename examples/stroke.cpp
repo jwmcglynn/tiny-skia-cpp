@@ -18,7 +18,7 @@ int main() {
 
   Paint paint;
   paint.setColorRgba8(0, 127, 0, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   // Build a star-like polyline path.
   constexpr float kRadius = 250.0f;

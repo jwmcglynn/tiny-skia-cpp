@@ -17,7 +17,7 @@ namespace {
 TEST(StrokeTest, RoundCapsAndLargeScale) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(60.0f / 16.0f, 100.0f / 16.0f);
@@ -42,7 +42,7 @@ TEST(StrokeTest, RoundCapsAndLargeScale) {
 TEST(StrokeTest, Circle) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.pushCircle(100.0f, 100.0f, 50.0f);
@@ -63,7 +63,7 @@ TEST(StrokeTest, Circle) {
 TEST(StrokeTest, ZeroLenSubpathButtCap) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(50.0f, 50.0f);
@@ -86,7 +86,7 @@ TEST(StrokeTest, ZeroLenSubpathButtCap) {
 TEST(StrokeTest, ZeroLenSubpathRoundCap) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(50.0f, 50.0f);
@@ -109,7 +109,7 @@ TEST(StrokeTest, ZeroLenSubpathRoundCap) {
 TEST(StrokeTest, ZeroLenSubpathSquareCap) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(50.0f, 50.0f);
@@ -132,7 +132,7 @@ TEST(StrokeTest, ZeroLenSubpathSquareCap) {
 TEST(StrokeTest, RoundCapJoin) {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(170.0f, 30.0f);

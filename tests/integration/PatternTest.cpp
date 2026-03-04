@@ -19,7 +19,7 @@ namespace {
 Pixmap createTriangle() {
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
-    paint.anti_alias = true;
+    paint.antiAlias = true;
 
     PathBuilder pb;
     pb.moveTo(0.0f, 20.0f);
@@ -40,7 +40,7 @@ TEST(PatternTest, PadNearest) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Pad,
@@ -65,7 +65,7 @@ TEST(PatternTest, RepeatNearest) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Repeat,
@@ -90,7 +90,7 @@ TEST(PatternTest, ReflectNearest) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Reflect,
@@ -115,7 +115,7 @@ TEST(PatternTest, PadBicubic) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     //   = (sx=1.1, kx=0.3, ky=0.0, sy=1.4, tx=0.0, ty=0.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
@@ -143,7 +143,7 @@ TEST(PatternTest, RepeatBicubic) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
         triangle.asRef(),
@@ -169,7 +169,7 @@ TEST(PatternTest, ReflectBicubic) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
         triangle.asRef(),
@@ -195,7 +195,7 @@ TEST(PatternTest, FilterNearestNoTs) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     paint.shader = Pattern(
         triangle.asRef(),
         SpreadMode::Repeat,
@@ -220,7 +220,7 @@ TEST(PatternTest, FilterNearest) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     //   = (sx=1.5, kx=0.0, ky=-0.4, sy=-0.8, tx=5.0, ty=1.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
@@ -248,7 +248,7 @@ TEST(PatternTest, FilterBilinear) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
         triangle.asRef(),
@@ -274,7 +274,7 @@ TEST(PatternTest, FilterBicubic) {
     auto triangle = createTriangle();
 
     Paint paint;
-    paint.anti_alias = false;
+    paint.antiAlias = false;
     // Rust: Transform::from_row(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
         triangle.asRef(),

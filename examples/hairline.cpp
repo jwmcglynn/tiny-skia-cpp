@@ -21,7 +21,7 @@ int main() {
 
   Paint paint;
   paint.setColorRgba8(50, 127, 150, 200);
-  paint.anti_alias = true;
+  paint.antiAlias = true;
 
   auto pixmap = Pixmap::fromSize(500, 500);
   auto transform = Transform::identity();
