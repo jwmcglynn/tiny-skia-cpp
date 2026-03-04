@@ -3,15 +3,15 @@
 /// Build and run:
 ///   bazel run //examples:stroke
 
+#include "tiny_skia/Stroke.h"
+
 #include <cmath>
 #include <cstdio>
 
+#include "PngEncoder.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/Stroke.h"
-
-#include "PngEncoder.h"
 
 int main() {
   using namespace tiny_skia;
@@ -28,8 +28,7 @@ int main() {
   pb.moveTo(kCenter + kRadius, kCenter);
   for (int i = 1; i < 8; ++i) {
     const float a = 2.6927937f * static_cast<float>(i);
-    pb.lineTo(kCenter + kRadius * std::cos(a),
-              kCenter + kRadius * std::sin(a));
+    pb.lineTo(kCenter + kRadius * std::cos(a), kCenter + kRadius * std::sin(a));
   }
   auto path = pb.finish();
 

@@ -3,6 +3,13 @@
 #pragma clang fp contract(off)
 
 #include "tiny_skia/pipeline/Lowp.h"
+
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstring>
+#include <span>
+
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Pixmap.h"
@@ -11,12 +18,6 @@
 #include "tiny_skia/wide/U16x16T.h"
 #include "tiny_skia/wide/backend/Aarch64NeonU16x16T.h"
 #include "tiny_skia/wide/backend/X86Avx2FmaU16x16T.h"
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstring>
-#include <span>
 
 #if defined(__aarch64__) && defined(__ARM_NEON)
 #include <arm_neon.h>
@@ -61,13 +62,9 @@ struct Pipeline {
   SubPixmapMut* pixmap_dst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
-           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>&
-               tail_fun,
-           const ScreenIntRect& rect_arg,
-           const AAMaskCtx& aa_mask_ctx_arg,
-           const MaskCtx& mask_ctx_arg,
-           Context& ctx_arg,
-           SubPixmapMut* pixmap_dst_arg)
+           const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_fun,
+           const ScreenIntRect& rect_arg, const AAMaskCtx& aa_mask_ctx_arg,
+           const MaskCtx& mask_ctx_arg, Context& ctx_arg, SubPixmapMut* pixmap_dst_arg)
       : uniform_r(U16x16T::splat(ctx_arg.uniform_color.rgba[0])),
         uniform_g(U16x16T::splat(ctx_arg.uniform_color.rgba[1])),
         uniform_b(U16x16T::splat(ctx_arg.uniform_color.rgba[2])),
@@ -88,13 +85,9 @@ struct Pipeline {
   }
 };
 
-bool fnPtrEq(StageFn a, StageFn b) {
-  return a == b;
-}
+bool fnPtrEq(StageFn a, StageFn b) { return a == b; }
 
-const void* fnPtr(StageFn fn) {
-  return reinterpret_cast<const void*>(fn);
-}
+const void* fnPtr(StageFn fn) { return reinterpret_cast<const void*>(fn); }
 
 namespace {
 
@@ -154,8 +147,8 @@ inline U16x16T mulDiv255(const U16x16T& lhs, const U16x16T& rhs) {
 #endif
 }
 
-inline U16x16T mulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0,
-                            const U16x16T& lhs1, const U16x16T& rhs1) {
+inline U16x16T mulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0, const U16x16T& lhs1,
+                            const U16x16T& rhs1) {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return wide::backend::aarch64_neon::u16x16MulAddDiv255(lhs0, rhs0, lhs1, rhs1);
 #elif defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
@@ -184,8 +177,8 @@ inline U16x16T fromFloat(float f) {
 }
 
 // Matches Rust round_f32_to_u16(): normalize, scale to [0,255], truncate
-inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af,
-                          U16x16T& r, U16x16T& g, U16x16T& b, U16x16T& a) {
+inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16T& r, U16x16T& g,
+                          U16x16T& b, U16x16T& a) {
   rf = rf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
   gf = gf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
   bf = bf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
@@ -228,9 +221,8 @@ void uniform_color(Pipeline& pipeline) {
 }
 
 void seed_shader(Pipeline& pipeline) {
-  const auto iota = F32x16T(
-      F32x8T({0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f, 6.5f, 7.5f}),
-      F32x8T({8.5f, 9.5f, 10.5f, 11.5f, 12.5f, 13.5f, 14.5f, 15.5f}));
+  const auto iota = F32x16T(F32x8T({0.5f, 1.5f, 2.5f, 3.5f, 4.5f, 5.5f, 6.5f, 7.5f}),
+                            F32x8T({8.5f, 9.5f, 10.5f, 11.5f, 12.5f, 13.5f, 14.5f, 15.5f}));
   const auto x = F32x16T::splat(static_cast<float>(pipeline.dx)) + iota;
   const auto y = F32x16T::splat(static_cast<float>(pipeline.dy) + 0.5f);
   split(x, pipeline.r, pipeline.g);
@@ -329,9 +321,8 @@ void destination_atop(Pipeline& pipeline) {
 }
 
 void destination_in(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) {
-    return mulDiv255(d, sa);
-  });
+  blend_fn(pipeline,
+           [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) { return mulDiv255(d, sa); });
 }
 
 void destination_out(Pipeline& pipeline) {
@@ -347,9 +338,8 @@ void source_atop(Pipeline& pipeline) {
 }
 
 void source_in(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) {
-    return mulDiv255(s, da);
-  });
+  blend_fn(pipeline,
+           [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) { return mulDiv255(s, da); });
 }
 
 void source_out(Pipeline& pipeline) {
@@ -371,9 +361,8 @@ void destination_over(Pipeline& pipeline) {
 }
 
 void modulate(Pipeline& pipeline) {
-  blend_fn(pipeline, [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) {
-    return mulDiv255(s, d);
-  });
+  blend_fn(pipeline,
+           [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) { return mulDiv255(s, d); });
 }
 
 void multiply(Pipeline& pipeline) {
@@ -400,27 +389,21 @@ void x_or(Pipeline& pipeline) {
   });
 }
 
-void null_fn(Pipeline& pipeline) {
-  (void)pipeline;
-}
-
+void null_fn(Pipeline& pipeline) { (void)pipeline; }
 
 // Returns a span of PremultipliedColorU8 pixels starting at (dx, dy) in the pixmap.
 // Matches Rust's pixmap.slice_at_xy(dx, dy) / pixmap.slice16_at_xy(dx, dy).
-inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap,
-                                                  std::size_t dx,
+inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap, std::size_t dx,
                                                   std::size_t dy) {
   const auto pixel_offset = dy * pixmap.real_width + dx;
   auto* pixels = reinterpret_cast<PremultipliedColorU8*>(pixmap.data);
   const auto total_pixels = pixmap.real_width * pixmap.size.height();
-  return std::span<PremultipliedColorU8>(pixels + pixel_offset,
-                                         total_pixels - pixel_offset);
+  return std::span<PremultipliedColorU8>(pixels + pixel_offset, total_pixels - pixel_offset);
 }
 
 // Matches Rust load_8888(&[PremultipliedColorU8; STAGE_WIDTH], ...).
 // Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
-void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
-                    U16x16T& or_, U16x16T& og,
+void load_8888_lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
                     U16x16T& ob, U16x16T& oa) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
@@ -449,14 +432,10 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
     const auto* packed = reinterpret_cast<const std::uint8_t*>(pixels.data());
-    const __m128i p0 =
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 0));
-    const __m128i p1 =
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 16));
-    const __m128i p2 =
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 32));
-    const __m128i p3 =
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 48));
+    const __m128i p0 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 0));
+    const __m128i p1 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 16));
+    const __m128i p2 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 32));
+    const __m128i p3 = _mm_loadu_si128(reinterpret_cast<const __m128i*>(packed + 48));
     const __m128i zero = _mm_setzero_si128();
 
     const __m128i r_mask =
@@ -483,20 +462,16 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
     const __m128i b8 = gather_channel(b_mask);
     const __m128i a8 = gather_channel(a_mask);
 
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data()),
-                     _mm_unpacklo_epi8(r8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data()), _mm_unpacklo_epi8(r8, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(or_.lanes().data() + 8),
                      _mm_unpackhi_epi8(r8, zero));
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(og.lanes().data()),
-                     _mm_unpacklo_epi8(g8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(og.lanes().data()), _mm_unpacklo_epi8(g8, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(og.lanes().data() + 8),
                      _mm_unpackhi_epi8(g8, zero));
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(ob.lanes().data()),
-                     _mm_unpacklo_epi8(b8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(ob.lanes().data()), _mm_unpacklo_epi8(b8, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(ob.lanes().data() + 8),
                      _mm_unpackhi_epi8(b8, zero));
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(oa.lanes().data()),
-                     _mm_unpacklo_epi8(a8, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(oa.lanes().data()), _mm_unpacklo_epi8(a8, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(oa.lanes().data() + 8),
                      _mm_unpackhi_epi8(a8, zero));
     return;
@@ -508,49 +483,77 @@ void load_8888_lowp(std::span<const PremultipliedColorU8> pixels,
   auto& bl = ob.lanes();
   auto& al = oa.lanes();
 
-  rl[0] = pixels[0].red();    rl[1] = pixels[1].red();
-  rl[2] = pixels[2].red();    rl[3] = pixels[3].red();
-  rl[4] = pixels[4].red();    rl[5] = pixels[5].red();
-  rl[6] = pixels[6].red();    rl[7] = pixels[7].red();
-  rl[8] = pixels[8].red();    rl[9] = pixels[9].red();
-  rl[10] = pixels[10].red();  rl[11] = pixels[11].red();
-  rl[12] = pixels[12].red();  rl[13] = pixels[13].red();
-  rl[14] = pixels[14].red();  rl[15] = pixels[15].red();
+  rl[0] = pixels[0].red();
+  rl[1] = pixels[1].red();
+  rl[2] = pixels[2].red();
+  rl[3] = pixels[3].red();
+  rl[4] = pixels[4].red();
+  rl[5] = pixels[5].red();
+  rl[6] = pixels[6].red();
+  rl[7] = pixels[7].red();
+  rl[8] = pixels[8].red();
+  rl[9] = pixels[9].red();
+  rl[10] = pixels[10].red();
+  rl[11] = pixels[11].red();
+  rl[12] = pixels[12].red();
+  rl[13] = pixels[13].red();
+  rl[14] = pixels[14].red();
+  rl[15] = pixels[15].red();
 
-  gl[0] = pixels[0].green();    gl[1] = pixels[1].green();
-  gl[2] = pixels[2].green();    gl[3] = pixels[3].green();
-  gl[4] = pixels[4].green();    gl[5] = pixels[5].green();
-  gl[6] = pixels[6].green();    gl[7] = pixels[7].green();
-  gl[8] = pixels[8].green();    gl[9] = pixels[9].green();
-  gl[10] = pixels[10].green();  gl[11] = pixels[11].green();
-  gl[12] = pixels[12].green();  gl[13] = pixels[13].green();
-  gl[14] = pixels[14].green();  gl[15] = pixels[15].green();
+  gl[0] = pixels[0].green();
+  gl[1] = pixels[1].green();
+  gl[2] = pixels[2].green();
+  gl[3] = pixels[3].green();
+  gl[4] = pixels[4].green();
+  gl[5] = pixels[5].green();
+  gl[6] = pixels[6].green();
+  gl[7] = pixels[7].green();
+  gl[8] = pixels[8].green();
+  gl[9] = pixels[9].green();
+  gl[10] = pixels[10].green();
+  gl[11] = pixels[11].green();
+  gl[12] = pixels[12].green();
+  gl[13] = pixels[13].green();
+  gl[14] = pixels[14].green();
+  gl[15] = pixels[15].green();
 
-  bl[0] = pixels[0].blue();    bl[1] = pixels[1].blue();
-  bl[2] = pixels[2].blue();    bl[3] = pixels[3].blue();
-  bl[4] = pixels[4].blue();    bl[5] = pixels[5].blue();
-  bl[6] = pixels[6].blue();    bl[7] = pixels[7].blue();
-  bl[8] = pixels[8].blue();    bl[9] = pixels[9].blue();
-  bl[10] = pixels[10].blue();  bl[11] = pixels[11].blue();
-  bl[12] = pixels[12].blue();  bl[13] = pixels[13].blue();
-  bl[14] = pixels[14].blue();  bl[15] = pixels[15].blue();
+  bl[0] = pixels[0].blue();
+  bl[1] = pixels[1].blue();
+  bl[2] = pixels[2].blue();
+  bl[3] = pixels[3].blue();
+  bl[4] = pixels[4].blue();
+  bl[5] = pixels[5].blue();
+  bl[6] = pixels[6].blue();
+  bl[7] = pixels[7].blue();
+  bl[8] = pixels[8].blue();
+  bl[9] = pixels[9].blue();
+  bl[10] = pixels[10].blue();
+  bl[11] = pixels[11].blue();
+  bl[12] = pixels[12].blue();
+  bl[13] = pixels[13].blue();
+  bl[14] = pixels[14].blue();
+  bl[15] = pixels[15].blue();
 
-  al[0] = pixels[0].alpha();    al[1] = pixels[1].alpha();
-  al[2] = pixels[2].alpha();    al[3] = pixels[3].alpha();
-  al[4] = pixels[4].alpha();    al[5] = pixels[5].alpha();
-  al[6] = pixels[6].alpha();    al[7] = pixels[7].alpha();
-  al[8] = pixels[8].alpha();    al[9] = pixels[9].alpha();
-  al[10] = pixels[10].alpha();  al[11] = pixels[11].alpha();
-  al[12] = pixels[12].alpha();  al[13] = pixels[13].alpha();
-  al[14] = pixels[14].alpha();  al[15] = pixels[15].alpha();
+  al[0] = pixels[0].alpha();
+  al[1] = pixels[1].alpha();
+  al[2] = pixels[2].alpha();
+  al[3] = pixels[3].alpha();
+  al[4] = pixels[4].alpha();
+  al[5] = pixels[5].alpha();
+  al[6] = pixels[6].alpha();
+  al[7] = pixels[7].alpha();
+  al[8] = pixels[8].alpha();
+  al[9] = pixels[9].alpha();
+  al[10] = pixels[10].alpha();
+  al[11] = pixels[11].alpha();
+  al[12] = pixels[12].alpha();
+  al[13] = pixels[13].alpha();
+  al[14] = pixels[14].alpha();
+  al[15] = pixels[15].alpha();
 }
 
-void load_8888_tail(std::size_t count,
-                    std::span<const PremultipliedColorU8> pixels,
-                    U16x16T& or_,
-                    U16x16T& og,
-                    U16x16T& ob,
-                    U16x16T& oa) {
+void load_8888_tail(std::size_t count, std::span<const PremultipliedColorU8> pixels, U16x16T& or_,
+                    U16x16T& og, U16x16T& ob, U16x16T& oa) {
   std::array<PremultipliedColorU8, kStageWidth> tmp{};
   tmp.fill(PremultipliedColorU8::transparent);
   std::copy_n(pixels.begin(), count, tmp.begin());
@@ -559,11 +562,8 @@ void load_8888_tail(std::size_t count,
 
 // Matches Rust store_8888(&u16x16, ..., &mut [PremultipliedColorU8; STAGE_WIDTH]).
 // Stores U16x16T pixel channels to u8 pixels.
-void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
-                     const U16x16T& r,
-                     const U16x16T& g,
-                     const U16x16T& b,
-                     const U16x16T& a) {
+void store_8888_lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
+                     const U16x16T& b, const U16x16T& a) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
@@ -687,22 +687,16 @@ void store_8888_lowp(std::span<PremultipliedColorU8> pixels,
       static_cast<std::uint8_t>(bl[15]), static_cast<std::uint8_t>(al[15]));
 }
 
-void store_8888_tail(std::size_t count,
-                     std::span<PremultipliedColorU8> pixels,
-                     const U16x16T& r,
-                     const U16x16T& g,
-                     const U16x16T& b,
-                     const U16x16T& a) {
+void store_8888_tail(std::size_t count, std::span<PremultipliedColorU8> pixels, const U16x16T& r,
+                     const U16x16T& g, const U16x16T& b, const U16x16T& a) {
   const auto& rl = r.lanes();
   const auto& gl = g.lanes();
   const auto& bl = b.lanes();
   const auto& al = a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pixels[i] = PremultipliedColorU8::fromRgbaUnchecked(
-        static_cast<std::uint8_t>(rl[i]),
-        static_cast<std::uint8_t>(gl[i]),
-        static_cast<std::uint8_t>(bl[i]),
-        static_cast<std::uint8_t>(al[i]));
+        static_cast<std::uint8_t>(rl[i]), static_cast<std::uint8_t>(gl[i]),
+        static_cast<std::uint8_t>(bl[i]), static_cast<std::uint8_t>(al[i]));
     if (i + 1 == count) {
       break;
     }
@@ -713,8 +707,7 @@ void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint8x16_t src = vld1q_u8(data.data());
-    const uint16x8x2_t wide = {vmovl_u8(vget_low_u8(src)),
-                               vmovl_u8(vget_high_u8(src))};
+    const uint16x8x2_t wide = {vmovl_u8(vget_low_u8(src)), vmovl_u8(vget_high_u8(src))};
     vst1q_u16_x2(a.lanes().data(), wide);
     return;
   }
@@ -724,8 +717,7 @@ void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
   if constexpr (useX86Avx2FmaNative()) {
     const __m128i src = _mm_loadu_si128(reinterpret_cast<const __m128i*>(data.data()));
     const __m128i zero = _mm_setzero_si128();
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(a.lanes().data()),
-                     _mm_unpacklo_epi8(src, zero));
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(a.lanes().data()), _mm_unpacklo_epi8(src, zero));
     _mm_storeu_si128(reinterpret_cast<__m128i*>(a.lanes().data() + 8),
                      _mm_unpackhi_epi8(src, zero));
     return;
@@ -733,14 +725,22 @@ void load_8_lowp(std::span<const std::uint8_t> data, U16x16T& a) {
 #endif
 
   auto& al = a.lanes();
-  al[0] = data[0];    al[1] = data[1];
-  al[2] = data[2];    al[3] = data[3];
-  al[4] = data[4];    al[5] = data[5];
-  al[6] = data[6];    al[7] = data[7];
-  al[8] = data[8];    al[9] = data[9];
-  al[10] = data[10];  al[11] = data[11];
-  al[12] = data[12];  al[13] = data[13];
-  al[14] = data[14];  al[15] = data[15];
+  al[0] = data[0];
+  al[1] = data[1];
+  al[2] = data[2];
+  al[3] = data[3];
+  al[4] = data[4];
+  al[5] = data[5];
+  al[6] = data[6];
+  al[7] = data[7];
+  al[8] = data[8];
+  al[9] = data[9];
+  al[10] = data[10];
+  al[11] = data[11];
+  al[12] = data[12];
+  al[13] = data[13];
+  al[14] = data[14];
+  al[15] = data[15];
 }
 
 void load_8_tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T& a) {
@@ -811,13 +811,12 @@ void store_u8(Pipeline& pipeline) {
 #if defined(__x86_64__) || defined(__i386__)
   if constexpr (useX86Avx2FmaNative()) {
     const __m128i byte_mask = _mm_set1_epi16(0x00FF);
-    const __m128i a_lo = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())), byte_mask);
-    const __m128i a_hi = _mm_and_si128(
-        _mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byte_mask);
+    const __m128i a_lo =
+        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data())), byte_mask);
+    const __m128i a_hi =
+        _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byte_mask);
     const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
-    _mm_storeu_si128(
-        reinterpret_cast<__m128i*>(pipeline.pixmap_dst->data + offset), a8);
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(pipeline.pixmap_dst->data + offset), a8);
     pipeline.nextStage();
     return;
   }
@@ -1003,8 +1002,10 @@ void pad_x1(Pipeline& pipeline) {
 void reflect_x1(Pipeline& pipeline) {
   auto x = join(pipeline.r, pipeline.g);
   auto v_minus_1 = x - F32x16T::splat(1.0f);
-  auto result = (v_minus_1 - F32x16T::splat(2.0f) * (v_minus_1 * F32x16T::splat(0.5f)).floor()
-                 - F32x16T::splat(1.0f)).abs().normalize();
+  auto result = (v_minus_1 - F32x16T::splat(2.0f) * (v_minus_1 * F32x16T::splat(0.5f)).floor() -
+                 F32x16T::splat(1.0f))
+                    .abs()
+                    .normalize();
   split(result, pipeline.r, pipeline.g);
   pipeline.nextStage();
 }
@@ -1038,9 +1039,8 @@ void gradient(Pipeline& pipeline) {
   std::array<float, 8> r_lo{}, g_lo{}, b_lo{}, a_lo{};
   std::array<float, 8> r_hi{}, g_hi{}, b_hi{}, a_hi{};
 
-  auto process = [&](const std::array<float, 8>& tv,
-                     std::array<float, 8>& rv, std::array<float, 8>& gv,
-                     std::array<float, 8>& bv, std::array<float, 8>& av) {
+  auto process = [&](const std::array<float, 8>& tv, std::array<float, 8>& rv,
+                     std::array<float, 8>& gv, std::array<float, 8>& bv, std::array<float, 8>& av) {
     for (std::size_t i = 0; i < 8; ++i) {
       std::uint32_t idx = 0;
       for (std::size_t s = 1; s < ctx.len; ++s) {
@@ -1079,17 +1079,12 @@ void xy_to_radius(Pipeline& pipeline) {
 
 }  // namespace
 
-void justReturn(Pipeline& pipeline) {
-  (void)pipeline;
-}
+void justReturn(Pipeline& pipeline) { (void)pipeline; }
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
-           const ScreenIntRect& rect,
-           const AAMaskCtx& aa_mask_ctx,
-           const MaskCtx& mask_ctx,
-           Context& ctx,
-           SubPixmapMut* pixmap_dst) {
+           const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, const MaskCtx& mask_ctx,
+           Context& ctx, SubPixmapMut* pixmap_dst) {
   Pipeline p(functions, tail_functions, rect, aa_mask_ctx, mask_ctx, ctx, pixmap_dst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {

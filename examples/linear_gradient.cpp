@@ -6,13 +6,12 @@
 #include <cstdio>
 #include <variant>
 
+#include "PngEncoder.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/shaders/Mod.h"
-
-#include "PngEncoder.h"
 
 int main() {
   using namespace tiny_skia;
@@ -20,15 +19,13 @@ int main() {
   Paint paint;
   paint.anti_alias = false;
 
-  auto result = LinearGradient::create(
-      Point::fromXy(100.0f, 100.0f),
-      Point::fromXy(900.0f, 900.0f),
-      {
-          GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-          GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
-      },
-      SpreadMode::Pad,
-      Transform::identity());
+  auto result =
+      LinearGradient::create(Point::fromXy(100.0f, 100.0f), Point::fromXy(900.0f, 900.0f),
+                             {
+                                 GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                                 GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180)),
+                             },
+                             SpreadMode::Pad, Transform::identity());
   paint.shader = std::get<LinearGradient>(std::move(*result));
 
   PathBuilder pb;

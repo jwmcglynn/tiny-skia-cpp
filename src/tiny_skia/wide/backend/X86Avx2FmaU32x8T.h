@@ -36,13 +36,9 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return out;
 }
 
-[[nodiscard]] inline __m256i u32CmpAllBitsMask() {
-  return _mm256_set1_epi32(-1);
-}
+[[nodiscard]] inline __m256i u32CmpAllBitsMask() { return _mm256_set1_epi32(-1); }
 
-[[nodiscard]] inline __m256i u32SignedOrderMask() {
-  return _mm256_set1_epi32(0x80000000u);
-}
+[[nodiscard]] inline __m256i u32SignedOrderMask() { return _mm256_set1_epi32(0x80000000u); }
 
 [[nodiscard]] inline __m256i u32ToSignedDomain(__m256i value) {
   return _mm256_xor_si256(value, u32SignedOrderMask());
@@ -59,29 +55,25 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpEq(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return storeU32x8(_mm256_cmpeq_epi32(loadU32x8(lhs), loadU32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpNe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   const __m256i eqMask = _mm256_cmpeq_epi32(loadU32x8(lhs), loadU32x8(rhs));
   return storeU32x8(_mm256_xor_si256(eqMask, u32CmpAllBitsMask()));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpLt(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   const __m256i lhsSigned = u32ToSignedDomain(loadU32x8(lhs));
   const __m256i rhsSigned = u32ToSignedDomain(loadU32x8(rhs));
   return storeU32x8(_mm256_cmpgt_epi32(rhsSigned, lhsSigned));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpLe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   const __m256i lhsSigned = u32ToSignedDomain(loadU32x8(lhs));
   const __m256i rhsSigned = u32ToSignedDomain(loadU32x8(rhs));
   const __m256i gtMask = _mm256_cmpgt_epi32(lhsSigned, rhsSigned);
@@ -89,16 +81,14 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpGt(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   const __m256i lhsSigned = u32ToSignedDomain(loadU32x8(lhs));
   const __m256i rhsSigned = u32ToSignedDomain(loadU32x8(rhs));
   return storeU32x8(_mm256_cmpgt_epi32(lhsSigned, rhsSigned));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpGe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   const __m256i lhsSigned = u32ToSignedDomain(loadU32x8(lhs));
   const __m256i rhsSigned = u32ToSignedDomain(loadU32x8(rhs));
   const __m256i ltMask = _mm256_cmpgt_epi32(rhsSigned, lhsSigned);
@@ -111,26 +101,22 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Add(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return storeU32x8(_mm256_add_epi32(loadU32x8(lhs), loadU32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8And(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return storeU32x8(_mm256_and_si256(loadU32x8(lhs), loadU32x8(rhs)));
 }
 
-[[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Or(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+[[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Or(const std::array<std::uint32_t, 8>& lhs,
+                                                          const std::array<std::uint32_t, 8>& rhs) {
   return storeU32x8(_mm256_or_si256(loadU32x8(lhs), loadU32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Xor(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return storeU32x8(_mm256_xor_si256(loadU32x8(lhs), loadU32x8(rhs)));
 }
 
@@ -147,38 +133,32 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpEq(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpEq(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpNe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpNe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpLt(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpLt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpLe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpLe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpGt(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpGt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8CmpGe(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8CmpGe(lhs, rhs);
 }
 
@@ -188,26 +168,22 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Add(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8Add(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8And(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8And(lhs, rhs);
 }
 
-[[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Or(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+[[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Or(const std::array<std::uint32_t, 8>& lhs,
+                                                          const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8Or(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 8> u32x8Xor(
-    const std::array<std::uint32_t, 8>& lhs,
-    const std::array<std::uint32_t, 8>& rhs) {
+    const std::array<std::uint32_t, 8>& lhs, const std::array<std::uint32_t, 8>& rhs) {
   return scalar::u32x8Xor(lhs, rhs);
 }
 

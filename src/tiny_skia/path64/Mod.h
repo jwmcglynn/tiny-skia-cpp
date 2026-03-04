@@ -13,37 +13,25 @@ inline double bound(double value, double min, double max) {
   return scalar64::bound(min, value, max);
 }
 
-inline bool between(double value, double a, double b) {
-  return scalar64::between(a, b, value);
-}
+inline bool between(double value, double a, double b) { return scalar64::between(a, b, value); }
 
-inline bool preciselyZero(double value) {
-  return scalar64::preciselyZero(value);
-}
+inline bool preciselyZero(double value) { return scalar64::preciselyZero(value); }
 
 inline bool approximatelyZeroOrMore(double value) {
   return scalar64::approximatelyZeroOrMore(value);
 }
 
-inline bool approximatelyOneOrLess(double value) {
-  return scalar64::approximatelyOneOrLess(value);
-}
+inline bool approximatelyOneOrLess(double value) { return scalar64::approximatelyOneOrLess(value); }
 
-inline bool approximatelyZero(double value) {
-  return scalar64::approximatelyZero(value);
-}
+inline bool approximatelyZero(double value) { return scalar64::approximatelyZero(value); }
 
 inline bool approximatelyZeroInverse(double value) {
   return scalar64::approximatelyZeroInverse(value);
 }
 
-inline bool approximatelyZeroCubed(double value) {
-  return scalar64::approximatelyZeroCubed(value);
-}
+inline bool approximatelyZeroCubed(double value) { return scalar64::approximatelyZeroCubed(value); }
 
-inline bool approximatelyZeroHalf(double value) {
-  return scalar64::approximatelyZeroHalf(value);
-}
+inline bool approximatelyZeroHalf(double value) { return scalar64::approximatelyZeroHalf(value); }
 
 inline bool approximatelyZeroWhenComparedTo(double value, double other) {
   return scalar64::approximatelyZeroWhenComparedTo(value, other);

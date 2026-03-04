@@ -3,14 +3,14 @@
 /// Build and run:
 ///   bazel run //examples:mask
 
+#include "tiny_skia/Mask.h"
+
 #include <cstdio>
 
-#include "tiny_skia/Mask.h"
+#include "PngEncoder.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
-
-#include "PngEncoder.h"
 
 int main() {
   using namespace tiny_skia;
@@ -22,8 +22,7 @@ int main() {
   auto clipPath = cpb.finish();
 
   // Apply a skew transform.
-  auto transformed = clipPath->transform(
-      Transform::fromRow(1.0f, -0.3f, 0.0f, 1.0f, 0.0f, 75.0f));
+  auto transformed = clipPath->transform(Transform::fromRow(1.0f, -0.3f, 0.0f, 1.0f, 0.0f, 75.0f));
 
   // Create a mask from the clip path.
   auto mask = Mask::fromSize(500, 500);

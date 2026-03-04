@@ -20,9 +20,7 @@ class Blitter {
   virtual ~Blitter() = default;
 
   virtual void blitH(std::uint32_t x, std::uint32_t y, LengthU32 width);
-  virtual void blitAntiH(std::uint32_t x,
-                         std::uint32_t y,
-                         std::span<std::uint8_t> alpha,
+  virtual void blitAntiH(std::uint32_t x, std::uint32_t y, std::span<std::uint8_t> alpha,
                          std::span<AlphaRun> runs);
   virtual void blitV(std::uint32_t x, std::uint32_t y, LengthU32 height, AlphaU8 alpha);
   virtual void blitAntiH2(std::uint32_t x, std::uint32_t y, AlphaU8 alpha0, AlphaU8 alpha1);

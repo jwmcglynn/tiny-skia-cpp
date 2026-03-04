@@ -19,17 +19,11 @@ class ClippedEdges {
 
   using const_iterator = Container::const_iterator;
 
-  [[nodiscard]] bool empty() const {
-    return size_ == 0;
-  }
+  [[nodiscard]] bool empty() const { return size_ == 0; }
 
-  [[nodiscard]] std::size_t size() const {
-    return size_;
-  }
+  [[nodiscard]] std::size_t size() const { return size_; }
 
-  [[nodiscard]] const_iterator begin() const {
-    return edges_.cbegin();
-  }
+  [[nodiscard]] const_iterator begin() const { return edges_.cbegin(); }
 
   [[nodiscard]] const_iterator end() const {
     return edges_.cbegin() + static_cast<std::ptrdiff_t>(size_);

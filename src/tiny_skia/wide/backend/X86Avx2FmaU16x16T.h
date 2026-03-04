@@ -56,9 +56,7 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return storeU16x16(_mm256_xor_si256(gtMask, u16AllBitsMask()));
 }
 
-[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask,
-                                         const U16x16T& t,
-                                         const U16x16T& e) {
+[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t, const U16x16T& e) {
   const __m256i maskLanes = loadU16x16(mask);
   const __m256i trueLanes = loadU16x16(t);
   const __m256i falseLanes = loadU16x16(e);
@@ -103,18 +101,15 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return storeU16x16(div255Avx2(product));
 }
 
-[[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0,
-                                                const U16x16T& rhs0,
-                                                const U16x16T& lhs1,
-                                                const U16x16T& rhs1) {
+[[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0,
+                                                const U16x16T& lhs1, const U16x16T& rhs1) {
   const __m256i prod0 = _mm256_mullo_epi16(loadU16x16(lhs0), loadU16x16(rhs0));
   const __m256i prod1 = _mm256_mullo_epi16(loadU16x16(lhs1), loadU16x16(rhs1));
   const __m256i sum = _mm256_add_epi16(prod0, prod1);
   return storeU16x16(div255Avx2(sum));
 }
 
-[[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source,
-                                              const U16x16T& dest,
+[[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source, const U16x16T& dest,
                                               const U16x16T& sourceAlpha) {
   const __m256i max255 = _mm256_set1_epi16(255);
   const __m256i src = loadU16x16(source);
@@ -140,9 +135,7 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return scalar::u16x16CmpLe(lhs, rhs);
 }
 
-[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask,
-                                         const U16x16T& t,
-                                         const U16x16T& e) {
+[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t, const U16x16T& e) {
   return scalar::u16x16Blend(mask, t, e);
 }
 
@@ -166,38 +159,30 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return scalar::u16x16Or(lhs, rhs);
 }
 
-[[nodiscard]] inline U16x16T u16x16Not(const U16x16T& value) {
-  return scalar::u16x16Not(value);
-}
+[[nodiscard]] inline U16x16T u16x16Not(const U16x16T& value) { return scalar::u16x16Not(value); }
 
 [[nodiscard]] inline U16x16T u16x16Shr(const U16x16T& lhs, const U16x16T& rhs) {
   return scalar::u16x16Shr(lhs, rhs);
 }
 
 [[nodiscard]] inline U16x16T u16x16Div255(const U16x16T& value) {
-  return scalar::u16x16Shr(scalar::u16x16Add(value, U16x16T::splat(255)),
-                           U16x16T::splat(8));
+  return scalar::u16x16Shr(scalar::u16x16Add(value, U16x16T::splat(255)), U16x16T::splat(8));
 }
 
 [[nodiscard]] inline U16x16T u16x16MulDiv255(const U16x16T& lhs, const U16x16T& rhs) {
   return u16x16Div255(scalar::u16x16Mul(lhs, rhs));
 }
 
-[[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0,
-                                                const U16x16T& rhs0,
-                                                const U16x16T& lhs1,
-                                                const U16x16T& rhs1) {
-  return u16x16Div255(scalar::u16x16Add(scalar::u16x16Mul(lhs0, rhs0),
-                                        scalar::u16x16Mul(lhs1, rhs1)));
+[[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0, const U16x16T& rhs0,
+                                                const U16x16T& lhs1, const U16x16T& rhs1) {
+  return u16x16Div255(
+      scalar::u16x16Add(scalar::u16x16Mul(lhs0, rhs0), scalar::u16x16Mul(lhs1, rhs1)));
 }
 
-[[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source,
-                                              const U16x16T& dest,
+[[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source, const U16x16T& dest,
                                               const U16x16T& sourceAlpha) {
-  return scalar::u16x16Add(
-      source,
-      u16x16Div255(
-          scalar::u16x16Mul(dest, scalar::u16x16Sub(U16x16T::splat(255), sourceAlpha))));
+  return scalar::u16x16Add(source, u16x16Div255(scalar::u16x16Mul(
+                                       dest, scalar::u16x16Sub(U16x16T::splat(255), sourceAlpha))));
 }
 
 #endif

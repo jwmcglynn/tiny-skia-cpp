@@ -25,29 +25,16 @@ class ColorU8 {
   constexpr ColorU8(AlphaU8 red, AlphaU8 green, AlphaU8 blue, AlphaU8 alpha)
       : data_{red, green, blue, alpha} {}
 
-  static constexpr ColorU8 fromRgba(AlphaU8 red,
-                                    AlphaU8 green,
-                                    AlphaU8 blue,
-                                    AlphaU8 alpha) {
+  static constexpr ColorU8 fromRgba(AlphaU8 red, AlphaU8 green, AlphaU8 blue, AlphaU8 alpha) {
     return ColorU8(red, green, blue, alpha);
   }
 
-  constexpr AlphaU8 red() const {
-    return data_[0];
-  }
-  constexpr AlphaU8 green() const {
-    return data_[1];
-  }
-  constexpr AlphaU8 blue() const {
-    return data_[2];
-  }
-  constexpr AlphaU8 alpha() const {
-    return data_[3];
-  }
+  constexpr AlphaU8 red() const { return data_[0]; }
+  constexpr AlphaU8 green() const { return data_[1]; }
+  constexpr AlphaU8 blue() const { return data_[2]; }
+  constexpr AlphaU8 alpha() const { return data_[3]; }
 
-  [[nodiscard]] bool isOpaque() const {
-    return alpha() == kAlphaU8Opaque;
-  }
+  [[nodiscard]] bool isOpaque() const { return alpha() == kAlphaU8Opaque; }
 
   [[nodiscard]] PremultipliedColorU8 premultiply() const;
 
@@ -62,13 +49,9 @@ class PremultipliedColorU8 {
   static const PremultipliedColorU8 transparent;
   constexpr PremultipliedColorU8() = default;
 
-  static std::optional<PremultipliedColorU8> fromRgba(AlphaU8 red,
-                                                     AlphaU8 green,
-                                                     AlphaU8 blue,
-                                                     AlphaU8 alpha);
-  static constexpr PremultipliedColorU8 fromRgbaUnchecked(AlphaU8 red,
-                                                          AlphaU8 green,
-                                                          AlphaU8 blue,
+  static std::optional<PremultipliedColorU8> fromRgba(AlphaU8 red, AlphaU8 green, AlphaU8 blue,
+                                                      AlphaU8 alpha);
+  static constexpr PremultipliedColorU8 fromRgbaUnchecked(AlphaU8 red, AlphaU8 green, AlphaU8 blue,
                                                           AlphaU8 alpha) {
     return PremultipliedColorU8(red, green, blue, alpha);
   }
@@ -76,22 +59,12 @@ class PremultipliedColorU8 {
   constexpr PremultipliedColorU8(AlphaU8 red, AlphaU8 green, AlphaU8 blue, AlphaU8 alpha)
       : data_{red, green, blue, alpha} {}
 
-  constexpr AlphaU8 red() const {
-    return data_[0];
-  }
-  constexpr AlphaU8 green() const {
-    return data_[1];
-  }
-  constexpr AlphaU8 blue() const {
-    return data_[2];
-  }
-  constexpr AlphaU8 alpha() const {
-    return data_[3];
-  }
+  constexpr AlphaU8 red() const { return data_[0]; }
+  constexpr AlphaU8 green() const { return data_[1]; }
+  constexpr AlphaU8 blue() const { return data_[2]; }
+  constexpr AlphaU8 alpha() const { return data_[3]; }
 
-  [[nodiscard]] bool isOpaque() const {
-    return alpha() == kAlphaU8Opaque;
-  }
+  [[nodiscard]] bool isOpaque() const { return alpha() == kAlphaU8Opaque; }
 
   [[nodiscard]] ColorU8 demultiply() const;
 
@@ -108,49 +81,28 @@ class Color {
   static const Color black;
   static const Color white;
 
-  constexpr Color(NormalizedF32 red,
-                  NormalizedF32 green,
-                  NormalizedF32 blue,
-                  NormalizedF32 alpha)
+  constexpr Color(NormalizedF32 red, NormalizedF32 green, NormalizedF32 blue, NormalizedF32 alpha)
       : red_(red), green_(green), blue_(blue), alpha_(alpha) {}
 
   static Color fromRgbaUnchecked(float red, float green, float blue, float alpha);
   static std::optional<Color> fromRgba(float red, float green, float blue, float alpha);
   static Color fromRgba8(AlphaU8 red, AlphaU8 green, AlphaU8 blue, AlphaU8 alpha);
 
-  float red() const {
-    return red_.get();
-  }
-  float green() const {
-    return green_.get();
-  }
-  float blue() const {
-    return blue_.get();
-  }
-  float alpha() const {
-    return alpha_.get();
-  }
+  float red() const { return red_.get(); }
+  float green() const { return green_.get(); }
+  float blue() const { return blue_.get(); }
+  float alpha() const { return alpha_.get(); }
 
-  void setRed(float value) {
-    red_ = NormalizedF32::newClamped(value);
-  }
-  void setGreen(float value) {
-    green_ = NormalizedF32::newClamped(value);
-  }
-  void setBlue(float value) {
-    blue_ = NormalizedF32::newClamped(value);
-  }
-  void setAlpha(float value) {
-    alpha_ = NormalizedF32::newClamped(value);
-  }
+  void setRed(float value) { red_ = NormalizedF32::newClamped(value); }
+  void setGreen(float value) { green_ = NormalizedF32::newClamped(value); }
+  void setBlue(float value) { blue_ = NormalizedF32::newClamped(value); }
+  void setAlpha(float value) { alpha_ = NormalizedF32::newClamped(value); }
 
   void applyOpacity(float opacity) {
     alpha_ = NormalizedF32::newClamped(alpha_.get() * bound(0.0f, opacity, 1.0f));
   }
 
-  [[nodiscard]] bool isOpaque() const {
-    return alpha_ == NormalizedF32::one();
-  }
+  [[nodiscard]] bool isOpaque() const { return alpha_ == NormalizedF32::one(); }
 
   [[nodiscard]] PremultipliedColor premultiply() const;
   [[nodiscard]] ColorU8 toColorU8() const;
@@ -166,24 +118,14 @@ class Color {
 class PremultipliedColor {
  public:
   constexpr PremultipliedColor() = default;
-  constexpr PremultipliedColor(NormalizedF32 red,
-                              NormalizedF32 green,
-                              NormalizedF32 blue,
-                              NormalizedF32 alpha)
+  constexpr PremultipliedColor(NormalizedF32 red, NormalizedF32 green, NormalizedF32 blue,
+                               NormalizedF32 alpha)
       : red_(red), green_(green), blue_(blue), alpha_(alpha) {}
 
-  float red() const {
-    return red_.get();
-  }
-  float green() const {
-    return green_.get();
-  }
-  float blue() const {
-    return blue_.get();
-  }
-  float alpha() const {
-    return alpha_.get();
-  }
+  float red() const { return red_.get(); }
+  float green() const { return green_.get(); }
+  float blue() const { return blue_.get(); }
+  float alpha() const { return alpha_.get(); }
 
   [[nodiscard]] Color demultiply() const;
   [[nodiscard]] PremultipliedColorU8 toColorU8() const;

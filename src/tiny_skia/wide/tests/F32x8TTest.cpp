@@ -1,5 +1,3 @@
-#include "tiny_skia/wide/F32x8T.h"
-
 #include <array>
 #include <bit>
 #include <cmath>
@@ -8,6 +6,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "tiny_skia/wide/F32x8T.h"
 #include "tiny_skia/wide/I32x8T.h"
 #include "tiny_skia/wide/U32x8T.h"
 
@@ -18,15 +17,13 @@ using tiny_skia::wide::F32x8T;
 
 TEST(F32x8TTest, AbsMinMaxAndNormalizeArePerLane) {
   const F32x8T value({-1.5f, 2.0f, -0.0f, -99.25f, 3.0f, -4.0f, 5.5f, 2.5f});
-  EXPECT_THAT(value.abs().lanes(),
-              ElementsAre(1.5f, 2.0f, 0.0f, 99.25f, 3.0f, 4.0f, 5.5f, 2.5f));
+  EXPECT_THAT(value.abs().lanes(), ElementsAre(1.5f, 2.0f, 0.0f, 99.25f, 3.0f, 4.0f, 5.5f, 2.5f));
 
   const F32x8T lhs({1.0f, -3.0f, 5.0f, 4.0f, -10.0f, 6.0f, 7.0f, 8.0f});
   const F32x8T rhs({2.0f, -4.0f, 3.0f, 10.0f, 1.0f, 5.0f, 9.0f, -8.0f});
   EXPECT_THAT(lhs.min(rhs).lanes(),
               ElementsAre(1.0f, -4.0f, 3.0f, 4.0f, -10.0f, 5.0f, 7.0f, -8.0f));
-  EXPECT_THAT(lhs.max(rhs).lanes(),
-              ElementsAre(2.0f, -3.0f, 5.0f, 10.0f, 1.0f, 6.0f, 9.0f, 8.0f));
+  EXPECT_THAT(lhs.max(rhs).lanes(), ElementsAre(2.0f, -3.0f, 5.0f, 10.0f, 1.0f, 6.0f, 9.0f, 8.0f));
 
   EXPECT_THAT(F32x8T({-1.0f, 0.2f, 1.5f, 2.0f, -0.3f, 0.7f, 1.0f, 0.0f}).normalize().lanes(),
               ElementsAre(0.0f, 0.2f, 1.0f, 1.0f, 0.0f, 0.7f, 1.0f, 0.0f));
@@ -80,29 +77,23 @@ TEST(F32x8TTest, BitcastConversionsPreserveAllLaneBits) {
                       std::bit_cast<float>(0x7fc00000u), std::bit_cast<float>(0x12345678u)});
 
   const auto asI32 = value.toI32x8Bitcast().lanes();
-  EXPECT_THAT(asI32, ElementsAre(std::bit_cast<std::int32_t>(0x3f800000u),
-                                 std::bit_cast<std::int32_t>(0xbf800000u),
-                                 std::bit_cast<std::int32_t>(0x00000000u),
-                                 std::bit_cast<std::int32_t>(0x80000000u),
-                                 std::bit_cast<std::int32_t>(0x7f800000u),
-                                 std::bit_cast<std::int32_t>(0xff800000u),
-                                 std::bit_cast<std::int32_t>(0x7fc00000u),
-                                 std::bit_cast<std::int32_t>(0x12345678u)));
+  EXPECT_THAT(
+      asI32,
+      ElementsAre(
+          std::bit_cast<std::int32_t>(0x3f800000u), std::bit_cast<std::int32_t>(0xbf800000u),
+          std::bit_cast<std::int32_t>(0x00000000u), std::bit_cast<std::int32_t>(0x80000000u),
+          std::bit_cast<std::int32_t>(0x7f800000u), std::bit_cast<std::int32_t>(0xff800000u),
+          std::bit_cast<std::int32_t>(0x7fc00000u), std::bit_cast<std::int32_t>(0x12345678u)));
 
   const auto asU32 = value.toU32x8Bitcast().lanes();
-  EXPECT_THAT(asU32, ElementsAre(0x3f800000u, 0xbf800000u, 0x00000000u, 0x80000000u,
-                                 0x7f800000u, 0xff800000u, 0x7fc00000u, 0x12345678u));
+  EXPECT_THAT(asU32, ElementsAre(0x3f800000u, 0xbf800000u, 0x00000000u, 0x80000000u, 0x7f800000u,
+                                 0xff800000u, 0x7fc00000u, 0x12345678u));
 }
 
 TEST(F32x8TTest, IsFiniteMatchesRustBitMaskLogic) {
-  const F32x8T value({0.0f,
-                      std::numeric_limits<float>::infinity(),
+  const F32x8T value({0.0f, std::numeric_limits<float>::infinity(),
                       -std::numeric_limits<float>::infinity(),
-                      std::numeric_limits<float>::quiet_NaN(),
-                      1.0f,
-                      -42.0f,
-                      3.14f,
-                      -0.0f});
+                      std::numeric_limits<float>::quiet_NaN(), 1.0f, -42.0f, 3.14f, -0.0f});
 
   const auto mask = value.isFinite().lanes();
   EXPECT_EQ(std::bit_cast<std::uint32_t>(mask[0]), 0xFFFFFFFFu);
@@ -117,8 +108,7 @@ TEST(F32x8TTest, IsFiniteMatchesRustBitMaskLogic) {
 
 TEST(F32x8TTest, SqrtIsPerLane) {
   const F32x8T value({0.0f, 1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 0.25f, 100.0f});
-  EXPECT_THAT(value.sqrt().lanes(),
-              ElementsAre(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 0.5f, 10.0f));
+  EXPECT_THAT(value.sqrt().lanes(), ElementsAre(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 0.5f, 10.0f));
 }
 
 TEST(F32x8TTest, RecipFastIsPerLane) {
@@ -172,8 +162,7 @@ TEST(F32x8TTest, OperatorPlusEqualsIsPerLane) {
   F32x8T value({1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f});
   const F32x8T addend({10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f, 70.0f, 80.0f});
   value += addend;
-  EXPECT_THAT(value.lanes(),
-              ElementsAre(11.0f, 22.0f, 33.0f, 44.0f, 55.0f, 66.0f, 77.0f, 88.0f));
+  EXPECT_THAT(value.lanes(), ElementsAre(11.0f, 22.0f, 33.0f, 44.0f, 55.0f, 66.0f, 77.0f, 88.0f));
 }
 
 }  // namespace

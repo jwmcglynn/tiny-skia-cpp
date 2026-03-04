@@ -1,8 +1,8 @@
 #include "tiny_skia/Mask.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <utility>
 
 namespace tiny_skia {
@@ -141,8 +141,6 @@ void Mask::invert() {
   }
 }
 
-void Mask::clear() {
-  std::fill(data_.begin(), data_.end(), static_cast<std::uint8_t>(0));
-}
+void Mask::clear() { std::fill(data_.begin(), data_.end(), static_cast<std::uint8_t>(0)); }
 
 }  // namespace tiny_skia

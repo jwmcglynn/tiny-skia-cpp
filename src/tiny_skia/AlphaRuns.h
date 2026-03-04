@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <span>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace tiny_skia {
@@ -22,20 +22,12 @@ class AlphaRuns {
 
   void reset(LengthU32 width);
 
-  std::size_t add(std::uint32_t x,
-                  AlphaU8 start_alpha,
-                  std::size_t middle_count,
-                  AlphaU8 stop_alpha,
-                  std::uint8_t max_value,
-                  std::size_t offset_x);
+  std::size_t add(std::uint32_t x, AlphaU8 start_alpha, std::size_t middle_count,
+                  AlphaU8 stop_alpha, std::uint8_t max_value, std::size_t offset_x);
 
-  static void breakRun(std::span<AlphaRun> runs,
-                       std::span<std::uint8_t> alpha,
-                       std::size_t x,
+  static void breakRun(std::span<AlphaRun> runs, std::span<std::uint8_t> alpha, std::size_t x,
                        std::size_t count);
-  static void breakAt(std::span<std::uint8_t> alpha,
-                      std::span<AlphaRun> runs,
-                       std::int32_t x);
+  static void breakAt(std::span<std::uint8_t> alpha, std::span<AlphaRun> runs, std::int32_t x);
 
   std::vector<AlphaRun> runs;
   std::vector<std::uint8_t> alpha;

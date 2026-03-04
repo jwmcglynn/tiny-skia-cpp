@@ -6,8 +6,8 @@
 
 namespace tiny_skia {
 
-Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode,
-                   Transform transform, Transform pointsToUnit)
+Gradient::Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transform transform,
+                   Transform pointsToUnit)
     : transform(transform),
       stops_(std::move(stops)),
       tile_mode_(tileMode),
@@ -87,11 +87,8 @@ bool Gradient::pushStages(
     const auto c1 = expandColor(cs, stops_[1].color);
 
     p.ctx().evenly_spaced_2_stop_gradient = pipeline::EvenlySpaced2StopGradientCtx{
-        .factor = pipeline::GradientColor{
-            c1.red() - c0.red(),
-            c1.green() - c0.green(),
-            c1.blue() - c0.blue(),
-            c1.alpha() - c0.alpha()},
+        .factor = pipeline::GradientColor{c1.red() - c0.red(), c1.green() - c0.green(),
+                                          c1.blue() - c0.blue(), c1.alpha() - c0.alpha()},
         .bias = pipeline::GradientColor{c0.red(), c0.green(), c0.blue(), c0.alpha()}};
 
     p.push(Stage::EvenlySpaced2StopGradient);
@@ -124,18 +121,16 @@ bool Gradient::pushStages(
     for (std::size_t i = firstStop; i < lastStop; ++i) {
       const float tR = stops_[i + 1].position.get();
       const auto cExpanded = expandColor(cs, stops_[i + 1].color);
-      const auto cR = pipeline::GradientColor{
-          cExpanded.red(), cExpanded.green(), cExpanded.blue(), cExpanded.alpha()};
+      const auto cR = pipeline::GradientColor{cExpanded.red(), cExpanded.green(), cExpanded.blue(),
+                                              cExpanded.alpha()};
 
       if (tL < tR) {
         const float invDt = 1.0f / (tR - tL);
-        const auto f = pipeline::GradientColor{
-            (cR.r - cL.r) * invDt, (cR.g - cL.g) * invDt,
-            (cR.b - cL.b) * invDt, (cR.a - cL.a) * invDt};
+        const auto f = pipeline::GradientColor{(cR.r - cL.r) * invDt, (cR.g - cL.g) * invDt,
+                                               (cR.b - cL.b) * invDt, (cR.a - cL.a) * invDt};
         ctx.factors.push_back(f);
-        ctx.biases.push_back(pipeline::GradientColor{
-            cL.r - f.r * tL, cL.g - f.g * tL,
-            cL.b - f.b * tL, cL.a - f.a * tL});
+        ctx.biases.push_back(pipeline::GradientColor{cL.r - f.r * tL, cL.g - f.g * tL,
+                                                     cL.b - f.b * tL, cL.a - f.a * tL});
         ctx.t_values.push_back(bound(0.0f, tL, 1.0f));
       }
 

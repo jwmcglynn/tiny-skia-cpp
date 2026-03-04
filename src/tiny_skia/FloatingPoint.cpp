@@ -95,17 +95,11 @@ std::int32_t saturateCastI32(double x) {
   return static_cast<std::int32_t>(x);
 }
 
-std::int32_t saturateFloorToI32(float x) {
-  return saturateCastI32(std::floor(x));
-}
+std::int32_t saturateFloorToI32(float x) { return saturateCastI32(std::floor(x)); }
 
-std::int32_t saturateCeilToI32(float x) {
-  return saturateCastI32(std::ceil(x));
-}
+std::int32_t saturateCeilToI32(float x) { return saturateCastI32(std::ceil(x)); }
 
-std::int32_t saturateRoundToI32(float x) {
-  return saturateCastI32(std::floor(x) + 0.5f);
-}
+std::int32_t saturateRoundToI32(float x) { return saturateCastI32(std::floor(x) + 0.5f); }
 
 std::int32_t f32As2sCompliment(float x) {
   return signBitTo2sCompliment(std::bit_cast<std::int32_t>(x));

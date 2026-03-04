@@ -16,9 +16,7 @@ AlphaRun makeRun(std::size_t value) {
 
 }  // namespace
 
-AlphaRuns::AlphaRuns(LengthU32 width) : runs(width + 1), alpha(width + 1, 0) {
-  reset(width);
-}
+AlphaRuns::AlphaRuns(LengthU32 width) : runs(width + 1), alpha(width + 1, 0) { reset(width); }
 
 std::uint8_t AlphaRuns::catchOverflow(std::uint16_t alpha) {
   assert(alpha <= 256);
@@ -28,8 +26,7 @@ std::uint8_t AlphaRuns::catchOverflow(std::uint16_t alpha) {
 bool AlphaRuns::isEmpty() const {
   assert(runs[0].has_value());
   if (const auto run = runs[0]; run.has_value()) {
-    return alpha[0] == 0 &&
-           !runs[static_cast<std::size_t>(run.value())].has_value();
+    return alpha[0] == 0 && !runs[static_cast<std::size_t>(run.value())].has_value();
   }
   return true;
 }
@@ -49,12 +46,8 @@ void AlphaRuns::reset(LengthU32 width) {
   alpha[0] = 0;
 }
 
-std::size_t AlphaRuns::add(std::uint32_t x,
-                           AlphaU8 start_alpha,
-                           std::size_t middle_count,
-                           AlphaU8 stop_alpha,
-                           std::uint8_t max_value,
-                           std::size_t offset_x) {
+std::size_t AlphaRuns::add(std::uint32_t x, AlphaU8 start_alpha, std::size_t middle_count,
+                           AlphaU8 stop_alpha, std::uint8_t max_value, std::size_t offset_x) {
   std::size_t x_usize = static_cast<std::size_t>(x);
 
   std::size_t runs_offset = offset_x;
@@ -64,10 +57,8 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   x_usize -= offset_x;
 
   if (start_alpha != 0) {
-    breakRun(std::span{runs}.subspan(runs_offset),
-              std::span{alpha}.subspan(alpha_offset),
-              x_usize,
-              1);
+    breakRun(std::span{runs}.subspan(runs_offset), std::span{alpha}.subspan(alpha_offset), x_usize,
+             1);
 
     const std::uint16_t tmp =
         static_cast<std::uint16_t>(alpha[alpha_offset + x_usize] + start_alpha);
@@ -80,20 +71,16 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   }
 
   if (middle_count != 0) {
-    breakRun(std::span{runs}.subspan(runs_offset),
-              std::span{alpha}.subspan(alpha_offset),
-              x_usize,
-              middle_count);
+    breakRun(std::span{runs}.subspan(runs_offset), std::span{alpha}.subspan(alpha_offset), x_usize,
+             middle_count);
 
     alpha_offset += x_usize;
     runs_offset += x_usize;
     x_usize = 0;
     do {
       alpha[alpha_offset] = catchOverflow(
-          static_cast<std::uint16_t>(static_cast<std::uint16_t>(alpha[alpha_offset]) +
-                                     max_value));
-      const std::size_t n =
-          static_cast<std::size_t>(runs[runs_offset].value());
+          static_cast<std::uint16_t>(static_cast<std::uint16_t>(alpha[alpha_offset]) + max_value));
+      const std::size_t n = static_cast<std::size_t>(runs[runs_offset].value());
       assert(n <= middle_count);
       alpha_offset += n;
       runs_offset += n;
@@ -107,10 +94,8 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   }
 
   if (stop_alpha != 0) {
-    breakRun(std::span{runs}.subspan(runs_offset),
-              std::span{alpha}.subspan(alpha_offset),
-              x_usize,
-              1);
+    breakRun(std::span{runs}.subspan(runs_offset), std::span{alpha}.subspan(alpha_offset), x_usize,
+             1);
     alpha_offset += x_usize;
     alpha[alpha_offset] += stop_alpha;
     last_alpha_offset = alpha_offset;
@@ -119,9 +104,7 @@ std::size_t AlphaRuns::add(std::uint32_t x,
   return last_alpha_offset;
 }
 
-void AlphaRuns::breakRun(std::span<AlphaRun> runs,
-                         std::span<std::uint8_t> alpha,
-                         std::size_t x,
+void AlphaRuns::breakRun(std::span<AlphaRun> runs, std::span<std::uint8_t> alpha, std::size_t x,
                          std::size_t count) {
   assert(count > 0);
 
@@ -169,9 +152,7 @@ void AlphaRuns::breakRun(std::span<AlphaRun> runs,
   }
 }
 
-void AlphaRuns::breakAt(std::span<std::uint8_t> alpha,
-                        std::span<AlphaRun> runs,
-                        std::int32_t x) {
+void AlphaRuns::breakAt(std::span<std::uint8_t> alpha, std::span<AlphaRun> runs, std::int32_t x) {
   std::size_t alpha_i = 0;
   std::size_t run_i = 0;
   while (x > 0) {

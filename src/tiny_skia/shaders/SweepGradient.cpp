@@ -7,8 +7,8 @@
 namespace tiny_skia {
 
 std::optional<std::variant<Color, SweepGradient>> SweepGradient::create(
-    Point center, float startAngle, float endAngle,
-    std::vector<GradientStop> stops, SpreadMode mode, Transform transform) {
+    Point center, float startAngle, float endAngle, std::vector<GradientStop> stops,
+    SpreadMode mode, Transform transform) {
   if (!std::isfinite(startAngle) || !std::isfinite(endAngle) || startAngle > endAngle) {
     return std::nullopt;
   }
@@ -41,15 +41,14 @@ std::optional<std::variant<Color, SweepGradient>> SweepGradient::create(
   const float t0 = startAngle / 360.0f;
   const float t1 = endAngle / 360.0f;
 
-  SweepGradient sg{Gradient(std::move(stops), mode, transform,
-                             Transform::fromTranslate(-center.x, -center.y))};
+  SweepGradient sg{
+      Gradient(std::move(stops), mode, transform, Transform::fromTranslate(-center.x, -center.y))};
   sg.t0_ = t0;
   sg.t1_ = t1;
   return std::variant<Color, SweepGradient>{std::move(sg)};
 }
 
-bool SweepGradient::pushStages(ColorSpace cs,
-                               pipeline::RasterPipelineBuilder& p) const {
+bool SweepGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const {
   using Stage = pipeline::Stage;
 
   const float scale = 1.0f / (t1_ - t0_);
@@ -57,7 +56,8 @@ bool SweepGradient::pushStages(ColorSpace cs,
   p.ctx().two_point_conical_gradient.p0 = scale;
   p.ctx().two_point_conical_gradient.p1 = bias;
 
-  return base_.pushStages(p, cs,
+  return base_.pushStages(
+      p, cs,
       [scale, bias](pipeline::RasterPipelineBuilder& b) {
         b.push(Stage::XYToUnitAngle);
         if (scale != 1.0f || bias != 0.0f) {

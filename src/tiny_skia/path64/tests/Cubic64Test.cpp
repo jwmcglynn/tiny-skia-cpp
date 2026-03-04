@@ -1,17 +1,16 @@
-#include <array>
-#include <span>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <array>
+#include <span>
 
 #include "tiny_skia/path64/Cubic64.h"
 
 namespace {
 
 auto Point64Eq(double expectedX, double expectedY) {
-  return testing::AllOf(
-      testing::Field(&tiny_skia::Point64::x, testing::DoubleEq(expectedX)),
-      testing::Field(&tiny_skia::Point64::y, testing::DoubleEq(expectedY)));
+  return testing::AllOf(testing::Field(&tiny_skia::Point64::x, testing::DoubleEq(expectedX)),
+                        testing::Field(&tiny_skia::Point64::y, testing::DoubleEq(expectedY)));
 }
 
 }  // namespace
@@ -25,9 +24,7 @@ TEST(Cubic64Test, AsF64SlicePreservesCoordinates) {
   });
 
   const auto slice = cubic.asF64Slice();
-  EXPECT_THAT(
-      slice,
-      testing::ElementsAre(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0));
+  EXPECT_THAT(slice, testing::ElementsAre(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0));
 }
 
 TEST(Cubic64Test, PointAtTEvaluatesEndpointsAndMidpoint) {
@@ -66,7 +63,7 @@ TEST(Cubic64Test, RootsValidTForCubicPolynomial) {
   EXPECT_EQ(count, 2u);
   EXPECT_THAT((std::array<double, 2>{roots[0], roots[1]}),
               testing::UnorderedElementsAre(testing::DoubleNear(0.0, 1e-12),
-                                          testing::DoubleNear(1.0, 1e-12)));
+                                            testing::DoubleNear(1.0, 1e-12)));
 }
 
 TEST(Cubic64Test, ChopAtUsesSpecialCaseAtMidpoint) {
@@ -104,13 +101,12 @@ TEST(Cubic64Test, SearchRootsFindsMonotonicCrossing) {
 
 TEST(Cubic64Test, RootsRealReturnsThreeDistinctRoots) {
   std::array<double, 3> roots{};
-  const auto count =
-      tiny_skia::path64::cubic64::rootsValidT(1.0, -1.5, 0.66, -0.08, roots);
+  const auto count = tiny_skia::path64::cubic64::rootsValidT(1.0, -1.5, 0.66, -0.08, roots);
   EXPECT_EQ(count, 3u);
   EXPECT_THAT((std::array<double, 3>{roots[0], roots[1], roots[2]}),
               testing::UnorderedElementsAre(testing::DoubleNear(0.2, 1e-12),
-                                          testing::DoubleNear(0.5, 1e-12),
-                                          testing::DoubleNear(0.8, 1e-12)));
+                                            testing::DoubleNear(0.5, 1e-12),
+                                            testing::DoubleNear(0.8, 1e-12)));
 }
 
 TEST(Cubic64Test, FindExtremaForCubicYEqualsTCubedHasOneStationaryPoint) {
@@ -168,11 +164,7 @@ TEST(Cubic64Test, SearchRootsReturnsNoneWhenCurveStaysAboveAxis) {
 
 TEST(Cubic64Test, RootsValidTClampsNearOne) {
   std::array<double, 3> roots{};
-  const auto count = tiny_skia::path64::cubic64::rootsValidT(0.0,
-                                                           1.0,
-                                                           -3.000004,
-                                                           2.000008,
-                                                           roots);
+  const auto count = tiny_skia::path64::cubic64::rootsValidT(0.0, 1.0, -3.000004, 2.000008, roots);
   EXPECT_EQ(count, 1u);
   EXPECT_NEAR(roots[0], 1.0, 1e-12);
 }
@@ -244,8 +236,7 @@ TEST(Cubic64Test, BinarySearchConvergesWhenOkSetsPriorT) {
   });
   std::array<double, 6> extremeTs{};
   std::array<double, 3> roots{};
-  const auto count = cubic.searchRoots(
-      0, 0.5, tiny_skia::SearchAxis::Y, extremeTs, roots);
+  const auto count = cubic.searchRoots(0, 0.5, tiny_skia::SearchAxis::Y, extremeTs, roots);
   EXPECT_GE(count, 1u);
   const auto pt = cubic.pointAtT(roots[0]);
   EXPECT_NEAR(pt.y, 0.5, 1e-6);

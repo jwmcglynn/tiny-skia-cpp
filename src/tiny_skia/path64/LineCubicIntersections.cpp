@@ -1,13 +1,13 @@
 #include "tiny_skia/path64/LineCubicIntersections.h"
-#include "tiny_skia/path64/Mod.h"
 
 #include <span>
 
+#include "tiny_skia/path64/Mod.h"
+
 namespace tiny_skia::path64::line_cubic_intersections {
 
-std::size_t horizontalIntersect(const cubic64::Cubic64& cubic,
-                               double axisIntercept,
-                               std::array<double, 3>& roots) {
+std::size_t horizontalIntersect(const cubic64::Cubic64& cubic, double axisIntercept,
+                                std::array<double, 3>& roots) {
   auto coeffs = cubic.asF64Slice();
   auto coords = std::span<const double>(coeffs.data() + 1, 7);
   auto [a, b, c, d] = cubic64::coefficients(coords);
@@ -26,9 +26,8 @@ std::size_t horizontalIntersect(const cubic64::Cubic64& cubic,
   return result;
 }
 
-std::size_t verticalIntersect(const cubic64::Cubic64& cubic,
-                             double axisIntercept,
-                             std::array<double, 3>& roots) {
+std::size_t verticalIntersect(const cubic64::Cubic64& cubic, double axisIntercept,
+                              std::array<double, 3>& roots) {
   auto coeffs = cubic.asF64Slice();
   const auto [a, b, c, d] = cubic64::coefficients(coeffs);
   const auto result = cubic64::rootsValidT(a, b, c, d - axisIntercept, roots);

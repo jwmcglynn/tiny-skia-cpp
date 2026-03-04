@@ -14,13 +14,9 @@ class F32x8T {
   F32x8T() = default;
   explicit constexpr F32x8T(std::array<float, 8> lanes) : lanes_(lanes) {}
 
-  [[nodiscard]] static constexpr F32x8T splat(float n) {
-    return F32x8T({n, n, n, n, n, n, n, n});
-  }
+  [[nodiscard]] static constexpr F32x8T splat(float n) { return F32x8T({n, n, n, n, n, n, n, n}); }
 
-  [[nodiscard]] constexpr std::array<float, 8> lanes() const {
-    return lanes_;
-  }
+  [[nodiscard]] constexpr std::array<float, 8> lanes() const { return lanes_; }
 
   [[nodiscard]] F32x8T floor() const;
   [[nodiscard]] F32x8T fract() const;

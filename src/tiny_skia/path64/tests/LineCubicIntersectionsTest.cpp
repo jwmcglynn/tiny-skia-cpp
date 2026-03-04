@@ -1,7 +1,7 @@
-#include <array>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <array>
 
 #include "tiny_skia/path64/Cubic64.h"
 #include "tiny_skia/path64/LineCubicIntersections.h"
@@ -15,7 +15,8 @@ TEST(LineCubicIntersectionsTest, HorizontalIntersectFindsExpectedSingleRoot) {
   });
 
   std::array<double, 3> roots{};
-  const auto count = tiny_skia::path64::line_cubic_intersections::horizontalIntersect(cubic, 0.5, roots);
+  const auto count =
+      tiny_skia::path64::line_cubic_intersections::horizontalIntersect(cubic, 0.5, roots);
   EXPECT_EQ(count, 1u);
   EXPECT_THAT(roots[0], testing::DoubleEq(0.5));
 }
@@ -29,7 +30,8 @@ TEST(LineCubicIntersectionsTest, VerticalIntersectFindsExpectedSingleRoot) {
   });
 
   std::array<double, 3> roots{};
-  const auto count = tiny_skia::path64::line_cubic_intersections::verticalIntersect(cubic, 0.5, roots);
+  const auto count =
+      tiny_skia::path64::line_cubic_intersections::verticalIntersect(cubic, 0.5, roots);
   EXPECT_EQ(count, 1u);
   EXPECT_THAT(roots[0], testing::DoubleEq(0.5));
 }
@@ -43,7 +45,8 @@ TEST(LineCubicIntersectionsTest, VerticalIntersectReturnsZeroForMiss) {
   });
 
   std::array<double, 3> roots{};
-  const auto count = tiny_skia::path64::line_cubic_intersections::verticalIntersect(cubic, 2.0, roots);
+  const auto count =
+      tiny_skia::path64::line_cubic_intersections::verticalIntersect(cubic, 2.0, roots);
   EXPECT_EQ(count, 0u);
 }
 
@@ -61,7 +64,8 @@ TEST(LineCubicIntersectionsTest, HorizontalIntersectUsesYCoordinates) {
   });
 
   std::array<double, 3> roots{};
-  const auto count = tiny_skia::path64::line_cubic_intersections::horizontalIntersect(cubic, 0.5, roots);
+  const auto count =
+      tiny_skia::path64::line_cubic_intersections::horizontalIntersect(cubic, 0.5, roots);
   EXPECT_GE(count, 1u);
   // Verify the found root maps to approximately y=0.5.
   const auto pt = cubic.pointAtT(roots[0]);

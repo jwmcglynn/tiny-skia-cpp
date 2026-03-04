@@ -37,11 +37,8 @@ constexpr std::int32_t kMaxCoord = 32767;
 
 void doScanline(FDot8 l, std::int32_t top, FDot8 r, AlphaU8 alpha, Blitter& blitter);
 void fillDot8(FDot8 l, FDot8 t, FDot8 r, FDot8 b, bool fillInner, Blitter& blitter);
-void callHlineBlitter(std::uint32_t x,
-                      const std::optional<std::uint32_t>& y,
-                      LengthU32 count,
-                      AlphaU8 alpha,
-                      Blitter& blitter);
+void callHlineBlitter(std::uint32_t x, const std::optional<std::uint32_t>& y, LengthU32 count,
+                      AlphaU8 alpha, Blitter& blitter);
 AlphaU8 i32ToAlpha(std::int32_t alpha);
 
 AlphaU8 alphaMul(AlphaU8 value, std::int32_t alpha256) {
@@ -63,10 +60,8 @@ std::optional<LengthU32> toLengthU32(std::int32_t value) {
   return static_cast<LengthU32>(value);
 }
 
-std::optional<IntRect> makeIntRectFromLTRB(std::int32_t left,
-                                          std::int32_t top,
-                                          std::int32_t right,
-                                          std::int32_t bottom) {
+std::optional<IntRect> makeIntRectFromLTRB(std::int32_t left, std::int32_t top, std::int32_t right,
+                                           std::int32_t bottom) {
   const auto width64 = static_cast<std::int64_t>(right) - static_cast<std::int64_t>(left);
   const auto height64 = static_cast<std::int64_t>(bottom) - static_cast<std::int64_t>(top);
   if (width64 <= 0 || height64 <= 0) {
@@ -78,25 +73,17 @@ std::optional<IntRect> makeIntRectFromLTRB(std::int32_t left,
     return std::nullopt;
   }
 
-  return IntRect::fromXYWH(left,
-                           top,
-                           static_cast<std::uint32_t>(width64),
+  return IntRect::fromXYWH(left, top, static_cast<std::uint32_t>(width64),
                            static_cast<std::uint32_t>(height64));
 }
 
 void fillFixedRect(const FixedRect& rect, Blitter& blitter) {
-  fillDot8(fdot8::fromFdot16(rect.left),
-           fdot8::fromFdot16(rect.top),
-           fdot8::fromFdot16(rect.right),
-           fdot8::fromFdot16(rect.bottom),
-           true,
-           blitter);
+  fillDot8(fdot8::fromFdot16(rect.left), fdot8::fromFdot16(rect.top), fdot8::fromFdot16(rect.right),
+           fdot8::fromFdot16(rect.bottom), true, blitter);
 }
 
 void fillDot8(FDot8 l, FDot8 t, FDot8 r, FDot8 b, bool fillInner, Blitter& blitter) {
-  auto toAlpha = [](std::int32_t alpha) {
-    return static_cast<AlphaU8>(alpha);
-  };
+  auto toAlpha = [](std::int32_t alpha) { return static_cast<AlphaU8>(alpha); };
 
   if (l >= r || t >= b) {
     return;
@@ -124,20 +111,14 @@ void fillDot8(FDot8 l, FDot8 t, FDot8 r, FDot8 b, bool fillInner, Blitter& blitt
   auto left = l >> 8;
   if (left == ((r - 1) >> 8)) {
     if (const auto leftX = toU32(left); const auto topY = toU32(top)) {
-      blitter.blitV(leftX.value(),
-                    topY.value(),
-                    widthHeight,
-                    toAlpha(r - l - 1));
+      blitter.blitV(leftX.value(), topY.value(), widthHeight, toAlpha(r - l - 1));
     }
     return;
   }
 
   if ((l & 0xFF) != 0) {
     if (const auto leftX = toU32(left); const auto topY = toU32(top)) {
-      blitter.blitV(leftX.value(),
-                    topY.value(),
-                    widthHeight,
-                    toAlpha(256 - (l & 0xFF)));
+      blitter.blitV(leftX.value(), topY.value(), widthHeight, toAlpha(256 - (l & 0xFF)));
     }
     left += 1;
   }
@@ -147,10 +128,8 @@ void fillDot8(FDot8 l, FDot8 t, FDot8 r, FDot8 b, bool fillInner, Blitter& blitt
   if (fillInner) {
     if (const auto width = toLengthU32(innerWidth); width.has_value()) {
       if (const auto leftX = toU32(left); const auto topY = toU32(top)) {
-        const auto rect = ScreenIntRect::fromXYWHSafe(leftX.value(),
-                                                     topY.value(),
-                                                     width.value(),
-                                                     widthHeight);
+        const auto rect =
+            ScreenIntRect::fromXYWHSafe(leftX.value(), topY.value(), width.value(), widthHeight);
         blitter.blitRect(rect);
       }
     }
@@ -213,11 +192,8 @@ void doScanline(FDot8 l, std::int32_t top, FDot8 r, AlphaU8 alpha, Blitter& blit
   }
 }
 
-void callHlineBlitter(std::uint32_t x,
-                      const std::optional<std::uint32_t>& y,
-                      LengthU32 count,
-                      AlphaU8 alpha,
-                      Blitter& blitter) {
+void callHlineBlitter(std::uint32_t x, const std::optional<std::uint32_t>& y, LengthU32 count,
+                      AlphaU8 alpha, Blitter& blitter) {
   if (count == 0) {
     return;
   }
@@ -281,7 +257,8 @@ class HLineAntiHairBlitter final : public AntiHairBlitter {
 
     ma = fdot6::smallScale(255 - a, mod64);
     if (ma != 0) {
-      callHlineBlitter(x, y == 0 ? std::nullopt : std::make_optional(y - 1), kLengthU32One, ma, blitter_);
+      callHlineBlitter(x, y == 0 ? std::nullopt : std::make_optional(y - 1), kLengthU32One, ma,
+                       blitter_);
     }
 
     return fy - fdot16::half;
@@ -426,9 +403,7 @@ class VertishAntiHairBlitter final : public AntiHairBlitter {
 
     const auto x = toU32(fx >> 16).value_or(0);
     const auto a = i32ToAlpha(fx >> 8);
-    blitter_.blitAntiH2(x == 0 ? 0u : x - 1,
-                        y,
-                        fdot6::smallScale(255 - a, mod64),
+    blitter_.blitAntiH2(x == 0 ? 0u : x - 1, y, fdot6::smallScale(255 - a, mod64),
                         fdot6::smallScale(a, mod64));
     return fx + dx - fdot16::half;
   }
@@ -461,9 +436,7 @@ class RectClipBlitter final : public Blitter {
  public:
   RectClipBlitter(Blitter& blitter, ScreenIntRect clip) : blitter_(blitter), clip_(clip) {}
 
-  void blitAntiH(std::uint32_t x,
-                 std::uint32_t y,
-                 std::span<AlphaU8> alpha,
+  void blitAntiH(std::uint32_t x, std::uint32_t y, std::span<AlphaU8> alpha,
                  std::span<AlphaRun> runs) override {
     if (!yInRect(y, clip_) || x >= clip_.right()) {
       return;
@@ -488,7 +461,8 @@ class RectClipBlitter final : public Blitter {
     }
 
     if (endX > static_cast<std::int32_t>(clip_.right())) {
-      const auto width = static_cast<std::size_t>(static_cast<std::int32_t>(clip_.right()) - startX);
+      const auto width =
+          static_cast<std::size_t>(static_cast<std::int32_t>(clip_.right()) - startX);
       AlphaRuns::breakAt(aa, run, static_cast<std::int32_t>(width));
       run = run.subspan(0, width + 1);
       if (width < run.size()) {
@@ -502,10 +476,7 @@ class RectClipBlitter final : public Blitter {
     }
   }
 
-  void blitV(std::uint32_t x,
-             std::uint32_t y,
-             LengthU32 height,
-             AlphaU8 alpha) override {
+  void blitV(std::uint32_t x, std::uint32_t y, LengthU32 height, AlphaU8 alpha) override {
     if (!xInRect(x, clip_)) {
       return;
     }
@@ -520,10 +491,8 @@ class RectClipBlitter final : public Blitter {
     }
 
     if (startY < stopY) {
-      blitter_.blitV(static_cast<std::uint32_t>(x),
-                     static_cast<std::uint32_t>(startY),
-                     static_cast<LengthU32>(stopY - startY),
-                     alpha);
+      blitter_.blitV(static_cast<std::uint32_t>(x), static_cast<std::uint32_t>(startY),
+                     static_cast<LengthU32>(stopY - startY), alpha);
     }
   }
 
@@ -567,29 +536,19 @@ class RectClipBlitter final : public Blitter {
   ScreenIntRect clip_;
 };
 
-std::int32_t badInt(std::int32_t x) {
-  return x & -x;
-}
+std::int32_t badInt(std::int32_t x) { return x & -x; }
 
 std::int32_t anyBadInts(std::int32_t a, std::int32_t b, std::int32_t c, std::int32_t d) {
   return (badInt(a) | badInt(b) | badInt(c) | badInt(d)) >>
          (static_cast<std::int32_t>(sizeof(std::int32_t) << 3) - 1);
 }
 
-std::int32_t contribution64(std::int32_t ordinate) {
-  return ((ordinate - 1) & 63) + 1;
-}
+std::int32_t contribution64(std::int32_t ordinate) { return ((ordinate - 1) & 63) + 1; }
 
-AlphaU8 i32ToAlpha(std::int32_t alpha) {
-  return static_cast<AlphaU8>(alpha & 0xFF);
-}
+AlphaU8 i32ToAlpha(std::int32_t alpha) { return static_cast<AlphaU8>(alpha & 0xFF); }
 
-void doAntiHairline(std::int32_t x0,
-                    std::int32_t y0,
-                    std::int32_t x1,
-                    std::int32_t y1,
-                    std::optional<ScreenIntRect> clipOpt,
-                    Blitter& blitter) {
+void doAntiHairline(std::int32_t x0, std::int32_t y0, std::int32_t x1, std::int32_t y1,
+                    std::optional<ScreenIntRect> clipOpt, Blitter& blitter) {
   if (anyBadInts(x0, y0, x1, y1) != 0) {
     return;
   }
@@ -625,8 +584,7 @@ void doAntiHairline(std::int32_t x0,
       blitterKind = BlitterKind::HLine;
     } else {
       slope = fdot16::fastDiv(y1 - y0, x1 - x0);
-      fStart +=
-          (static_cast<std::int64_t>(slope) * (32 - (x0 & 63)) + 32) >> 6;
+      fStart += (static_cast<std::int64_t>(slope) * (32 - (x0 & 63)) + 32) >> 6;
       blitterKind = BlitterKind::Horish;
     }
 
@@ -667,15 +625,13 @@ void doAntiHairline(std::int32_t x0,
       if (slope >= 0) {
         // T2B
         top = fdot16::floorToI32(fStart - fdot16::half);
-        bottom = fdot16::ceilToI32(
-            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-            fdot16::half);
+        bottom = fdot16::ceilToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
+                                   fdot16::half);
       } else {
         // B2T
         bottom = fdot16::ceilToI32(fStart + fdot16::half);
-        top = fdot16::floorToI32(
-            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
-            fdot16::half);
+        top = fdot16::floorToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
+                                 fdot16::half);
       }
       top -= 1;
       bottom += 1;
@@ -743,15 +699,13 @@ void doAntiHairline(std::int32_t x0,
       if (slope >= 0) {
         // L2R
         left = fdot16::floorToI32(fStart - fdot16::half);
-        right = fdot16::ceilToI32(
-            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
-            fdot16::half);
+        right = fdot16::ceilToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope +
+                                  fdot16::half);
       } else {
         // R2L
         right = fdot16::ceilToI32(fStart + fdot16::half);
-        left = fdot16::floorToI32(
-            fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
-            fdot16::half);
+        left = fdot16::floorToI32(fStart + static_cast<std::int64_t>(iStop - iStart - 1) * slope -
+                                  fdot16::half);
       }
       left -= 1;
       right += 1;
@@ -806,9 +760,7 @@ void doAntiHairline(std::int32_t x0,
   const auto fullSpans = iStop - iStart - (scaleStop > 0 ? 1 : 0);
   if (fullSpans > 0) {
     fStart = antiBlitter->drawLine(static_cast<std::uint32_t>(iStart),
-                                  static_cast<std::uint32_t>(iStart + fullSpans),
-                                  fStart,
-                                  slope);
+                                   static_cast<std::uint32_t>(iStart + fullSpans), fStart, slope);
   }
   if (scaleStop > 0) {
     antiBlitter->drawCap(static_cast<std::uint32_t>(iStop - 1), fStart, slope, scaleStop);
@@ -824,10 +776,8 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
   std::optional<Rect> clipBounds;
   if (clip != nullptr) {
     const auto clipRect = clip->toRect();
-    clipBounds = Rect::fromLtrb(clipRect.left() - 1.0f,
-                               clipRect.top() - 1.0f,
-                               clipRect.right() + 1.0f,
-                               clipRect.bottom() + 1.0f);
+    clipBounds = Rect::fromLtrb(clipRect.left() - 1.0f, clipRect.top() - 1.0f,
+                                clipRect.right() + 1.0f, clipRect.bottom() + 1.0f);
     if (!clipBounds.has_value()) {
       return;
     }
@@ -836,18 +786,16 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
   for (std::size_t i = 0; i + 1 < points.size(); ++i) {
     std::array<Point, 2> segment{points[i], points[i + 1]};
     std::array<Point, 2> clipped{};
-    if (!line_clipper::intersect(std::span<const Point, 2>{segment},
-                                fixedBounds.value(),
-                                std::span<Point, 2>{clipped})) {
+    if (!line_clipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
+                                 std::span<Point, 2>{clipped})) {
       continue;
     }
 
     auto working = clipped;
     if (clipBounds.has_value()) {
       std::array<Point, 2> clipClipped{};
-      if (!line_clipper::intersect(std::span<const Point, 2>{working},
-                                  clipBounds.value(),
-                                  std::span<Point, 2>{clipClipped})) {
+      if (!line_clipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
+                                   std::span<Point, 2>{clipClipped})) {
         continue;
       }
       working = clipClipped;
@@ -864,10 +812,8 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
       const auto right = std::max(x0, x1);
       const auto bottom = std::max(y0, y1);
 
-      const auto ir = makeIntRectFromLTRB(fdot6::floor(left) - 1,
-                                         fdot6::floor(top) - 1,
-                                         fdot6::ceil(right) + 1,
-                                         fdot6::ceil(bottom) + 1);
+      const auto ir = makeIntRectFromLTRB(fdot6::floor(left) - 1, fdot6::floor(top) - 1,
+                                          fdot6::ceil(right) + 1, fdot6::ceil(bottom) + 1);
       if (!ir.has_value()) {
         return;
       }
@@ -898,10 +844,9 @@ namespace scan::hairline_aa {
 
 void fillRect(const Rect& rect, const ScreenIntRect& clip, Blitter& blitter) {
   const auto clipRect = clip.toRect();
-  const auto clippedRect = Rect::fromLtrb(std::max(rect.left(), clipRect.left()),
-                                         std::max(rect.top(), clipRect.top()),
-                                         std::min(rect.right(), clipRect.right()),
-                                         std::min(rect.bottom(), clipRect.bottom()));
+  const auto clippedRect = Rect::fromLtrb(
+      std::max(rect.left(), clipRect.left()), std::max(rect.top(), clipRect.top()),
+      std::min(rect.right(), clipRect.right()), std::min(rect.bottom(), clipRect.bottom()));
   if (!clippedRect.has_value()) {
     return;
   }
@@ -915,6 +860,6 @@ void strokePath(const Path& path, LineCap lineCap, const ScreenIntRect& clip, Bl
   tiny_skia::scan::strokePathImpl(path, lineCap, clip, antiHairLineRgn, blitter);
 }
 
-}  // namespace hairline_aa
+}  // namespace scan::hairline_aa
 
 }  // namespace tiny_skia

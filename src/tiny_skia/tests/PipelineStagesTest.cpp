@@ -17,15 +17,13 @@ using namespace tiny_skia;
 /// Helper: move a gradient creation result variant into a Paint shader.
 template <typename V>
 void setShaderFromVariant(Paint& paint, V&& var) {
-  std::visit([&paint](auto&& val) { paint.shader = std::move(val); },
-             std::forward<V>(var));
+  std::visit([&paint](auto&& val) { paint.shader = std::move(val); }, std::forward<V>(var));
 }
 
 // ===== Helper =====
 
 /// Create a solid-colored 4x4 pixmap.
-static Pixmap make4x4(std::uint8_t r, std::uint8_t g, std::uint8_t b,
-                       std::uint8_t a) {
+static Pixmap make4x4(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a) {
   auto pm = Pixmap::fromSize(4, 4);
   EXPECT_TRUE(pm.has_value());
   auto pixels = pm->pixelsMut();
@@ -36,8 +34,7 @@ static Pixmap make4x4(std::uint8_t r, std::uint8_t g, std::uint8_t b,
 }
 
 /// Read pixel at (x, y) from a Pixmap.
-static PremultipliedColorU8 readPx(const Pixmap& pm, std::uint32_t x,
-                                    std::uint32_t y) {
+static PremultipliedColorU8 readPx(const Pixmap& pm, std::uint32_t x, std::uint32_t y) {
   return pm.pixel(x, y).value_or(PremultipliedColorU8(0, 0, 0, 0));
 }
 
@@ -132,9 +129,8 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
-      std::move(stops), SpreadMode::Pad, Transform::identity());
+  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+                                     std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
   Paint paint;
@@ -147,9 +143,8 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
 
   // First pixel should be close to red.
   const auto first = readPx(pm, 0, 0);
-  EXPECT_GT(first.red(), 200) << "first pixel r=" << (int)first.red()
-      << " g=" << (int)first.green() << " b=" << (int)first.blue()
-      << " a=" << (int)first.alpha();
+  EXPECT_GT(first.red(), 200) << "first pixel r=" << (int)first.red() << " g=" << (int)first.green()
+                              << " b=" << (int)first.blue() << " a=" << (int)first.alpha();
   EXPECT_LT(first.blue(), 55);
   EXPECT_EQ(first.alpha(), 255);
 
@@ -179,9 +174,8 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
       GradientStop::create(0.5f, Color::fromRgba8(0, 255, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
-      std::move(stops), SpreadMode::Pad, Transform::identity());
+  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+                                     std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
   Paint paint;
@@ -218,10 +212,9 @@ TEST(PipelineGradientTest, RadialGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = RadialGradient::create(
-      Point::fromXy(5.0f, 5.0f), 0.0f,
-      Point::fromXy(5.0f, 5.0f), 5.0f,
-      std::move(stops), SpreadMode::Pad, Transform::identity());
+  auto grad =
+      RadialGradient::create(Point::fromXy(5.0f, 5.0f), 0.0f, Point::fromXy(5.0f, 5.0f), 5.0f,
+                             std::move(stops), SpreadMode::Pad, Transform::identity());
   if (!grad.has_value()) {
     GTEST_SKIP() << "RadialGradient::create returned nullopt";
   }
@@ -257,9 +250,8 @@ TEST(PipelineGradientTest, SweepGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = SweepGradient::create(
-      Point::fromXy(5.0f, 5.0f), 0.0f, 360.0f,
-      std::move(stops), SpreadMode::Pad, Transform::identity());
+  auto grad = SweepGradient::create(Point::fromXy(5.0f, 5.0f), 0.0f, 360.0f, std::move(stops),
+                                    SpreadMode::Pad, Transform::identity());
   if (!grad.has_value()) {
     GTEST_SKIP() << "SweepGradient::create returned nullopt";
   }
@@ -292,9 +284,8 @@ TEST(PipelineTileModeTest, PadGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
-      std::move(stops), SpreadMode::Pad, Transform::identity());
+  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+                                     std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
   Paint paint;
@@ -320,9 +311,8 @@ TEST(PipelineTileModeTest, RepeatGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
-      std::move(stops), SpreadMode::Repeat, Transform::identity());
+  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+                                     std::move(stops), SpreadMode::Repeat, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
   Paint paint;
@@ -349,9 +339,8 @@ TEST(PipelineTileModeTest, ReflectGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
-      std::move(stops), SpreadMode::Reflect, Transform::identity());
+  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+                                     std::move(stops), SpreadMode::Reflect, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
   Paint paint;
@@ -388,9 +377,9 @@ TEST(PipelineBlendTest, DarkenBlend) {
 
   // Darken takes min per channel.
   const auto px = readPx(pm, 0, 0);
-  EXPECT_LE(px.red(), 128);    // min(200, 128) = 128
-  EXPECT_LE(px.green(), 50);   // min(50, 128) = 50
-  EXPECT_LE(px.blue(), 100);   // min(100, 128) = 100
+  EXPECT_LE(px.red(), 128);   // min(200, 128) = 128
+  EXPECT_LE(px.green(), 50);  // min(50, 128) = 50
+  EXPECT_LE(px.blue(), 100);  // min(100, 128) = 100
   EXPECT_EQ(px.alpha(), 255);
 }
 

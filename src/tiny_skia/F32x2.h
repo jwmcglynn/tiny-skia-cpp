@@ -31,18 +31,14 @@ struct F32x2 {
   [[nodiscard]] F32x2 abs() const { return F32x2{std::abs(x), std::abs(y)}; }
 
   [[nodiscard]] constexpr F32x2 min(F32x2 other) const {
-    return F32x2{path_f32x2_detail::pmin(x, other.x),
-                 path_f32x2_detail::pmin(y, other.y)};
+    return F32x2{path_f32x2_detail::pmin(x, other.x), path_f32x2_detail::pmin(y, other.y)};
   }
 
   [[nodiscard]] constexpr F32x2 max(F32x2 other) const {
-    return F32x2{path_f32x2_detail::pmax(x, other.x),
-                 path_f32x2_detail::pmax(y, other.y)};
+    return F32x2{path_f32x2_detail::pmax(x, other.x), path_f32x2_detail::pmax(y, other.y)};
   }
 
-  [[nodiscard]] constexpr float maxComponent() const {
-    return path_f32x2_detail::pmax(x, y);
-  }
+  [[nodiscard]] constexpr float maxComponent() const { return path_f32x2_detail::pmax(x, y); }
 
   constexpr bool operator==(const F32x2&) const = default;
 };

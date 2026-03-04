@@ -53,33 +53,24 @@ class Path {
   [[nodiscard]] std::size_t len() const { return verbs_.size(); }
   [[nodiscard]] bool isEmpty() const { return verbs_.empty(); }
 
-  [[nodiscard]] std::span<const PathVerb> verbs() const {
-    return verbs_;
-  }
-  [[nodiscard]] std::span<const Point> points() const {
-    return points_;
-  }
+  [[nodiscard]] std::span<const PathVerb> verbs() const { return verbs_; }
+  [[nodiscard]] std::span<const Point> points() const { return points_; }
 
-  void addVerb(PathVerb verb) {
-    verbs_.push_back(verb);
-  }
+  void addVerb(PathVerb verb) { verbs_.push_back(verb); }
 
   void addPoint(Point point) {
     if (bounds_.has_value()) {
       const auto current = bounds_.value();
-      bounds_ = Rect::fromLtrb(std::min(current.left(), point.x),
-                               std::min(current.top(), point.y),
-                               std::max(current.right(), point.x),
-                               std::max(current.bottom(), point.y));
+      bounds_ =
+          Rect::fromLtrb(std::min(current.left(), point.x), std::min(current.top(), point.y),
+                         std::max(current.right(), point.x), std::max(current.bottom(), point.y));
     } else {
       bounds_ = Rect::fromLtrb(point.x, point.y, point.x, point.y);
     }
     points_.push_back(point);
   }
 
-  [[nodiscard]] bool isConvex() const {
-    return true;
-  }
+  [[nodiscard]] bool isConvex() const { return true; }
 
   [[nodiscard]] Rect bounds() const {
     return bounds_.value_or(Rect::fromLtrb(0.0f, 0.0f, 0.0f, 0.0f).value());
@@ -108,12 +99,10 @@ class Path {
   [[nodiscard]] PathBuilder clear();
 
   /// Stroke this path. Returns a filled path representing the stroke outline.
-  [[nodiscard]] std::optional<Path> stroke(const Stroke& stroke,
-                                            float resScale) const;
+  [[nodiscard]] std::optional<Path> stroke(const Stroke& stroke, float resScale) const;
 
   /// Dash this path. Returns a new path with dash pattern applied.
-  [[nodiscard]] std::optional<Path> dash(const StrokeDash& dash,
-                                          float resScale) const;
+  [[nodiscard]] std::optional<Path> dash(const StrokeDash& dash, float resScale) const;
 
  private:
   void recomputeBounds() {
@@ -150,22 +139,18 @@ enum class FillRule : std::uint8_t {
 /// Creates a rectangular path from a Rect.
 /// Matches Rust `PathBuilder::from_rect`.
 inline Path pathFromRect(const Rect& rect) {
-  std::vector<PathVerb> verbs = {
-      PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
-      PathVerb::Close};
-  std::vector<Point> points = {
-      Point{rect.left(), rect.top()},
-      Point{rect.right(), rect.top()},
-      Point{rect.right(), rect.bottom()},
-      Point{rect.left(), rect.bottom()}};
+  std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line, PathVerb::Line, PathVerb::Line,
+                                 PathVerb::Close};
+  std::vector<Point> points = {Point{rect.left(), rect.top()}, Point{rect.right(), rect.top()},
+                               Point{rect.right(), rect.bottom()},
+                               Point{rect.left(), rect.bottom()}};
   return Path(std::move(verbs), std::move(points));
 }
 
 /// Path segments iterator. Matches Rust `PathSegmentsIter`.
 class PathSegmentsIter {
  public:
-  explicit PathSegmentsIter(const Path& path)
-      : path_(&path) {}
+  explicit PathSegmentsIter(const Path& path) : path_(&path) {}
 
   void setAutoClose(bool flag) { isAutoClose_ = flag; }
 
@@ -174,9 +159,7 @@ class PathSegmentsIter {
   [[nodiscard]] Point lastPoint() const { return lastPoint_; }
   [[nodiscard]] Point lastMoveTo() const { return lastMoveTo_; }
 
-  [[nodiscard]] PathVerb currVerb() const {
-    return path_->verbs()[verbIndex_ - 1];
-  }
+  [[nodiscard]] PathVerb currVerb() const { return path_->verbs()[verbIndex_ - 1]; }
 
   [[nodiscard]] std::optional<PathVerb> nextVerb() const {
     if (verbIndex_ < path_->verbs().size()) {

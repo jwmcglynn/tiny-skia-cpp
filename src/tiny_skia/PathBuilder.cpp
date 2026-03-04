@@ -43,12 +43,9 @@ void PathBuilder::quadTo(float x1, float y1, float x, float y) {
   points_.push_back(Point::fromXy(x, y));
 }
 
-void PathBuilder::quadToPt(Point p1, Point p) {
-  quadTo(p1.x, p1.y, p.x, p.y);
-}
+void PathBuilder::quadToPt(Point p1, Point p) { quadTo(p1.x, p1.y, p.x, p.y); }
 
-void PathBuilder::cubicTo(float x1, float y1, float x2, float y2, float x,
-                           float y) {
+void PathBuilder::cubicTo(float x1, float y1, float x2, float y2, float x, float y) {
   injectMoveToIfNeeded();
   verbs_.push_back(PathVerb::Cubic);
   points_.push_back(Point::fromXy(x1, y1));
@@ -60,8 +57,7 @@ void PathBuilder::cubicToPt(Point p1, Point p2, Point p) {
   cubicTo(p1.x, p1.y, p2.x, p2.y, p.x, p.y);
 }
 
-void PathBuilder::conicTo(float x1, float y1, float x, float y,
-                           float weight) {
+void PathBuilder::conicTo(float x1, float y1, float x, float y, float weight) {
   if (!(weight > 0.0f)) {
     lineTo(x, y);
   } else if (!std::isfinite(weight)) {
@@ -72,8 +68,8 @@ void PathBuilder::conicTo(float x1, float y1, float x, float y,
   } else {
     injectMoveToIfNeeded();
     auto last = lastPoint().value_or(Point::zero());
-    auto quadder = path_geometry::autoConicToQuads(
-        last, Point::fromXy(x1, y1), Point::fromXy(x, y), weight);
+    auto quadder =
+        path_geometry::autoConicToQuads(last, Point::fromXy(x1, y1), Point::fromXy(x, y), weight);
     if (quadder.has_value()) {
       std::size_t offset = 1;
       for (std::uint8_t i = 0; i < quadder->len; ++i) {

@@ -23,12 +23,8 @@ class IntSize {
     return IntSize{width, height};
   }
 
-  constexpr LengthU32 width() const {
-    return width_;
-  }
-  constexpr LengthU32 height() const {
-    return height_;
-  }
+  constexpr LengthU32 width() const { return width_; }
+  constexpr LengthU32 height() const { return height_; }
   [[nodiscard]] ScreenIntRect toScreenIntRect(std::uint32_t x, std::uint32_t y) const;
   [[nodiscard]] std::optional<IntRect> toIntRect(std::int32_t x, std::int32_t y) const;
   [[nodiscard]] Rect toRect() const;
@@ -44,40 +40,22 @@ class ScreenIntRect {
  public:
   constexpr ScreenIntRect() = default;
 
-  static std::optional<ScreenIntRect> fromXYWH(std::uint32_t x,
-                                               std::uint32_t y,
-                                               std::uint32_t width,
-                                               std::uint32_t height);
+  static std::optional<ScreenIntRect> fromXYWH(std::uint32_t x, std::uint32_t y,
+                                               std::uint32_t width, std::uint32_t height);
 
-  static constexpr ScreenIntRect fromXYWHSafe(std::uint32_t x,
-                                              std::uint32_t y,
-                                              LengthU32 width,
+  static constexpr ScreenIntRect fromXYWHSafe(std::uint32_t x, std::uint32_t y, LengthU32 width,
                                               LengthU32 height) {
     return ScreenIntRect{x, y, width, height};
   }
 
-  constexpr std::uint32_t x() const {
-    return x_;
-  }
-  constexpr std::uint32_t y() const {
-    return y_;
-  }
-  constexpr LengthU32 width() const {
-    return width_;
-  }
-  constexpr LengthU32 height() const {
-    return height_;
-  }
-  constexpr LengthU32 widthSafe() const {
-    return width_;
-  }
+  constexpr std::uint32_t x() const { return x_; }
+  constexpr std::uint32_t y() const { return y_; }
+  constexpr LengthU32 width() const { return width_; }
+  constexpr LengthU32 height() const { return height_; }
+  constexpr LengthU32 widthSafe() const { return width_; }
 
-  constexpr std::uint32_t left() const {
-    return x_;
-  }
-  constexpr std::uint32_t top() const {
-    return y_;
-  }
+  constexpr std::uint32_t left() const { return x_; }
+  constexpr std::uint32_t top() const { return y_; }
 
   std::uint32_t right() const;
   std::uint32_t bottom() const;
@@ -87,10 +65,7 @@ class ScreenIntRect {
   [[nodiscard]] Rect toRect() const;
 
  private:
-  constexpr ScreenIntRect(std::uint32_t x,
-                          std::uint32_t y,
-                          LengthU32 width,
-                          LengthU32 height)
+  constexpr ScreenIntRect(std::uint32_t x, std::uint32_t y, LengthU32 width, LengthU32 height)
       : x_{x}, y_{y}, width_{width}, height_{height} {}
 
   std::uint32_t x_ = 0;
@@ -101,30 +76,16 @@ class ScreenIntRect {
 
 class IntRect {
  public:
-  static std::optional<IntRect> fromXYWH(std::int32_t x,
-                                         std::int32_t y,
-                                         std::uint32_t width,
+  static std::optional<IntRect> fromXYWH(std::int32_t x, std::int32_t y, std::uint32_t width,
                                          std::uint32_t height);
 
-  constexpr std::int32_t x() const {
-    return x_;
-  }
-  constexpr std::int32_t y() const {
-    return y_;
-  }
-  constexpr LengthU32 width() const {
-    return width_;
-  }
-  constexpr LengthU32 height() const {
-    return height_;
-  }
+  constexpr std::int32_t x() const { return x_; }
+  constexpr std::int32_t y() const { return y_; }
+  constexpr LengthU32 width() const { return width_; }
+  constexpr LengthU32 height() const { return height_; }
 
-  [[nodiscard]] constexpr std::int32_t left() const {
-    return x_;
-  }
-  [[nodiscard]] constexpr std::int32_t top() const {
-    return y_;
-  }
+  [[nodiscard]] constexpr std::int32_t left() const { return x_; }
+  [[nodiscard]] constexpr std::int32_t top() const { return y_; }
 
   [[nodiscard]] std::int32_t right() const;
   [[nodiscard]] std::int32_t bottom() const;
@@ -134,10 +95,7 @@ class IntRect {
   [[nodiscard]] std::optional<ScreenIntRect> toScreenIntRect() const;
 
  private:
-  constexpr IntRect(std::int32_t x,
-                    std::int32_t y,
-                    LengthU32 width,
-                    LengthU32 height)
+  constexpr IntRect(std::int32_t x, std::int32_t y, LengthU32 width, LengthU32 height)
       : x_{x}, y_{y}, width_{width}, height_{height} {}
 
   std::int32_t x_ = 0;
@@ -156,25 +114,13 @@ class Rect {
     return fromLtrb(x, y, x + w, y + h);
   }
 
-  constexpr float left() const {
-    return left_;
-  }
-  constexpr float top() const {
-    return top_;
-  }
-  constexpr float right() const {
-    return right_;
-  }
-  constexpr float bottom() const {
-    return bottom_;
-  }
+  constexpr float left() const { return left_; }
+  constexpr float top() const { return top_; }
+  constexpr float right() const { return right_; }
+  constexpr float bottom() const { return bottom_; }
 
-  constexpr float width() const {
-    return right_ - left_;
-  }
-  constexpr float height() const {
-    return bottom_ - top_;
-  }
+  constexpr float width() const { return right_ - left_; }
+  constexpr float height() const { return bottom_ - top_; }
 
   constexpr bool operator==(const Rect&) const = default;
 

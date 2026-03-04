@@ -39,9 +39,7 @@ constexpr T bound(T min, T value, T max) {
 }
 
 /// Matches Rust `f32::invert()` → `1.0 / self`.
-[[nodiscard]] inline float invert(float value) {
-  return 1.0f / value;
-}
+[[nodiscard]] inline float invert(float value) { return 1.0f / value; }
 
 int leftShift(int32_t value, int32_t shift);
 long long leftShift64(long long value, int32_t shift);

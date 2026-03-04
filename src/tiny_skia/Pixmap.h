@@ -22,21 +22,14 @@ class PixmapRef {
  public:
   PixmapRef() = default;
 
-  static std::optional<PixmapRef> fromBytes(std::span<const std::uint8_t> data,
-                                            std::uint32_t width,
+  static std::optional<PixmapRef> fromBytes(std::span<const std::uint8_t> data, std::uint32_t width,
                                             std::uint32_t height);
 
-  [[nodiscard]] std::uint32_t width() const {
-    return size_.width();
-  }
+  [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 
-  [[nodiscard]] std::uint32_t height() const {
-    return size_.height();
-  }
+  [[nodiscard]] std::uint32_t height() const { return size_.height(); }
 
-  [[nodiscard]] IntSize size() const {
-    return size_;
-  }
+  [[nodiscard]] IntSize size() const { return size_; }
 
   [[nodiscard]] std::span<const std::uint8_t> data() const {
     return std::span<const std::uint8_t>(data_, len_);
@@ -64,21 +57,14 @@ class PixmapMut {
   explicit PixmapMut(std::uint8_t* data, std::size_t len, IntSize size)
       : data_(data), len_(len), size_(size) {}
 
-  static std::optional<PixmapMut> fromBytes(std::span<std::uint8_t> data,
-                                            std::uint32_t width,
+  static std::optional<PixmapMut> fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
                                             std::uint32_t height);
 
-  [[nodiscard]] std::uint32_t width() const {
-    return size_.width();
-  }
+  [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 
-  [[nodiscard]] std::uint32_t height() const {
-    return size_.height();
-  }
+  [[nodiscard]] std::uint32_t height() const { return size_.height(); }
 
-  [[nodiscard]] IntSize size() const {
-    return size_;
-  }
+  [[nodiscard]] IntSize size() const { return size_; }
 
   [[nodiscard]] std::span<std::uint8_t> dataMut() const {
     return std::span<std::uint8_t>(data_, len_);
@@ -99,13 +85,9 @@ struct SubPixmapMut {
   std::size_t real_width = 0;
   std::uint8_t* data = nullptr;
 
-  [[nodiscard]] std::size_t width() const {
-    return size.width();
-  }
+  [[nodiscard]] std::size_t width() const { return size.width(); }
 
-  [[nodiscard]] std::size_t height() const {
-    return size.height();
-  }
+  [[nodiscard]] std::size_t height() const { return size.height(); }
 
   [[nodiscard]] std::span<std::uint8_t> dataMut() const;
 };
@@ -117,25 +99,15 @@ class Pixmap {
   static std::optional<Pixmap> fromSize(std::uint32_t width, std::uint32_t height);
   static std::optional<Pixmap> fromVec(std::vector<std::uint8_t> data, IntSize size);
 
-  [[nodiscard]] PixmapRef asRef() const {
-    return PixmapRef(data_.data(), data_.size(), size_);
-  }
+  [[nodiscard]] PixmapRef asRef() const { return PixmapRef(data_.data(), data_.size(), size_); }
 
-  [[nodiscard]] PixmapMut asMut() {
-    return PixmapMut(data_.data(), data_.size(), size_);
-  }
+  [[nodiscard]] PixmapMut asMut() { return PixmapMut(data_.data(), data_.size(), size_); }
 
-  [[nodiscard]] std::uint32_t width() const {
-    return size_.width();
-  }
+  [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 
-  [[nodiscard]] std::uint32_t height() const {
-    return size_.height();
-  }
+  [[nodiscard]] std::uint32_t height() const { return size_.height(); }
 
-  [[nodiscard]] IntSize size() const {
-    return size_;
-  }
+  [[nodiscard]] IntSize size() const { return size_; }
 
   [[nodiscard]] std::span<const std::uint8_t> data() const {
     return std::span<const std::uint8_t>(data_.data(), data_.size());

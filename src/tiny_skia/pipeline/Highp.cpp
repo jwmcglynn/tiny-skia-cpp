@@ -3,15 +3,16 @@
 #pragma clang fp contract(off)
 
 #include "tiny_skia/pipeline/Highp.h"
-#include "tiny_skia/Color.h"
-#include "tiny_skia/Geom.h"
-#include "tiny_skia/Math.h"
-#include "tiny_skia/Pixmap.h"
 
 #include <algorithm>
 #include <bit>
 #include <cmath>
 #include <cstring>
+
+#include "tiny_skia/Color.h"
+#include "tiny_skia/Geom.h"
+#include "tiny_skia/Math.h"
+#include "tiny_skia/Pixmap.h"
 
 namespace tiny_skia::pipeline::highp {
 
@@ -39,11 +40,8 @@ struct Pipeline {
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>&,
-           const ScreenIntRect& rect_arg,
-           const AAMaskCtx& aa_mask_ctx_arg,
-           const MaskCtx& mask_ctx_arg,
-           Context& ctx_arg,
-           const PixmapRef& pixmap_src_arg,
+           const ScreenIntRect& rect_arg, const AAMaskCtx& aa_mask_ctx_arg,
+           const MaskCtx& mask_ctx_arg, Context& ctx_arg, const PixmapRef& pixmap_src_arg,
            SubPixmapMut* pixmap_dst_arg)
       : functions(&fun),
         rect(&rect_arg),
@@ -53,7 +51,6 @@ struct Pipeline {
         pixmap_src(&pixmap_src_arg),
         pixmap_dst(pixmap_dst_arg) {}
 
-
   void nextStage() {
     const auto next = (*functions)[index];
     ++index;
@@ -61,13 +58,9 @@ struct Pipeline {
   }
 };
 
-bool fnPtrEq(StageFn a, StageFn b) {
-  return a == b;
-}
+bool fnPtrEq(StageFn a, StageFn b) { return a == b; }
 
-const void* fnPtr(StageFn fn) {
-  return reinterpret_cast<const void*>(fn);
-}
+const void* fnPtr(StageFn fn) { return reinterpret_cast<const void*>(fn); }
 
 namespace {
 
@@ -328,10 +321,14 @@ void multiply(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto inv_da = 1.0f - pipeline.da[i];
     const auto inv_sa = 1.0f - pipeline.a[i];
-    pipeline.r[i] = pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + pipeline.r[i] * pipeline.dr[i];
-    pipeline.g[i] = pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + pipeline.g[i] * pipeline.dg[i];
-    pipeline.b[i] = pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + pipeline.b[i] * pipeline.db[i];
-    pipeline.a[i] = pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + pipeline.a[i] * pipeline.da[i];
+    pipeline.r[i] =
+        pipeline.r[i] * inv_da + pipeline.dr[i] * inv_sa + pipeline.r[i] * pipeline.dr[i];
+    pipeline.g[i] =
+        pipeline.g[i] * inv_da + pipeline.dg[i] * inv_sa + pipeline.g[i] * pipeline.dg[i];
+    pipeline.b[i] =
+        pipeline.b[i] * inv_da + pipeline.db[i] * inv_sa + pipeline.b[i] * pipeline.db[i];
+    pipeline.a[i] =
+        pipeline.a[i] * inv_da + pipeline.da[i] * inv_sa + pipeline.a[i] * pipeline.da[i];
   }
   pipeline.nextStage();
 }
@@ -447,9 +444,9 @@ void color_dodge(Pipeline& pipeline) {
 constexpr float kInv255 = 1.0f / 255.0f;
 
 void load_8888(const std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
-               std::size_t count, Pipeline& p,
-               std::array<float, kStageWidth>& or_, std::array<float, kStageWidth>& og,
-               std::array<float, kStageWidth>& ob, std::array<float, kStageWidth>& oa) {
+               std::size_t count, Pipeline& p, std::array<float, kStageWidth>& or_,
+               std::array<float, kStageWidth>& og, std::array<float, kStageWidth>& ob,
+               std::array<float, kStageWidth>& oa) {
   const auto offset = (dy * stride + dx) * 4;
   for (std::size_t i = 0; i < count; ++i) {
     const auto base = offset + i * 4;
@@ -476,10 +473,8 @@ inline std::uint8_t unnorm(float v) {
 }
 
 void store_8888(std::uint8_t* data, std::size_t stride, std::size_t dx, std::size_t dy,
-                std::size_t count,
-                const std::array<float, kStageWidth>& r,
-                const std::array<float, kStageWidth>& g,
-                const std::array<float, kStageWidth>& b,
+                std::size_t count, const std::array<float, kStageWidth>& r,
+                const std::array<float, kStageWidth>& g, const std::array<float, kStageWidth>& b,
                 const std::array<float, kStageWidth>& a) {
   const auto offset = (dy * stride + dx) * 4;
   for (std::size_t i = 0; i < count; ++i) {
@@ -496,9 +491,8 @@ void load_dst(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-            pipeline.dx, pipeline.dy, pipeline.tail, pipeline,
-            pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+            pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
@@ -507,9 +501,8 @@ void store(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-             pipeline.dx, pipeline.dy, pipeline.tail,
-             pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+             pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
@@ -552,9 +545,8 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-            pipeline.dx, pipeline.dy, pipeline.tail, pipeline,
-            pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
+  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+            pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto inv_a = 1.0f - pipeline.a[i];
     pipeline.r[i] = pipeline.dr[i] * inv_a + pipeline.r[i];
@@ -562,9 +554,8 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.b[i] = pipeline.db[i] * inv_a + pipeline.b[i];
     pipeline.a[i] = pipeline.da[i] * inv_a + pipeline.a[i];
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width,
-             pipeline.dx, pipeline.dy, pipeline.tail,
-             pipeline.r, pipeline.g, pipeline.b, pipeline.a);
+  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->real_width, pipeline.dx, pipeline.dy,
+             pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
@@ -581,14 +572,10 @@ inline float ulp_sub(float v) {
 }
 
 /// Clamp a float to [0, 1].
-inline float normalize(float v) {
-  return std::max(0.0f, std::min(1.0f, v));
-}
+inline float normalize(float v) { return std::max(0.0f, std::min(1.0f, v)); }
 
 /// Fused multiply-add: f * m + a.
-inline float mad(float f, float m, float a) {
-  return f * m + a;
-}
+inline float mad(float f, float m, float a) { return f * m + a; }
 
 /// Repeat tiling for coordinates in [0, limit) range.
 inline float exclusive_repeat(float v, float limit, float inv_limit) {
@@ -597,16 +584,19 @@ inline float exclusive_repeat(float v, float limit, float inv_limit) {
 
 /// Reflect tiling for coordinates in [0, limit) range.
 inline float exclusive_reflect(float v, float limit, float inv_limit) {
-  return std::abs((v - limit) - (limit + limit) *
-                  std::floor((v - limit) * (inv_limit * 0.5f)) - limit);
+  return std::abs((v - limit) - (limit + limit) * std::floor((v - limit) * (inv_limit * 0.5f)) -
+                  limit);
 }
 
 /// Apply tile mode to a coordinate.
 inline float tile(float v, SpreadMode mode, float limit, float inv_limit) {
   switch (mode) {
-    case SpreadMode::Pad: return v;
-    case SpreadMode::Repeat: return exclusive_repeat(v, limit, inv_limit);
-    case SpreadMode::Reflect: return exclusive_reflect(v, limit, inv_limit);
+    case SpreadMode::Pad:
+      return v;
+    case SpreadMode::Repeat:
+      return exclusive_repeat(v, limit, inv_limit);
+    case SpreadMode::Reflect:
+      return exclusive_reflect(v, limit, inv_limit);
   }
   return v;
 }
@@ -617,14 +607,13 @@ inline std::uint32_t gather_ix_scalar(const PixmapRef& pixmap, float x, float y)
   const float h = ulp_sub(static_cast<float>(pixmap.height()));
   x = std::max(0.0f, std::min(w, x));
   y = std::max(0.0f, std::min(h, y));
-  return static_cast<std::uint32_t>(static_cast<std::int32_t>(y)) *
-             pixmap.width() +
+  return static_cast<std::uint32_t>(static_cast<std::int32_t>(y)) * pixmap.width() +
          static_cast<std::uint32_t>(static_cast<std::int32_t>(x));
 }
 
 /// Load a gathered pixel into float channels.
-inline void load_gathered_pixel(const PixmapRef& pixmap, std::uint32_t ix,
-                                float& r, float& g, float& b, float& a) {
+inline void load_gathered_pixel(const PixmapRef& pixmap, std::uint32_t ix, float& r, float& g,
+                                float& b, float& a) {
   const auto pixels = pixmap.pixels();
   const auto idx = std::min(static_cast<std::size_t>(ix), pixels.size() - 1);
   const auto& px = pixels[idx];
@@ -635,9 +624,8 @@ inline void load_gathered_pixel(const PixmapRef& pixmap, std::uint32_t ix,
 }
 
 /// Sample a single pixel with tiling applied.
-inline void sample(const PixmapRef& pixmap, const SamplerCtx& ctx,
-                   float x, float y,
-                   float& r, float& g, float& b, float& a) {
+inline void sample(const PixmapRef& pixmap, const SamplerCtx& ctx, float x, float y, float& r,
+                   float& g, float& b, float& a) {
   x = tile(x, ctx.spread_mode, static_cast<float>(pixmap.width()), ctx.inv_width);
   y = tile(y, ctx.spread_mode, static_cast<float>(pixmap.height()), ctx.inv_height);
   const auto ix = gather_ix_scalar(pixmap, x, y);
@@ -646,36 +634,24 @@ inline void sample(const PixmapRef& pixmap, const SamplerCtx& ctx,
 
 /// Bicubic near weight: 1/18 + 9/18*t + 27/18*t^2 - 21/18*t^3
 inline float bicubic_near(float t) {
-  return mad(t,
-             mad(t,
-                 mad(-21.0f / 18.0f, t, 27.0f / 18.0f),
-                 9.0f / 18.0f),
-             1.0f / 18.0f);
+  return mad(t, mad(t, mad(-21.0f / 18.0f, t, 27.0f / 18.0f), 9.0f / 18.0f), 1.0f / 18.0f);
 }
 
 /// Bicubic far weight: t^2 * (7/18*t - 6/18)
-inline float bicubic_far(float t) {
-  return (t * t) * mad(7.0f / 18.0f, t, -6.0f / 18.0f);
-}
+inline float bicubic_far(float t) { return (t * t) * mad(7.0f / 18.0f, t, -6.0f / 18.0f); }
 
 /// HSL saturation: max(r,g,b) - min(r,g,b)
-inline float sat(float r, float g, float b) {
-  return std::max({r, g, b}) - std::min({r, g, b});
-}
+inline float sat(float r, float g, float b) { return std::max({r, g, b}) - std::min({r, g, b}); }
 
 /// HSL luminosity: 0.30*r + 0.59*g + 0.11*b
-inline float lum(float r, float g, float b) {
-  return r * 0.30f + g * 0.59f + b * 0.11f;
-}
+inline float lum(float r, float g, float b) { return r * 0.30f + g * 0.59f + b * 0.11f; }
 
 /// Set saturation of (r,g,b) to target saturation s.
 inline void set_sat(float& r, float& g, float& b, float s) {
   const float mn = std::min({r, g, b});
   const float mx = std::max({r, g, b});
   const float satv = mx - mn;
-  auto scale = [&](float c) -> float {
-    return satv == 0.0f ? 0.0f : (c - mn) * s / satv;
-  };
+  auto scale = [&](float c) -> float { return satv == 0.0f ? 0.0f : (c - mn) * s / satv; };
   r = scale(r);
   g = scale(g);
   b = scale(b);
@@ -743,9 +719,7 @@ void gather(Pipeline& pipeline) {
   const auto& pixmap = *pipeline.pixmap_src;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto ix = gather_ix_scalar(pixmap, pipeline.r[i], pipeline.g[i]);
-    load_gathered_pixel(pixmap, ix,
-                        pipeline.r[i], pipeline.g[i],
-                        pipeline.b[i], pipeline.a[i]);
+    load_gathered_pixel(pixmap, ix, pipeline.r[i], pipeline.g[i], pipeline.b[i], pipeline.a[i]);
   }
   pipeline.nextStage();
 }
@@ -832,10 +806,10 @@ void bicubic(Pipeline& pipeline) {
     const float cy = pipeline.g[i];
     const float fx = (cx + 0.5f) - std::floor(cx + 0.5f);
     const float fy = (cy + 0.5f) - std::floor(cy + 0.5f);
-    const float wx[4] = {bicubic_far(1.0f - fx), bicubic_near(1.0f - fx),
-                         bicubic_near(fx), bicubic_far(fx)};
-    const float wy[4] = {bicubic_far(1.0f - fy), bicubic_near(1.0f - fy),
-                         bicubic_near(fy), bicubic_far(fy)};
+    const float wx[4] = {bicubic_far(1.0f - fx), bicubic_near(1.0f - fx), bicubic_near(fx),
+                         bicubic_far(fx)};
+    const float wy[4] = {bicubic_far(1.0f - fy), bicubic_near(1.0f - fy), bicubic_near(fy),
+                         bicubic_far(fy)};
 
     float r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
     float y = cy - 1.5f;
@@ -871,8 +845,7 @@ void pad_x1(Pipeline& pipeline) {
 void reflect_x1(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float v = pipeline.r[i];
-    pipeline.r[i] = normalize(
-        std::abs((v - 1.0f) - 2.0f * std::floor((v - 1.0f) * 0.5f) - 1.0f));
+    pipeline.r[i] = normalize(std::abs((v - 1.0f) - 2.0f * std::floor((v - 1.0f) * 0.5f) - 1.0f));
   }
   pipeline.nextStage();
 }
@@ -931,11 +904,11 @@ void xy_to_unit_angle(Pipeline& pipeline) {
     const float slope = (max_abs == 0.0f) ? 0.0f : min_abs / max_abs;
     const float s = slope * slope;
     // 7th degree polynomial approximation of atan/(2*pi)
-    float phi = slope *
+    float phi =
+        slope *
         (0.15912117063999176025390625f +
          s * (-5.185396969318389892578125e-2f +
-              s * (2.476101927459239959716796875e-2f +
-                   s * (-7.0547382347285747528076171875e-3f))));
+              s * (2.476101927459239959716796875e-2f + s * (-7.0547382347285747528076171875e-3f))));
     if (x_abs < y_abs) phi = 0.25f - phi;
     if (x < 0.0f) phi = 0.5f - phi;
     if (y < 0.0f) phi = 1.0f - phi;
@@ -961,12 +934,12 @@ void darken(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i];
     const float da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-                    std::max(pipeline.r[i] * da, pipeline.dr[i] * sa);
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-                    std::max(pipeline.g[i] * da, pipeline.dg[i] * sa);
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-                    std::max(pipeline.b[i] * da, pipeline.db[i] * sa);
+    pipeline.r[i] =
+        pipeline.r[i] + pipeline.dr[i] - std::max(pipeline.r[i] * da, pipeline.dr[i] * sa);
+    pipeline.g[i] =
+        pipeline.g[i] + pipeline.dg[i] - std::max(pipeline.g[i] * da, pipeline.dg[i] * sa);
+    pipeline.b[i] =
+        pipeline.b[i] + pipeline.db[i] - std::max(pipeline.b[i] * da, pipeline.db[i] * sa);
     pipeline.a[i] = mad(da, 1.0f - sa, sa);
   }
   pipeline.nextStage();
@@ -976,12 +949,12 @@ void lighten(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i];
     const float da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-                    std::min(pipeline.r[i] * da, pipeline.dr[i] * sa);
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-                    std::min(pipeline.g[i] * da, pipeline.dg[i] * sa);
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-                    std::min(pipeline.b[i] * da, pipeline.db[i] * sa);
+    pipeline.r[i] =
+        pipeline.r[i] + pipeline.dr[i] - std::min(pipeline.r[i] * da, pipeline.dr[i] * sa);
+    pipeline.g[i] =
+        pipeline.g[i] + pipeline.dg[i] - std::min(pipeline.g[i] * da, pipeline.dg[i] * sa);
+    pipeline.b[i] =
+        pipeline.b[i] + pipeline.db[i] - std::min(pipeline.b[i] * da, pipeline.db[i] * sa);
     pipeline.a[i] = mad(da, 1.0f - sa, sa);
   }
   pipeline.nextStage();
@@ -991,12 +964,12 @@ void difference(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float sa = pipeline.a[i];
     const float da = pipeline.da[i];
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-                    2.0f * std::min(pipeline.r[i] * da, pipeline.dr[i] * sa);
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-                    2.0f * std::min(pipeline.g[i] * da, pipeline.dg[i] * sa);
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-                    2.0f * std::min(pipeline.b[i] * da, pipeline.db[i] * sa);
+    pipeline.r[i] =
+        pipeline.r[i] + pipeline.dr[i] - 2.0f * std::min(pipeline.r[i] * da, pipeline.dr[i] * sa);
+    pipeline.g[i] =
+        pipeline.g[i] + pipeline.dg[i] - 2.0f * std::min(pipeline.g[i] * da, pipeline.dg[i] * sa);
+    pipeline.b[i] =
+        pipeline.b[i] + pipeline.db[i] - 2.0f * std::min(pipeline.b[i] * da, pipeline.db[i] * sa);
     pipeline.a[i] = mad(da, 1.0f - sa, sa);
   }
   pipeline.nextStage();
@@ -1004,12 +977,9 @@ void difference(Pipeline& pipeline) {
 
 void exclusion(Pipeline& pipeline) {
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] -
-                    2.0f * pipeline.r[i] * pipeline.dr[i];
-    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] -
-                    2.0f * pipeline.g[i] * pipeline.dg[i];
-    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] -
-                    2.0f * pipeline.b[i] * pipeline.db[i];
+    pipeline.r[i] = pipeline.r[i] + pipeline.dr[i] - 2.0f * pipeline.r[i] * pipeline.dr[i];
+    pipeline.g[i] = pipeline.g[i] + pipeline.dg[i] - 2.0f * pipeline.g[i] * pipeline.dg[i];
+    pipeline.b[i] = pipeline.b[i] + pipeline.db[i] - 2.0f * pipeline.b[i] * pipeline.db[i];
     pipeline.a[i] = mad(pipeline.da[i], 1.0f - pipeline.a[i], pipeline.a[i]);
   }
   pipeline.nextStage();
@@ -1020,16 +990,13 @@ void hard_light(Pipeline& pipeline) {
     const float s = pipeline.r[i], d = pipeline.dr[i];
     const float sa = pipeline.a[i], da = pipeline.da[i];
     pipeline.r[i] = s * (1.0f - da) + d * (1.0f - sa) +
-                    ((2.0f * s <= sa) ? 2.0f * s * d
-                                      : sa * da - 2.0f * (da - d) * (sa - s));
+                    ((2.0f * s <= sa) ? 2.0f * s * d : sa * da - 2.0f * (da - d) * (sa - s));
     const float sg = pipeline.g[i], dg = pipeline.dg[i];
     pipeline.g[i] = sg * (1.0f - da) + dg * (1.0f - sa) +
-                    ((2.0f * sg <= sa) ? 2.0f * sg * dg
-                                       : sa * da - 2.0f * (da - dg) * (sa - sg));
+                    ((2.0f * sg <= sa) ? 2.0f * sg * dg : sa * da - 2.0f * (da - dg) * (sa - sg));
     const float sb = pipeline.b[i], db = pipeline.db[i];
     pipeline.b[i] = sb * (1.0f - da) + db * (1.0f - sa) +
-                    ((2.0f * sb <= sa) ? 2.0f * sb * db
-                                       : sa * da - 2.0f * (da - db) * (sa - sb));
+                    ((2.0f * sb <= sa) ? 2.0f * sb * db : sa * da - 2.0f * (da - db) * (sa - sb));
     pipeline.a[i] = mad(da, 1.0f - sa, sa);
   }
   pipeline.nextStage();
@@ -1040,16 +1007,13 @@ void overlay(Pipeline& pipeline) {
     const float s = pipeline.r[i], d = pipeline.dr[i];
     const float sa = pipeline.a[i], da = pipeline.da[i];
     pipeline.r[i] = s * (1.0f - da) + d * (1.0f - sa) +
-                    ((2.0f * d <= da) ? 2.0f * s * d
-                                      : sa * da - 2.0f * (da - d) * (sa - s));
+                    ((2.0f * d <= da) ? 2.0f * s * d : sa * da - 2.0f * (da - d) * (sa - s));
     const float sg = pipeline.g[i], dg = pipeline.dg[i];
     pipeline.g[i] = sg * (1.0f - da) + dg * (1.0f - sa) +
-                    ((2.0f * dg <= da) ? 2.0f * sg * dg
-                                       : sa * da - 2.0f * (da - dg) * (sa - sg));
+                    ((2.0f * dg <= da) ? 2.0f * sg * dg : sa * da - 2.0f * (da - dg) * (sa - sg));
     const float sb = pipeline.b[i], db = pipeline.db[i];
     pipeline.b[i] = sb * (1.0f - da) + db * (1.0f - sa) +
-                    ((2.0f * db <= da) ? 2.0f * sb * db
-                                       : sa * da - 2.0f * (da - db) * (sa - sb));
+                    ((2.0f * db <= da) ? 2.0f * sb * db : sa * da - 2.0f * (da - db) * (sa - sb));
     pipeline.a[i] = mad(da, 1.0f - sa, sa);
   }
   pipeline.nextStage();
@@ -1068,10 +1032,9 @@ void soft_light(Pipeline& pipeline) {
       const float dark_src = dc * (sca + (s2 - sca) * (1.0f - m));
       const float dark_dst = (m4 * m4 + m4) * (m - 1.0f) + 7.0f * m;
       const float lite_dst = std::sqrt(m) - m;
-      const float lite_src = dc * sca + dca * (s2 - sca) *
-          ((4.0f * dc <= dca) ? dark_dst : lite_dst);
-      return sc * (1.0f - dca) + dc * (1.0f - sca) +
-             ((s2 <= sca) ? dark_src : lite_src);
+      const float lite_src =
+          dc * sca + dca * (s2 - sca) * ((4.0f * dc <= dca) ? dark_dst : lite_dst);
+      return sc * (1.0f - dca) + dc * (1.0f - sca) + ((s2 <= sca) ? dark_src : lite_src);
     };
 
     pipeline.r[i] = soft_light_channel(s, d, sa, da);
@@ -1361,18 +1324,12 @@ void gamma_compress_srgb(Pipeline& pipeline) {
 
 }  // namespace
 
-void justReturn(Pipeline& pipeline) {
-  (void)pipeline;
-}
+void justReturn(Pipeline& pipeline) { (void)pipeline; }
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
-           const ScreenIntRect& rect,
-           const AAMaskCtx& aa_mask_ctx,
-           const MaskCtx& mask_ctx,
-           Context& ctx,
-           const PixmapRef& pixmap_src,
-           SubPixmapMut* pixmap_dst) {
+           const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, const MaskCtx& mask_ctx,
+           Context& ctx, const PixmapRef& pixmap_src, SubPixmapMut* pixmap_dst) {
   Pipeline p(functions, tail_functions, rect, aa_mask_ctx, mask_ctx, ctx, pixmap_src, pixmap_dst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {

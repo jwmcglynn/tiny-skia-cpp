@@ -41,17 +41,11 @@ class Mask {
   static std::optional<Mask> fromVec(std::vector<std::uint8_t> data, IntSize size);
   static Mask fromPixmap(const PixmapRef& pixmap, MaskType maskType);
 
-  [[nodiscard]] std::uint32_t width() const {
-    return size_.width();
-  }
+  [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 
-  [[nodiscard]] std::uint32_t height() const {
-    return size_.height();
-  }
+  [[nodiscard]] std::uint32_t height() const { return size_.height(); }
 
-  [[nodiscard]] IntSize size() const {
-    return size_;
-  }
+  [[nodiscard]] IntSize size() const { return size_; }
 
   [[nodiscard]] std::span<const std::uint8_t> data() const {
     return std::span<const std::uint8_t>(data_.data(), data_.size());
@@ -72,14 +66,12 @@ class Mask {
   /// Draws a filled path onto the mask.
   /// White (255) path on existing mask data. Call clear() first if needed.
   /// Matches Rust `Mask::fill_path`.
-  void fillPath(const Path& path, FillRule fillRule, bool antiAlias,
-                Transform transform);
+  void fillPath(const Path& path, FillRule fillRule, bool antiAlias, Transform transform);
 
   /// Intersects the provided path with the current mask.
   /// Creates a temporary mask internally.
   /// Matches Rust `Mask::intersect_path`.
-  void intersectPath(const Path& path, FillRule fillRule, bool antiAlias,
-                     Transform transform);
+  void intersectPath(const Path& path, FillRule fillRule, bool antiAlias, Transform transform);
 
   /// Inverts the mask (255 - x for each byte).
   /// Matches Rust `Mask::invert`.

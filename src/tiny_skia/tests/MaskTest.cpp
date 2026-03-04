@@ -1,12 +1,12 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <numeric>
 #include <optional>
 #include <span>
 #include <vector>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Mask.h"
@@ -71,8 +71,7 @@ TEST(MaskTest, FromPixmapAlphaCopiesAlphaChannel) {
   const auto size = tiny_skia::IntSize::fromWh(2, 1);
   ASSERT_THAT(size, Optional(testing::_));
   const auto pixmap =
-      tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>{10, 20, 30, 40, 50, 60, 70, 80},
-                                 *size);
+      tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>{10, 20, 30, 40, 50, 60, 70, 80}, *size);
   ASSERT_THAT(pixmap, Optional(testing::_));
 
   const auto mask = tiny_skia::Mask::fromPixmap(pixmap->asRef(), tiny_skia::MaskType::Alpha);
@@ -85,9 +84,18 @@ TEST(MaskTest, FromPixmapLuminanceUsesDemultiplyThenLumaTimesAlpha) {
   ASSERT_THAT(size, Optional(testing::_));
   const auto pixmap = tiny_skia::Pixmap::fromVec(
       std::vector<std::uint8_t>{
-          255, 0, 0, 255,
-          64, 0, 0, 128,
-          200, 100, 50, 0,
+          255,
+          0,
+          0,
+          255,
+          64,
+          0,
+          0,
+          128,
+          200,
+          100,
+          50,
+          0,
       },
       *size);
   ASSERT_THAT(pixmap, Optional(testing::_));
@@ -178,8 +186,7 @@ TEST(MaskTest, FillPathDrawsOntoMask) {
   auto path = builder.finish();
   ASSERT_TRUE(path.has_value());
 
-  mask->fillPath(*path, tiny_skia::FillRule::Winding, false,
-                 tiny_skia::Transform::identity());
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, false, tiny_skia::Transform::identity());
 
   // Interior pixels should be non-zero (filled).
   // Check a pixel well inside the rectangle.
@@ -219,8 +226,7 @@ TEST(MaskTest, IntersectPathMultipliesMasks) {
   auto mask = tiny_skia::Mask::fromSize(10, 10);
   ASSERT_THAT(mask, Optional(testing::_));
   // Fill entire mask with 255.
-  std::fill(mask->dataMut().begin(), mask->dataMut().end(),
-            static_cast<std::uint8_t>(255));
+  std::fill(mask->dataMut().begin(), mask->dataMut().end(), static_cast<std::uint8_t>(255));
 
   // Intersect with a small rect: only the rect area should remain.
   tiny_skia::PathBuilder builder;
@@ -232,8 +238,7 @@ TEST(MaskTest, IntersectPathMultipliesMasks) {
   auto path = builder.finish();
   ASSERT_TRUE(path.has_value());
 
-  mask->intersectPath(*path, tiny_skia::FillRule::Winding, false,
-                      tiny_skia::Transform::identity());
+  mask->intersectPath(*path, tiny_skia::FillRule::Winding, false, tiny_skia::Transform::identity());
 
   // Outside the rect should be 0 (255 * 0 / 255 = 0).
   EXPECT_EQ(mask->data()[0], 0u);

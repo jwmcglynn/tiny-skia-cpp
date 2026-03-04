@@ -21,8 +21,7 @@ std::size_t handleZero(double b, double c, std::array<double, 3>& s) {
 
 namespace quad64 {
 
-std::size_t pushValidTs(const std::array<double, 3>& s,
-                        std::size_t realRoots,
+std::size_t pushValidTs(const std::array<double, 3>& s, std::size_t realRoots,
                         std::array<double, 3>& t) {
   std::size_t foundRoots = 0;
   for (std::size_t i = 0; i < realRoots; ++i) {

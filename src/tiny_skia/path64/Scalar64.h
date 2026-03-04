@@ -12,9 +12,10 @@ namespace scalar64 {
 constexpr double kDblEpsilonErr = std::numeric_limits<double>::epsilon() * 4.0;
 constexpr double kFloatEpsilonHalf = (std::numeric_limits<float>::epsilon() / 2.0);
 constexpr double kFloatEpsilonCubed = static_cast<double>(std::numeric_limits<float>::epsilon() *
-                                                         std::numeric_limits<float>::epsilon() *
-                                                         std::numeric_limits<float>::epsilon());
-constexpr double kFloatEpsilonInverse = 1.0 / static_cast<double>(std::numeric_limits<float>::epsilon());
+                                                          std::numeric_limits<float>::epsilon() *
+                                                          std::numeric_limits<float>::epsilon());
+constexpr double kFloatEpsilonInverse =
+    1.0 / static_cast<double>(std::numeric_limits<float>::epsilon());
 constexpr float kScalarMaxF = std::numeric_limits<float>::max();
 
 constexpr double bound(double min, double value, double max) {
@@ -22,17 +23,14 @@ constexpr double bound(double min, double value, double max) {
 }
 
 constexpr bool between(double a, double b, double value) {
-  return (a - value) * (b - value) <= 0.0 ||
-         (value == 0.0 && a == 0.0 && b == 0.0);
+  return (a - value) * (b - value) <= 0.0 || (value == 0.0 && a == 0.0 && b == 0.0);
 }
 
 constexpr bool approximatelyZero(double value) {
   return std::abs(value) < std::numeric_limits<double>::epsilon();
 }
 
-constexpr bool preciselyZero(double value) {
-  return std::abs(value) < kDblEpsilonErr;
-}
+constexpr bool preciselyZero(double value) { return std::abs(value) < kDblEpsilonErr; }
 
 constexpr bool approximatelyZeroOrMore(double value) {
   return value > -std::numeric_limits<double>::epsilon();
@@ -50,9 +48,7 @@ constexpr bool approximatelyZeroCubed(double value) {
   return std::abs(value) < kFloatEpsilonCubed;
 };
 
-constexpr bool approximatelyZeroHalf(double value) {
-  return value < kFloatEpsilonHalf;
-}
+constexpr bool approximatelyZeroHalf(double value) { return value < kFloatEpsilonHalf; }
 
 constexpr bool approximatelyZeroWhenComparedTo(double value, double other) {
   return value == 0.0 ||

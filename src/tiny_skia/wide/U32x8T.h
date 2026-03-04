@@ -17,9 +17,7 @@ class U32x8T {
     return U32x8T({n, n, n, n, n, n, n, n});
   }
 
-  [[nodiscard]] constexpr std::array<std::uint32_t, 8> lanes() const {
-    return lanes_;
-  }
+  [[nodiscard]] constexpr std::array<std::uint32_t, 8> lanes() const { return lanes_; }
 
   [[nodiscard]] I32x8T toI32x8Bitcast() const;
   [[nodiscard]] F32x8T toF32x8Bitcast() const;
@@ -34,27 +32,23 @@ class U32x8T {
   template <int Rhs>
   [[nodiscard]] U32x8T shl() const {
     static_assert(Rhs >= 0);
-    return U32x8T({lanes_[0] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[1] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[2] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[3] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[4] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[5] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[6] << static_cast<std::uint32_t>(Rhs),
-                   lanes_[7] << static_cast<std::uint32_t>(Rhs)});
+    return U32x8T(
+        {lanes_[0] << static_cast<std::uint32_t>(Rhs), lanes_[1] << static_cast<std::uint32_t>(Rhs),
+         lanes_[2] << static_cast<std::uint32_t>(Rhs), lanes_[3] << static_cast<std::uint32_t>(Rhs),
+         lanes_[4] << static_cast<std::uint32_t>(Rhs), lanes_[5] << static_cast<std::uint32_t>(Rhs),
+         lanes_[6] << static_cast<std::uint32_t>(Rhs),
+         lanes_[7] << static_cast<std::uint32_t>(Rhs)});
   }
 
   template <int Rhs>
   [[nodiscard]] U32x8T shr() const {
     static_assert(Rhs >= 0);
-    return U32x8T({lanes_[0] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[1] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[2] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[3] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[4] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[5] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[6] >> static_cast<std::uint32_t>(Rhs),
-                   lanes_[7] >> static_cast<std::uint32_t>(Rhs)});
+    return U32x8T(
+        {lanes_[0] >> static_cast<std::uint32_t>(Rhs), lanes_[1] >> static_cast<std::uint32_t>(Rhs),
+         lanes_[2] >> static_cast<std::uint32_t>(Rhs), lanes_[3] >> static_cast<std::uint32_t>(Rhs),
+         lanes_[4] >> static_cast<std::uint32_t>(Rhs), lanes_[5] >> static_cast<std::uint32_t>(Rhs),
+         lanes_[6] >> static_cast<std::uint32_t>(Rhs),
+         lanes_[7] >> static_cast<std::uint32_t>(Rhs)});
   }
 
   [[nodiscard]] U32x8T operator~() const;

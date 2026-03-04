@@ -1,9 +1,10 @@
 #include "tiny_skia/path64/Cubic64.h"
-#include "tiny_skia/path64/Mod.h"
-#include "tiny_skia/path64/Quad64.h"
 
 #include <algorithm>
 #include <cassert>
+
+#include "tiny_skia/path64/Mod.h"
+#include "tiny_skia/path64/Quad64.h"
 
 namespace tiny_skia::path64::cubic64 {
 
@@ -11,11 +12,7 @@ namespace {
 
 constexpr double kPi = 3.141592653589793;
 
-std::size_t rootsReal(double a,
-                      double b,
-                      double c,
-                      double d,
-                      std::array<double, 3>& s) {
+std::size_t rootsReal(double a, double b, double c, double d, std::array<double, 3>& s) {
   if (approximatelyZero(a) && approximatelyZeroWhenComparedTo(a, b) &&
       approximatelyZeroWhenComparedTo(a, c) && approximatelyZeroWhenComparedTo(a, d)) {
     // we're just a quadratic
@@ -77,8 +74,7 @@ std::size_t rootsReal(double a,
     }
 
     root = neg2RootQ * std::cos((theta - 2.0 * kPi) / 3.0) - aDiv3;
-    if (!almostDequalUlps(s[0], root) &&
-        (offset == 1 || !almostDequalUlps(s[1], root))) {
+    if (!almostDequalUlps(s[0], root) && (offset == 1 || !almostDequalUlps(s[1], root))) {
       s[offset] = root;
       ++offset;
     }
@@ -145,20 +141,12 @@ void interpCubicCoordsY(const std::array<Point64, 4>& src, double t, std::array<
 
 }  // namespace
 
-Cubic64 Cubic64::create(std::array<Point64, kPointCount> points) {
-  return Cubic64{points};
-}
+Cubic64 Cubic64::create(std::array<Point64, kPointCount> points) { return Cubic64{points}; }
 
 std::array<double, kPointCount * 2> Cubic64::asF64Slice() const {
   return {
-      points[0].x,
-      points[0].y,
-      points[1].x,
-      points[1].y,
-      points[2].x,
-      points[2].y,
-      points[3].x,
-      points[3].y,
+      points[0].x, points[0].y, points[1].x, points[1].y,
+      points[2].x, points[2].y, points[3].x, points[3].y,
   };
 }
 
@@ -178,25 +166,22 @@ Point64 Cubic64::pointAtT(double t) const {
   const auto c = 3.0 * oneT * t2;
   const auto d = t2 * t;
   return Point64::fromXy(a * points[0].x + b * points[1].x + c * points[2].x + d * points[3].x,
-                        a * points[0].y + b * points[1].y + c * points[2].y + d * points[3].y);
+                         a * points[0].y + b * points[1].y + c * points[2].y + d * points[3].y);
 }
 
-std::size_t Cubic64::searchRoots(std::size_t extrema,
-                                 double axisIntercept,
-                                 SearchAxis axis,
+std::size_t Cubic64::searchRoots(std::size_t extrema, double axisIntercept, SearchAxis axis,
                                  std::array<double, 6>& extremeTs,
                                  std::array<double, 3>& validRoots) const {
-  extrema += findInflections(std::span<double>(extremeTs.begin() + static_cast<long>(extrema),
-                                               extremeTs.end()));
+  extrema += findInflections(
+      std::span<double>(extremeTs.begin() + static_cast<long>(extrema), extremeTs.end()));
   extremeTs[extrema] = 0.0;
   ++extrema;
   extremeTs[extrema] = 1.0;
   ++extrema;
   assert(extrema < extremeTs.size());
 
-  std::sort(extremeTs.begin(), extremeTs.begin() + static_cast<long>(extrema), [](double a, double b) {
-    return a < b;
-  });
+  std::sort(extremeTs.begin(), extremeTs.begin() + static_cast<long>(extrema),
+            [](double a, double b) { return a < b; });
 
   std::size_t validCount = 0;
   std::size_t index = 0;
@@ -226,13 +211,12 @@ std::size_t Cubic64::findInflections(std::span<double> tValues) const {
   const auto ay = points[1].y - points[0].y;
   const auto bx = points[2].x - 2.0 * points[1].x + points[0].x;
   const auto by = points[2].y - 2.0 * points[1].y + points[0].y;
-  const auto cx =
-      points[3].x + 3.0 * (points[1].x - points[2].x) - points[0].x;
-  const auto cy =
-      points[3].y + 3.0 * (points[1].y - points[2].y) - points[0].y;
+  const auto cx = points[3].x + 3.0 * (points[1].x - points[2].x) - points[0].x;
+  const auto cy = points[3].y + 3.0 * (points[1].y - points[2].y) - points[0].y;
 
   auto values = std::array<double, 3>{};
-  const auto count = quad64::rootsValidT(bx * cy - by * cx, ax * cy - ay * cx, ax * by - ay * bx, values);
+  const auto count =
+      quad64::rootsValidT(bx * cy - by * cx, ax * cy - ay * cx, ax * by - ay * bx, values);
   std::copy(values.begin(), values.begin() + static_cast<long>(count), tValues.begin());
   return count;
 }
@@ -326,11 +310,7 @@ std::array<double, 4> coefficients(std::span<const double> src) {
   return {a, b, c, d};
 }
 
-std::size_t rootsValidT(double a,
-                        double b,
-                        double c,
-                        double d,
-                        std::array<double, 3>& t) {
+std::size_t rootsValidT(double a, double b, double c, double d, std::array<double, 3>& t) {
   auto s = std::array<double, 3>{};
   const auto realRoots = rootsReal(a, b, c, d, s);
   auto foundRoots = quad64::pushValidTs(s, realRoots, t);

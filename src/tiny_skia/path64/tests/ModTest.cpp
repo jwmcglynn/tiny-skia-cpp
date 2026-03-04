@@ -1,7 +1,7 @@
-#include <array>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <array>
 
 #include "tiny_skia/path64/Mod.h"
 
@@ -35,6 +35,5 @@ TEST(ModTest, CubeRootHalleyMethodForNonTrivialValues) {
 TEST(ModTest, ApproximatelyEqualVariantsAndInterpolation) {
   EXPECT_TRUE(tiny_skia::path64::approximatelyEqual(1.0, 1.0 + 1e-16));
   EXPECT_TRUE(tiny_skia::path64::almostDequalUlps(1.0f, 1.0 + 1e-7f));
-  EXPECT_DOUBLE_EQ(
-      tiny_skia::path64::interp(2.0, 10.0, 0.25), 4.0);
+  EXPECT_DOUBLE_EQ(tiny_skia::path64::interp(2.0, 10.0, 0.25), 4.0);
 }

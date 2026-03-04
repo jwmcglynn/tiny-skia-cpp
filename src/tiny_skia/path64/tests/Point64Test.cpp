@@ -7,15 +7,13 @@
 namespace {
 
 auto Point64Eq(double expectedX, double expectedY) {
-  return testing::AllOf(
-      testing::Field(&tiny_skia::Point64::x, testing::DoubleEq(expectedX)),
-      testing::Field(&tiny_skia::Point64::y, testing::DoubleEq(expectedY)));
+  return testing::AllOf(testing::Field(&tiny_skia::Point64::x, testing::DoubleEq(expectedX)),
+                        testing::Field(&tiny_skia::Point64::y, testing::DoubleEq(expectedY)));
 }
 
 auto PointEq(float expectedX, float expectedY) {
-  return testing::AllOf(
-      testing::Field(&tiny_skia::Point::x, testing::FloatEq(expectedX)),
-      testing::Field(&tiny_skia::Point::y, testing::FloatEq(expectedY)));
+  return testing::AllOf(testing::Field(&tiny_skia::Point::x, testing::FloatEq(expectedX)),
+                        testing::Field(&tiny_skia::Point::y, testing::FloatEq(expectedY)));
 }
 
 }  // namespace

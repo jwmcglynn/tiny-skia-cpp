@@ -20,9 +20,7 @@ struct Cubic64 {
 
   std::array<double, kPointCount * 2> asF64Slice() const;
   Point64 pointAtT(double t) const;
-  std::size_t searchRoots(std::size_t extrema,
-                          double axisIntercept,
-                          SearchAxis axis,
+  std::size_t searchRoots(std::size_t extrema, double axisIntercept, SearchAxis axis,
                           std::array<double, 6>& extremeTs,
                           std::array<double, 3>& validRoots) const;
   std::size_t findInflections(std::span<double> tValues) const;
@@ -33,11 +31,7 @@ struct Cubic64 {
 };
 
 std::array<double, 4> coefficients(std::span<const double> src);
-std::size_t rootsValidT(double a,
-                        double b,
-                        double c,
-                        double d,
-                        std::array<double, 3>& t);
+std::size_t rootsValidT(double a, double b, double c, double d, std::array<double, 3>& t);
 std::size_t findExtrema(std::span<const double> src, std::array<double, 6>& tValues);
 
 }  // namespace tiny_skia::path64::cubic64

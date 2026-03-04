@@ -1,10 +1,10 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <array>
 #include <cstdint>
 #include <limits>
 #include <string_view>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/FixedPoint.h"
 
@@ -45,8 +45,8 @@ TEST(FixedPointFdot6Test, ConversionsAndRounding) {
   for (const auto& tc : {
            CanConvertCase{"safe bound", 30000, true},
            CanConvertCase{"safe max", std::numeric_limits<std::int32_t>::max() >> 10, true},
-           CanConvertCase{
-               "overflow bound", (std::numeric_limits<std::int32_t>::max() >> 10) + 1, false},
+           CanConvertCase{"overflow bound", (std::numeric_limits<std::int32_t>::max() >> 10) + 1,
+                          false},
            CanConvertCase{"overflow lower", std::numeric_limits<std::int32_t>::min(), false},
        }) {
     SCOPED_TRACE(tc.label);
@@ -75,23 +75,19 @@ TEST(FixedPointFdot16Test, FloatingConversionAndArithmetic) {
   EXPECT_THAT(fromF32, ElementsAre(65536, -65536, 2147483520, -2147483520));
 
   const std::array rounding{
-      tiny_skia::fdot16::floorToI32(65535),  tiny_skia::fdot16::floorToI32(-65535),
-      tiny_skia::fdot16::ceilToI32(65535),   tiny_skia::fdot16::ceilToI32(-65535),
-      tiny_skia::fdot16::roundToI32(98304),  tiny_skia::fdot16::roundToI32(-98304),
+      tiny_skia::fdot16::floorToI32(65535), tiny_skia::fdot16::floorToI32(-65535),
+      tiny_skia::fdot16::ceilToI32(65535),  tiny_skia::fdot16::ceilToI32(-65535),
+      tiny_skia::fdot16::roundToI32(98304), tiny_skia::fdot16::roundToI32(-98304),
   };
   EXPECT_THAT(rounding, ElementsAre(0, -1, 1, 0, 2, -1));
 
   const std::array arithmetic{
-      tiny_skia::fdot16::mul(65536, 65536),
-      tiny_skia::fdot16::mul(65536, -32768),
-      tiny_skia::fdot16::divide(65536, 1),
-      tiny_skia::fdot16::divide(65536, -1),
-      tiny_skia::fdot16::fastDiv(64, 32),
-      tiny_skia::fdot16::fastDiv(-64, 32),
+      tiny_skia::fdot16::mul(65536, 65536), tiny_skia::fdot16::mul(65536, -32768),
+      tiny_skia::fdot16::divide(65536, 1),  tiny_skia::fdot16::divide(65536, -1),
+      tiny_skia::fdot16::fastDiv(64, 32),   tiny_skia::fdot16::fastDiv(-64, 32),
   };
-  EXPECT_THAT(arithmetic,
-              ElementsAre(65536, -32768, std::numeric_limits<std::int32_t>::max(),
-                          std::numeric_limits<std::int32_t>::min(), 131072, -131072));
+  EXPECT_THAT(arithmetic, ElementsAre(65536, -32768, std::numeric_limits<std::int32_t>::max(),
+                                      std::numeric_limits<std::int32_t>::min(), 131072, -131072));
 
   const std::array saturating{
       tiny_skia::fdot16::divide(std::numeric_limits<tiny_skia::FDot6>::max(), 1),
@@ -122,6 +118,4 @@ TEST(Fdot16AndFdot8, DivisionAndRoundingEdgeCases) {
   }
 }
 
-TEST(Fdot16AndFdot8, OneAndConstants) {
-  EXPECT_EQ(tiny_skia::fdot16::one, 65536);
-}
+TEST(Fdot16AndFdot8, OneAndConstants) { EXPECT_EQ(tiny_skia::fdot16::one, 65536); }

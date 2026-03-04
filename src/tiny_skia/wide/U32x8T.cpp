@@ -40,8 +40,8 @@ namespace {
 [[maybe_unused]] [[nodiscard]] U32x8T composeU32x8(const U32x4T& lo, const U32x4T& hi) {
   const auto loLanes = lo.lanes();
   const auto hiLanes = hi.lanes();
-  return U32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1],
-                 hiLanes[2], hiLanes[3]});
+  return U32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1], hiLanes[2],
+                 hiLanes[3]});
 }
 
 [[maybe_unused]] [[nodiscard]] std::array<std::int32_t, 4> bitcastU32ToI32(

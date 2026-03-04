@@ -28,12 +28,10 @@ bool isTooBigForMath(const Path& path) {
   const auto b = path.bounds();
 
   // Use ! expression so we return true if bounds contains NaN.
-  return !(b.left() >= -kMax && b.top() >= -kMax && b.right() <= kMax &&
-           b.bottom() <= kMax);
+  return !(b.left() >= -kMax && b.top() >= -kMax && b.right() <= kMax && b.bottom() <= kMax);
 }
 
-std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
-                                     Transform ts) {
+std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth, Transform ts) {
   if (strokeWidth == 0.0f) {
     return 1.0f;
   }
@@ -47,8 +45,7 @@ std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
   ts.ty = 0.0f;
 
   // Map the stroke width through the transform to check actual pixel width.
-  Point points[2] = {Point::fromXy(strokeWidth, 0.0f),
-                     Point::fromXy(0.0f, strokeWidth)};
+  Point points[2] = {Point::fromXy(strokeWidth, 0.0f), Point::fromXy(0.0f, strokeWidth)};
   ts.mapPoints(points);
 
   // fast_len: approximation of vector length.
@@ -71,17 +68,14 @@ std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
   return std::nullopt;
 }
 
-void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint,
-              Transform transform, const Mask* mask) {
-  if (transform.isIdentity() &&
-      !DrawTiler::required(pixmap.width(), pixmap.height())) {
+void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint, Transform transform,
+              const Mask* mask) {
+  if (transform.isIdentity() && !DrawTiler::required(pixmap.width(), pixmap.height())) {
     const auto clip = pixmap.size().toScreenIntRect(0, 0);
 
-    auto submaskOpt =
-        mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
+    auto submaskOpt = mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
     auto subpix = pixmap.asSubpixmap();
-    auto blitter =
-        pipeline::RasterPipelineBlitter::create(paint, submaskOpt, &subpix);
+    auto blitter = pipeline::RasterPipelineBlitter::create(paint, submaskOpt, &subpix);
     if (!blitter.has_value()) {
       return;
     }
@@ -97,13 +91,12 @@ void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint,
   }
 }
 
-void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
-              FillRule fillRule, Transform transform, const Mask* mask) {
+void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
+              Transform transform, const Mask* mask) {
   if (transform.isIdentity()) {
     // Skip empty paths and horizontal/vertical lines.
     const auto pathBounds = path.bounds();
-    if (isNearlyZero(pathBounds.width()) ||
-        isNearlyZero(pathBounds.height())) {
+    if (isNearlyZero(pathBounds.width()) || isNearlyZero(pathBounds.height())) {
       return;
     }
 
@@ -116,9 +109,8 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
       auto paintCopy = paint;
 
       while (auto tile = tiler->next()) {
-        const auto ts =
-            Transform::fromTranslate(-static_cast<float>(tile->x()),
-                                     -static_cast<float>(tile->y()));
+        const auto ts = Transform::fromTranslate(-static_cast<float>(tile->x()),
+                                                 -static_cast<float>(tile->y()));
         auto transformed = pathCopy.transform(ts);
         if (!transformed.has_value()) {
           return;
@@ -132,10 +124,8 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
           continue;
         }
 
-        auto submaskOpt =
-            mask ? mask->submask(tile->toIntRect()) : std::nullopt;
-        auto blitter = pipeline::RasterPipelineBlitter::create(
-            paintCopy, submaskOpt, &(*subpix));
+        auto submaskOpt = mask ? mask->submask(tile->toIntRect()) : std::nullopt;
+        auto blitter = pipeline::RasterPipelineBlitter::create(paintCopy, submaskOpt, &(*subpix));
         if (!blitter.has_value()) {
           continue;
         }
@@ -147,8 +137,7 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
         }
 
         const auto tsBack =
-            Transform::fromTranslate(static_cast<float>(tile->x()),
-                                     static_cast<float>(tile->y()));
+            Transform::fromTranslate(static_cast<float>(tile->x()), static_cast<float>(tile->y()));
         auto untransformed = pathCopy.transform(tsBack);
         if (!untransformed.has_value()) {
           return;
@@ -158,11 +147,9 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
       }
     } else {
       const auto clipRect = pixmap.size().toScreenIntRect(0, 0);
-      auto submaskOpt =
-          mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
+      auto submaskOpt = mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
       auto subpix = pixmap.asSubpixmap();
-      auto blitter =
-          pipeline::RasterPipelineBlitter::create(paint, submaskOpt, &subpix);
+      auto blitter = pipeline::RasterPipelineBlitter::create(paint, submaskOpt, &subpix);
       if (!blitter.has_value()) {
         return;
       }
@@ -182,14 +169,12 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
     auto paintCopy = paint;
     transformShader(paintCopy.shader, transform);
 
-    fillPath(pixmap, *transformed, paintCopy, fillRule, Transform::identity(),
-             mask);
+    fillPath(pixmap, *transformed, paintCopy, fillRule, Transform::identity(), mask);
   }
 }
 
-void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y,
-                PixmapRef src, const PixmapPaint& ppaint, Transform transform,
-                const Mask* mask) {
+void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y, PixmapRef src,
+                const PixmapPaint& ppaint, Transform transform, const Mask* mask) {
   const auto intRect = src.size().toIntRect(x, y);
   if (!intRect.has_value()) {
     return;
@@ -201,12 +186,10 @@ void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y,
   const auto rect = screenRect->toRect();
 
   // Translate pattern as well as bounds.
-  const auto pattTransform =
-      Transform::fromTranslate(static_cast<float>(x), static_cast<float>(y));
+  const auto pattTransform = Transform::fromTranslate(static_cast<float>(x), static_cast<float>(y));
 
   Paint paint;
-  paint.shader = Pattern(src, SpreadMode::Pad, ppaint.quality, ppaint.opacity,
-                         pattTransform);
+  paint.shader = Pattern(src, SpreadMode::Pad, ppaint.quality, ppaint.opacity, pattTransform);
   paint.blend_mode = ppaint.blend_mode;
   paint.anti_alias = false;
   paint.force_hq_pipeline = false;
@@ -221,8 +204,7 @@ void applyMask(PixmapMut& pixmap, const Mask& mask) {
   }
 
   // Dummy source pixmap.
-  auto pixmapSrc = PixmapRef::fromBytes(
-      std::span<const std::uint8_t>({0, 0, 0, 0}), 1, 1);
+  auto pixmapSrc = PixmapRef::fromBytes(std::span<const std::uint8_t>({0, 0, 0, 0}), 1, 1);
   if (!pixmapSrc.has_value()) {
     return;
   }
@@ -237,13 +219,12 @@ void applyMask(PixmapMut& pixmap, const Mask& mask) {
   const auto rect = pixmap.size().toScreenIntRect(0, 0);
   auto subpix = pixmap.asSubpixmap();
   const auto submask = mask.asSubmask();
-  const auto maskCtx =
-      pipeline::MaskCtx{submask.data, submask.realWidth};
+  const auto maskCtx = pipeline::MaskCtx{submask.data, submask.realWidth};
   rp.run(rect, pipeline::AAMaskCtx{}, maskCtx, *pixmapSrc, &subpix);
 }
 
-void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
-                const Stroke& stroke, Transform transform, const Mask* mask) {
+void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
+                Transform transform, const Mask* mask) {
   if (stroke.width < 0.0f) {
     return;
   }
@@ -270,12 +251,10 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
     } else if (shouldPreScaleCoverage(paintCopy.blend_mode)) {
       auto scale = static_cast<std::int32_t>(*coverage * 256.0f);
       auto newAlpha = (255 * scale) >> 8;
-      applyShaderOpacity(paintCopy.shader,
-                         static_cast<float>(newAlpha) / 255.0f);
+      applyShaderOpacity(paintCopy.shader, static_cast<float>(newAlpha) / 255.0f);
     }
 
-    if (auto tiler =
-            DrawTiler::create(pixmap.width(), pixmap.height())) {
+    if (auto tiler = DrawTiler::create(pixmap.width(), pixmap.height())) {
       auto pathCopy = *pathPtr;
 
       if (!transform.isIdentity()) {
@@ -288,9 +267,8 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
       }
 
       while (auto tile = tiler->next()) {
-        const auto ts = Transform::fromTranslate(
-            -static_cast<float>(tile->x()),
-            -static_cast<float>(tile->y()));
+        const auto ts = Transform::fromTranslate(-static_cast<float>(tile->x()),
+                                                 -static_cast<float>(tile->y()));
         auto transformed = pathCopy.transform(ts);
         if (!transformed.has_value()) {
           return;
@@ -302,15 +280,12 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
         if (!subpix.has_value()) {
           continue;
         }
-        auto submaskOpt =
-            mask ? mask->submask(tile->toIntRect()) : std::nullopt;
+        auto submaskOpt = mask ? mask->submask(tile->toIntRect()) : std::nullopt;
 
-        strokeHairline(pathCopy, paintCopy, stroke.line_cap, submaskOpt,
-                       *subpix);
+        strokeHairline(pathCopy, paintCopy, stroke.line_cap, submaskOpt, *subpix);
 
-        const auto tsBack = Transform::fromTranslate(
-            static_cast<float>(tile->x()),
-            static_cast<float>(tile->y()));
+        const auto tsBack =
+            Transform::fromTranslate(static_cast<float>(tile->x()), static_cast<float>(tile->y()));
         auto untransformed = pathCopy.transform(tsBack);
         if (!untransformed.has_value()) {
           return;
@@ -320,19 +295,16 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
       }
     } else {
       auto subpix = pixmap.asSubpixmap();
-      auto submaskOpt =
-          mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
+      auto submaskOpt = mask ? std::optional<SubMaskRef>(mask->asSubmask()) : std::nullopt;
       if (!transform.isIdentity()) {
         transformShader(paintCopy.shader, transform);
         auto transformed = pathPtr->transform(transform);
         if (!transformed.has_value()) {
           return;
         }
-        strokeHairline(*transformed, paintCopy, stroke.line_cap, submaskOpt,
-                       subpix);
+        strokeHairline(*transformed, paintCopy, stroke.line_cap, submaskOpt, subpix);
       } else {
-        strokeHairline(*pathPtr, paintCopy, stroke.line_cap, submaskOpt,
-                       subpix);
+        strokeHairline(*pathPtr, paintCopy, stroke.line_cap, submaskOpt, subpix);
       }
     }
   } else {
@@ -348,8 +320,7 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
 void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
                     std::optional<SubMaskRef> mask, SubPixmapMut& subpix) {
   const auto clip = subpix.size.toScreenIntRect(0, 0);
-  auto blitter =
-      pipeline::RasterPipelineBlitter::create(paint, mask, &subpix);
+  auto blitter = pipeline::RasterPipelineBlitter::create(paint, mask, &subpix);
   if (!blitter.has_value()) {
     return;
   }

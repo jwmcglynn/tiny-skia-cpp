@@ -2,9 +2,8 @@
 // Lives in the painter target to avoid a circular dependency between
 // tiny_skia_core and tiny_skia_scan.
 
-#include "tiny_skia/Mask.h"
-
 #include "tiny_skia/Color.h"
+#include "tiny_skia/Mask.h"
 #include "tiny_skia/Math.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
@@ -21,8 +20,7 @@ namespace {
 // The RasterPipelineBlitter operates on RGBA (4 bytes per pixel), but Mask stores
 // 1 byte per pixel.  Wrapping the mask buffer directly would cause a buffer overflow.
 void fillMaskRegion(const Path& path, FillRule fillRule, bool antiAlias,
-                    const ScreenIntRect& clipRect,
-                    std::uint8_t* maskData, std::size_t maskStride,
+                    const ScreenIntRect& clipRect, std::uint8_t* maskData, std::size_t maskStride,
                     std::uint32_t regionWidth, std::uint32_t regionHeight) {
   // Create a temporary RGBA pixmap for the fill.
   auto tempPixmap = Pixmap::fromSize(regionWidth, regionHeight);
@@ -56,13 +54,11 @@ void fillMaskRegion(const Path& path, FillRule fillRule, bool antiAlias,
 
 }  // namespace
 
-void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
-                    Transform transform) {
+void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias, Transform transform) {
   if (transform.isIdentity()) {
     // Skip empty paths and horizontal/vertical lines.
     const auto pathBounds = path.bounds();
-    if (isNearlyZero(pathBounds.width()) ||
-        isNearlyZero(pathBounds.height())) {
+    if (isNearlyZero(pathBounds.width()) || isNearlyZero(pathBounds.height())) {
       return;
     }
 
@@ -74,9 +70,8 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
       auto pathCopy = path;
 
       while (auto tile = tiler->next()) {
-        const auto ts =
-            Transform::fromTranslate(-static_cast<float>(tile->x()),
-                                     -static_cast<float>(tile->y()));
+        const auto ts = Transform::fromTranslate(-static_cast<float>(tile->x()),
+                                                 -static_cast<float>(tile->y()));
         auto transformed = pathCopy.transform(ts);
         if (!transformed.has_value()) {
           return;
@@ -89,13 +84,11 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
           continue;
         }
 
-        fillMaskRegion(pathCopy, fillRule, antiAlias, clipRect,
-                       subpix->data, subpix->realWidth,
+        fillMaskRegion(pathCopy, fillRule, antiAlias, clipRect, subpix->data, subpix->realWidth,
                        subpix->size.width(), subpix->size.height());
 
         const auto tsBack =
-            Transform::fromTranslate(static_cast<float>(tile->x()),
-                                     static_cast<float>(tile->y()));
+            Transform::fromTranslate(static_cast<float>(tile->x()), static_cast<float>(tile->y()));
         auto untransformed = pathCopy.transform(tsBack);
         if (!untransformed.has_value()) {
           return;
@@ -104,9 +97,7 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
       }
     } else {
       const auto clipRect = size_.toScreenIntRect(0, 0);
-      fillMaskRegion(path, fillRule, antiAlias, clipRect,
-                     data_.data(), width(),
-                     width(), height());
+      fillMaskRegion(path, fillRule, antiAlias, clipRect, data_.data(), width(), width(), height());
     }
   } else {
     auto transformed = path.transform(transform);
@@ -117,8 +108,7 @@ void Mask::fillPath(const Path& path, FillRule fillRule, bool antiAlias,
   }
 }
 
-void Mask::intersectPath(const Path& path, FillRule fillRule, bool antiAlias,
-                         Transform transform) {
+void Mask::intersectPath(const Path& path, FillRule fillRule, bool antiAlias, Transform transform) {
   auto submask = Mask::fromSize(width(), height());
   if (!submask.has_value()) {
     return;

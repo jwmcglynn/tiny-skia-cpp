@@ -1,11 +1,11 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <span>
 #include <vector>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/AlphaRuns.h"
 
@@ -14,10 +14,8 @@ using ::testing::Optional;
 
 TEST(AlphaRunsTest, CatchOverflow) {
   const std::array overflowResults{
-      tiny_skia::AlphaRuns::catchOverflow(0),
-      tiny_skia::AlphaRuns::catchOverflow(1),
-      tiny_skia::AlphaRuns::catchOverflow(128),
-      tiny_skia::AlphaRuns::catchOverflow(255),
+      tiny_skia::AlphaRuns::catchOverflow(0),   tiny_skia::AlphaRuns::catchOverflow(1),
+      tiny_skia::AlphaRuns::catchOverflow(128), tiny_skia::AlphaRuns::catchOverflow(255),
       tiny_skia::AlphaRuns::catchOverflow(256),
   };
   EXPECT_THAT(overflowResults, ElementsAre(0u, 1u, 128u, 255u, 255u));

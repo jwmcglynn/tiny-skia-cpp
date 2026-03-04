@@ -101,9 +101,8 @@ namespace {
   return false;  // unreachable; satisfies -Wreturn-type
 }
 
-[[nodiscard]] constexpr bool isPipelineLowpCompatible(
-    const std::array<Stage, kMaxStages>& stages,
-    std::size_t count) {
+[[nodiscard]] constexpr bool isPipelineLowpCompatible(const std::array<Stage, kMaxStages>& stages,
+                                                      std::size_t count) {
   for (std::size_t i = 0; i < count; ++i) {
     if (!isLowpCompatible(stages[i])) {
       return false;
@@ -114,10 +113,9 @@ namespace {
 
 }  // namespace
 
-RasterPipeline::RasterPipeline(Kind kind,
-                             Context context,
-                             const std::array<Stage, kMaxStages>& stages,
-                             std::size_t stage_count) {
+RasterPipeline::RasterPipeline(Kind kind, Context context,
+                               const std::array<Stage, kMaxStages>& stages,
+                               std::size_t stage_count) {
   stage_count_ = std::min(stage_count, kMaxStages);
   kind_ = kind;
   ctx_ = context;
@@ -133,8 +131,7 @@ RasterPipeline::RasterPipeline(Kind kind,
 namespace {
 
 [[nodiscard]] std::array<highp::StageFn, kMaxStages> highpFunctions(
-    const std::array<Stage, kMaxStages>& stages,
-    std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
   std::array<highp::StageFn, kMaxStages> functions{};
   std::fill(functions.begin(), functions.end(), &highp::justReturn);
 
@@ -145,8 +142,7 @@ namespace {
 }
 
 [[nodiscard]] std::array<highp::StageFn, kMaxStages> highpTailFunctions(
-    const std::array<Stage, kMaxStages>& stages,
-    std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
   std::array<highp::StageFn, kMaxStages> tail_functions{};
   std::fill(tail_functions.begin(), tail_functions.end(), &highp::justReturn);
 
@@ -157,8 +153,7 @@ namespace {
 }
 
 [[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpFunctions(
-    const std::array<Stage, kMaxStages>& stages,
-    std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
   std::array<lowp::StageFn, kMaxStages> functions{};
   std::fill(functions.begin(), functions.end(), &lowp::justReturn);
 
@@ -169,8 +164,7 @@ namespace {
 }
 
 [[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpTailFunctions(
-    const std::array<Stage, kMaxStages>& stages,
-    std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
   std::array<lowp::StageFn, kMaxStages> tail_functions{};
   std::fill(tail_functions.begin(), tail_functions.end(), &lowp::justReturn);
 
@@ -218,41 +212,26 @@ RasterPipeline RasterPipelineBuilder::compile() {
   }
 
   const bool is_lowp_compatible = isPipelineLowpCompatible(stages_, stage_count_);
-  const auto kind = (force_hq_pipeline_ || !is_lowp_compatible)
-                        ? RasterPipeline::Kind::High
-                        : RasterPipeline::Kind::Low;
+  const auto kind = (force_hq_pipeline_ || !is_lowp_compatible) ? RasterPipeline::Kind::High
+                                                                : RasterPipeline::Kind::Low;
   return RasterPipeline(kind, ctx_, stages_, stage_count_);
 }
 
-void RasterPipeline::run(const ScreenIntRect& rect,
-                        const AAMaskCtx& aa_mask_ctx,
-                        MaskCtx mask_ctx,
-                        const PixmapRef& pixmap_src,
-                        SubPixmapMut* pixmap_dst) {
+void RasterPipeline::run(const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, MaskCtx mask_ctx,
+                         const PixmapRef& pixmap_src, SubPixmapMut* pixmap_dst) {
   if (stage_count_ == 0) {
     return;
   }
 
   switch (kind_) {
     case Kind::High: {
-      highp::start(highp_functions_,
-                   highp_tail_functions_,
-                   rect,
-                   aa_mask_ctx,
-                   mask_ctx,
-                   ctx_,
-                   pixmap_src,
-                   pixmap_dst);
+      highp::start(highp_functions_, highp_tail_functions_, rect, aa_mask_ctx, mask_ctx, ctx_,
+                   pixmap_src, pixmap_dst);
       break;
     }
     case Kind::Low: {
-      lowp::start(lowp_functions_,
-                   lowp_tail_functions_,
-                   rect,
-                   aa_mask_ctx,
-                   mask_ctx,
-                   ctx_,
-                   pixmap_dst);
+      lowp::start(lowp_functions_, lowp_tail_functions_, rect, aa_mask_ctx, mask_ctx, ctx_,
+                  pixmap_dst);
       break;
     }
   }

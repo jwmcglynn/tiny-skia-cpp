@@ -22,8 +22,7 @@ bool isShaderOpaque(const Shader& shader) {
       shader);
 }
 
-bool pushShaderStages(const Shader& shader, ColorSpace cs,
-                      pipeline::RasterPipelineBuilder& p) {
+bool pushShaderStages(const Shader& shader, ColorSpace cs, pipeline::RasterPipelineBuilder& p) {
   return std::visit(
       [&](const auto& s) -> bool {
         using T = std::decay_t<decltype(s)>;

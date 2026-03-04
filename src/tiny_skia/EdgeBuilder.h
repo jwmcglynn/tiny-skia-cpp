@@ -17,8 +17,7 @@ struct ShiftedIntRect {
   ScreenIntRect shiftedRect;
   std::int32_t shift = 0;
 
-  [[nodiscard]] static std::optional<ShiftedIntRect> create(ScreenIntRect rect,
-                                                           std::int32_t shift);
+  [[nodiscard]] static std::optional<ShiftedIntRect> create(ScreenIntRect rect, std::int32_t shift);
 
   [[nodiscard]] const ScreenIntRect& shifted() const;
   [[nodiscard]] ScreenIntRect recover() const;
@@ -28,9 +27,8 @@ class BasicEdgeBuilder {
  public:
   static BasicEdgeBuilder newBuilder(std::int32_t clipShift);
 
-  static std::optional<std::vector<Edge>> buildEdges(const Path& path,
-                                                    const ShiftedIntRect* clip,
-                                                    std::int32_t clipShift);
+  static std::optional<std::vector<Edge>> buildEdges(const Path& path, const ShiftedIntRect* clip,
+                                                     std::int32_t clipShift);
 
   bool build(const Path& path, const ShiftedIntRect* clip, bool canCullToTheRight);
 

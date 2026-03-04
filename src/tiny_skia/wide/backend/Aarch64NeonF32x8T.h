@@ -30,16 +30,14 @@ struct F32x8Neon {
   return out;
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> storeI32x8(int32x4_t lo,
-                                                             int32x4_t hi) {
+[[nodiscard]] inline std::array<std::int32_t, 8> storeI32x8(int32x4_t lo, int32x4_t hi) {
   std::array<std::int32_t, 8> out{};
   vst1q_s32(out.data(), lo);
   vst1q_s32(out.data() + 4, hi);
   return out;
 }
 
-[[nodiscard]] inline std::array<std::uint32_t, 8> storeU32x8(uint32x4_t lo,
-                                                              uint32x4_t hi) {
+[[nodiscard]] inline std::array<std::uint32_t, 8> storeU32x8(uint32x4_t lo, uint32x4_t hi) {
   std::array<std::uint32_t, 8> out{};
   vst1q_u32(out.data(), lo);
   vst1q_u32(out.data() + 4, hi);
@@ -75,9 +73,8 @@ struct F32x8Neon {
                                                      const std::array<float, 8>& rhs) {
   const auto a = loadF32x8(lhs);
   const auto b = loadF32x8(rhs);
-  return storeF32x8(
-      F32x8Neon{vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(a.lo, b.lo))),
-                vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(a.hi, b.hi)))});
+  return storeF32x8(F32x8Neon{vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(a.lo, b.lo))),
+                              vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(a.hi, b.hi)))});
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpGe(const std::array<float, 8>& lhs,
@@ -119,11 +116,9 @@ struct F32x8Neon {
   const auto onTrue = loadF32x8(t);
   const auto onFalse = loadF32x8(f);
   return storeF32x8(F32x8Neon{
-      vreinterpretq_f32_u32(vbslq_u32(vreinterpretq_u32_f32(m.lo),
-                                      vreinterpretq_u32_f32(onTrue.lo),
+      vreinterpretq_f32_u32(vbslq_u32(vreinterpretq_u32_f32(m.lo), vreinterpretq_u32_f32(onTrue.lo),
                                       vreinterpretq_u32_f32(onFalse.lo))),
-      vreinterpretq_f32_u32(vbslq_u32(vreinterpretq_u32_f32(m.hi),
-                                      vreinterpretq_u32_f32(onTrue.hi),
+      vreinterpretq_f32_u32(vbslq_u32(vreinterpretq_u32_f32(m.hi), vreinterpretq_u32_f32(onTrue.hi),
                                       vreinterpretq_u32_f32(onFalse.hi)))});
 }
 
@@ -220,40 +215,33 @@ struct F32x8Neon {
                                                       const std::array<float, 8>& rhs) {
   const auto a = loadF32x8(lhs);
   const auto b = loadF32x8(rhs);
-  return storeF32x8(
-      F32x8Neon{vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a.lo),
-                                                vreinterpretq_u32_f32(b.lo))),
-                vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a.hi),
-                                                vreinterpretq_u32_f32(b.hi)))});
+  return storeF32x8(F32x8Neon{
+      vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a.lo), vreinterpretq_u32_f32(b.lo))),
+      vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a.hi), vreinterpretq_u32_f32(b.hi)))});
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitOr(const std::array<float, 8>& lhs,
                                                      const std::array<float, 8>& rhs) {
   const auto a = loadF32x8(lhs);
   const auto b = loadF32x8(rhs);
-  return storeF32x8(
-      F32x8Neon{vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(a.lo),
-                                                vreinterpretq_u32_f32(b.lo))),
-                vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(a.hi),
-                                                vreinterpretq_u32_f32(b.hi)))});
+  return storeF32x8(F32x8Neon{
+      vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(a.lo), vreinterpretq_u32_f32(b.lo))),
+      vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(a.hi), vreinterpretq_u32_f32(b.hi)))});
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitXor(const std::array<float, 8>& lhs,
                                                       const std::array<float, 8>& rhs) {
   const auto a = loadF32x8(lhs);
   const auto b = loadF32x8(rhs);
-  return storeF32x8(
-      F32x8Neon{vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(a.lo),
-                                                vreinterpretq_u32_f32(b.lo))),
-                vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(a.hi),
-                                                vreinterpretq_u32_f32(b.hi)))});
+  return storeF32x8(F32x8Neon{
+      vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(a.lo), vreinterpretq_u32_f32(b.lo))),
+      vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(a.hi), vreinterpretq_u32_f32(b.hi)))});
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitNot(const std::array<float, 8>& lanes) {
   const auto v = loadF32x8(lanes);
-  return storeF32x8(
-      F32x8Neon{vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(v.lo))),
-                vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(v.hi)))});
+  return storeF32x8(F32x8Neon{vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(v.lo))),
+                              vreinterpretq_f32_u32(vmvnq_u32(vreinterpretq_u32_f32(v.hi)))});
 }
 
 #else
@@ -338,13 +326,11 @@ struct F32x8Neon {
   return scalar::f32x8Round(lanes);
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(const std::array<float, 8>& lanes) {
   return scalar::f32x8RoundInt(lanes);
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(const std::array<float, 8>& lanes) {
   return scalar::f32x8TruncInt(lanes);
 }
 

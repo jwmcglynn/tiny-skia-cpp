@@ -14,13 +14,9 @@ class F32x4T {
   F32x4T() = default;
   explicit constexpr F32x4T(std::array<float, 4> lanes) : lanes_(lanes) {}
 
-  [[nodiscard]] static constexpr F32x4T splat(float n) {
-    return F32x4T({n, n, n, n});
-  }
+  [[nodiscard]] static constexpr F32x4T splat(float n) { return F32x4T({n, n, n, n}); }
 
-  [[nodiscard]] constexpr std::array<float, 4> lanes() const {
-    return lanes_;
-  }
+  [[nodiscard]] constexpr std::array<float, 4> lanes() const { return lanes_; }
 
   [[nodiscard]] F32x4T abs() const;
   [[nodiscard]] F32x4T max(const F32x4T& rhs) const;

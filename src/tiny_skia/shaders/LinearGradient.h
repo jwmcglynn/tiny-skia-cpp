@@ -12,14 +12,14 @@ namespace tiny_skia {
 class LinearGradient {
  public:
   // Creates a new linear gradient. Returns Shader or nullopt.
-  static std::optional<std::variant<Color, LinearGradient>> create(
-      Point start, Point end, std::vector<GradientStop> stops,
-      SpreadMode mode, Transform transform);
+  static std::optional<std::variant<Color, LinearGradient>> create(Point start, Point end,
+                                                                   std::vector<GradientStop> stops,
+                                                                   SpreadMode mode,
+                                                                   Transform transform);
 
   [[nodiscard]] bool isOpaque() const { return base_.colorsAreOpaque(); }
 
-  [[nodiscard]] bool pushStages(ColorSpace cs,
-                                pipeline::RasterPipelineBuilder& p) const;
+  [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
   Gradient base_;
 };

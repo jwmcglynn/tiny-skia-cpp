@@ -24,8 +24,7 @@ float approxPowf(float x, float y) {
   const float e = static_cast<float>(xBits) * (1.0f / static_cast<float>(1 << 23));
   const float m = std::bit_cast<float>((xBits & 0x007fffff) | 0x3f000000);
 
-  const float log2X = e - 124.22551499f - 1.498030302f * m -
-                     1.72587999f / (0.3520887068f + m);
+  const float log2X = e - 124.22551499f - 1.498030302f * m - 1.72587999f / (0.3520887068f + m);
 
   const float xf = log2X * y;
   const float f = xf - std::floor(xf);

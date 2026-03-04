@@ -11,13 +11,9 @@ namespace {
 
 constexpr float kNearlyZero = std::numeric_limits<float>::epsilon() * 4.0f;
 
-bool isNearlyZero(float value) {
-  return std::abs(value) <= kNearlyZero;
-}
+bool isNearlyZero(float value) { return std::abs(value) <= kNearlyZero; }
 
-float average(float a, float b) {
-  return (a + b) * 0.5f;
-}
+float average(float a, float b) { return (a + b) * 0.5f; }
 
 float pinUnsortedF32(float value, float limit0, float limit1) {
   if (limit1 < limit0) {
@@ -75,21 +71,17 @@ float sectWithVertical(const std::array<Point, 2>& src, float x) {
 }
 
 bool containsNoEmptyCheck(const Rect& outer, const Rect& inner) {
-  return outer.left() <= inner.left() && outer.top() <= inner.top() && outer.right() >= inner.right() &&
-         outer.bottom() >= inner.bottom();
+  return outer.left() <= inner.left() && outer.top() <= inner.top() &&
+         outer.right() >= inner.right() && outer.bottom() >= inner.bottom();
 }
 
-bool nestedLt(float a, float b, float dim) {
-  return a <= b && (a < b || dim > 0.0f);
-}
+bool nestedLt(float a, float b, float dim) { return a <= b && (a < b || dim > 0.0f); }
 
 }  // namespace
 
 namespace line_clipper {
 
-std::span<const Point> clip(std::span<const Point, 2> src,
-                            const Rect& clip,
-                            bool canCullToTheRight,
+std::span<const Point> clip(std::span<const Point, 2> src, const Rect& clip, bool canCullToTheRight,
                             std::span<Point, kLineClipperMaxPoints> pointsOut) {
   int index0 = (src[0].y < src[1].y) ? 0 : 1;
   int index1 = (index0 == 0) ? 1 : 0;
@@ -148,8 +140,7 @@ std::span<const Point> clip(std::span<const Point, 2> src,
       result[offset] = {clip.left(), tmp[index0].y};
       ++offset;
       result[offset] = {clip.left(), pinUnsortedF32(sectWithVertical(tmp, clip.left()),
-                                                    tmp[index0].y,
-                                                    tmp[index1].y)};
+                                                    tmp[index0].y, tmp[index1].y)};
     } else {
       result[offset] = tmp[index0];
     }
@@ -157,8 +148,7 @@ std::span<const Point> clip(std::span<const Point, 2> src,
     ++offset;
     if (tmp[index1].x > clip.right()) {
       result[offset] = {clip.right(), pinUnsortedF32(sectWithVertical(tmp, clip.right()),
-                                                     tmp[index0].y,
-                                                     tmp[index1].y)};
+                                                     tmp[index0].y, tmp[index1].y)};
       ++offset;
       result[offset] = {clip.right(), tmp[index1].y};
     } else {

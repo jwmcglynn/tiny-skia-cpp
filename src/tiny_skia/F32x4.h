@@ -22,13 +22,13 @@ struct F32x4 {
   }
 
   [[nodiscard]] F32x4 max(F32x4 rhs) const {
-    return F32x4{std::fmax(a, rhs.a), std::fmax(b, rhs.b),
-                 std::fmax(c, rhs.c), std::fmax(d, rhs.d)};
+    return F32x4{std::fmax(a, rhs.a), std::fmax(b, rhs.b), std::fmax(c, rhs.c),
+                 std::fmax(d, rhs.d)};
   }
 
   [[nodiscard]] F32x4 min(F32x4 rhs) const {
-    return F32x4{std::fmin(a, rhs.a), std::fmin(b, rhs.b),
-                 std::fmin(c, rhs.c), std::fmin(d, rhs.d)};
+    return F32x4{std::fmin(a, rhs.a), std::fmin(b, rhs.b), std::fmin(c, rhs.c),
+                 std::fmin(d, rhs.d)};
   }
 
   constexpr F32x4& operator+=(F32x4 rhs) {

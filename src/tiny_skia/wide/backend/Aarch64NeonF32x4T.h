@@ -34,52 +34,51 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Max(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vmaxq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Min(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vminq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpEq(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(vceqq_f32(loadF32x4(lhs), loadF32x4(rhs))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpNe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
-  return storeF32x4(vreinterpretq_f32_u32(
-      vmvnq_u32(vceqq_f32(loadF32x4(lhs), loadF32x4(rhs)))));
+                                                     const std::array<float, 4>& rhs) {
+  return storeF32x4(vreinterpretq_f32_u32(vmvnq_u32(vceqq_f32(loadF32x4(lhs), loadF32x4(rhs)))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(vcgeq_f32(loadF32x4(lhs), loadF32x4(rhs))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(vcgtq_f32(loadF32x4(lhs), loadF32x4(rhs))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(vcgeq_f32(loadF32x4(rhs), loadF32x4(lhs))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(vcgtq_f32(loadF32x4(rhs), loadF32x4(lhs))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Blend(const std::array<float, 4>& mask,
-                                                      const std::array<float, 4>& t,
-                                                      const std::array<float, 4>& f) {
+                                                     const std::array<float, 4>& t,
+                                                     const std::array<float, 4>& f) {
   return storeF32x4(vreinterpretq_f32_u32(vbslq_u32(vreinterpretq_u32_f32(loadF32x4(mask)),
-                                                     vreinterpretq_u32_f32(loadF32x4(t)),
-                                                     vreinterpretq_u32_f32(loadF32x4(f)))));
+                                                    vreinterpretq_u32_f32(loadF32x4(t)),
+                                                    vreinterpretq_u32_f32(loadF32x4(f)))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Floor(const std::array<float, 4>& lanes) {
@@ -122,44 +121,41 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Add(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vaddq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Sub(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vsubq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Mul(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vmulq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Div(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return storeF32x4(vdivq_f32(loadF32x4(lhs), loadF32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitAnd(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(
-      vandq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)),
-                vreinterpretq_u32_f32(loadF32x4(rhs)))));
+      vandq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)), vreinterpretq_u32_f32(loadF32x4(rhs)))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitOr(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(
-      vorrq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)),
-                vreinterpretq_u32_f32(loadF32x4(rhs)))));
+      vorrq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)), vreinterpretq_u32_f32(loadF32x4(rhs)))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitXor(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   return storeF32x4(vreinterpretq_f32_u32(
-      veorq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)),
-                vreinterpretq_u32_f32(loadF32x4(rhs)))));
+      veorq_u32(vreinterpretq_u32_f32(loadF32x4(lhs)), vreinterpretq_u32_f32(loadF32x4(rhs)))));
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitNot(const std::array<float, 4>& lanes) {
@@ -173,48 +169,48 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Max(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Max(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Min(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Min(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpEq(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpEq(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpNe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpNe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpGe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpGt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpLe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4CmpLt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Blend(const std::array<float, 4>& mask,
-                                                      const std::array<float, 4>& t,
-                                                      const std::array<float, 4>& f) {
+                                                     const std::array<float, 4>& t,
+                                                     const std::array<float, 4>& f) {
   return scalar::f32x4Blend(mask, t, f);
 }
 
@@ -252,37 +248,37 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Add(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Add(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Sub(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Sub(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Mul(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Mul(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Div(const std::array<float, 4>& lhs,
-                                                    const std::array<float, 4>& rhs) {
+                                                   const std::array<float, 4>& rhs) {
   return scalar::f32x4Div(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitAnd(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   return scalar::f32x4BitAnd(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitOr(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return scalar::f32x4BitOr(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitXor(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   return scalar::f32x4BitXor(lhs, rhs);
 }
 

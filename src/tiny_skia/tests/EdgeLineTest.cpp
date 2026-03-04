@@ -1,9 +1,9 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <array>
 #include <optional>
 #include <span>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Edge.h"
 
@@ -33,9 +33,8 @@ TEST(EdgeLineTest, LineEdgeCreateAssignsWindingAndBounds) {
 TEST(EdgeLineTest, LineEdgeCreateFlipsWindingForDescendingY) {
   const tiny_skia::Point p0{0.0f, 2.0f};
   const tiny_skia::Point p1{4.0f, 0.0f};
-  EXPECT_THAT(
-      tiny_skia::LineEdge::create(p0, p1, 0),
-      Optional(Field(&tiny_skia::LineEdge::winding, -1)));
+  EXPECT_THAT(tiny_skia::LineEdge::create(p0, p1, 0),
+              Optional(Field(&tiny_skia::LineEdge::winding, -1)));
 }
 
 TEST(EdgeLineTest, LineEdgeIsVertical) {

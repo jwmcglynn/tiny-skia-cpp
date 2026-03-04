@@ -8,16 +8,12 @@ namespace tiny_skia {
 
 namespace {
 
-float sdot(float a, float b, float c, float d) {
-  return a * b + c * d;
-}
+float sdot(float a, float b, float c, float d) { return a * b + c * d; }
 
 Transform tsFromSinCosAt(float sin, float cos, float px, float py) {
   const float cosInv = 1.0f - cos;
-  return Transform::fromRow(
-      cos, sin, -sin, cos,
-      sdot(sin, py, cosInv, px),
-      sdot(-sin, px, cosInv, py));
+  return Transform::fromRow(cos, sin, -sin, cos, sdot(sin, py, cosInv, px),
+                            sdot(-sin, px, cosInv, py));
 }
 
 std::optional<Transform> pointsToUnitTs(Point start, Point end) {
@@ -72,8 +68,7 @@ Color averageGradientColor(const std::vector<GradientStop>& stops) {
 }  // namespace
 
 std::optional<std::variant<Color, LinearGradient>> LinearGradient::create(
-    Point start, Point end, std::vector<GradientStop> stops,
-    SpreadMode mode, Transform transform) {
+    Point start, Point end, std::vector<GradientStop> stops, SpreadMode mode, Transform transform) {
   if (stops.empty()) return std::nullopt;
 
   if (stops.size() == 1) {
@@ -102,8 +97,7 @@ std::optional<std::variant<Color, LinearGradient>> LinearGradient::create(
       LinearGradient{Gradient(std::move(stops), mode, transform, *unitTs)}};
 }
 
-bool LinearGradient::pushStages(ColorSpace cs,
-                                pipeline::RasterPipelineBuilder& p) const {
+bool LinearGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const {
   return base_.pushStages(p, cs, [](auto&) {}, [](auto&) {});
 }
 

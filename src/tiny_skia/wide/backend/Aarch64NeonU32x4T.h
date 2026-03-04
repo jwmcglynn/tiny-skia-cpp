@@ -24,38 +24,32 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpEq(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vceqq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpNe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vmvnq_u32(vceqq_u32(loadU32x4(lhs), loadU32x4(rhs))));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpLt(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vcgtq_u32(loadU32x4(rhs), loadU32x4(lhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpLe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vcgeq_u32(loadU32x4(rhs), loadU32x4(lhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpGt(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vcgtq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpGe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vcgeq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
@@ -65,64 +59,54 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Add(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vaddq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4And(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vandq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
-[[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Or(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+[[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Or(const std::array<std::uint32_t, 4>& lhs,
+                                                          const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(vorrq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Xor(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return storeU32x4(veorq_u32(loadU32x4(lhs), loadU32x4(rhs)));
 }
 
 #else
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpEq(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpEq(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpNe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpNe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpLt(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpLt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpLe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpLe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpGt(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpGt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4CmpGe(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4CmpGe(lhs, rhs);
 }
 
@@ -132,26 +116,22 @@ namespace tiny_skia::wide::backend::aarch64_neon {
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Add(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4Add(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4And(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4And(lhs, rhs);
 }
 
-[[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Or(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+[[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Or(const std::array<std::uint32_t, 4>& lhs,
+                                                          const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4Or(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::uint32_t, 4> u32x4Xor(
-    const std::array<std::uint32_t, 4>& lhs,
-    const std::array<std::uint32_t, 4>& rhs) {
+    const std::array<std::uint32_t, 4>& lhs, const std::array<std::uint32_t, 4>& rhs) {
   return scalar::u32x4Xor(lhs, rhs);
 }
 

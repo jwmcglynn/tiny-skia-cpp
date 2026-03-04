@@ -188,10 +188,9 @@ EdgeClipper::EdgeClipper(Rect clip, bool canCullToTheRight)
 std::optional<ClippedEdges> EdgeClipper::clipLine(Point p0, Point p1) {
   auto pointsOut = std::array<Point, line_clipper::kLineClipperMaxPoints>{};
   const auto src = std::array<Point, 2>{p0, p1};
-  const auto clipped = line_clipper::clip(std::span<const Point, 2>(src),
-                                         clip_,
-                                         canCullToTheRight_,
-                                         std::span<Point, line_clipper::kLineClipperMaxPoints>(pointsOut));
+  const auto clipped =
+      line_clipper::clip(std::span<const Point, 2>(src), clip_, canCullToTheRight_,
+                         std::span<Point, line_clipper::kLineClipperMaxPoints>(pointsOut));
 
   for (std::size_t i = 0; i < clipped.size(); ++i) {
     if (i + 1 >= clipped.size()) {
@@ -233,8 +232,7 @@ std::optional<ClippedEdges> EdgeClipper::clipQuad(Point p0, Point p1, Point p2) 
     const auto yPoints = std::array<Point, 3>{monoY[y * 2], monoY[y * 2 + 1], monoY[y * 2 + 2]};
     const auto countX = path_geometry::chopQuadAtXExtrema(yPoints, monoX);
     for (std::size_t x = 0; x <= countX; ++x) {
-      const auto xPoints =
-          std::array<Point, 3>{monoX[x * 2], monoX[x * 2 + 1], monoX[x * 2 + 2]};
+      const auto xPoints = std::array<Point, 3>{monoX[x * 2], monoX[x * 2 + 1], monoX[x * 2 + 2]};
       clipMonoQuad(xPoints);
     }
   }
@@ -330,12 +328,12 @@ std::optional<ClippedEdges> EdgeClipper::clipCubic(Point p0, Point p1, Point p2,
   const auto countY = path_geometry::chopCubicAtYExtrema(points, monoY);
   for (std::size_t y = 0; y <= countY; ++y) {
     auto monoX = std::array<Point, 10>{};
-    const auto yPoints = std::array<Point, 4>{monoY[y * 3], monoY[y * 3 + 1], monoY[y * 3 + 2],
-                                             monoY[y * 3 + 3]};
+    const auto yPoints =
+        std::array<Point, 4>{monoY[y * 3], monoY[y * 3 + 1], monoY[y * 3 + 2], monoY[y * 3 + 3]};
     const auto countX = path_geometry::chopCubicAtXExtrema(yPoints, monoX);
     for (std::size_t x = 0; x <= countX; ++x) {
-      const auto xPoints = std::array<Point, 4>{monoX[x * 3], monoX[x * 3 + 1], monoX[x * 3 + 2],
-                                               monoX[x * 3 + 3]};
+      const auto xPoints =
+          std::array<Point, 4>{monoX[x * 3], monoX[x * 3 + 1], monoX[x * 3 + 2], monoX[x * 3 + 3]};
       clipMonoCubic(xPoints);
     }
   }

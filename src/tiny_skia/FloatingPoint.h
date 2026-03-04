@@ -15,13 +15,9 @@ class NormalizedF32 {
   constexpr NormalizedF32() = default;
   explicit constexpr NormalizedF32(float value) : value_(value) {}
 
-  static constexpr NormalizedF32 newUnchecked(float value) {
-    return NormalizedF32(value);
-  }
+  static constexpr NormalizedF32 newUnchecked(float value) { return NormalizedF32(value); }
 
-  [[nodiscard]] static std::optional<NormalizedF32> create(float value) {
-    return newFloat(value);
-  }
+  [[nodiscard]] static std::optional<NormalizedF32> create(float value) { return newFloat(value); }
 
   [[nodiscard]] static std::optional<NormalizedF32> newFloat(float value);
   [[nodiscard]] static NormalizedF32 newClamped(float value);
@@ -66,10 +62,8 @@ class NormalizedF32Exclusive {
   float value_ = 0.5f;
 };
 
-inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::ANY =
-    NormalizedF32Exclusive(0.5f);
-inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::HALF =
-    NormalizedF32Exclusive(0.5f);
+inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::ANY = NormalizedF32Exclusive(0.5f);
+inline constexpr NormalizedF32Exclusive NormalizedF32Exclusive::HALF = NormalizedF32Exclusive(0.5f);
 
 /// A float value guaranteed to be > 0 and finite.
 /// Matches Rust `NonZeroPositiveF32`.

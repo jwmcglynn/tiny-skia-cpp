@@ -1,8 +1,8 @@
-#include <algorithm>
-#include <limits>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <algorithm>
+#include <limits>
 
 #include "tiny_skia/EdgeBuilder.h"
 #include "tiny_skia/Geom.h"
@@ -31,9 +31,8 @@ TEST(EdgeBuilderTest, BuildEdgesBuildsSimpleTriangle) {
   const auto edges = tiny_skia::BasicEdgeBuilder::buildEdges(path, nullptr, 0);
   ASSERT_TRUE(edges.has_value());
   ASSERT_GE(edges->size(), 2u);
-  EXPECT_TRUE(std::all_of(edges->begin(),
-                          edges->end(),
-                          [](const auto& edge) { return edge.isLine(); }));
+  EXPECT_TRUE(
+      std::all_of(edges->begin(), edges->end(), [](const auto& edge) { return edge.isLine(); }));
 }
 
 TEST(EdgeBuilderTest, BuildEdgesBuildsMixedEdgesForMonotonicQuad) {
@@ -50,12 +49,10 @@ TEST(EdgeBuilderTest, BuildEdgesBuildsMixedEdgesForMonotonicQuad) {
   const auto edges = tiny_skia::BasicEdgeBuilder::buildEdges(path, nullptr, 0);
   ASSERT_TRUE(edges.has_value());
   EXPECT_GE(edges->size(), 2u);
-  const auto hasQuadratic = std::any_of(edges->begin(), edges->end(), [](const auto& edge) {
-    return edge.isQuadratic();
-  });
-  const auto hasLine = std::any_of(edges->begin(), edges->end(), [](const auto& edge) {
-    return edge.isLine();
-  });
+  const auto hasQuadratic = std::any_of(edges->begin(), edges->end(),
+                                        [](const auto& edge) { return edge.isQuadratic(); });
+  const auto hasLine =
+      std::any_of(edges->begin(), edges->end(), [](const auto& edge) { return edge.isLine(); });
   EXPECT_TRUE(hasQuadratic);
   EXPECT_TRUE(hasLine);
 }

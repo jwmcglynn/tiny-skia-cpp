@@ -30,9 +30,7 @@ constexpr std::uint32_t kMaxTValue = 0x3FFFFFFF;
 constexpr float kMaxTReciprocal = 1.0f / static_cast<float>(kMaxTValue);
 
 /// Linearly interpolate between a and b using a NormalizedF32 t.
-float interp(float a, float b, NormalizedF32 t) {
-  return a + (b - a) * t.get();
-}
+float interp(float a, float b, NormalizedF32 t) { return a + (b - a) * t.get(); }
 
 /// Linearly interpolate between a and b using a raw float t in [0,1].
 float interpSafe(float a, float b, float t) {
@@ -64,13 +62,11 @@ bool cheapDistExceedsLimit(Point pt, float x, float y, float tolerance) {
 }
 
 bool cubicTooCurvy(Point p0, Point p1, Point p2, Point p3, float tolerance) {
-  bool n0 = cheapDistExceedsLimit(
-      p1, interpSafe(p0.x, p3.x, 1.0f / 3.0f),
-      interpSafe(p0.y, p3.y, 1.0f / 3.0f), tolerance);
+  bool n0 = cheapDistExceedsLimit(p1, interpSafe(p0.x, p3.x, 1.0f / 3.0f),
+                                  interpSafe(p0.y, p3.y, 1.0f / 3.0f), tolerance);
 
-  bool n1 = cheapDistExceedsLimit(
-      p2, interpSafe(p0.x, p3.x, 2.0f / 3.0f),
-      interpSafe(p0.y, p3.y, 2.0f / 3.0f), tolerance);
+  bool n1 = cheapDistExceedsLimit(p2, interpSafe(p0.x, p3.x, 2.0f / 3.0f),
+                                  interpSafe(p0.y, p3.y, 2.0f / 3.0f), tolerance);
 
   return n0 || n1;
 }
@@ -102,17 +98,16 @@ std::int32_t findSegment(const std::vector<Segment>& base, float key) {
 }
 
 /// Compute position and/or tangent at parameter t on a measured segment.
-void computePosTan(const Point* points, SegmentType segKind,
-                   NormalizedF32 t, Point* pos, Point* tangent) {
+void computePosTan(const Point* points, SegmentType segKind, NormalizedF32 t, Point* pos,
+                   Point* tangent) {
   switch (segKind) {
     case SegmentType::Line: {
       if (pos != nullptr) {
-        *pos = Point::fromXy(interp(points[0].x, points[1].x, t),
-                             interp(points[0].y, points[1].y, t));
+        *pos =
+            Point::fromXy(interp(points[0].x, points[1].x, t), interp(points[0].y, points[1].y, t));
       }
       if (tangent != nullptr) {
-        tangent->setNormalize(points[1].x - points[0].x,
-                              points[1].y - points[0].y);
+        tangent->setNormalize(points[1].x - points[0].x, points[1].y - points[0].y);
       }
       break;
     }
@@ -140,8 +135,7 @@ void computePosTan(const Point* points, SegmentType segKind,
 }
 
 /// Emit a portion of a segment [startT, stopT] into the path builder.
-void segmentTo(const Point* points, SegmentType segKind,
-               NormalizedF32 startT, NormalizedF32 stopT,
+void segmentTo(const Point* points, SegmentType segKind, NormalizedF32 startT, NormalizedF32 stopT,
                PathBuilder& pb) {
   assert(startT <= stopT);
 
@@ -159,8 +153,7 @@ void segmentTo(const Point* points, SegmentType segKind,
       if (stopT == NormalizedF32::ONE) {
         pb.lineTo(points[1].x, points[1].y);
       } else {
-        pb.lineTo(interp(points[0].x, points[1].x, stopT),
-                  interp(points[0].y, points[1].y, stopT));
+        pb.lineTo(interp(points[0].x, points[1].x, stopT), interp(points[0].y, points[1].y, stopT));
       }
       break;
     }
@@ -181,8 +174,7 @@ void segmentTo(const Point* points, SegmentType segKind,
         if (stopT == NormalizedF32::ONE) {
           pb.quadToPt(tmp0[3], tmp0[4]);
         } else {
-          float newT =
-              (stopT.get() - startT.get()) / (1.0f - startT.get());
+          float newT = (stopT.get() - startT.get()) / (1.0f - startT.get());
           auto newTe = NormalizedF32Exclusive::newBounded(newT);
           path_geometry::chopQuadAtT(&tmp0[2], newTe, tmp1);
           pb.quadToPt(tmp1[1], tmp1[2]);
@@ -207,8 +199,7 @@ void segmentTo(const Point* points, SegmentType segKind,
         if (stopT == NormalizedF32::ONE) {
           pb.cubicToPt(tmp0[4], tmp0[5], tmp0[6]);
         } else {
-          float newT =
-              (stopT.get() - startT.get()) / (1.0f - startT.get());
+          float newT = (stopT.get() - startT.get()) / (1.0f - startT.get());
           auto newTe = NormalizedF32Exclusive::newBounded(newT);
           path_geometry::chopCubicAt2(&tmp0[3], newTe, tmp1);
           pb.cubicToPt(tmp1[1], tmp1[2], tmp1[3]);
@@ -244,8 +235,8 @@ float adjustDashOffset(float offset, float len) {
 
 /// Find the first dash interval and remaining length after consuming the
 /// offset.
-std::pair<float, std::size_t> findFirstInterval(
-    const std::vector<float>& dashArray, float dashOffset) {
+std::pair<float, std::size_t> findFirstInterval(const std::vector<float>& dashArray,
+                                                float dashOffset) {
   for (std::size_t i = 0; i < dashArray.size(); ++i) {
     float gap = dashArray[i];
     if (dashOffset > gap || (dashOffset == gap && gap != 0.0f)) {
@@ -290,17 +281,14 @@ std::optional<DashParams> DashParams::create(const StrokeDash& dash) {
     }
   }
 
-  float intervalLen =
-      std::accumulate(dash.array.begin(), dash.array.end(), 0.0f);
+  float intervalLen = std::accumulate(dash.array.begin(), dash.array.end(), 0.0f);
   auto intervalLenChecked = NonZeroPositiveF32::create(intervalLen);
   if (!intervalLenChecked.has_value()) {
     return std::nullopt;
   }
 
-  float adjustedOffset =
-      adjustDashOffset(dash.offset, intervalLenChecked->get());
-  auto [firstLen, firstIndex] =
-      findFirstInterval(dash.array, adjustedOffset);
+  float adjustedOffset = adjustDashOffset(dash.offset, intervalLenChecked->get());
+  auto [firstLen, firstIndex] = findFirstInterval(dash.array, adjustedOffset);
 
   DashParams params;
   params.intervalLen = intervalLenChecked->get();
@@ -314,8 +302,7 @@ std::optional<DashParams> DashParams::create(const StrokeDash& dash) {
 // ContourMeasure
 // ---------------------------------------------------------------------------
 
-void ContourMeasure::pushSegment(float startD, float stopD,
-                                 bool startWithMoveTo,
+void ContourMeasure::pushSegment(float startD, float stopD, bool startWithMoveTo,
                                  PathBuilder& pb) const {
   if (startD < 0.0f) {
     startD = 0.0f;
@@ -356,8 +343,7 @@ void ContourMeasure::pushSegment(float startD, float stopD,
   } else {
     std::size_t newSegIndex = segIndex;
     for (;;) {
-      segmentTo(&points[seg.pointIndex], seg.kind, startT,
-                NormalizedF32::ONE, pb);
+      segmentTo(&points[seg.pointIndex], seg.kind, startT, NormalizedF32::ONE, pb);
 
       std::size_t oldPointIndex = seg.pointIndex;
       for (;;) {
@@ -375,13 +361,12 @@ void ContourMeasure::pushSegment(float startD, float stopD,
       }
     }
 
-    segmentTo(&points[seg.pointIndex], seg.kind, NormalizedF32::ZERO,
-              stopT, pb);
+    segmentTo(&points[seg.pointIndex], seg.kind, NormalizedF32::ZERO, stopT, pb);
   }
 }
 
-std::optional<std::pair<std::size_t, NormalizedF32>>
-ContourMeasure::distanceToSegment(float distance) const {
+std::optional<std::pair<std::size_t, NormalizedF32>> ContourMeasure::distanceToSegment(
+    float distance) const {
   assert(distance >= 0.0f && distance <= length);
 
   std::int32_t index = findSegment(segments, distance);
@@ -406,8 +391,7 @@ ContourMeasure::distanceToSegment(float distance) const {
   assert(distance >= startD);
   assert(seg.distance > startD);
 
-  float t = startT + (seg.scalarT() - startT) * (distance - startD) /
-                          (seg.distance - startD);
+  float t = startT + (seg.scalarT() - startT) * (distance - startD) / (seg.distance - startD);
   auto tNorm = NormalizedF32::create(t);
   if (!tNorm.has_value()) {
     return std::nullopt;
@@ -415,8 +399,7 @@ ContourMeasure::distanceToSegment(float distance) const {
   return std::make_pair(uindex, *tNorm);
 }
 
-float ContourMeasure::computeLineSeg(Point p0, Point p1, float distance,
-                                     std::size_t pointIndex) {
+float ContourMeasure::computeLineSeg(Point p0, Point p1, float distance, std::size_t pointIndex) {
   float d = p0.distance(p1);
   assert(d >= 0.0f);
   float prevD = distance;
@@ -433,22 +416,19 @@ float ContourMeasure::computeLineSeg(Point p0, Point p1, float distance,
   return distance;
 }
 
-float ContourMeasure::computeQuadSegs(Point p0, Point p1, Point p2,
-                                      float distance, std::uint32_t minT,
-                                      std::uint32_t maxT,
-                                      std::size_t pointIndex,
-                                      float tolerance) {
-  if (tSpanBigEnough(maxT - minT) != 0 &&
-      quadTooCurvy(p0, p1, p2, tolerance)) {
+float ContourMeasure::computeQuadSegs(Point p0, Point p1, Point p2, float distance,
+                                      std::uint32_t minT, std::uint32_t maxT,
+                                      std::size_t pointIndex, float tolerance) {
+  if (tSpanBigEnough(maxT - minT) != 0 && quadTooCurvy(p0, p1, p2, tolerance)) {
     Point tmp[5];
     std::uint32_t halfT = (minT + maxT) >> 1;
 
     Point srcPts[3] = {p0, p1, p2};
     path_geometry::chopQuadAtT(srcPts, NormalizedF32Exclusive::HALF, tmp);
-    distance = computeQuadSegs(tmp[0], tmp[1], tmp[2], distance, minT,
-                               halfT, pointIndex, tolerance);
-    distance = computeQuadSegs(tmp[2], tmp[3], tmp[4], distance, halfT,
-                               maxT, pointIndex, tolerance);
+    distance =
+        computeQuadSegs(tmp[0], tmp[1], tmp[2], distance, minT, halfT, pointIndex, tolerance);
+    distance =
+        computeQuadSegs(tmp[2], tmp[3], tmp[4], distance, halfT, maxT, pointIndex, tolerance);
   } else {
     float d = p0.distance(p2);
     float prevD = distance;
@@ -466,23 +446,19 @@ float ContourMeasure::computeQuadSegs(Point p0, Point p1, Point p2,
   return distance;
 }
 
-float ContourMeasure::computeCubicSegs(Point p0, Point p1, Point p2,
-                                       Point p3, float distance,
-                                       std::uint32_t minT,
-                                       std::uint32_t maxT,
-                                       std::size_t pointIndex,
-                                       float tolerance) {
-  if (tSpanBigEnough(maxT - minT) != 0 &&
-      cubicTooCurvy(p0, p1, p2, p3, tolerance)) {
+float ContourMeasure::computeCubicSegs(Point p0, Point p1, Point p2, Point p3, float distance,
+                                       std::uint32_t minT, std::uint32_t maxT,
+                                       std::size_t pointIndex, float tolerance) {
+  if (tSpanBigEnough(maxT - minT) != 0 && cubicTooCurvy(p0, p1, p2, p3, tolerance)) {
     Point tmp[7];
     std::uint32_t halfT = (minT + maxT) >> 1;
 
     Point srcPts[4] = {p0, p1, p2, p3};
     path_geometry::chopCubicAt2(srcPts, NormalizedF32Exclusive::HALF, tmp);
-    distance = computeCubicSegs(tmp[0], tmp[1], tmp[2], tmp[3], distance,
-                                minT, halfT, pointIndex, tolerance);
-    distance = computeCubicSegs(tmp[3], tmp[4], tmp[5], tmp[6], distance,
-                                halfT, maxT, pointIndex, tolerance);
+    distance = computeCubicSegs(tmp[0], tmp[1], tmp[2], tmp[3], distance, minT, halfT, pointIndex,
+                                tolerance);
+    distance = computeCubicSegs(tmp[3], tmp[4], tmp[5], tmp[6], distance, halfT, maxT, pointIndex,
+                                tolerance);
   } else {
     float d = p0.distance(p3);
     float prevD = distance;
@@ -504,8 +480,7 @@ float ContourMeasure::computeCubicSegs(Point p0, Point p1, Point p2,
 // ContourMeasureIter
 // ---------------------------------------------------------------------------
 
-ContourMeasureIter::ContourMeasureIter(const Path& path, float resScale)
-    : iter_(path) {
+ContourMeasureIter::ContourMeasureIter(const Path& path, float resScale) : iter_(path) {
   // can't use tangents, since we need [0..1..................2] to be seen
   // as definitely not a line (it is when drawn, but not parametrically)
   // so we compare midpoints
@@ -539,8 +514,7 @@ std::optional<ContourMeasure> ContourMeasureIter::next() {
       }
       case PathSegment::Kind::LineTo: {
         float prevD = distance;
-        distance = contour.computeLineSeg(prevP, seg->pts[0], distance,
-                                          pointIndex);
+        distance = contour.computeLineSeg(prevP, seg->pts[0], distance, pointIndex);
         if (distance > prevD) {
           contour.points.push_back(seg->pts[0]);
           pointIndex += 1;
@@ -550,8 +524,7 @@ std::optional<ContourMeasure> ContourMeasureIter::next() {
       }
       case PathSegment::Kind::QuadTo: {
         float prevD = distance;
-        distance = contour.computeQuadSegs(prevP, seg->pts[0], seg->pts[1],
-                                           distance, 0, kMaxTValue,
+        distance = contour.computeQuadSegs(prevP, seg->pts[0], seg->pts[1], distance, 0, kMaxTValue,
                                            pointIndex, tolerance_);
         if (distance > prevD) {
           contour.points.push_back(seg->pts[0]);
@@ -563,9 +536,8 @@ std::optional<ContourMeasure> ContourMeasureIter::next() {
       }
       case PathSegment::Kind::CubicTo: {
         float prevD = distance;
-        distance = contour.computeCubicSegs(
-            prevP, seg->pts[0], seg->pts[1], seg->pts[2], distance, 0,
-            kMaxTValue, pointIndex, tolerance_);
+        distance = contour.computeCubicSegs(prevP, seg->pts[0], seg->pts[1], seg->pts[2], distance,
+                                            0, kMaxTValue, pointIndex, tolerance_);
         if (distance > prevD) {
           contour.points.push_back(seg->pts[0]);
           contour.points.push_back(seg->pts[1]);
@@ -594,8 +566,7 @@ std::optional<ContourMeasure> ContourMeasureIter::next() {
   if (haveSeenClose) {
     float prevD = distance;
     Point firstPt = contour.points[0];
-    distance = contour.computeLineSeg(contour.points[pointIndex], firstPt,
-                                      distance, pointIndex);
+    distance = contour.computeLineSeg(contour.points[pointIndex], firstPt, distance, pointIndex);
     if (distance > prevD) {
       contour.points.push_back(firstPt);
     }
@@ -615,8 +586,7 @@ std::optional<ContourMeasure> ContourMeasureIter::next() {
 // dashImpl
 // ---------------------------------------------------------------------------
 
-std::optional<Path> dashImpl(const Path& src, const StrokeDash& dash,
-                              float resScale) {
+std::optional<Path> dashImpl(const Path& src, const StrokeDash& dash, float resScale) {
   // We do not support the `cull_path` branch here.
   // Skia has a lot of code for cases when a path contains only a single
   // zero-length line or when a path is a rect. Not sure why.
@@ -650,8 +620,7 @@ std::optional<Path> dashImpl(const Path& src, const StrokeDash& dash,
     // per segment * 9 bytes per verb, this caps the maximum dash memory
     // overhead at roughly 17 MB per path.
     constexpr float kMaxDashCount = 1000000.0f;
-    dashCount += length * static_cast<float>(dash.array.size() >> 1) /
-                 params->intervalLen;
+    dashCount += length * static_cast<float>(dash.array.size() >> 1) / params->intervalLen;
     if (dashCount > kMaxDashCount) {
       return std::nullopt;
     }
@@ -687,8 +656,7 @@ std::optional<Path> dashImpl(const Path& src, const StrokeDash& dash,
 
     // extend if we ended on a segment and we need to join up with
     // the (skipped) initial segment
-    if (contour->isClosed && isEven(params->firstIndex) &&
-        params->firstLen >= 0.0f) {
+    if (contour->isClosed && isEven(params->firstIndex) && params->firstLen >= 0.0f) {
       contour->pushSegment(0.0f, params->firstLen, !addedSegment, pb);
     }
   }
@@ -700,8 +668,7 @@ std::optional<Path> dashImpl(const Path& src, const StrokeDash& dash,
 // Path::dash
 // ---------------------------------------------------------------------------
 
-std::optional<Path> Path::dash(const StrokeDash& dashPattern,
-                                float resScale) const {
+std::optional<Path> Path::dash(const StrokeDash& dashPattern, float resScale) const {
   return dashImpl(*this, dashPattern, resScale);
 }
 

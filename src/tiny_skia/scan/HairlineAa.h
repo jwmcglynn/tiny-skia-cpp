@@ -11,10 +11,7 @@ namespace tiny_skia {
 namespace scan {
 namespace hairline_aa {
 
-void strokePath(const Path& path,
-               LineCap lineCap,
-               const ScreenIntRect& clip,
-               Blitter& blitter);
+void strokePath(const Path& path, LineCap lineCap, const ScreenIntRect& clip, Blitter& blitter);
 
 void fillRect(const Rect& rect, const ScreenIntRect& clip, Blitter& blitter);
 

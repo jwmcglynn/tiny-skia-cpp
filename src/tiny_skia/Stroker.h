@@ -63,13 +63,12 @@ struct QuadConstruct {
   bool initWithEnd(const QuadConstruct& parent);
 };
 
-using CapProc = void (*)(Point pivot, Point normal, Point stop,
-                         const PathBuilder* otherPath, PathBuilder& path);
+using CapProc = void (*)(Point pivot, Point normal, Point stop, const PathBuilder* otherPath,
+                         PathBuilder& path);
 
-using JoinProc = void (*)(Point beforeUnitNormal, Point pivot,
-                          Point afterUnitNormal, float radius,
-                          float invMiterLimit, bool prevIsLine,
-                          bool currIsLine, SwappableBuilders builders);
+using JoinProc = void (*)(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, float radius,
+                          float invMiterLimit, bool prevIsLine, bool currIsLine,
+                          SwappableBuilders builders);
 
 /// A path stroker. Matches Rust `PathStroker`.
 class PathStroker {
@@ -78,13 +77,11 @@ class PathStroker {
 
   static float computeResolutionScale(const Transform& ts);
 
-  std::optional<Path> stroke(const Path& path, const Stroke& stroke,
-                              float resolutionScale);
+  std::optional<Path> stroke(const Path& path, const Stroke& stroke, float resolutionScale);
 
  private:
-  std::optional<Path> strokeInner(const Path& path, float width,
-                                   float miterLimit, LineCap lineCap,
-                                   LineJoin lineJoin, float resScale);
+  std::optional<Path> strokeInner(const Path& path, float width, float miterLimit, LineCap lineCap,
+                                  LineJoin lineJoin, float resScale);
 
   SwappableBuilders builders();
   Point moveToPt() const;
@@ -95,15 +92,11 @@ class PathStroker {
   void cubicTo(Point pt1, Point pt2, Point pt3);
   bool cubicStroke(const Point cubic[4], QuadConstruct& quadPoints);
   bool cubicMidOnLine(const Point cubic[4], QuadConstruct& quadPoints);
-  void cubicQuadMid(const Point cubic[4], QuadConstruct& quadPoints,
-                    Point& mid);
-  void cubicPerpRay(const Point cubic[4], NormalizedF32 t, Point& tPt,
-                    Point& onPt, Point* tangent);
-  void setCubicEndNormal(const Point cubic[4], Point normalAb,
-                         Point unitNormalAb, Point& normalCd,
+  void cubicQuadMid(const Point cubic[4], QuadConstruct& quadPoints, Point& mid);
+  void cubicPerpRay(const Point cubic[4], NormalizedF32 t, Point& tPt, Point& onPt, Point* tangent);
+  void setCubicEndNormal(const Point cubic[4], Point normalAb, Point unitNormalAb, Point& normalCd,
                          Point& unitNormalCd);
-  ResultType compareQuadCubic(const Point cubic[4],
-                               QuadConstruct& quadPoints);
+  ResultType compareQuadCubic(const Point cubic[4], QuadConstruct& quadPoints);
   void cubicQuadEnds(const Point cubic[4], QuadConstruct& quadPoints);
 
   void closeContour(bool isLine);
@@ -115,18 +108,15 @@ class PathStroker {
   void initQuad(StrokeType strokeType, NormalizedF32 start, NormalizedF32 end,
                 QuadConstruct& quadPoints);
   bool quadStroke(const Point quad[3], QuadConstruct& quadPoints);
-  ResultType compareQuadQuad(const Point quad[3],
-                              QuadConstruct& quadPoints);
+  ResultType compareQuadQuad(const Point quad[3], QuadConstruct& quadPoints);
 
   void setRayPoints(Point tp, Point& dxy, Point& onP, Point* tangent);
-  void quadPerpRay(const Point quad[3], NormalizedF32 t, Point& tp,
-                   Point& onP, Point* tangent);
+  void quadPerpRay(const Point quad[3], NormalizedF32 t, Point& tp, Point& onP, Point* tangent);
   void addDegenerateLine(const QuadConstruct& quadPoints);
 
   ResultType strokeCloseEnough(const Point stroke[3], const Point ray[2],
-                                QuadConstruct& quadPoints);
-  ResultType intersectRay(IntersectRayType type,
-                           QuadConstruct& quadPoints);
+                               QuadConstruct& quadPoints);
+  ResultType intersectRay(IntersectRayType type, QuadConstruct& quadPoints);
   ResultType tangentsMeet(const Point cubic[4], QuadConstruct& quadPoints);
 
   std::optional<Path> finish(bool isLine);
@@ -167,48 +157,42 @@ class PathStroker {
 };
 
 // Free functions used by the stroker.
-bool setNormalUnitNormal(Point before, Point after, float scale, float radius,
-                         Point& normal, Point& unitNormal);
-bool setNormalUnitNormal2(Point vec, float radius, Point& normal,
-                          Point& unitNormal);
+bool setNormalUnitNormal(Point before, Point after, float scale, float radius, Point& normal,
+                         Point& unitNormal);
+bool setNormalUnitNormal2(Point vec, float radius, Point& normal, Point& unitNormal);
 bool isClockwise(Point before, Point after);
 AngleType dotToAngleType(float dot);
 void handleInnerJoin(Point pivot, Point after, PathBuilder& inner);
 
 std::pair<Point, ReductionType> checkQuadLinear(const Point quad[3]);
-ReductionType checkCubicLinear(const Point cubic[4], Point reduction[3],
-                                Point* tangentPt);
+ReductionType checkCubicLinear(const Point cubic[4], Point reduction[3], Point* tangentPt);
 bool degenerateVector(Point v);
 bool quadInLine(const Point quad[3]);
 bool cubicInLine(const Point cubic[4]);
 
 float ptToLine(Point pt, Point lineStart, Point lineEnd);
 std::size_t intersectQuadRay(const Point line[2], const Point quad[3],
-                              NormalizedF32Exclusive roots[3]);
+                             NormalizedF32Exclusive roots[3]);
 bool pointsWithinDist(Point nearPt, Point farPt, float limit);
 bool sharpAngle(const Point quad[3]);
 bool ptInQuadBounds(const Point quad[3], Point pt, float invResScale);
 
 // Cap/join functions.
-void buttCapper(Point pivot, Point normal, Point stop,
-                const PathBuilder* otherPath, PathBuilder& path);
-void roundCapper(Point pivot, Point normal, Point stop,
-                 const PathBuilder* otherPath, PathBuilder& path);
-void squareCapper(Point pivot, Point normal, Point stop,
-                  const PathBuilder* otherPath, PathBuilder& path);
+void buttCapper(Point pivot, Point normal, Point stop, const PathBuilder* otherPath,
+                PathBuilder& path);
+void roundCapper(Point pivot, Point normal, Point stop, const PathBuilder* otherPath,
+                 PathBuilder& path);
+void squareCapper(Point pivot, Point normal, Point stop, const PathBuilder* otherPath,
+                  PathBuilder& path);
 
-void bevelJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal,
-                 float radius, float invMiterLimit, bool prevIsLine,
-                 bool currIsLine, SwappableBuilders builders);
-void roundJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal,
-                 float radius, float invMiterLimit, bool prevIsLine,
-                 bool currIsLine, SwappableBuilders builders);
-void miterJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal,
-                 float radius, float invMiterLimit, bool prevIsLine,
-                 bool currIsLine, SwappableBuilders builders);
-void miterClipJoiner(Point beforeUnitNormal, Point pivot,
-                     Point afterUnitNormal, float radius, float invMiterLimit,
-                     bool prevIsLine, bool currIsLine,
+void bevelJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, float radius,
+                 float invMiterLimit, bool prevIsLine, bool currIsLine, SwappableBuilders builders);
+void roundJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, float radius,
+                 float invMiterLimit, bool prevIsLine, bool currIsLine, SwappableBuilders builders);
+void miterJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, float radius,
+                 float invMiterLimit, bool prevIsLine, bool currIsLine, SwappableBuilders builders);
+void miterClipJoiner(Point beforeUnitNormal, Point pivot, Point afterUnitNormal, float radius,
+                     float invMiterLimit, bool prevIsLine, bool currIsLine,
                      SwappableBuilders builders);
 
 CapProc capFactory(LineCap cap);

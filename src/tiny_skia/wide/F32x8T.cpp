@@ -31,9 +31,7 @@ namespace {
 
 }  // namespace
 
-float F32x8T::cmpMask(bool predicate) {
-  return backend::scalar::f32x8CmpMask(predicate);
-}
+float F32x8T::cmpMask(bool predicate) { return backend::scalar::f32x8CmpMask(predicate); }
 
 F32x8T F32x8T::floor() const {
   if constexpr (useX86Avx2FmaF32x8()) {
@@ -46,13 +44,9 @@ F32x8T F32x8T::floor() const {
   return F32x8T(backend::scalar::f32x8Floor(lanes_));
 }
 
-F32x8T F32x8T::fract() const {
-  return *this - floor();
-}
+F32x8T F32x8T::fract() const { return *this - floor(); }
 
-F32x8T F32x8T::normalize() const {
-  return max(F32x8T::splat(0.0f)).min(F32x8T::splat(1.0f));
-}
+F32x8T F32x8T::normalize() const { return max(F32x8T::splat(0.0f)).min(F32x8T::splat(1.0f)); }
 
 I32x8T F32x8T::toI32x8Bitcast() const {
   if constexpr (useX86Avx2FmaF32x8()) {
@@ -197,9 +191,7 @@ F32x8T F32x8T::recipSqrt() const {
   return F32x8T(backend::scalar::f32x8RecipSqrt(lanes_));
 }
 
-F32x8T F32x8T::powf(float exp) const {
-  return F32x8T(backend::scalar::f32x8Powf(lanes_, exp));
-}
+F32x8T F32x8T::powf(float exp) const { return F32x8T(backend::scalar::f32x8Powf(lanes_, exp)); }
 
 F32x8T F32x8T::max(const F32x8T& rhs) const {
   if constexpr (useX86Avx2FmaF32x8()) {
@@ -341,9 +333,7 @@ F32x8T F32x8T::operator^(const F32x8T& rhs) const {
   return F32x8T(backend::scalar::f32x8BitXor(lanes_, rhs.lanes_));
 }
 
-F32x8T F32x8T::operator-() const {
-  return F32x8T::splat(0.0f) - *this;
-}
+F32x8T F32x8T::operator-() const { return F32x8T::splat(0.0f) - *this; }
 
 F32x8T F32x8T::operator~() const {
   if constexpr (useX86Avx2FmaF32x8()) {
@@ -356,9 +346,7 @@ F32x8T F32x8T::operator~() const {
   return F32x8T(backend::scalar::f32x8BitNot(lanes_));
 }
 
-bool F32x8T::operator==(const F32x8T& rhs) const {
-  return lanes_ == rhs.lanes_;
-}
+bool F32x8T::operator==(const F32x8T& rhs) const { return lanes_ == rhs.lanes_; }
 
 F32x8T& F32x8T::operator+=(const F32x8T& rhs) {
   *this = *this + rhs;

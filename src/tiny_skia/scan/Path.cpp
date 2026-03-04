@@ -13,8 +13,7 @@ namespace tiny_skia {
 
 namespace {
 
-constexpr float kConservativeRoundBias =
-    0.5f + 1.5f / static_cast<float>(fdot6::one);
+constexpr float kConservativeRoundBias = 0.5f + 1.5f / static_cast<float>(fdot6::one);
 
 std::int32_t saturatingToInt32(double value) {
   constexpr auto kMax = static_cast<double>(std::numeric_limits<std::int32_t>::max());
@@ -55,9 +54,7 @@ std::optional<IntRect> conservativeRoundToInt(const Rect& rect) {
     return std::nullopt;
   }
 
-  return IntRect::fromXYWH(left,
-                           top,
-                           static_cast<std::uint32_t>(width),
+  return IntRect::fromXYWH(left, top, static_cast<std::uint32_t>(width),
                            static_cast<std::uint32_t>(height));
 }
 
@@ -146,12 +143,8 @@ void insertNewEdges(std::size_t newIdx, std::int32_t currY, std::vector<Edge>& e
   } while (edges[newIdx].asLine().firstY == currY);
 }
 
-void walkEdges(FillRule fillRule,
-               std::uint32_t startY,
-               std::uint32_t stopY,
-               std::uint32_t rightClip,
-               std::vector<Edge>& edges,
-               Blitter& blitter) {
+void walkEdges(FillRule fillRule, std::uint32_t startY, std::uint32_t stopY,
+               std::uint32_t rightClip, std::vector<Edge>& edges, Blitter& blitter) {
   auto currY = startY;
   const auto windingMask = fillRule == FillRule::EvenOdd ? 1 : -1;
   while (true) {
@@ -204,10 +197,10 @@ void walkEdges(FillRule fillRule,
             removeEdge(currIdx, edges);
           }
         }
-        } else {
-          auto& line = edges[currIdx].asLine();
-          const auto newX = line.x + line.dx;
-          line.x = newX;
+      } else {
+        auto& line = edges[currIdx].asLine();
+        const auto newX = line.x + line.dx;
+        line.x = newX;
 
         if (newX < prevX) {
           backwardInsertEdgeBasedOnX(currIdx, edges);
@@ -238,10 +231,7 @@ void walkEdges(FillRule fillRule,
 
 namespace scan {
 
-void fillPath(const Path& path,
-             FillRule fillRule,
-             const ScreenIntRect& clip,
-             Blitter& blitter) {
+void fillPath(const Path& path, FillRule fillRule, const ScreenIntRect& clip, Blitter& blitter) {
   const auto ir = conservativeRoundToInt(path.bounds());
   if (!ir.has_value()) {
     return;
@@ -252,24 +242,13 @@ void fillPath(const Path& path,
     return bounds.has_value() && clip.contains(bounds.value());
   }();
 
-  fillPathImpl(path,
-               fillRule,
-               clip,
-               ir->y(),
-               ir->y() + static_cast<std::int32_t>(ir->height()),
-               0,
-               pathContainedInClip,
-               blitter);
+  fillPathImpl(path, fillRule, clip, ir->y(), ir->y() + static_cast<std::int32_t>(ir->height()), 0,
+               pathContainedInClip, blitter);
 }
 
-void fillPathImpl(const Path& path,
-                 FillRule fillRule,
-                 const ScreenIntRect& clipRect,
-                 std::int32_t startY,
-                 std::int32_t stopY,
-                 std::int32_t shiftEdgesUp,
-                 bool pathContainedInClip,
-                 Blitter& blitter) {
+void fillPathImpl(const Path& path, FillRule fillRule, const ScreenIntRect& clipRect,
+                  std::int32_t startY, std::int32_t stopY, std::int32_t shiftEdgesUp,
+                  bool pathContainedInClip, Blitter& blitter) {
   const auto shiftedClipOpt = ShiftedIntRect::create(clipRect, shiftEdgesUp);
   if (!shiftedClipOpt.has_value()) {
     return;
@@ -331,11 +310,8 @@ void fillPathImpl(const Path& path,
     return;
   }
 
-  walkEdges(fillRule,
-            static_cast<std::uint32_t>(shiftedStartY),
-            static_cast<std::uint32_t>(shiftedStopY),
-            shiftedClip.shifted().right(),
-            edges,
+  walkEdges(fillRule, static_cast<std::uint32_t>(shiftedStartY),
+            static_cast<std::uint32_t>(shiftedStopY), shiftedClip.shifted().right(), edges,
             blitter);
 }
 

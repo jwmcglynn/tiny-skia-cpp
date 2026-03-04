@@ -1,7 +1,7 @@
+#include <gtest/gtest.h>
+
 #include <cmath>
 #include <limits>
-
-#include <gtest/gtest.h>
 
 #include "tiny_skia/PathVec.h"
 

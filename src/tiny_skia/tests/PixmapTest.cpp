@@ -1,10 +1,10 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <vector>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
@@ -49,8 +49,7 @@ TEST(PixmapTest, FromVecValidatesExactByteLength) {
 
 TEST(PixmapTest, PixmapRefFromBytesAndPixelAccessMatchRgbaPacking) {
   const std::vector<std::uint8_t> bytes{
-      1, 2, 3, 4,
-      5, 6, 7, 8,
+      1, 2, 3, 4, 5, 6, 7, 8,
   };
 
   auto refOpt = tiny_skia::PixmapRef::fromBytes(bytes, 2, 1);
@@ -109,12 +108,11 @@ TEST(PixmapTest, FillAndTakeDemultipliedMatchColorConversion) {
 TEST(PixmapTest, CloneRectCopiesContainedRegion) {
   const auto size = tiny_skia::IntSize::fromWh(3, 2);
   ASSERT_THAT(size, Optional(testing::_));
-  auto pixmap =
-      tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>{
-                                     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
-                                     13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-                                 },
-                                 *size);
+  auto pixmap = tiny_skia::Pixmap::fromVec(
+      std::vector<std::uint8_t>{
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+      },
+      *size);
   ASSERT_THAT(pixmap, Optional(testing::_));
   const auto rect = tiny_skia::IntRect::fromXYWH(1, 0, 2, 2);
   ASSERT_THAT(rect, Optional(testing::_));
@@ -124,15 +122,13 @@ TEST(PixmapTest, CloneRectCopiesContainedRegion) {
   EXPECT_EQ(cloned->width(), 2u);
   EXPECT_EQ(cloned->height(), 2u);
   ASSERT_EQ(cloned->data().size(), 16u);
-  EXPECT_THAT(cloned->data(),
-              ElementsAre(5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 17u, 18u, 19u, 20u, 21u, 22u,
-                          23u, 24u));
+  EXPECT_THAT(cloned->data(), ElementsAre(5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 17u, 18u, 19u, 20u,
+                                          21u, 22u, 23u, 24u));
 }
 
 TEST(PixmapTest, PixmapMutFromBytesAndSubpixmapProvideMutableSubview) {
   std::vector<std::uint8_t> bytes{
-      1, 2, 3, 4, 5, 6, 7, 8,
-      9, 10, 11, 12, 13, 14, 15, 16,
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
   };
   auto mut = tiny_skia::PixmapMut::fromBytes(bytes, 2, 2);
   ASSERT_THAT(mut, Optional(testing::_));

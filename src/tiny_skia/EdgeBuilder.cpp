@@ -1,20 +1,18 @@
 #include "tiny_skia/EdgeBuilder.h"
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+
 #include "tiny_skia/EdgeClipper.h"
 #include "tiny_skia/PathGeometry.h"
-
-#include <algorithm>
-#include <cmath>
-#include <array>
-#include <limits>
 
 namespace tiny_skia {
 
 namespace {
 
-bool isFinite(Point point) {
-  return std::isfinite(point.x) && std::isfinite(point.y);
-}
+bool isFinite(Point point) { return std::isfinite(point.x) && std::isfinite(point.y); }
 
 bool isNotMonotonic(float a, float b, float c) {
   const auto ab = a - b;
@@ -26,15 +24,10 @@ bool isNotMonotonic(float a, float b, float c) {
 }
 
 void chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
-  auto interp = [](float v0, float v1, float tt) -> float {
-    return v0 + (v1 - v0) * tt;
-  };
-  const auto p01 = Point{interp(src[0].x, src[1].x, t),
-                         interp(src[0].y, src[1].y, t)};
-  const auto p12 = Point{interp(src[1].x, src[2].x, t),
-                         interp(src[1].y, src[2].y, t)};
-  const auto p012 = Point{interp(p01.x, p12.x, t),
-                          interp(p01.y, p12.y, t)};
+  auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
+  const auto p01 = Point{interp(src[0].x, src[1].x, t), interp(src[0].y, src[1].y, t)};
+  const auto p12 = Point{interp(src[1].x, src[2].x, t), interp(src[1].y, src[2].y, t)};
+  const auto p012 = Point{interp(p01.x, p12.x, t), interp(p01.y, p12.y, t)};
 
   dst[0] = src[0];
   dst[1] = p01;
@@ -78,9 +71,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
 
 // Pure f32 de Casteljau's, matching Rust's chop_cubic_at2.
 void chopCubicAt2Local(std::array<Point, 4> src, float t, std::array<Point, 7>& dst) {
-  auto interp = [](float v0, float v1, float tt) -> float {
-    return v0 + (v1 - v0) * tt;
-  };
+  auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
   float abx = interp(src[0].x, src[1].x, t);
   float aby = interp(src[0].y, src[1].y, t);
   float bcx = interp(src[1].x, src[2].x, t);
@@ -122,8 +113,7 @@ float validUnitDivideF32Value(float numer, float denom) {
   return numer / denom;
 }
 
-std::size_t chopCubicAt(std::array<Point, 4> src,
-                        std::span<const float> tValues,
+std::size_t chopCubicAt(std::array<Point, 4> src, std::span<const float> tValues,
                         std::array<Point, 10>& dst) {
   if (tValues.empty()) {
     dst[0] = src[0];
@@ -171,8 +161,8 @@ std::size_t chopCubicAt(std::array<Point, 4> src,
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
   auto tValuesF = path_geometry::newTValues();
-  auto rawCount = path_geometry::findCubicExtremaT(
-      src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
+  auto rawCount =
+      path_geometry::findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());
 
   auto tValues = std::array<float, 3>{};
   for (std::size_t i = 0; i < rawCount; ++i) {
@@ -203,30 +193,25 @@ std::optional<ShiftedIntRect> ShiftedIntRect::create(ScreenIntRect rect, std::in
   if (shift < 0 || shift > 30) {
     return std::nullopt;
   }
-  if ((x >> (63 - shift)) != 0 || (y >> (63 - shift)) != 0 ||
-      (width >> (63 - shift)) != 0 || (height >> (63 - shift)) != 0) {
+  if ((x >> (63 - shift)) != 0 || (y >> (63 - shift)) != 0 || (width >> (63 - shift)) != 0 ||
+      (height >> (63 - shift)) != 0) {
     return std::nullopt;
   }
 
-  const auto shifted = ScreenIntRect::fromXYWH(static_cast<std::uint32_t>(x << shift),
-                                             static_cast<std::uint32_t>(y << shift),
-                                             static_cast<std::uint32_t>(width << shift),
-                                             static_cast<std::uint32_t>(height << shift));
+  const auto shifted = ScreenIntRect::fromXYWH(
+      static_cast<std::uint32_t>(x << shift), static_cast<std::uint32_t>(y << shift),
+      static_cast<std::uint32_t>(width << shift), static_cast<std::uint32_t>(height << shift));
   if (!shifted.has_value()) {
     return std::nullopt;
   }
   return ShiftedIntRect{shifted.value(), shift};
 }
 
-const ScreenIntRect& ShiftedIntRect::shifted() const {
-  return shiftedRect;
-}
+const ScreenIntRect& ShiftedIntRect::shifted() const { return shiftedRect; }
 
 ScreenIntRect ShiftedIntRect::recover() const {
-  return ScreenIntRect::fromXYWH(shiftedRect.x() >> shift,
-                                shiftedRect.y() >> shift,
-                                shiftedRect.widthSafe() >> shift,
-                                shiftedRect.height() >> shift)
+  return ScreenIntRect::fromXYWH(shiftedRect.x() >> shift, shiftedRect.y() >> shift,
+                                 shiftedRect.widthSafe() >> shift, shiftedRect.height() >> shift)
       .value();
 }
 
@@ -237,8 +222,8 @@ BasicEdgeBuilder BasicEdgeBuilder::newBuilder(std::int32_t clipShift) {
 }
 
 std::optional<std::vector<Edge>> BasicEdgeBuilder::buildEdges(const Path& path,
-                                                             const ShiftedIntRect* clip,
-                                                             std::int32_t clipShift) {
+                                                              const ShiftedIntRect* clip,
+                                                              std::int32_t clipShift) {
   auto builder = BasicEdgeBuilder::newBuilder(clipShift);
   if (!builder.build(path, clip, false)) {
     return std::nullopt;
@@ -280,10 +265,8 @@ bool BasicEdgeBuilder::build(const Path& path, const ShiftedIntRect* clip, bool 
             if (!isFinite(edgeValue.points[2]) || !isFinite(edgeValue.points[3])) {
               return false;
             }
-            const auto points = std::array<Point, 4>{edgeValue.points[0],
-                                                    edgeValue.points[1],
-                                                    edgeValue.points[2],
-                                                    edgeValue.points[3]};
+            const auto points = std::array<Point, 4>{edgeValue.points[0], edgeValue.points[1],
+                                                     edgeValue.points[2], edgeValue.points[3]};
             pushCubic(std::span<const Point>{points.data(), 4});
             break;
           }
@@ -293,7 +276,7 @@ bool BasicEdgeBuilder::build(const Path& path, const ShiftedIntRect* clip, bool 
     return true;
   }
 
-  for (auto iterator = pathIter(path);; ) {
+  for (auto iterator = pathIter(path);;) {
     auto edge = iterator.next();
     if (!edge.has_value()) {
       break;
@@ -325,10 +308,8 @@ bool BasicEdgeBuilder::build(const Path& path, const ShiftedIntRect* clip, bool 
         if (!isFinite(edgeValue.points[2]) || !isFinite(edgeValue.points[3])) {
           return false;
         }
-        const auto points = std::array<Point, 4>{edgeValue.points[0],
-                                                edgeValue.points[1],
-                                                edgeValue.points[2],
-                                                edgeValue.points[3]};
+        const auto points = std::array<Point, 4>{edgeValue.points[0], edgeValue.points[1],
+                                                 edgeValue.points[2], edgeValue.points[3]};
         auto mono = std::array<Point, 10>{};
         const auto count = chopCubicAtYExtrema(points, mono);
         for (std::size_t i = 0; i <= count; ++i) {
@@ -342,17 +323,11 @@ bool BasicEdgeBuilder::build(const Path& path, const ShiftedIntRect* clip, bool 
   return true;
 }
 
-std::size_t BasicEdgeBuilder::edgesCount() const {
-  return edges_.size();
-}
+std::size_t BasicEdgeBuilder::edgesCount() const { return edges_.size(); }
 
-void BasicEdgeBuilder::clearEdges() {
-  edges_.clear();
-}
+void BasicEdgeBuilder::clearEdges() { edges_.clear(); }
 
-std::span<const Edge> BasicEdgeBuilder::edges() const {
-  return edges_;
-}
+std::span<const Edge> BasicEdgeBuilder::edges() const { return edges_; }
 
 void BasicEdgeBuilder::pushLine(std::span<const Point, 2> points) {
   const auto edge = LineEdge::create(points[0], points[1], clipShift_);
@@ -525,8 +500,6 @@ std::optional<PathEdge> PathEdgeIter::next() {
   return std::nullopt;
 }
 
-PathEdgeIter pathIter(const Path& path) {
-  return PathEdgeIter(path);
-}
+PathEdgeIter pathIter(const Path& path) { return PathEdgeIter(path); }
 
 }  // namespace tiny_skia

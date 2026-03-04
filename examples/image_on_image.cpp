@@ -5,13 +5,12 @@
 
 #include <cstdio>
 
+#include "PngEncoder.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/Stroke.h"
-
-#include "PngEncoder.h"
 
 namespace {
 

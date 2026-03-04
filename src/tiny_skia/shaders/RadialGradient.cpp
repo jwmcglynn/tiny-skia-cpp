@@ -9,17 +9,10 @@ namespace tiny_skia {
 namespace {
 
 Transform fromPoly2(Point p0, Point p1) {
-  return Transform::fromRow(
-      p1.y - p0.y,
-      p0.x - p1.x,
-      p1.x - p0.x,
-      p1.y - p0.y,
-      p0.x,
-      p0.y);
+  return Transform::fromRow(p1.y - p0.y, p0.x - p1.x, p1.x - p0.x, p1.y - p0.y, p0.x, p0.y);
 }
 
-std::optional<Transform> tsFromPolyToPoly(Point src1, Point src2,
-                                          Point dst1, Point dst2) {
+std::optional<Transform> tsFromPolyToPoly(Point src1, Point src2, Point dst1, Point dst2) {
   const auto tmp = fromPoly2(src1, src2);
   const auto res = tmp.invert();
   if (!res.has_value()) return std::nullopt;
@@ -28,24 +21,16 @@ std::optional<Transform> tsFromPolyToPoly(Point src1, Point src2,
 }
 
 std::optional<Transform> mapToUnitX(Point origin, Point xIsOne) {
-  return tsFromPolyToPoly(
-      origin, xIsOne,
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
+  return tsFromPolyToPoly(origin, xIsOne, Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
 }
 
 }  // namespace
 
-bool FocalData::isFocalOnCircle() const {
-  return isNearlyEqual(1.0f, r1);
-}
+bool FocalData::isFocalOnCircle() const { return isNearlyEqual(1.0f, r1); }
 
-bool FocalData::isWellBehaved() const {
-  return !isFocalOnCircle() && r1 > 1.0f;
-}
+bool FocalData::isWellBehaved() const { return !isFocalOnCircle() && r1 > 1.0f; }
 
-bool FocalData::isNativelyFocal() const {
-  return isNearlyZero(focal_x);
-}
+bool FocalData::isNativelyFocal() const { return isNearlyZero(focal_x); }
 
 bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
   is_swapped = false;
@@ -58,9 +43,8 @@ bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
     is_swapped = true;
   }
 
-  const auto focalMatrix = tsFromPolyToPoly(
-      Point::fromXy(focal_x, 0.0f), Point::fromXy(1.0f, 0.0f),
-      Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
+  const auto focalMatrix = tsFromPolyToPoly(Point::fromXy(focal_x, 0.0f), Point::fromXy(1.0f, 0.0f),
+                                            Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
   if (!focalMatrix.has_value()) return false;
 
   matrix = matrix.postConcat(*focalMatrix);
@@ -69,9 +53,7 @@ bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
   if (isFocalOnCircle()) {
     matrix = matrix.postScale(0.5f, 0.5f);
   } else {
-    matrix = matrix.postScale(
-        r1 / (r1 * r1 - 1.0f),
-        1.0f / std::sqrt(std::abs(r1 * r1 - 1.0f)));
+    matrix = matrix.postScale(r1 / (r1 * r1 - 1.0f), 1.0f / std::sqrt(std::abs(r1 * r1 - 1.0f)));
   }
 
   matrix = matrix.postScale(std::abs(1.0f - focal_x), std::abs(1.0f - focal_x));
@@ -79,12 +61,11 @@ bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
 }
 
 std::optional<std::variant<Color, RadialGradient>> RadialGradient::createRadialUnchecked(
-    Point center, float radius, std::vector<GradientStop> stops,
-    SpreadMode mode, Transform transform) {
+    Point center, float radius, std::vector<GradientStop> stops, SpreadMode mode,
+    Transform transform) {
   const float inv = (radius != 0.0f) ? tiny_skia::invert(radius) : 0.0f;
   if (!std::isfinite(inv)) return std::nullopt;
-  const auto pointsToUnit = Transform::fromTranslate(-center.x, -center.y)
-                                 .postScale(inv, inv);
+  const auto pointsToUnit = Transform::fromTranslate(-center.x, -center.y).postScale(inv, inv);
 
   RadialGradient rg{Gradient(std::move(stops), mode, transform, pointsToUnit)};
   rg.gradient_type_ = RadialType{0.0f, radius};
@@ -92,8 +73,8 @@ std::optional<std::variant<Color, RadialGradient>> RadialGradient::createRadialU
 }
 
 std::optional<std::variant<Color, RadialGradient>> RadialGradient::createTwoPoint(
-    Point c0, float r0, Point c1, float r1,
-    std::vector<GradientStop> stops, SpreadMode mode, Transform transform) {
+    Point c0, float r0, Point c1, float r1, std::vector<GradientStop> stops, SpreadMode mode,
+    Transform transform) {
   GradientType gradientType;
   Transform gradientMatrix;
 
@@ -104,8 +85,7 @@ std::optional<std::variant<Color, RadialGradient>> RadialGradient::createTwoPoin
       return std::nullopt;
     }
     const float scale = 1.0f / maxR;
-    gradientMatrix = Transform::fromTranslate(-c1.x, -c1.y)
-                         .postScale(scale, scale);
+    gradientMatrix = Transform::fromTranslate(-c1.x, -c1.y).postScale(scale, scale);
     gradientType = RadialType{r0, r1};
   } else {
     // Different centers
@@ -171,12 +151,11 @@ std::optional<std::variant<Color, RadialGradient>> RadialGradient::create(
     }
   }
 
-  return createTwoPoint(startPoint, startRadius, endPoint, endRadius,
-                        std::move(stops), mode, transform);
+  return createTwoPoint(startPoint, startRadius, endPoint, endRadius, std::move(stops), mode,
+                        transform);
 }
 
-bool RadialGradient::pushStages(ColorSpace cs,
-                                pipeline::RasterPipelineBuilder& p) const {
+bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const {
   using Stage = pipeline::Stage;
 
   float p0 = 0.0f, p1 = 0.0f;
@@ -197,11 +176,12 @@ bool RadialGradient::pushStages(ColorSpace cs,
     p1 = fd->focal_x;
   }
 
-  p.ctx().two_point_conical_gradient = pipeline::TwoPointConicalGradientCtx{
-      .mask = 0, .p0 = p0, .p1 = p1};
+  p.ctx().two_point_conical_gradient =
+      pipeline::TwoPointConicalGradientCtx{.mask = 0, .p0 = p0, .p1 = p1};
 
   const auto& gt = gradient_type_;
-  return base_.pushStages(p, cs,
+  return base_.pushStages(
+      p, cs,
       [&gt, p0, p1](pipeline::RasterPipelineBuilder& b) {
         if (std::holds_alternative<RadialType>(gt)) {
           b.push(Stage::XYToRadius);

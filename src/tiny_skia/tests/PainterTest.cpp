@@ -1,10 +1,9 @@
-#include "tiny_skia/Painter.h"
-
 #include <gtest/gtest.h>
 
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Mask.h"
+#include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/pipeline/Mod.h"
@@ -64,9 +63,9 @@ TEST(PaintTest, IsSolidColorFalseForGradient) {
       tiny_skia::GradientStop::create(0.0f, Color::black),
       tiny_skia::GradientStop::create(1.0f, Color::white),
   };
-  auto result = tiny_skia::LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(100, 0), std::move(stops),
-      tiny_skia::SpreadMode::Pad, Transform::identity());
+  auto result = tiny_skia::LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 0),
+                                                  std::move(stops), tiny_skia::SpreadMode::Pad,
+                                                  Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<tiny_skia::LinearGradient>(*result));
 
@@ -172,15 +171,13 @@ TEST(DrawTilerTest, RectTiling) {
 // ---- isTooBigForMath tests ----
 
 TEST(PainterHelpersTest, IsTooBigForMathSmallPath) {
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 100.0f, 100.0f));
   EXPECT_FALSE(tiny_skia::isTooBigForMath(path));
 }
 
 TEST(PainterHelpersTest, IsTooBigForMathHugePath) {
   const float big = std::numeric_limits<float>::max() * 0.5f;
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(-big, -big, big, big));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(-big, -big, big, big));
   EXPECT_TRUE(tiny_skia::isTooBigForMath(path));
 }
 
@@ -262,8 +259,7 @@ TEST(PathHelperTest, PathFromRect) {
 // ---- Path::transform tests ----
 
 TEST(PathTest, TransformIdentityNoChange) {
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
   auto result = path.transform(Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_FLOAT_EQ(result->bounds().left(), 0.0f);
@@ -271,8 +267,7 @@ TEST(PathTest, TransformIdentityNoChange) {
 }
 
 TEST(PathTest, TransformTranslate) {
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f));
   auto result = path.transform(Transform::fromTranslate(5.0f, 10.0f));
   ASSERT_TRUE(result.has_value());
   EXPECT_FLOAT_EQ(result->bounds().left(), 5.0f);
@@ -360,8 +355,7 @@ TEST(FillRectTest, WithTransformDelegatesToFillPath) {
   paint.anti_alias = false;
 
   // Translate by (3, 3) - should put the rectangle at (3,3)-(8,8).
-  tiny_skia::fillRect(mut, *rect, paint,
-                       Transform::fromTranslate(3.0f, 3.0f));
+  tiny_skia::fillRect(mut, *rect, paint, Transform::fromTranslate(3.0f, 3.0f));
 
   // Pixel at (5,5) should be green.
   auto pixel = pixmap->pixel(5, 5);
@@ -383,15 +377,13 @@ TEST(FillPathTest, SimpleRectanglePath) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->asMut();
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(0, 0, 255, 255));
   paint.anti_alias = false;
 
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding,
-                       Transform::identity());
+  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   // Center should be blue.
   auto pixel = pixmap->pixel(5, 5);
@@ -407,15 +399,13 @@ TEST(FillPathTest, EmptyPathIsNoOp) {
 
   auto mut = pixmap->asMut();
   // Empty line (zero height).
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(0.0f, 5.0f, 10.0f, 5.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 5.0f, 10.0f, 5.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
   paint.anti_alias = false;
 
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding,
-                       Transform::identity());
+  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
   // Should still be gray.
   auto pixel = pixmap->pixel(5, 5);
@@ -429,16 +419,14 @@ TEST(FillPathTest, WithTransform) {
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
   auto mut = pixmap->asMut();
-  auto path = tiny_skia::pathFromRect(
-      *Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f));
+  auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f));
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 255, 0, 255));
   paint.anti_alias = false;
 
   // Scale 2x.
-  tiny_skia::fillPath(mut, path, paint, FillRule::Winding,
-                       Transform::fromScale(2.0f, 2.0f));
+  tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::fromScale(2.0f, 2.0f));
 
   // Pixel at (5,5) should be yellow (inside 2x-scaled rect: 0-10).
   auto pixel = pixmap->pixel(5, 5);
@@ -473,8 +461,7 @@ TEST(DrawPixmapTest, DrawOntoPixmapDoesNotCrash) {
   ppaint.blend_mode = BlendMode::Source;
 
   // Should not crash.
-  tiny_skia::drawPixmap(mut, 3, 3, src->asRef(), ppaint,
-                         Transform::identity());
+  tiny_skia::drawPixmap(mut, 3, 3, src->asRef(), ppaint, Transform::identity());
 
   // Pixel outside the drawn area should be unchanged.
   auto corner = dst->pixel(0, 0);
@@ -533,8 +520,7 @@ TEST(StrokeHairlineTest, BasicStroke) {
 
   // A simple horizontal line path.
   std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line};
-  std::vector<Point> points = {Point::fromXy(1.0f, 5.0f),
-                                Point::fromXy(9.0f, 5.0f)};
+  std::vector<Point> points = {Point::fromXy(1.0f, 5.0f), Point::fromXy(9.0f, 5.0f)};
   Path path(std::move(verbs), std::move(points));
 
   Paint paint;

@@ -1,5 +1,3 @@
-#include "tiny_skia/wide/I32x8T.h"
-
 #include <array>
 #include <bit>
 #include <cstdint>
@@ -7,6 +5,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "tiny_skia/wide/F32x8T.h"
+#include "tiny_skia/wide/I32x8T.h"
 #include "tiny_skia/wide/U32x8T.h"
 
 namespace {
@@ -28,8 +27,7 @@ TEST(I32x8TTest, BlendUsesMaskBitsPerLane) {
   const I32x8T onTrue({10, 20, 30, 40, 50, 60, 70, 80});
   const I32x8T onFalse({1, 2, 3, 4, 5, 6, 7, 8});
 
-  EXPECT_THAT(mask.blend(onTrue, onFalse).lanes(),
-              ElementsAre(10, 2, 30, 4, 50, 6, 70, 8));
+  EXPECT_THAT(mask.blend(onTrue, onFalse).lanes(), ElementsAre(10, 2, 30, 4, 50, 6, 70, 8));
 }
 
 TEST(I32x8TTest, AddAndMulUseWrappingSemantics) {
@@ -38,9 +36,8 @@ TEST(I32x8TTest, AddAndMulUseWrappingSemantics) {
 
   EXPECT_THAT((lhs + rhs).lanes(),
               ElementsAre(-2147483648, 1, 92682, 130000, 2147483647, 1123, 455, 787));
-  EXPECT_THAT((lhs * rhs).lanes(),
-              ElementsAre(2147483647, -2, -2147479015, -1294967296,
-                          -2147483648, 123000, -456, -1578));
+  EXPECT_THAT((lhs * rhs).lanes(), ElementsAre(2147483647, -2, -2147479015, -1294967296,
+                                               -2147483648, 123000, -456, -1578));
 }
 
 TEST(I32x8TTest, ToF32x8AndBitcastMatchRustConversions) {
@@ -55,14 +52,11 @@ TEST(I32x8TTest, ToF32x8AndBitcastMatchRustConversions) {
   EXPECT_EQ(std::bit_cast<std::int32_t>(bitcast.lanes()[7]), -8);
 
   const auto asU32 = value.toU32x8Bitcast().lanes();
-  EXPECT_THAT(asU32, ElementsAre(std::bit_cast<std::uint32_t>(1),
-                                 std::bit_cast<std::uint32_t>(-2),
-                                 std::bit_cast<std::uint32_t>(3),
-                                 std::bit_cast<std::uint32_t>(-4),
-                                 std::bit_cast<std::uint32_t>(5),
-                                 std::bit_cast<std::uint32_t>(-6),
-                                 std::bit_cast<std::uint32_t>(7),
-                                 std::bit_cast<std::uint32_t>(-8)));
+  EXPECT_THAT(asU32,
+              ElementsAre(std::bit_cast<std::uint32_t>(1), std::bit_cast<std::uint32_t>(-2),
+                          std::bit_cast<std::uint32_t>(3), std::bit_cast<std::uint32_t>(-4),
+                          std::bit_cast<std::uint32_t>(5), std::bit_cast<std::uint32_t>(-6),
+                          std::bit_cast<std::uint32_t>(7), std::bit_cast<std::uint32_t>(-8)));
 }
 
 }  // namespace

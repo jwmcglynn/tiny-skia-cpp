@@ -9,13 +9,9 @@ namespace {
 
 constexpr int kMaxCoeffShift = 6;
 
-FDot6 computeDy(FDot6 top, FDot6 y0) {
-  return leftShift(top, 6) + 32 - y0;
-}
+FDot6 computeDy(FDot6 top, FDot6 y0) { return leftShift(top, 6) + 32 - y0; }
 
-FDot16 fdot6ToFixedDiv2(FDot6 value) {
-  return leftShift(value, 9);
-}
+FDot16 fdot6ToFixedDiv2(FDot6 value) { return leftShift(value, 9); }
 
 FDot16 fdot6UpShift(FDot6 x, int32_t upShift) {
   assert((leftShift(x, upShift) >> upShift) == x);
@@ -101,31 +97,29 @@ std::optional<QuadraticEdge> makeQuadraticEdge(std::span<const Point> points, st
   const auto qLastX = fdot6::toFdot16(x2);
   const auto qLastY = fdot6::toFdot16(y2);
 
-  return QuadraticEdge{
-      .line =
-          {
-              .prev = std::nullopt,
-              .next = std::nullopt,
-              .x = 0,
-              .dx = 0,
-              .firstY = 0,
-              .lastY = 0,
-              .winding = winding,
-          },
-      .curveCount = curveCount,
-      .curveShift = curveShift,
-      .qx = qx,
-      .qy = qy,
-      .qdx = qdx,
-      .qdy = qdy,
-      .qddx = qddx,
-      .qddy = qddy,
-      .qLastX = qLastX,
-      .qLastY = qLastY};
+  return QuadraticEdge{.line =
+                           {
+                               .prev = std::nullopt,
+                               .next = std::nullopt,
+                               .x = 0,
+                               .dx = 0,
+                               .firstY = 0,
+                               .lastY = 0,
+                               .winding = winding,
+                           },
+                       .curveCount = curveCount,
+                       .curveShift = curveShift,
+                       .qx = qx,
+                       .qy = qy,
+                       .qdx = qdx,
+                       .qdy = qdy,
+                       .qddx = qddx,
+                       .qddy = qddy,
+                       .qLastX = qLastX,
+                       .qLastY = qLastY};
 }
 
-std::optional<CubicEdge> makeCubicEdge(std::span<const Point> points,
-                                       std::int32_t shift,
+std::optional<CubicEdge> makeCubicEdge(std::span<const Point> points, std::int32_t shift,
                                        bool sortY) {
   if (points.size() != 4) {
     return std::nullopt;
@@ -197,30 +191,29 @@ std::optional<CubicEdge> makeCubicEdge(std::span<const Point> points,
   const auto cLastX = fdot6::toFdot16(x3);
   const auto cLastY = fdot6::toFdot16(y3);
 
-  return CubicEdge{
-      .line =
-          {
-              .prev = std::nullopt,
-              .next = std::nullopt,
-              .x = 0,
-              .dx = 0,
-              .firstY = 0,
-              .lastY = 0,
-              .winding = winding,
-          },
-      .curveCount = static_cast<int8_t>(curveCount),
-      .curveShift = curveShift,
-      .dshift = dshift,
-      .cx = cx,
-      .cy = cy,
-      .cdx = cdx,
-      .cdy = cdy,
-      .cddx = cddx,
-      .cddy = cddy,
-      .cdddx = cdddx,
-      .cdddy = cdddy,
-      .cLastX = cLastX,
-      .cLastY = cLastY};
+  return CubicEdge{.line =
+                       {
+                           .prev = std::nullopt,
+                           .next = std::nullopt,
+                           .x = 0,
+                           .dx = 0,
+                           .firstY = 0,
+                           .lastY = 0,
+                           .winding = winding,
+                       },
+                   .curveCount = static_cast<int8_t>(curveCount),
+                   .curveShift = curveShift,
+                   .dshift = dshift,
+                   .cx = cx,
+                   .cy = cy,
+                   .cdx = cdx,
+                   .cdy = cdy,
+                   .cddx = cddx,
+                   .cddy = cddy,
+                   .cdddx = cdddx,
+                   .cdddy = cdddy,
+                   .cLastX = cLastX,
+                   .cLastY = cLastY};
 }
 
 }  // namespace
@@ -229,17 +222,11 @@ Edge::Edge(const LineEdge& line) : asVariant_(line) {}
 Edge::Edge(const QuadraticEdge& quad) : asVariant_(quad) {}
 Edge::Edge(const CubicEdge& cubic) : asVariant_(cubic) {}
 
-bool Edge::isLine() const {
-  return std::holds_alternative<LineEdge>(asVariant_);
-}
+bool Edge::isLine() const { return std::holds_alternative<LineEdge>(asVariant_); }
 
-bool Edge::isQuadratic() const {
-  return std::holds_alternative<QuadraticEdge>(asVariant_);
-}
+bool Edge::isQuadratic() const { return std::holds_alternative<QuadraticEdge>(asVariant_); }
 
-bool Edge::isCubic() const {
-  return std::holds_alternative<CubicEdge>(asVariant_);
-}
+bool Edge::isCubic() const { return std::holds_alternative<CubicEdge>(asVariant_); }
 
 const LineEdge& Edge::asLine() const {
   if (std::holds_alternative<LineEdge>(asVariant_)) {
@@ -261,21 +248,13 @@ LineEdge& Edge::asLine() {
   return std::get<CubicEdge>(asVariant_).line;
 }
 
-const QuadraticEdge& Edge::asQuadratic() const {
-  return std::get<QuadraticEdge>(asVariant_);
-}
+const QuadraticEdge& Edge::asQuadratic() const { return std::get<QuadraticEdge>(asVariant_); }
 
-QuadraticEdge& Edge::asQuadratic() {
-  return std::get<QuadraticEdge>(asVariant_);
-}
+QuadraticEdge& Edge::asQuadratic() { return std::get<QuadraticEdge>(asVariant_); }
 
-const CubicEdge& Edge::asCubic() const {
-  return std::get<CubicEdge>(asVariant_);
-}
+const CubicEdge& Edge::asCubic() const { return std::get<CubicEdge>(asVariant_); }
 
-CubicEdge& Edge::asCubic() {
-  return std::get<CubicEdge>(asVariant_);
-}
+CubicEdge& Edge::asCubic() { return std::get<CubicEdge>(asVariant_); }
 
 std::optional<LineEdge> LineEdge::create(Point p0, Point p1, std::int32_t shift) {
   const auto scaleShift = shift + 6;
@@ -314,9 +293,7 @@ std::optional<LineEdge> LineEdge::create(Point p0, Point p1, std::int32_t shift)
                   .winding = winding};
 }
 
-bool LineEdge::isVertical() const {
-  return dx == 0;
-}
+bool LineEdge::isVertical() const { return dx == 0; }
 
 bool LineEdge::update(FDot16 x0, FDot16 y0, FDot16 x1, FDot16 y1) {
   assert(winding == 1 || winding == -1);
@@ -343,7 +320,8 @@ bool LineEdge::update(FDot16 x0, FDot16 y0, FDot16 x1, FDot16 y1) {
   return true;
 }
 
-std::optional<QuadraticEdge> QuadraticEdge::create(std::span<const Point> points, std::int32_t shift) {
+std::optional<QuadraticEdge> QuadraticEdge::create(std::span<const Point> points,
+                                                   std::int32_t shift) {
   auto edgeOpt = makeQuadraticEdge(points, shift);
   if (!edgeOpt) {
     return std::nullopt;

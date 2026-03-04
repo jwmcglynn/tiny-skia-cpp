@@ -1,18 +1,18 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <array>
 #include <cstdint>
 #include <span>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Path.h"
+#include "tiny_skia/scan/Hairline.h"
+#include "tiny_skia/scan/HairlineAa.h"
 #include "tiny_skia/scan/Mod.h"
 #include "tiny_skia/scan/Path.h"
 #include "tiny_skia/scan/PathAa.h"
-#include "tiny_skia/scan/Hairline.h"
-#include "tiny_skia/scan/HairlineAa.h"
 #include "tiny_skia/tests/test_utils/GeomMatchers.h"
 #include "tiny_skia/tests/test_utils/ScanMatchers.h"
 
@@ -36,17 +36,11 @@ class RecordingBlitter final : public tiny_skia::Blitter {
     spans_.push_back(ScanSpan{x, y, width});
   }
 
-  void blitRect(const tiny_skia::ScreenIntRect& rect) override {
-    rects_.push_back(rect);
-  }
+  void blitRect(const tiny_skia::ScreenIntRect& rect) override { rects_.push_back(rect); }
 
-  [[nodiscard]] const std::vector<ScanSpan>& spans() const {
-    return spans_;
-  }
+  [[nodiscard]] const std::vector<ScanSpan>& spans() const { return spans_; }
 
-  [[nodiscard]] const std::vector<tiny_skia::ScreenIntRect>& rects() const {
-    return rects_;
-  }
+  [[nodiscard]] const std::vector<tiny_skia::ScreenIntRect>& rects() const { return rects_; }
 
  private:
   std::vector<ScanSpan> spans_;
@@ -73,9 +67,7 @@ class RecordingAntialiasBlitter final : public tiny_skia::Blitter {
     }
   }
 
-  void blitV(std::uint32_t x,
-             std::uint32_t y,
-             tiny_skia::LengthU32 height,
+  void blitV(std::uint32_t x, std::uint32_t y, tiny_skia::LengthU32 height,
              std::uint8_t /*alpha*/) override {
     spans_.push_back(ScanPathAaSpan{x, y, height});
     if (height > 1) {
@@ -83,38 +75,28 @@ class RecordingAntialiasBlitter final : public tiny_skia::Blitter {
     }
   }
 
-  void blitAntiH(std::uint32_t x,
-                 std::uint32_t y,
-                 std::span<std::uint8_t> alpha,
+  void blitAntiH(std::uint32_t x, std::uint32_t y, std::span<std::uint8_t> alpha,
                  std::span<tiny_skia::AlphaRun> runs) override {
     antiSpans_.push_back(ScanPathAaSpan{x, y, antiWidth(runs)});
   }
 
-  void blitAntiH2(std::uint32_t x,
-                  std::uint32_t y,
-                  std::uint8_t alpha0,
+  void blitAntiH2(std::uint32_t x, std::uint32_t y, std::uint8_t alpha0,
                   std::uint8_t alpha1) override {
     std::array<std::uint8_t, 2> alpha{alpha0, alpha1};
-    std::array<tiny_skia::AlphaRun, 3> runs{
-        static_cast<std::uint16_t>(1), static_cast<std::uint16_t>(1), std::nullopt};
+    std::array<tiny_skia::AlphaRun, 3> runs{static_cast<std::uint16_t>(1),
+                                            static_cast<std::uint16_t>(1), std::nullopt};
     blitAntiH(x, y, std::span<std::uint8_t>{alpha}, std::span<tiny_skia::AlphaRun>{runs});
   }
 
-  void blitAntiV2(std::uint32_t x,
-                  std::uint32_t y,
-                  std::uint8_t alpha0,
+  void blitAntiV2(std::uint32_t x, std::uint32_t y, std::uint8_t alpha0,
                   std::uint8_t alpha1) override {
     antiSpans_.push_back(ScanPathAaSpan{x, y, static_cast<std::uint32_t>(alpha0 != 0)});
     antiSpans_.push_back(ScanPathAaSpan{x, y + 1, static_cast<std::uint32_t>(alpha1 != 0)});
   }
 
-  [[nodiscard]] const std::vector<ScanPathAaSpan>& spans() const {
-    return spans_;
-  }
+  [[nodiscard]] const std::vector<ScanPathAaSpan>& spans() const { return spans_; }
 
-  [[nodiscard]] const std::vector<ScanPathAaSpan>& antiSpans() const {
-    return antiSpans_;
-  }
+  [[nodiscard]] const std::vector<ScanPathAaSpan>& antiSpans() const { return antiSpans_; }
 
  private:
   static std::uint32_t antiWidth(std::span<tiny_skia::AlphaRun> runs) {
@@ -162,12 +144,10 @@ TEST(ScanPathTest, FillPathFilledRectangleProducesExpectedSpans) {
   tiny_skia::scan::fillPath(path, tiny_skia::FillRule::EvenOdd, clip, blitter);
 
   EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 6u),
-                                     SpanXYWidthEq<ScanSpan>(2u, 3u, 6u),
-                                     SpanXYWidthEq<ScanSpan>(2u, 4u, 6u),
-                                     SpanXYWidthEq<ScanSpan>(2u, 5u, 6u),
-                                     SpanXYWidthEq<ScanSpan>(2u, 6u, 6u),
-                                     SpanXYWidthEq<ScanSpan>(2u, 7u, 6u)));
+              ::testing::ElementsAre(
+                  SpanXYWidthEq<ScanSpan>(2u, 2u, 6u), SpanXYWidthEq<ScanSpan>(2u, 3u, 6u),
+                  SpanXYWidthEq<ScanSpan>(2u, 4u, 6u), SpanXYWidthEq<ScanSpan>(2u, 5u, 6u),
+                  SpanXYWidthEq<ScanSpan>(2u, 6u, 6u), SpanXYWidthEq<ScanSpan>(2u, 7u, 6u)));
 }
 
 TEST(ScanPathTest, FillPathOutsideClipCullsWithoutSpans) {
@@ -277,11 +257,10 @@ TEST(ScanPathTest, FillRectAaIntegerRectUsesWholeRectBlit) {
   tiny_skia::scan::fillRectAa(rect, clip, blitter);
 
   EXPECT_THAT(blitter.antiSpans(), ::testing::IsEmpty());
-  EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanPathAaSpan>(2u, 2u, 4u),
-                                     SpanXYWidthEq<ScanPathAaSpan>(2u, 3u, 4u),
-                                     SpanXYWidthEq<ScanPathAaSpan>(2u, 4u, 4u),
-                                     SpanXYWidthEq<ScanPathAaSpan>(2u, 5u, 4u)));
+  EXPECT_THAT(blitter.spans(), ::testing::ElementsAre(SpanXYWidthEq<ScanPathAaSpan>(2u, 2u, 4u),
+                                                      SpanXYWidthEq<ScanPathAaSpan>(2u, 3u, 4u),
+                                                      SpanXYWidthEq<ScanPathAaSpan>(2u, 4u, 4u),
+                                                      SpanXYWidthEq<ScanPathAaSpan>(2u, 5u, 4u)));
 }
 
 TEST(ScanPathTest, FillRectAaClipsOutsideClipRect) {
@@ -307,12 +286,10 @@ TEST(ScanPathTest, StrokePathButtHorizontalLine) {
   tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
 
   EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(4u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(6u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(7u, 2u, 1u)));
+              ::testing::ElementsAre(
+                  SpanXYWidthEq<ScanSpan>(2u, 2u, 1u), SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
+                  SpanXYWidthEq<ScanSpan>(4u, 2u, 1u), SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
+                  SpanXYWidthEq<ScanSpan>(6u, 2u, 1u), SpanXYWidthEq<ScanSpan>(7u, 2u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathButtVerticalLine) {
@@ -327,12 +304,10 @@ TEST(ScanPathTest, StrokePathButtVerticalLine) {
   tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
 
   EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 3u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 4u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 5u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 6u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 7u, 1u)));
+              ::testing::ElementsAre(
+                  SpanXYWidthEq<ScanSpan>(5u, 2u, 1u), SpanXYWidthEq<ScanSpan>(5u, 3u, 1u),
+                  SpanXYWidthEq<ScanSpan>(5u, 4u, 1u), SpanXYWidthEq<ScanSpan>(5u, 5u, 1u),
+                  SpanXYWidthEq<ScanSpan>(5u, 6u, 1u), SpanXYWidthEq<ScanSpan>(5u, 7u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathRoundCapExtendsSubpixelLine) {
@@ -346,10 +321,9 @@ TEST(ScanPathTest, StrokePathRoundCapExtendsSubpixelLine) {
   RecordingBlitter blitter;
   tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Round, clip, blitter);
 
-  EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(4u, 2u, 1u)));
+  EXPECT_THAT(blitter.spans(), ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
+                                                      SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
+                                                      SpanXYWidthEq<ScanSpan>(4u, 2u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathQuadAsLineButt) {
@@ -364,10 +338,9 @@ TEST(ScanPathTest, StrokePathQuadAsLineButt) {
   RecordingBlitter blitter;
   tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
 
-  EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(4u, 2u, 1u)));
+  EXPECT_THAT(blitter.spans(), ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
+                                                      SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
+                                                      SpanXYWidthEq<ScanSpan>(4u, 2u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathCubicAsLineButt) {
@@ -384,12 +357,10 @@ TEST(ScanPathTest, StrokePathCubicAsLineButt) {
   tiny_skia::scan::strokePath(path, tiny_skia::LineCap::Butt, clip, blitter);
 
   EXPECT_THAT(blitter.spans(),
-              ::testing::ElementsAre(SpanXYWidthEq<ScanSpan>(2u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(4u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(6u, 2u, 1u),
-                                     SpanXYWidthEq<ScanSpan>(7u, 2u, 1u)));
+              ::testing::ElementsAre(
+                  SpanXYWidthEq<ScanSpan>(2u, 2u, 1u), SpanXYWidthEq<ScanSpan>(3u, 2u, 1u),
+                  SpanXYWidthEq<ScanSpan>(4u, 2u, 1u), SpanXYWidthEq<ScanSpan>(5u, 2u, 1u),
+                  SpanXYWidthEq<ScanSpan>(6u, 2u, 1u), SpanXYWidthEq<ScanSpan>(7u, 2u, 1u)));
 }
 
 TEST(ScanPathTest, StrokePathQuadCurved) {

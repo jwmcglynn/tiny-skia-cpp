@@ -1,12 +1,12 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <bit>
 #include <cmath>
 #include <cstdint>
 #include <limits>
 #include <optional>
 #include <vector>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
@@ -96,7 +96,7 @@ TEST(PathTest, ClearReturnsEmptyPathBuilder) {
   ASSERT_FALSE(path->isEmpty());
 
   auto newBuilder = path->clear();
-  EXPECT_TRUE(path->isEmpty());  // Path should be empty after clear.
+  EXPECT_TRUE(path->isEmpty());       // Path should be empty after clear.
   EXPECT_TRUE(newBuilder.isEmpty());  // Builder starts empty.
 
   // The returned builder should be usable.
@@ -123,11 +123,11 @@ TEST(PathTest, StrokeDashCreateRejectsInvalidDashArrays) {
   // Sum is zero (1 + -1 = 0).
   EXPECT_FALSE(tiny_skia::StrokeDash::create({1.0f, -1.0f}, 0.0f).has_value());
   // Infinite offset.
-  EXPECT_FALSE(tiny_skia::StrokeDash::create(
-      {1.0f, 1.0f}, std::numeric_limits<float>::infinity()).has_value());
+  EXPECT_FALSE(tiny_skia::StrokeDash::create({1.0f, 1.0f}, std::numeric_limits<float>::infinity())
+                   .has_value());
   // Infinite value in array.
-  EXPECT_FALSE(tiny_skia::StrokeDash::create(
-      {1.0f, std::numeric_limits<float>::infinity()}, 0.0f).has_value());
+  EXPECT_FALSE(tiny_skia::StrokeDash::create({1.0f, std::numeric_limits<float>::infinity()}, 0.0f)
+                   .has_value());
 }
 
 // Ported from Rust dash.rs: bug_26
@@ -232,9 +232,7 @@ TEST(PathTest, StrokerAutoCloseTriangleProducesExpectedSegments) {
 TEST(PathTest, StrokerDegenerateCubicProducesNoStroke) {
   tiny_skia::PathBuilder pb;
   pb.moveTo(51.0161362f, 1511.52478f);
-  pb.cubicTo(51.0161362f, 1511.52478f,
-             51.0161362f, 1511.52478f,
-             51.0161362f, 1511.52478f);
+  pb.cubicTo(51.0161362f, 1511.52478f, 51.0161362f, 1511.52478f, 51.0161362f, 1511.52478f);
   auto path = pb.finish();
   ASSERT_TRUE(path.has_value());
 
@@ -276,15 +274,15 @@ TEST(PathTest, StrokerNearDegenerateCubicProducesStroke) {
 TEST(PathTest, StrokerBigStrokeWidthDoesNotCrash) {
   tiny_skia::PathBuilder pb;
   pb.moveTo(std::bit_cast<float>(std::uint32_t{0x46380000}),
-            std::bit_cast<float>(std::uint32_t{0xc6380000}));   // 11776, -11776
+            std::bit_cast<float>(std::uint32_t{0xc6380000}));  // 11776, -11776
   pb.lineTo(std::bit_cast<float>(std::uint32_t{0x46a00000}),
-            std::bit_cast<float>(std::uint32_t{0xc6a00000}));   // 20480, -20480
+            std::bit_cast<float>(std::uint32_t{0xc6a00000}));  // 20480, -20480
   pb.lineTo(std::bit_cast<float>(std::uint32_t{0x468c0000}),
-            std::bit_cast<float>(std::uint32_t{0xc68c0000}));   // 17920, -17920
+            std::bit_cast<float>(std::uint32_t{0xc68c0000}));  // 17920, -17920
   pb.lineTo(std::bit_cast<float>(std::uint32_t{0x46100000}),
-            std::bit_cast<float>(std::uint32_t{0xc6100000}));   // 9216, -9216
+            std::bit_cast<float>(std::uint32_t{0xc6100000}));  // 9216, -9216
   pb.lineTo(std::bit_cast<float>(std::uint32_t{0x46380000}),
-            std::bit_cast<float>(std::uint32_t{0xc6380000}));   // 11776, -11776
+            std::bit_cast<float>(std::uint32_t{0xc6380000}));  // 11776, -11776
   pb.close();
   auto path = pb.finish();
   ASSERT_TRUE(path.has_value());
@@ -293,8 +291,7 @@ TEST(PathTest, StrokerBigStrokeWidthDoesNotCrash) {
   stroke.width = 1.49679073e+10f;
 
   auto result = tiny_skia::PathStroker().stroke(*path, stroke, 1.0f);
-  EXPECT_TRUE(result.has_value())
-      << "very large stroke width should still produce a valid path";
+  EXPECT_TRUE(result.has_value()) << "very large stroke width should still produce a valid path";
 }
 
 // Ported from Rust stroker.rs: quad_stroker_one_off

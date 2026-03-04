@@ -26,8 +26,8 @@ struct GradientStop {
 // Base gradient data. Matches Rust `Gradient`.
 class Gradient {
  public:
-  Gradient(std::vector<GradientStop> stops, SpreadMode tileMode,
-           Transform transform, Transform pointsToUnit);
+  Gradient(std::vector<GradientStop> stops, SpreadMode tileMode, Transform transform,
+           Transform pointsToUnit);
 
   [[nodiscard]] bool colorsAreOpaque() const { return colors_are_opaque_; }
 

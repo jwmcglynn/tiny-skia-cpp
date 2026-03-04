@@ -14,14 +14,15 @@ class SweepGradient {
   explicit SweepGradient(Gradient base) : base_(std::move(base)) {}
 
   // Creates a new sweep gradient. Returns Shader or nullopt.
-  static std::optional<std::variant<Color, SweepGradient>> create(
-      Point center, float startAngle, float endAngle,
-      std::vector<GradientStop> stops, SpreadMode mode, Transform transform);
+  static std::optional<std::variant<Color, SweepGradient>> create(Point center, float startAngle,
+                                                                  float endAngle,
+                                                                  std::vector<GradientStop> stops,
+                                                                  SpreadMode mode,
+                                                                  Transform transform);
 
   [[nodiscard]] bool isOpaque() const { return base_.colorsAreOpaque(); }
 
-  [[nodiscard]] bool pushStages(ColorSpace cs,
-                                pipeline::RasterPipelineBuilder& p) const;
+  [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
   Gradient base_;
 

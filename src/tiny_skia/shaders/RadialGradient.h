@@ -48,19 +48,18 @@ class RadialGradient {
 
   [[nodiscard]] bool isOpaque() const { return base_.colorsAreOpaque(); }
 
-  [[nodiscard]] bool pushStages(ColorSpace cs,
-                                pipeline::RasterPipelineBuilder& p) const;
+  [[nodiscard]] bool pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const;
 
   Gradient base_;
 
  private:
   static std::optional<std::variant<Color, RadialGradient>> createRadialUnchecked(
-      Point center, float radius, std::vector<GradientStop> stops,
-      SpreadMode mode, Transform transform);
+      Point center, float radius, std::vector<GradientStop> stops, SpreadMode mode,
+      Transform transform);
 
   static std::optional<std::variant<Color, RadialGradient>> createTwoPoint(
-      Point c0, float r0, Point c1, float r1,
-      std::vector<GradientStop> stops, SpreadMode mode, Transform transform);
+      Point c0, float r0, Point c1, float r1, std::vector<GradientStop> stops, SpreadMode mode,
+      Transform transform);
 
   GradientType gradient_type_;
 };

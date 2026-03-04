@@ -10,20 +10,15 @@ PremultipliedColorU8 ColorU8::premultiply() const {
   if (a == kAlphaU8Opaque) {
     return PremultipliedColorU8::fromRgbaUnchecked(red(), green(), blue(), a);
   }
-  return PremultipliedColorU8::fromRgbaUnchecked(premultiplyU8(red(), a),
-                                                  premultiplyU8(green(), a),
-                                                  premultiplyU8(blue(), a),
-                                                  a);
+  return PremultipliedColorU8::fromRgbaUnchecked(premultiplyU8(red(), a), premultiplyU8(green(), a),
+                                                 premultiplyU8(blue(), a), a);
 }
 
 const PremultipliedColorU8 PremultipliedColorU8::transparent =
     PremultipliedColorU8::fromRgbaUnchecked(0, 0, 0, 0);
 
-std::optional<PremultipliedColorU8> PremultipliedColorU8::fromRgba(
-    AlphaU8 red,
-    AlphaU8 green,
-    AlphaU8 blue,
-    AlphaU8 alpha) {
+std::optional<PremultipliedColorU8> PremultipliedColorU8::fromRgba(AlphaU8 red, AlphaU8 green,
+                                                                   AlphaU8 blue, AlphaU8 alpha) {
   if (red <= alpha && green <= alpha && blue <= alpha) {
     return fromRgbaUnchecked(red, green, blue, alpha);
   }
@@ -39,23 +34,18 @@ ColorU8 PremultipliedColorU8::demultiply() const {
   if (alphaF == 0.0f) {
     return ColorU8(0, 0, 0, 0);
   }
-  return ColorU8(
-      static_cast<AlphaU8>(static_cast<float>(red()) / alphaF + 0.5f),
-      static_cast<AlphaU8>(static_cast<float>(green()) / alphaF + 0.5f),
-      static_cast<AlphaU8>(static_cast<float>(blue()) / alphaF + 0.5f),
-      a);
+  return ColorU8(static_cast<AlphaU8>(static_cast<float>(red()) / alphaF + 0.5f),
+                 static_cast<AlphaU8>(static_cast<float>(green()) / alphaF + 0.5f),
+                 static_cast<AlphaU8>(static_cast<float>(blue()) / alphaF + 0.5f), a);
 }
 
-const Color Color::transparent =
-    Color::fromRgbaUnchecked(0.0f, 0.0f, 0.0f, 0.0f);
+const Color Color::transparent = Color::fromRgbaUnchecked(0.0f, 0.0f, 0.0f, 0.0f);
 const Color Color::black = Color::fromRgbaUnchecked(0.0f, 0.0f, 0.0f, 1.0f);
 const Color Color::white = Color::fromRgbaUnchecked(1.0f, 1.0f, 1.0f, 1.0f);
 
 Color Color::fromRgbaUnchecked(float red, float green, float blue, float alpha) {
-  return Color(NormalizedF32::newUnchecked(red),
-               NormalizedF32::newUnchecked(green),
-               NormalizedF32::newUnchecked(blue),
-               NormalizedF32::newUnchecked(alpha));
+  return Color(NormalizedF32::newUnchecked(red), NormalizedF32::newUnchecked(green),
+               NormalizedF32::newUnchecked(blue), NormalizedF32::newUnchecked(alpha));
 }
 
 std::optional<Color> Color::fromRgba(float red, float green, float blue, float alpha) {
@@ -78,16 +68,13 @@ PremultipliedColor Color::premultiply() const {
     return PremultipliedColor(red_, green_, blue_, alpha_);
   }
   return PremultipliedColor(NormalizedF32::newClamped(red_.get() * alpha_.get()),
-                           NormalizedF32::newClamped(green_.get() * alpha_.get()),
-                           NormalizedF32::newClamped(blue_.get() * alpha_.get()),
-                           alpha_);
+                            NormalizedF32::newClamped(green_.get() * alpha_.get()),
+                            NormalizedF32::newClamped(blue_.get() * alpha_.get()), alpha_);
 }
 
 namespace {
 
-std::array<std::uint8_t, 4> colorF32ToU8(NormalizedF32 red,
-                                         NormalizedF32 green,
-                                         NormalizedF32 blue,
+std::array<std::uint8_t, 4> colorF32ToU8(NormalizedF32 red, NormalizedF32 green, NormalizedF32 blue,
                                          NormalizedF32 alpha) {
   return {
       static_cast<std::uint8_t>(red.get() * 255.0f + 0.5f),
@@ -111,8 +98,7 @@ Color PremultipliedColor::demultiply() const {
   }
   return Color(NormalizedF32::newClamped(red_.get() / a),
                NormalizedF32::newClamped(green_.get() / a),
-               NormalizedF32::newClamped(blue_.get() / a),
-               NormalizedF32::newClamped(a));
+               NormalizedF32::newClamped(blue_.get() / a), NormalizedF32::newClamped(a));
 }
 
 PremultipliedColorU8 PremultipliedColor::toColorU8() const {

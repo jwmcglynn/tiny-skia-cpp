@@ -43,9 +43,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpEq(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpEq(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] == rhs[i]);
@@ -54,9 +53,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpNe(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpNe(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] != rhs[i]);
@@ -65,9 +63,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpGe(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpGe(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] >= rhs[i]);
@@ -76,9 +73,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpGt(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpGt(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] > rhs[i]);
@@ -87,9 +83,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpLe(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpLe(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] <= rhs[i]);
@@ -98,9 +93,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8CmpLt(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8CmpLt(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = f32x8CmpMask(lhs[i] < rhs[i]);
@@ -109,10 +103,9 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Blend(
-    const std::array<float, 8>& mask,
-    const std::array<float, 8>& t,
-    const std::array<float, 8>& f) {
+[[nodiscard]] inline std::array<float, 8> f32x8Blend(const std::array<float, 8>& mask,
+                                                     const std::array<float, 8>& t,
+                                                     const std::array<float, 8>& f) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const std::uint32_t maskBits = std::bit_cast<std::uint32_t>(mask[i]);
@@ -160,9 +153,7 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Powf(
-    const std::array<float, 8>& lanes,
-    float exp) {
+[[nodiscard]] inline std::array<float, 8> f32x8Powf(const std::array<float, 8>& lanes, float exp) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = std::pow(lanes[i], exp);
@@ -171,9 +162,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Max(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Max(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = fasterMax(lhs[i], rhs[i]);
@@ -182,9 +172,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Min(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Min(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = fasterMin(lhs[i], rhs[i]);
@@ -202,8 +191,7 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(const std::array<float, 8>& lanes) {
   std::array<std::int32_t, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = static_cast<std::int32_t>(std::nearbyint(lanes[i]));
@@ -212,8 +200,7 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(const std::array<float, 8>& lanes) {
   std::array<std::int32_t, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = static_cast<std::int32_t>(std::trunc(lanes[i]));
@@ -222,9 +209,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Add(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Add(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = lhs[i] + rhs[i];
@@ -233,9 +219,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Sub(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Sub(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = lhs[i] - rhs[i];
@@ -244,9 +229,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Mul(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Mul(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = lhs[i] * rhs[i];
@@ -255,9 +239,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8Div(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8Div(const std::array<float, 8>& lhs,
+                                                   const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = lhs[i] / rhs[i];
@@ -266,9 +249,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8BitAnd(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8BitAnd(const std::array<float, 8>& lhs,
+                                                      const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lhs[i]);
@@ -279,9 +261,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8BitOr(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8BitOr(const std::array<float, 8>& lhs,
+                                                     const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lhs[i]);
@@ -292,9 +273,8 @@ namespace tiny_skia::wide::backend::scalar {
   return out;
 }
 
-[[nodiscard]] inline std::array<float, 8> f32x8BitXor(
-    const std::array<float, 8>& lhs,
-    const std::array<float, 8>& rhs) {
+[[nodiscard]] inline std::array<float, 8> f32x8BitXor(const std::array<float, 8>& lhs,
+                                                      const std::array<float, 8>& rhs) {
   std::array<float, 8> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const std::uint32_t lhsBits = std::bit_cast<std::uint32_t>(lhs[i]);

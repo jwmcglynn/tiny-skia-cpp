@@ -9,8 +9,7 @@ namespace tiny_skia::path_geometry::path_rs {
 using Conic = ::tiny_skia::path_geometry::Conic;
 using AutoConicToQuads = ::tiny_skia::path_geometry::AutoConicToQuads;
 
-inline std::size_t chopQuadAt(std::array<Point, 3> src, float t,
-                              std::array<Point, 5>& dst) {
+inline std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
   return ::tiny_skia::path_geometry::chopQuadAt(src, t, dst);
 }
 
@@ -69,8 +68,7 @@ inline std::optional<NormalizedF32Exclusive> findCubicCusp(const Point src[4]) {
   return ::tiny_skia::path_geometry::findCubicCusp(src);
 }
 
-inline std::size_t findUnitQuadRoots(float a, float b, float c,
-                                     NormalizedF32Exclusive roots[3]) {
+inline std::size_t findUnitQuadRoots(float a, float b, float c, NormalizedF32Exclusive roots[3]) {
   return ::tiny_skia::path_geometry::findUnitQuadRoots(a, b, c, roots);
 }
 
@@ -78,8 +76,8 @@ inline std::array<NormalizedF32Exclusive, 3> newTValues() {
   return ::tiny_skia::path_geometry::newTValues();
 }
 
-inline std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1,
-                                                         Point pt2, float weight) {
+inline std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1, Point pt2,
+                                                        float weight) {
   return ::tiny_skia::path_geometry::autoConicToQuads(pt0, pt1, pt2, weight);
 }
 

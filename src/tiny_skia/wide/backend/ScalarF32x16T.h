@@ -19,24 +19,20 @@ namespace tiny_skia::wide::backend::scalar {
   const auto lo = value.lo().lanes();
   const auto hi = value.hi().lanes();
 
-  return F32x16T(
-      F32x8T({absF(lo[0]), absF(lo[1]), absF(lo[2]), absF(lo[3]),
-              absF(lo[4]), absF(lo[5]), absF(lo[6]), absF(lo[7])}),
-      F32x8T({absF(hi[0]), absF(hi[1]), absF(hi[2]), absF(hi[3]),
-              absF(hi[4]), absF(hi[5]), absF(hi[6]), absF(hi[7])}));
+  return F32x16T(F32x8T({absF(lo[0]), absF(lo[1]), absF(lo[2]), absF(lo[3]), absF(lo[4]),
+                         absF(lo[5]), absF(lo[6]), absF(lo[7])}),
+                 F32x8T({absF(hi[0]), absF(hi[1]), absF(hi[2]), absF(hi[3]), absF(hi[4]),
+                         absF(hi[5]), absF(hi[6]), absF(hi[7])}));
 }
 
 [[nodiscard]] inline F32x16T f32x16Sqrt(const F32x16T& value) {
   const auto lo = value.lo().lanes();
   const auto hi = value.hi().lanes();
 
-  return F32x16T(
-      F32x8T({std::sqrt(lo[0]), std::sqrt(lo[1]), std::sqrt(lo[2]),
-              std::sqrt(lo[3]), std::sqrt(lo[4]), std::sqrt(lo[5]),
-              std::sqrt(lo[6]), std::sqrt(lo[7])}),
-      F32x8T({std::sqrt(hi[0]), std::sqrt(hi[1]), std::sqrt(hi[2]),
-              std::sqrt(hi[3]), std::sqrt(hi[4]), std::sqrt(hi[5]),
-              std::sqrt(hi[6]), std::sqrt(hi[7])}));
+  return F32x16T(F32x8T({std::sqrt(lo[0]), std::sqrt(lo[1]), std::sqrt(lo[2]), std::sqrt(lo[3]),
+                         std::sqrt(lo[4]), std::sqrt(lo[5]), std::sqrt(lo[6]), std::sqrt(lo[7])}),
+                 F32x8T({std::sqrt(hi[0]), std::sqrt(hi[1]), std::sqrt(hi[2]), std::sqrt(hi[3]),
+                         std::sqrt(hi[4]), std::sqrt(hi[5]), std::sqrt(hi[6]), std::sqrt(hi[7])}));
 }
 
 inline void f32x16SaveToU16x16(const F32x16T& value, U16x16T& dst) {

@@ -2,8 +2,7 @@
 
 namespace tiny_skia {
 
-std::optional<StrokeDash> StrokeDash::create(std::vector<float> dashArray,
-                                              float dashOffset) {
+std::optional<StrokeDash> StrokeDash::create(std::vector<float> dashArray, float dashOffset) {
   if (dashArray.empty()) return std::nullopt;
 
   // Must have even number of entries.

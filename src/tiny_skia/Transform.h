@@ -22,8 +22,8 @@ class Transform {
 
   [[nodiscard]] static constexpr Transform identity() { return Transform{}; }
 
-  [[nodiscard]] static constexpr Transform fromRow(float sx, float ky, float kx,
-                                                    float sy, float tx, float ty) {
+  [[nodiscard]] static constexpr Transform fromRow(float sx, float ky, float kx, float sy, float tx,
+                                                   float ty) {
     Transform t;
     t.sx = sx;
     t.ky = ky;

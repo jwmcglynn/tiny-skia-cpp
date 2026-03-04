@@ -10,13 +10,9 @@ class U32x4T {
   U32x4T() = default;
   explicit constexpr U32x4T(std::array<std::uint32_t, 4> lanes) : lanes_(lanes) {}
 
-  [[nodiscard]] static constexpr U32x4T splat(std::uint32_t n) {
-    return U32x4T({n, n, n, n});
-  }
+  [[nodiscard]] static constexpr U32x4T splat(std::uint32_t n) { return U32x4T({n, n, n, n}); }
 
-  [[nodiscard]] constexpr std::array<std::uint32_t, 4> lanes() const {
-    return lanes_;
-  }
+  [[nodiscard]] constexpr std::array<std::uint32_t, 4> lanes() const { return lanes_; }
 
   [[nodiscard]] U32x4T cmpEq(const U32x4T& rhs) const;
   [[nodiscard]] U32x4T cmpNe(const U32x4T& rhs) const;

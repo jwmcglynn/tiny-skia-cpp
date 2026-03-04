@@ -1,19 +1,18 @@
 #pragma once
 
+#include <gmock/gmock.h>
+
 #include <cstdint>
 #include <optional>
-
-#include <gmock/gmock.h>
 
 #include "tiny_skia/Geom.h"
 
 namespace tiny_skia::tests::matchers {
 
-inline ::testing::Matcher<const tiny_skia::ScreenIntRect&> ScreenIntRectEq(
-    std::uint32_t x,
-    std::uint32_t y,
-    std::uint32_t width,
-    std::uint32_t height) {
+inline ::testing::Matcher<const tiny_skia::ScreenIntRect&> ScreenIntRectEq(std::uint32_t x,
+                                                                           std::uint32_t y,
+                                                                           std::uint32_t width,
+                                                                           std::uint32_t height) {
   using ::testing::AllOf;
   using ::testing::Eq;
   using ::testing::Property;
@@ -25,10 +24,7 @@ inline ::testing::Matcher<const tiny_skia::ScreenIntRect&> ScreenIntRectEq(
 }
 
 inline ::testing::Matcher<const std::optional<tiny_skia::ScreenIntRect>&> OptionalScreenIntRectEq(
-    std::uint32_t x,
-    std::uint32_t y,
-    std::uint32_t width,
-    std::uint32_t height) {
+    std::uint32_t x, std::uint32_t y, std::uint32_t width, std::uint32_t height) {
   return ::testing::Optional(ScreenIntRectEq(x, y, width, height));
 }
 

@@ -1,21 +1,19 @@
 #pragma once
 
+#include <zlib.h>
+
 #include <cstdint>
 #include <cstring>
 #include <fstream>
 #include <string>
 #include <vector>
 
-#include <zlib.h>
-
 namespace tiny_skia::examples {
 
 /// Writes RGBA8 pixel data as an uncompressed-filter PNG file.
 /// Expects straight (non-premultiplied) alpha, 4 bytes per pixel.
 /// Returns true on success.
-inline bool writePng(const std::string& path,
-                     const std::uint8_t* rgba,
-                     std::uint32_t width,
+inline bool writePng(const std::string& path, const std::uint8_t* rgba, std::uint32_t width,
                      std::uint32_t height) {
   // Build raw scanline data: each row is [filter_byte=0] + [RGBA pixels].
   const std::size_t rowBytes = static_cast<std::size_t>(width) * 4;
@@ -31,8 +29,8 @@ inline bool writePng(const std::string& path,
   // Compress with zlib.
   uLongf compBound = compressBound(static_cast<uLong>(rawSize));
   std::vector<std::uint8_t> compressed(compBound);
-  if (compress2(compressed.data(), &compBound, raw.data(),
-                static_cast<uLong>(rawSize), Z_DEFAULT_COMPRESSION) != Z_OK) {
+  if (compress2(compressed.data(), &compBound, raw.data(), static_cast<uLong>(rawSize),
+                Z_DEFAULT_COMPRESSION) != Z_OK) {
     return false;
   }
   compressed.resize(compBound);
@@ -46,8 +44,8 @@ inline bool writePng(const std::string& path,
   };
 
   // Helper: write a PNG chunk (length + type + data + CRC).
-  auto writeChunk = [&](std::ofstream& out, const char* type,
-                        const std::uint8_t* data, std::uint32_t len) {
+  auto writeChunk = [&](std::ofstream& out, const char* type, const std::uint8_t* data,
+                        std::uint32_t len) {
     std::uint8_t header[8];
     writeU32BE(header, len);
     std::memcpy(header + 4, type, 4);
@@ -84,8 +82,7 @@ inline bool writePng(const std::string& path,
   writeChunk(file, "IHDR", ihdr, 13);
 
   // IDAT
-  writeChunk(file, "IDAT", compressed.data(),
-             static_cast<std::uint32_t>(compressed.size()));
+  writeChunk(file, "IDAT", compressed.data(), static_cast<std::uint32_t>(compressed.size()));
 
   // IEND
   writeChunk(file, "IEND", nullptr, 0);

@@ -29,9 +29,7 @@ Point subtract(const Point& left, const Point& right) {
   return {left.x - right.x, left.y - right.y};
 }
 
-bool isZero(const Point& point) {
-  return point.x == 0.0f && point.y == 0.0f;
-}
+bool isZero(const Point& point) { return point.x == 0.0f && point.y == 0.0f; }
 
 void normalize(Point& point) {
   const auto distance = std::sqrt(point.x * point.x + point.y * point.y);
@@ -40,9 +38,7 @@ void normalize(Point& point) {
 }
 
 template <std::size_t N>
-void extendPts(LineCap lineCap,
-               PathVerb prevVerb,
-               const std::optional<PathVerb>& nextVerb,
+void extendPts(LineCap lineCap, PathVerb prevVerb, const std::optional<PathVerb>& nextVerb,
                std::array<Point, N>& points) {
   const auto capOutset = lineCap == LineCap::Square ? 0.5f : kFloatPi / 8.0f;
 
@@ -124,24 +120,19 @@ std::optional<IntRect> makeInset(const IntRect& rect, std::uint32_t insetX, std:
     return std::nullopt;
   }
   return IntRect::fromXYWH(rect.x() + static_cast<std::int32_t>(insetX),
-                          rect.y() + static_cast<std::int32_t>(insetY),
-                          rect.width() - 2u * insetX,
-                          rect.height() - 2u * insetY);
+                           rect.y() + static_cast<std::int32_t>(insetY), rect.width() - 2u * insetX,
+                           rect.height() - 2u * insetY);
 }
 
-std::optional<IntRect> makeOutset(const IntRect& rect,
-                                  std::uint32_t outsetX,
+std::optional<IntRect> makeOutset(const IntRect& rect, std::uint32_t outsetX,
                                   std::uint32_t outsetY) {
   return IntRect::fromXYWH(rect.x() - static_cast<std::int32_t>(outsetX),
-                          rect.y() - static_cast<std::int32_t>(outsetY),
-                          rect.width() + 2u * outsetX,
-                          rect.height() + 2u * outsetY);
+                           rect.y() - static_cast<std::int32_t>(outsetY),
+                           rect.width() + 2u * outsetX, rect.height() + 2u * outsetY);
 }
 
 std::optional<Rect> makeOutset(const Rect& rect, float outsetX, float outsetY) {
-  return Rect::fromLtrb(rect.left() - outsetX,
-                        rect.top() - outsetY,
-                        rect.right() + outsetX,
+  return Rect::fromLtrb(rect.left() - outsetX, rect.top() - outsetY, rect.right() + outsetX,
                         rect.bottom() + outsetY);
 }
 
@@ -192,13 +183,13 @@ std::uint32_t computeCubicSegments(const std::array<Point, 4>& points) {
   const auto twoThird = 2.0f / 3.0f;
 
   const auto p13 = Point{oneThird * points[3].x + twoThird * points[0].x,
-                        oneThird * points[3].y + twoThird * points[0].y};
+                         oneThird * points[3].y + twoThird * points[0].y};
   const auto p23 = Point{oneThird * points[0].x + twoThird * points[3].x,
-                        oneThird * points[0].y + twoThird * points[3].y};
+                         oneThird * points[0].y + twoThird * points[3].y};
 
-  const auto diff = std::max(
-      std::max(std::fabs(points[1].x - p13.x), std::fabs(points[1].y - p13.y)),
-      std::max(std::fabs(points[2].x - p23.x), std::fabs(points[2].y - p23.y)));
+  const auto diff =
+      std::max(std::max(std::fabs(points[1].x - p13.x), std::fabs(points[1].y - p13.y)),
+               std::max(std::fabs(points[2].x - p23.x), std::fabs(points[2].y - p23.y)));
 
   float tol = 1.0f / 8.0f;
   for (std::uint32_t i = 0; i < kMaxCubicSubdivideLevel; ++i) {
@@ -226,14 +217,12 @@ struct QuadCoeffLocal {
   }
 
   Point eval(float t) const {
-    return Point::fromXy((ax * t + bx) * t + cx,
-                         (ay * t + by) * t + cy);
+    return Point::fromXy((ax * t + bx) * t + cx, (ay * t + by) * t + cy);
   }
 };
 
 std::optional<Rect> intRectToRect(const IntRect& rect) {
-  return Rect::fromLtrb(static_cast<float>(rect.x()),
-                        static_cast<float>(rect.y()),
+  return Rect::fromLtrb(static_cast<float>(rect.x()), static_cast<float>(rect.y()),
                         static_cast<float>(rect.x()) + rect.width(),
                         static_cast<float>(rect.y()) + rect.height());
 }
@@ -256,8 +245,7 @@ struct CubicCoeffLocal {
   }
 
   Point eval(float t) const {
-    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx,
-                         ((ay * t + by) * t + cy) * t + dy);
+    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
   }
 };
 
@@ -294,10 +282,8 @@ std::optional<Rect> computeNoCheckCubicBounds(const std::array<Point, 4>& points
   return Rect::fromLtrb(minX, minY, maxX, maxY);
 }
 
-void hairQuad2(const std::array<Point, 3>& points,
-              const ScreenIntRect* clip,
-              LineProc lineProc,
-              Blitter& blitter) {
+void hairQuad2(const std::array<Point, 3>& points, const ScreenIntRect* clip, LineProc lineProc,
+               Blitter& blitter) {
   const auto lines = 1u << computeQuadLevel(points);
   if (lines == 1u) {
     lineProc(std::span<const Point>{points.data(), 2}, clip, blitter);
@@ -325,10 +311,8 @@ void hairQuad2(const std::array<Point, 3>& points,
   lineProc(std::span<const Point>{output.data(), lines + 1}, clip, blitter);
 }
 
-void hairCubic2(const std::array<Point, 4>& points,
-               const ScreenIntRect* clip,
-               LineProc lineProc,
-               Blitter& blitter) {
+void hairCubic2(const std::array<Point, 4>& points, const ScreenIntRect* clip, LineProc lineProc,
+                Blitter& blitter) {
   const auto lines = computeCubicSegments(points);
   if (lines == 1u) {
     // Draw line from start to END point (not control point 1).
@@ -362,12 +346,9 @@ void hairCubic2(const std::array<Point, 4>& points,
   lineProc(std::span<const Point>{output.data(), lines + 1}, clip, blitter);
 }
 
-void hairQuad(std::array<Point, 3> points,
-             const ScreenIntRect* clip,
-             const std::optional<Rect>& insetClip,
-             const std::optional<Rect>& outsetClip,
-             LineProc lineProc,
-             Blitter& blitter) {
+void hairQuad(std::array<Point, 3> points, const ScreenIntRect* clip,
+              const std::optional<Rect>& insetClip, const std::optional<Rect>& outsetClip,
+              LineProc lineProc, Blitter& blitter) {
   if (insetClip.has_value() && outsetClip.has_value()) {
     const auto bounds = computeNoCheckQuadBounds(points);
     if (!bounds.has_value()) {
@@ -384,12 +365,9 @@ void hairQuad(std::array<Point, 3> points,
   hairQuad2(points, clip, lineProc, blitter);
 }
 
-void hairCubic(std::array<Point, 4> points,
-              const ScreenIntRect* clip,
-              const std::optional<Rect>& insetClip,
-              const std::optional<Rect>& outsetClip,
-              LineProc lineProc,
-              Blitter& blitter) {
+void hairCubic(std::array<Point, 4> points, const ScreenIntRect* clip,
+               const std::optional<Rect>& insetClip, const std::optional<Rect>& outsetClip,
+               LineProc lineProc, Blitter& blitter) {
   if (insetClip.has_value() && outsetClip.has_value()) {
     const auto bounds = computeNoCheckCubicBounds(points);
     if (!bounds.has_value()) {
@@ -415,10 +393,8 @@ void hairCubic(std::array<Point, 4> points,
       path_geometry::chopCubicAtMaxCurvature(points, tValues, std::span<Point>{split});
   for (std::size_t i = 0; i < count; ++i) {
     const auto offset = i * 3;
-    const auto segment = std::array<Point, 4>{split[offset],
-                                             split[offset + 1],
-                                             split[offset + 2],
-                                             split[offset + 3]};
+    const auto segment = std::array<Point, 4>{split[offset], split[offset + 1], split[offset + 2],
+                                              split[offset + 3]};
     hairCubic2(segment, clip, lineProc, blitter);
   }
 }
@@ -437,18 +413,16 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
   for (std::size_t i = 0; i + 1 < points.size(); ++i) {
     const auto segment = std::array<Point, 2>{points[i], points[i + 1]};
     auto clipped = std::array<Point, 2>{};
-    if (!line_clipper::intersect(std::span<const Point, 2>{segment},
-                                fixedBounds.value(),
-                                std::span<Point, 2>{clipped})) {
+    if (!line_clipper::intersect(std::span<const Point, 2>{segment}, fixedBounds.value(),
+                                 std::span<Point, 2>{clipped})) {
       continue;
     }
 
     auto working = clipped;
     if (clipBounds.has_value()) {
       auto clipped2 = std::array<Point, 2>{};
-      if (!line_clipper::intersect(std::span<const Point, 2>{working},
-                                  clipBounds.value(),
-                                  std::span<Point, 2>{clipped2})) {
+      if (!line_clipper::intersect(std::span<const Point, 2>{working}, clipBounds.value(),
+                                   std::span<Point, 2>{clipped2})) {
         continue;
       }
       working = clipped2;
@@ -489,8 +463,7 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
 
       while (true) {
         if (ix0 >= 0 && startY >= 0 && startY < maxY) {
-          blitter.blitH(static_cast<std::uint32_t>(ix0),
-                        static_cast<std::uint32_t>(startY >> 16),
+          blitter.blitH(static_cast<std::uint32_t>(ix0), static_cast<std::uint32_t>(startY >> 16),
                         kLengthU32One);
         }
         startY += slope;
@@ -519,8 +492,7 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
 
     while (true) {
       if (startX >= 0 && iy0 >= 0) {
-        blitter.blitH(static_cast<std::uint32_t>(startX >> 16),
-                      static_cast<std::uint32_t>(iy0),
+        blitter.blitH(static_cast<std::uint32_t>(startX >> 16), static_cast<std::uint32_t>(iy0),
                       kLengthU32One);
       }
       startX += slope;
@@ -532,13 +504,9 @@ void hairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitt
   }
 }
 
-void strokePathSegments(const Path& path,
-                       LineCap lineCap,
-                       const ScreenIntRect& clip,
-                       LineProc lineProc,
-                       const std::optional<Rect>& insetClip,
-                       const std::optional<Rect>& outsetClip,
-                       Blitter& blitter) {
+void strokePathSegments(const Path& path, LineCap lineCap, const ScreenIntRect& clip,
+                        LineProc lineProc, const std::optional<Rect>& insetClip,
+                        const std::optional<Rect>& outsetClip, Blitter& blitter) {
   const auto verbs = path.verbs();
   const auto points = path.points();
 
@@ -550,8 +518,8 @@ void strokePathSegments(const Path& path,
 
   for (std::size_t verbIndex = 0; verbIndex < verbs.size(); ++verbIndex) {
     const auto verb = verbs[verbIndex];
-    const auto nextVerb = (verbIndex + 1 < verbs.size()) ? std::optional{verbs[verbIndex + 1]}
-                                                        : std::nullopt;
+    const auto nextVerb =
+        (verbIndex + 1 < verbs.size()) ? std::optional{verbs[verbIndex + 1]} : std::nullopt;
     const auto* clipPtr = &clip;
 
     if (verb == PathVerb::Move) {
@@ -577,7 +545,7 @@ void strokePathSegments(const Path& path,
       continue;
     }
 
-  if (verb == PathVerb::Line) {
+    if (verb == PathVerb::Line) {
       if (pointIndex >= points.size()) {
         return;
       }
@@ -621,9 +589,7 @@ void strokePathSegments(const Path& path,
     if (pointIndex + 2 >= points.size()) {
       return;
     }
-  auto cubic = std::array<Point, 4>{lastPoint,
-                                      points[pointIndex],
-                                      points[pointIndex + 1],
+    auto cubic = std::array<Point, 4>{lastPoint, points[pointIndex], points[pointIndex + 1],
                                       points[pointIndex + 2]};
     if (lineCap != LineCap::Butt) {
       extendPts(lineCap, prevVerb, nextVerb, cubic);
@@ -642,18 +608,12 @@ void strokePathSegments(const Path& path,
 
 namespace scan {
 
-void strokePath(const Path& path,
-               LineCap lineCap,
-               const ScreenIntRect& clip,
-               Blitter& blitter) {
+void strokePath(const Path& path, LineCap lineCap, const ScreenIntRect& clip, Blitter& blitter) {
   strokePathImpl(path, lineCap, clip, hairLineRgn, blitter);
 }
 
-void strokePathImpl(const Path& path,
-                   LineCap lineCap,
-                   const ScreenIntRect& clip,
-                   LineProc lineProc,
-                   Blitter& blitter) {
+void strokePathImpl(const Path& path, LineCap lineCap, const ScreenIntRect& clip, LineProc lineProc,
+                    Blitter& blitter) {
   const auto capOutset = lineCap == LineCap::Butt ? 1.0f : 2.0f;
   const auto pathBounds = makeOutset(path.bounds(), capOutset, capOutset);
   if (!pathBounds.has_value()) {

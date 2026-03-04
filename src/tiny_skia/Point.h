@@ -13,15 +13,11 @@ struct Point {
 
   [[nodiscard]] static constexpr Point zero() { return Point{0.0f, 0.0f}; }
 
-  [[nodiscard]] static constexpr Point fromXy(float px, float py) {
-    return Point{px, py};
-  }
+  [[nodiscard]] static constexpr Point fromXy(float px, float py) { return Point{px, py}; }
 
   [[nodiscard]] bool isZero() const { return x == 0.0f && y == 0.0f; }
 
-  [[nodiscard]] bool isFinite() const {
-    return std::isfinite(x) && std::isfinite(y);
-  }
+  [[nodiscard]] bool isFinite() const { return std::isfinite(x) && std::isfinite(y); }
 
   [[nodiscard]] float length() const {
     // Match Rust: use f32 normally, fall back to f64 only on overflow.
@@ -46,9 +42,7 @@ struct Point {
     return dx * dx + dy * dy;
   }
 
-  [[nodiscard]] constexpr float dot(const Point& other) const {
-    return x * other.x + y * other.y;
-  }
+  [[nodiscard]] constexpr float dot(const Point& other) const { return x * other.x + y * other.y; }
 
   [[nodiscard]] constexpr float cross(const Point& other) const {
     return x * other.y - y * other.x;
@@ -58,9 +52,7 @@ struct Point {
     return std::isfinite(x) && std::isfinite(y) && (x != 0.0f || y != 0.0f);
   }
 
-  bool normalize() {
-    return setLength(1.0f);
-  }
+  bool normalize() { return setLength(1.0f); }
 
   bool setNormalize(float px, float py) {
     x = px;
@@ -88,9 +80,7 @@ struct Point {
     y *= factor;
   }
 
-  [[nodiscard]] constexpr Point scaled(float factor) const {
-    return Point{x * factor, y * factor};
-  }
+  [[nodiscard]] constexpr Point scaled(float factor) const { return Point{x * factor, y * factor}; }
 
   void rotateCw() {
     float tmp = x;
@@ -104,27 +94,21 @@ struct Point {
     y = -tmp;
   }
 
-  [[nodiscard]] bool equalsWithinTolerance(const Point& other,
-                                            float tolerance) const {
-    return std::abs(x - other.x) <= tolerance &&
-           std::abs(y - other.y) <= tolerance;
+  [[nodiscard]] bool equalsWithinTolerance(const Point& other, float tolerance) const {
+    return std::abs(x - other.x) <= tolerance && std::abs(y - other.y) <= tolerance;
   }
 
   constexpr bool operator==(const Point&) const = default;
 };
 
-[[nodiscard]] inline constexpr Point operator-(const Point& a,
-                                                const Point& b) {
+[[nodiscard]] inline constexpr Point operator-(const Point& a, const Point& b) {
   return Point{a.x - b.x, a.y - b.y};
 }
 
-[[nodiscard]] inline constexpr Point operator+(const Point& a,
-                                                const Point& b) {
+[[nodiscard]] inline constexpr Point operator+(const Point& a, const Point& b) {
   return Point{a.x + b.x, a.y + b.y};
 }
 
-[[nodiscard]] inline constexpr Point operator-(const Point& a) {
-  return Point{-a.x, -a.y};
-}
+[[nodiscard]] inline constexpr Point operator-(const Point& a) { return Point{-a.x, -a.y}; }
 
 }  // namespace tiny_skia

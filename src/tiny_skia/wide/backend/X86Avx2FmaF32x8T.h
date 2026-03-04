@@ -51,38 +51,38 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpEq(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_EQ_OQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpNe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_NEQ_UQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpGe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_GE_OQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpGt(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_GT_OQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpLe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_LE_OQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpLt(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_cmp_ps(loadF32x8(lhs), loadF32x8(rhs), _CMP_LT_OQ));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Blend(const std::array<float, 8>& mask,
-                                                      const std::array<float, 8>& t,
-                                                      const std::array<float, 8>& f) {
+                                                     const std::array<float, 8>& t,
+                                                     const std::array<float, 8>& f) {
   return storeF32x8(_mm256_blendv_ps(loadF32x8(f), loadF32x8(t), loadF32x8(mask)));
 }
 
@@ -106,12 +106,12 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Max(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_max_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Min(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_min_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
@@ -120,48 +120,46 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
       _mm256_round_ps(loadF32x8(lanes), _MM_FROUND_NO_EXC | _MM_FROUND_TO_NEAREST_INT));
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(const std::array<float, 8>& lanes) {
   return storeI32x8(_mm256_cvtps_epi32(loadF32x8(lanes)));
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(const std::array<float, 8>& lanes) {
   return storeI32x8(_mm256_cvttps_epi32(loadF32x8(lanes)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Add(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_add_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Sub(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_sub_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Mul(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_mul_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Div(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_div_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitAnd(const std::array<float, 8>& lhs,
-                                                       const std::array<float, 8>& rhs) {
+                                                      const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_and_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitOr(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_or_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitXor(const std::array<float, 8>& lhs,
-                                                       const std::array<float, 8>& rhs) {
+                                                      const std::array<float, 8>& rhs) {
   return storeF32x8(_mm256_xor_ps(loadF32x8(lhs), loadF32x8(rhs)));
 }
 
@@ -187,38 +185,38 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpEq(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpEq(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpNe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpNe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpGe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpGe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpGt(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpGt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpLe(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpLe(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8CmpLt(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8CmpLt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Blend(const std::array<float, 8>& mask,
-                                                      const std::array<float, 8>& t,
-                                                      const std::array<float, 8>& f) {
+                                                     const std::array<float, 8>& t,
+                                                     const std::array<float, 8>& f) {
   return scalar::f32x8Blend(mask, t, f);
 }
 
@@ -239,12 +237,12 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Max(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Max(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Min(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Min(lhs, rhs);
 }
 
@@ -252,48 +250,46 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
   return scalar::f32x8Round(lanes);
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8RoundInt(const std::array<float, 8>& lanes) {
   return scalar::f32x8RoundInt(lanes);
 }
 
-[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(
-    const std::array<float, 8>& lanes) {
+[[nodiscard]] inline std::array<std::int32_t, 8> f32x8TruncInt(const std::array<float, 8>& lanes) {
   return scalar::f32x8TruncInt(lanes);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Add(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Add(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Sub(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Sub(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Mul(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Mul(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8Div(const std::array<float, 8>& lhs,
-                                                    const std::array<float, 8>& rhs) {
+                                                   const std::array<float, 8>& rhs) {
   return scalar::f32x8Div(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitAnd(const std::array<float, 8>& lhs,
-                                                       const std::array<float, 8>& rhs) {
+                                                      const std::array<float, 8>& rhs) {
   return scalar::f32x8BitAnd(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitOr(const std::array<float, 8>& lhs,
-                                                      const std::array<float, 8>& rhs) {
+                                                     const std::array<float, 8>& rhs) {
   return scalar::f32x8BitOr(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<float, 8> f32x8BitXor(const std::array<float, 8>& lhs,
-                                                       const std::array<float, 8>& rhs) {
+                                                      const std::array<float, 8>& rhs) {
   return scalar::f32x8BitXor(lhs, rhs);
 }
 

@@ -54,14 +54,13 @@ struct U16x16Neon {
   return joinU16x16(U16x16Neon{vcleq_u16(a.lo, b.lo), vcleq_u16(a.hi, b.hi)});
 }
 
-[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask,
-                                                           const U16x16T& t,
-                                                           const U16x16T& e) {
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t,
+                                                          const U16x16T& e) {
   const auto m = splitU16x16(mask);
   const auto onTrue = splitU16x16(t);
   const auto onFalse = splitU16x16(e);
-  return joinU16x16(U16x16Neon{vbslq_u16(m.lo, onTrue.lo, onFalse.lo),
-                               vbslq_u16(m.hi, onTrue.hi, onFalse.hi)});
+  return joinU16x16(
+      U16x16Neon{vbslq_u16(m.lo, onTrue.lo, onFalse.lo), vbslq_u16(m.hi, onTrue.hi, onFalse.hi)});
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Add(const U16x16T& lhs, const U16x16T& rhs) {
@@ -88,22 +87,21 @@ struct U16x16Neon {
   return joinU16x16(U16x16Neon{vandq_u16(a.lo, b.lo), vandq_u16(a.hi, b.hi)});
 }
 
-
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Div255(const U16x16T& value) {
   return joinU16x16(div255Neon(splitU16x16(value)));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulDiv255(const U16x16T& lhs,
-                                                               const U16x16T& rhs) {
+                                                              const U16x16T& rhs) {
   const auto a = splitU16x16(lhs);
   const auto b = splitU16x16(rhs);
   return joinU16x16(div255Neon(U16x16Neon{vmulq_u16(a.lo, b.lo), vmulq_u16(a.hi, b.hi)}));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0,
-                                                                  const U16x16T& rhs0,
-                                                                  const U16x16T& lhs1,
-                                                                  const U16x16T& rhs1) {
+                                                                 const U16x16T& rhs0,
+                                                                 const U16x16T& lhs1,
+                                                                 const U16x16T& rhs1) {
   const auto a0 = splitU16x16(lhs0);
   const auto b0 = splitU16x16(rhs0);
   const auto a1 = splitU16x16(lhs1);
@@ -115,15 +113,15 @@ struct U16x16Neon {
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source,
-                                                                const U16x16T& dest,
-                                                                const U16x16T& sourceAlpha) {
+                                                               const U16x16T& dest,
+                                                               const U16x16T& sourceAlpha) {
   const auto s = splitU16x16(source);
   const auto d = splitU16x16(dest);
   const auto sa = splitU16x16(sourceAlpha);
   const auto max255 = vdupq_n_u16(255);
   const U16x16Neon invSa{vsubq_u16(max255, sa.lo), vsubq_u16(max255, sa.hi)};
-  const U16x16Neon dstTerm = div255Neon(
-      U16x16Neon{vmulq_u16(d.lo, invSa.lo), vmulq_u16(d.hi, invSa.hi)});
+  const U16x16Neon dstTerm =
+      div255Neon(U16x16Neon{vmulq_u16(d.lo, invSa.lo), vmulq_u16(d.hi, invSa.hi)});
   return joinU16x16(U16x16Neon{vaddq_u16(s.lo, dstTerm.lo), vaddq_u16(s.hi, dstTerm.hi)});
 }
 
@@ -143,14 +141,12 @@ struct U16x16Neon {
   return scalar::u16x16Max(lhs, rhs);
 }
 
-[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16CmpLe(const U16x16T& lhs,
-                                                           const U16x16T& rhs) {
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16CmpLe(const U16x16T& lhs, const U16x16T& rhs) {
   return scalar::u16x16CmpLe(lhs, rhs);
 }
 
-[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask,
-                                                           const U16x16T& t,
-                                                           const U16x16T& e) {
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t,
+                                                          const U16x16T& e) {
   return scalar::u16x16Blend(mask, t, e);
 }
 
@@ -170,32 +166,28 @@ struct U16x16Neon {
   return scalar::u16x16And(lhs, rhs);
 }
 
-
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Div255(const U16x16T& value) {
-  return scalar::u16x16Shr(scalar::u16x16Add(value, U16x16T::splat(255)),
-                           U16x16T::splat(8));
+  return scalar::u16x16Shr(scalar::u16x16Add(value, U16x16T::splat(255)), U16x16T::splat(8));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulDiv255(const U16x16T& lhs,
-                                                               const U16x16T& rhs) {
+                                                              const U16x16T& rhs) {
   return u16x16Div255(scalar::u16x16Mul(lhs, rhs));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0,
-                                                                  const U16x16T& rhs0,
-                                                                  const U16x16T& lhs1,
-                                                                  const U16x16T& rhs1) {
-  return u16x16Div255(scalar::u16x16Add(scalar::u16x16Mul(lhs0, rhs0),
-                                        scalar::u16x16Mul(lhs1, rhs1)));
+                                                                 const U16x16T& rhs0,
+                                                                 const U16x16T& lhs1,
+                                                                 const U16x16T& rhs1) {
+  return u16x16Div255(
+      scalar::u16x16Add(scalar::u16x16Mul(lhs0, rhs0), scalar::u16x16Mul(lhs1, rhs1)));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source,
-                                                                const U16x16T& dest,
-                                                                const U16x16T& sourceAlpha) {
-  return scalar::u16x16Add(
-      source,
-      u16x16Div255(
-          scalar::u16x16Mul(dest, scalar::u16x16Sub(U16x16T::splat(255), sourceAlpha))));
+                                                               const U16x16T& dest,
+                                                               const U16x16T& sourceAlpha) {
+  return scalar::u16x16Add(source, u16x16Div255(scalar::u16x16Mul(
+                                       dest, scalar::u16x16Sub(U16x16T::splat(255), sourceAlpha))));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Or(const U16x16T& lhs, const U16x16T& rhs) {

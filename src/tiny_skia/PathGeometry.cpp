@@ -5,17 +5,16 @@
 #include <span>
 
 #include "tiny_skia/Math.h"
+#include "tiny_skia/Transform.h"
 #include "tiny_skia/path64/Cubic64.h"
 #include "tiny_skia/path64/LineCubicIntersections.h"
 #include "tiny_skia/path64/Point64.h"
 #include "tiny_skia/path64/Quad64.h"
-#include "tiny_skia/Transform.h"
 
 namespace tiny_skia::path_geometry {
 
 // Forward declarations for functions defined later in this file.
-std::size_t findUnitQuadRoots(float a, float b, float c,
-                               NormalizedF32Exclusive roots[3]);
+std::size_t findUnitQuadRoots(float a, float b, float c, NormalizedF32Exclusive roots[3]);
 std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer, float denom);
 
 namespace {
@@ -55,17 +54,17 @@ std::size_t findMaxCurvatureRoots(std::array<Point, 4> src, std::array<double, 3
 
 void interpCubicAt(std::span<const Point, 4> src, double t, std::span<Point, 7> dst) {
   const auto ab = Point{src[0].x + static_cast<float>((src[1].x - src[0].x) * t),
-                       src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
+                        src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
   const auto bc = Point{src[1].x + static_cast<float>((src[2].x - src[1].x) * t),
-                       src[1].y + static_cast<float>((src[2].y - src[1].y) * t)};
+                        src[1].y + static_cast<float>((src[2].y - src[1].y) * t)};
   const auto cd = Point{src[2].x + static_cast<float>((src[3].x - src[2].x) * t),
-                       src[2].y + static_cast<float>((src[3].y - src[2].y) * t)};
+                        src[2].y + static_cast<float>((src[3].y - src[2].y) * t)};
   const auto abc = Point{ab.x + static_cast<float>((bc.x - ab.x) * t),
-                        ab.y + static_cast<float>((bc.y - ab.y) * t)};
+                         ab.y + static_cast<float>((bc.y - ab.y) * t)};
   const auto bcd = Point{bc.x + static_cast<float>((cd.x - bc.x) * t),
-                        bc.y + static_cast<float>((cd.y - bc.y) * t)};
+                         bc.y + static_cast<float>((cd.y - bc.y) * t)};
   const auto abcd = Point{abc.x + static_cast<float>((bcd.x - abc.x) * t),
-                         abc.y + static_cast<float>((bcd.y - abc.y) * t)};
+                          abc.y + static_cast<float>((bcd.y - abc.y) * t)};
 
   dst[0] = src[0];
   dst[1] = ab;
@@ -84,9 +83,7 @@ void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) 
     return;
   }
 
-  auto interp = [](float v0, float v1, float tt) -> float {
-    return v0 + (v1 - v0) * tt;
-  };
+  auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
 
   const float abx = interp(src[0].x, src[1].x, t);
   const float aby = interp(src[0].y, src[1].y, t);
@@ -110,9 +107,7 @@ void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) 
   dst[6] = src[3];
 }
 
-bool chopMonoCubicAt(std::array<Point, 4> src,
-                     float intercept,
-                     bool isVertical,
+bool chopMonoCubicAt(std::array<Point, 4> src, float intercept, bool isVertical,
                      std::array<Point, 7>& dst) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       Point64::fromPoint(src[0]),
@@ -122,11 +117,10 @@ bool chopMonoCubicAt(std::array<Point, 4> src,
   });
 
   auto roots = std::array<double, 3>{};
-  const auto count = isVertical
-                         ? tiny_skia::path64::line_cubic_intersections::verticalIntersect(
-                               cubic, static_cast<double>(intercept), roots)
-                         : tiny_skia::path64::line_cubic_intersections::horizontalIntersect(
-                               cubic, static_cast<double>(intercept), roots);
+  const auto count = isVertical ? tiny_skia::path64::line_cubic_intersections::verticalIntersect(
+                                      cubic, static_cast<double>(intercept), roots)
+                                : tiny_skia::path64::line_cubic_intersections::horizontalIntersect(
+                                      cubic, static_cast<double>(intercept), roots);
   if (count > 0) {
     chopCubicAt2(std::span<const Point, 4>(src), roots[0], std::span<Point, 7>(dst));
     return true;
@@ -142,8 +136,8 @@ bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, 
   const auto a = c0 - c1 - c1 + c2;
   const auto b = 2.0f * (c1 - c0);
   const auto c = c0 - intercept;
-  NormalizedF32Exclusive roots[3] = {
-      NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF};
+  NormalizedF32Exclusive roots[3] = {NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF,
+                                     NormalizedF32Exclusive::HALF};
   const auto count = findUnitQuadRoots(a, b, c, roots);
   if (count > 0) {
     t = roots[0].get();
@@ -156,15 +150,10 @@ bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, 
 
 std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
   // Match Rust: pure f32 interpolation via interp(v0, v1, t) = v0 + (v1 - v0) * t
-  auto interp = [](float v0, float v1, float tt) -> float {
-    return v0 + (v1 - v0) * tt;
-  };
-  const auto p01 = Point{interp(src[0].x, src[1].x, t),
-                         interp(src[0].y, src[1].y, t)};
-  const auto p12 = Point{interp(src[1].x, src[2].x, t),
-                         interp(src[1].y, src[2].y, t)};
-  const auto p012 = Point{interp(p01.x, p12.x, t),
-                          interp(p01.y, p12.y, t)};
+  auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
+  const auto p01 = Point{interp(src[0].x, src[1].x, t), interp(src[0].y, src[1].y, t)};
+  const auto p12 = Point{interp(src[1].x, src[2].x, t), interp(src[1].y, src[2].y, t)};
+  const auto p012 = Point{interp(p01.x, p12.x, t), interp(p01.y, p12.y, t)};
 
   dst[0] = src[0];
   dst[1] = p01;
@@ -220,8 +209,7 @@ std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   return 0;
 }
 
-std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer,
-                                                         float denom) {
+std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer, float denom) {
   if (numer < 0.0f) {
     numer = -numer;
     denom = -denom;
@@ -234,8 +222,7 @@ std::optional<NormalizedF32Exclusive> validUnitDivideF32(float numer,
 }
 
 // Matches Rust's chop_cubic_at: uses f32 t values and pure f32 de Casteljau's.
-std::size_t chopCubicAt(std::span<const Point> src,
-                        std::span<const NormalizedF32Exclusive> tValues,
+std::size_t chopCubicAt(std::span<const Point> src, std::span<const NormalizedF32Exclusive> tValues,
                         std::span<Point> dst) {
   if (src.size() != 4 || dst.size() < 4) {
     return 0;
@@ -267,9 +254,8 @@ std::size_t chopCubicAt(std::span<const Point> src,
     srcWork = {dst[offset + 0], dst[offset + 1], dst[offset + 2], dst[offset + 3]};
 
     // Renormalize t using f32 valid_unit_divide (matches Rust).
-    auto nextT = validUnitDivideF32(
-        tValues[i + 1].get() - tValues[i].get(),
-        1.0f - tValues[i].get());
+    auto nextT =
+        validUnitDivideF32(tValues[i + 1].get() - tValues[i].get(), 1.0f - tValues[i].get());
     if (!nextT.has_value()) {
       dst[offset + 4] = srcWork[3];
       dst[offset + 5] = srcWork[3];
@@ -284,11 +270,10 @@ std::size_t chopCubicAt(std::span<const Point> src,
 
 std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
   auto tValues = newTValues();
-  const auto rawCount =
-      findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValues.data());
+  const auto rawCount = findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
-                                std::span<Point, 10>(dst));
+                                 std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
+                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].x = dst[3].x;
     dst[4].x = dst[3].x;
@@ -302,11 +287,10 @@ std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>&
 
 std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
   auto tValues = newTValues();
-  const auto rawCount =
-      findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValues.data());
+  const auto rawCount = findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
-                                std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
-                                std::span<Point, 10>(dst));
+                                 std::span<const NormalizedF32Exclusive>(tValues.data(), rawCount),
+                                 std::span<Point, 10>(dst));
   if (split > 0) {
     dst[2].y = dst[3].y;
     dst[4].y = dst[3].y;
@@ -327,8 +311,8 @@ std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
 
   // Match Rust: use f32 root-finding (findCubicMaxCurvatureTs / solve_cubic_poly)
   // NOT the f64 findMaxCurvatureRoots / cubic64::rootsValidT path.
-  auto roots = std::array<NormalizedF32, 3>{
-      NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
+  auto roots =
+      std::array<NormalizedF32, 3>{NormalizedF32::ZERO, NormalizedF32::ZERO, NormalizedF32::ZERO};
   const auto rootCount = findCubicMaxCurvatureTs(src.data(), roots.data());
   std::size_t count = 0;
   for (std::size_t i = 0; i < rootCount; ++i) {
@@ -347,8 +331,7 @@ std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
   }
 
   return 1 + chopCubicAt(std::span<const Point, 4>(src),
-                         std::span<const NormalizedF32Exclusive>(tValues.data(), count),
-                         dst);
+                         std::span<const NormalizedF32Exclusive>(tValues.data(), count), dst);
 }
 
 bool chopMonoQuadAtX(std::array<Point, 3> src, float x, float& t) {
@@ -422,8 +405,7 @@ struct CubicCoeff {
   }
 
   Point eval(float t) const {
-    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx,
-                         ((ay * t + by) * t + cy) * t + dy);
+    return Point::fromXy(((ax * t + bx) * t + cx) * t + dx, ((ay * t + by) * t + cy) * t + dy);
   }
 };
 
@@ -454,7 +436,9 @@ std::array<float, 4> formulateF1DotF2f(const float src[4]) {
 
 constexpr float kFloatPi = 3.14159265f;
 
-float scalarCubeRoot(float x) { return std::pow(std::abs(x), 1.0f / 3.0f) * (x < 0 ? -1.0f : 1.0f); }
+float scalarCubeRoot(float x) {
+  return std::pow(std::abs(x), 1.0f / 3.0f) * (x < 0 ? -1.0f : 1.0f);
+}
 
 void sortArray3(NormalizedF32 arr[3]) {
   if (arr[0] > arr[1]) std::swap(arr[0], arr[1]);
@@ -471,11 +455,9 @@ std::size_t collapseDuplicates3(NormalizedF32 arr[3]) {
 
 std::size_t solveCubicPoly(const float coeff[4], NormalizedF32 tValues[3]) {
   if (isNearlyZero(coeff[0])) {
-    NormalizedF32Exclusive tmpT[3] = {
-        NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF,
-        NormalizedF32Exclusive::HALF};
-    auto count =
-        findUnitQuadRoots(coeff[1], coeff[2], coeff[3], tmpT);
+    NormalizedF32Exclusive tmpT[3] = {NormalizedF32Exclusive::HALF, NormalizedF32Exclusive::HALF,
+                                      NormalizedF32Exclusive::HALF};
+    auto count = findUnitQuadRoots(coeff[1], coeff[2], coeff[3], tmpT);
     for (std::size_t i = 0; i < count; ++i) {
       tValues[i] = tmpT[i].toNormalized();
     }
@@ -488,8 +470,7 @@ std::size_t solveCubicPoly(const float coeff[4], NormalizedF32 tValues[3]) {
   float c = coeff[3] * inva;
 
   float q = (a * a - b * 3.0f) / 9.0f;
-  float r =
-      (2.0f * a * a * a - 9.0f * a * b + 27.0f * c) / 54.0f;
+  float r = (2.0f * a * a * a - 9.0f * a * b + 27.0f * c) / 54.0f;
 
   float q3 = q * q * q;
   float r2MinusQ3 = r * r - q3;
@@ -504,12 +485,11 @@ std::size_t solveCubicPoly(const float coeff[4], NormalizedF32 tValues[3]) {
     float theta = std::acos(div);
     float neg2RootQ = -2.0f * qSqrt;
 
-    tValues[0] =
-        NormalizedF32::newClamped(neg2RootQ * std::cos(theta / 3.0f) - adiv3);
-    tValues[1] = NormalizedF32::newClamped(
-        neg2RootQ * std::cos((theta + 2.0f * kFloatPi) / 3.0f) - adiv3);
-    tValues[2] = NormalizedF32::newClamped(
-        neg2RootQ * std::cos((theta - 2.0f * kFloatPi) / 3.0f) - adiv3);
+    tValues[0] = NormalizedF32::newClamped(neg2RootQ * std::cos(theta / 3.0f) - adiv3);
+    tValues[1] =
+        NormalizedF32::newClamped(neg2RootQ * std::cos((theta + 2.0f * kFloatPi) / 3.0f) - adiv3);
+    tValues[2] =
+        NormalizedF32::newClamped(neg2RootQ * std::cos((theta - 2.0f * kFloatPi) / 3.0f) - adiv3);
 
     sortArray3(tValues);
     return collapseDuplicates3(tValues);
@@ -524,8 +504,7 @@ std::size_t solveCubicPoly(const float coeff[4], NormalizedF32 tValues[3]) {
   }
 }
 
-bool onSameSide(const Point src[4], std::size_t testIndex,
-                std::size_t lineIndex) {
+bool onSameSide(const Point src[4], std::size_t testIndex, std::size_t lineIndex) {
   Point origin = src[lineIndex];
   Point line = src[lineIndex + 1] - origin;
   float crosses[2];
@@ -544,8 +523,7 @@ float calcCubicPrecision(const Point src[4]) {
 
 }  // namespace
 
-void chopQuadAtT(const Point src[3], NormalizedF32Exclusive t,
-                 Point dst[5]) {
+void chopQuadAtT(const Point src[3], NormalizedF32Exclusive t, Point dst[5]) {
   float tv = t.get();
   Point p01 = interpPt(src[0], src[1], tv);
   Point p12 = interpPt(src[1], src[2], tv);
@@ -557,8 +535,7 @@ void chopQuadAtT(const Point src[3], NormalizedF32Exclusive t,
   dst[4] = src[2];
 }
 
-void chopCubicAt2(const Point src[4], NormalizedF32Exclusive t,
-                  Point dst[7]) {
+void chopCubicAt2(const Point src[4], NormalizedF32Exclusive t, Point dst[7]) {
   float tv = t.get();
   Point ab = interpPt(src[0], src[1], tv);
   Point bc = interpPt(src[1], src[2], tv);
@@ -600,8 +577,7 @@ Point evalCubicPosAt(const Point src[4], NormalizedF32 t) {
 }
 
 Point evalCubicTangentAt(const Point src[4], NormalizedF32 t) {
-  if ((t.get() == 0.0f && src[0] == src[1]) ||
-      (t.get() == 1.0f && src[2] == src[3])) {
+  if ((t.get() == 0.0f && src[0] == src[1]) || (t.get() == 1.0f && src[2] == src[3])) {
     Point tangent;
     if (t.get() == 0.0f) {
       tangent = src[2] - src[0];
@@ -636,8 +612,7 @@ NormalizedF32 findQuadMaxCurvature(const Point src[3]) {
   return result.value_or(NormalizedF32::ZERO);
 }
 
-std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b,
-                                                      float c) {
+std::optional<NormalizedF32Exclusive> findQuadExtrema(float a, float b, float c) {
   return validUnitDivideF32(a - b, a - b - b + c);
 }
 
@@ -650,8 +625,7 @@ std::size_t findCubicExtremaT(float a, float b, float c, float d,
   return findUnitQuadRoots(aa, bb, cc, tValues);
 }
 
-std::size_t findCubicInflections(const Point src[4],
-                                 NormalizedF32Exclusive tValues[3]) {
+std::size_t findCubicInflections(const Point src[4], NormalizedF32Exclusive tValues[3]) {
   float ax = src[1].x - src[0].x;
   float ay = src[1].y - src[0].y;
   float bx = src[2].x - 2.0f * src[1].x + src[0].x;
@@ -659,12 +633,10 @@ std::size_t findCubicInflections(const Point src[4],
   float cx = src[3].x + 3.0f * (src[1].x - src[2].x) - src[0].x;
   float cy = src[3].y + 3.0f * (src[1].y - src[2].y) - src[0].y;
 
-  return findUnitQuadRoots(bx * cy - by * cx, ax * cy - ay * cx,
-                           ax * by - ay * bx, tValues);
+  return findUnitQuadRoots(bx * cy - by * cx, ax * cy - ay * cx, ax * by - ay * bx, tValues);
 }
 
-std::size_t findCubicMaxCurvatureTs(const Point src[4],
-                                     NormalizedF32 tValues[3]) {
+std::size_t findCubicMaxCurvatureTs(const Point src[4], NormalizedF32 tValues[3]) {
   float srcX[4] = {src[0].x, src[1].x, src[2].x, src[3].x};
   float srcY[4] = {src[0].y, src[1].y, src[2].y, src[3].y};
   auto coeffX = formulateF1DotF2f(srcX);
@@ -698,8 +670,7 @@ std::optional<NormalizedF32Exclusive> findCubicCusp(const Point src[4]) {
   return std::nullopt;
 }
 
-std::size_t findUnitQuadRoots(float a, float b, float c,
-                               NormalizedF32Exclusive roots[3]) {
+std::size_t findUnitQuadRoots(float a, float b, float c, NormalizedF32Exclusive roots[3]) {
   if (a == 0.0f) {
     auto r = validUnitDivideF32(-c, b);
     if (r.has_value()) {
@@ -747,44 +718,38 @@ Conic Conic::create(Point p0, Point p1, Point p2, float w) {
   return c;
 }
 
-Conic Conic::fromPoints(const Point pts[], float w) {
-  return create(pts[0], pts[1], pts[2], w);
-}
+Conic Conic::fromPoints(const Point pts[], float w) { return create(pts[0], pts[1], pts[2], w); }
 
 void Conic::chop(Conic dst[2]) const {
   float scale = 1.0f / (1.0f + weight);
   float newW = std::sqrt(0.5f + weight * 0.5f);
 
   Point wp1 = points[1].scaled(weight);
-  Point m = Point::fromXy((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale *
-                               0.5f,
-                           (points[0].y + (wp1.y + wp1.y) + points[2].y) * scale *
-                               0.5f);
+  Point m = Point::fromXy((points[0].x + (wp1.x + wp1.x) + points[2].x) * scale * 0.5f,
+                          (points[0].y + (wp1.y + wp1.y) + points[2].y) * scale * 0.5f);
 
   // Match Rust: if m is not finite, recompute using f64 for precision.
   if (!std::isfinite(m.x) || !std::isfinite(m.y)) {
     double wD = static_cast<double>(weight);
     double w2 = wD * 2.0;
     double scaleHalf = 1.0 / (1.0 + wD) * 0.5;
-    m.x = static_cast<float>(
-        (static_cast<double>(points[0].x) + w2 * static_cast<double>(points[1].x) +
-         static_cast<double>(points[2].x)) *
-        scaleHalf);
-    m.y = static_cast<float>(
-        (static_cast<double>(points[0].y) + w2 * static_cast<double>(points[1].y) +
-         static_cast<double>(points[2].y)) *
-        scaleHalf);
+    m.x = static_cast<float>((static_cast<double>(points[0].x) +
+                              w2 * static_cast<double>(points[1].x) +
+                              static_cast<double>(points[2].x)) *
+                             scaleHalf);
+    m.y = static_cast<float>((static_cast<double>(points[0].y) +
+                              w2 * static_cast<double>(points[1].y) +
+                              static_cast<double>(points[2].y)) *
+                             scaleHalf);
   }
 
   dst[0].points[0] = points[0];
-  dst[0].points[1] = Point::fromXy((points[0].x + wp1.x) * scale,
-                                    (points[0].y + wp1.y) * scale);
+  dst[0].points[1] = Point::fromXy((points[0].x + wp1.x) * scale, (points[0].y + wp1.y) * scale);
   dst[0].points[2] = m;
   dst[0].weight = newW;
 
   dst[1].points[0] = m;
-  dst[1].points[1] = Point::fromXy((wp1.x + points[2].x) * scale,
-                                    (wp1.y + points[2].y) * scale);
+  dst[1].points[1] = Point::fromXy((wp1.x + points[2].x) * scale, (wp1.y + points[2].y) * scale);
   dst[1].points[2] = points[2];
   dst[1].weight = newW;
 }
@@ -792,9 +757,8 @@ void Conic::chop(Conic dst[2]) const {
 std::optional<std::uint8_t> Conic::computeQuadPow2(float tolerance) const {
   if (tolerance < 0.0f || !std::isfinite(tolerance)) return std::nullopt;
 
-  if (!std::isfinite(points[0].x) || !std::isfinite(points[0].y) ||
-      !std::isfinite(points[1].x) || !std::isfinite(points[1].y) ||
-      !std::isfinite(points[2].x) || !std::isfinite(points[2].y)) {
+  if (!std::isfinite(points[0].x) || !std::isfinite(points[0].y) || !std::isfinite(points[1].x) ||
+      !std::isfinite(points[1].y) || !std::isfinite(points[2].x) || !std::isfinite(points[2].y)) {
     return std::nullopt;
   }
 
@@ -815,9 +779,7 @@ std::optional<std::uint8_t> Conic::computeQuadPow2(float tolerance) const {
 namespace {
 
 // Returns true if (a <= b <= c) || (a >= b >= c)
-bool between(float a, float b, float c) {
-  return (a - b) * (c - b) <= 0.0f;
-}
+bool between(float a, float b, float c) { return (a - b) * (c - b) <= 0.0f; }
 
 // Recursive conic subdivision with Y-monotonicity preservation.
 // Matches Rust's subdivide() in path_geometry.rs.
@@ -838,8 +800,7 @@ Point* subdivideRecursive(const Conic& src, Point* points, std::uint8_t level) {
     // Ensure that the chopped conics maintain their y-order.
     float midY = dst[0].points[2].y;
     if (!between(startY, midY, endY)) {
-      float closerY = (std::abs(midY - startY) < std::abs(midY - endY))
-                           ? startY : endY;
+      float closerY = (std::abs(midY - startY) < std::abs(midY - endY)) ? startY : endY;
       dst[0].points[2].y = closerY;
       dst[1].points[0].y = closerY;
     }
@@ -860,8 +821,7 @@ Point* subdivideRecursive(const Conic& src, Point* points, std::uint8_t level) {
 
 }  // namespace
 
-std::uint8_t Conic::chopIntoQuadsPow2(std::uint8_t pow2,
-                                       Point dst[]) const {
+std::uint8_t Conic::chopIntoQuadsPow2(std::uint8_t pow2, Point dst[]) const {
   dst[0] = points[0];
   subdivideRecursive(*this, dst + 1, pow2);
 
@@ -885,9 +845,10 @@ std::uint8_t Conic::chopIntoQuadsPow2(std::uint8_t pow2,
   return static_cast<std::uint8_t>(1 << pow2);
 }
 
-std::optional<std::span<const Conic>> Conic::buildUnitArc(
-    Point uStart, Point uStop, PathDirection dir,
-    const Transform& userTransform, Conic dst[5]) {
+std::optional<std::span<const Conic>> Conic::buildUnitArc(Point uStart, Point uStop,
+                                                          PathDirection dir,
+                                                          const Transform& userTransform,
+                                                          Conic dst[5]) {
   float x = uStart.dot(uStop);
   float y = uStart.cross(uStop);
   float absY = std::abs(y);
@@ -895,8 +856,7 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
   constexpr float kNearlyZero = kScalarNearlyZero;
 
   if (absY <= kNearlyZero && x > 0.0f &&
-      ((y >= 0.0f && dir == PathDirection::CW) ||
-       (y <= 0.0f && dir == PathDirection::CCW))) {
+      ((y >= 0.0f && dir == PathDirection::CW) || (y <= 0.0f && dir == PathDirection::CCW))) {
     return std::nullopt;
   }
 
@@ -915,9 +875,8 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
   }
 
   const Point quadrantPoints[8] = {
-      Point::fromXy(1.0f, 0.0f),  Point::fromXy(1.0f, 1.0f),
-      Point::fromXy(0.0f, 1.0f),  Point::fromXy(-1.0f, 1.0f),
-      Point::fromXy(-1.0f, 0.0f), Point::fromXy(-1.0f, -1.0f),
+      Point::fromXy(1.0f, 0.0f),  Point::fromXy(1.0f, 1.0f),  Point::fromXy(0.0f, 1.0f),
+      Point::fromXy(-1.0f, 1.0f), Point::fromXy(-1.0f, 0.0f), Point::fromXy(-1.0f, -1.0f),
       Point::fromXy(0.0f, -1.0f), Point::fromXy(1.0f, -1.0f),
   };
 
@@ -940,11 +899,10 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
     // almost_equal returns true when the diff vector can't normalize
     // (both components zero or non-finite). We add conic when NOT almost_equal.
     Point diff = Point::fromXy(lastQ.x - offCurve.x, lastQ.y - offCurve.y);
-    bool canNormalize = std::isfinite(diff.x) && std::isfinite(diff.y) &&
-                        (diff.x != 0.0f || diff.y != 0.0f);
+    bool canNormalize =
+        std::isfinite(diff.x) && std::isfinite(diff.y) && (diff.x != 0.0f || diff.y != 0.0f);
     if (canNormalize) {
-      dst[conicCount] =
-          Conic::create(lastQ, offCurve, finalPt, cosThetaOver2);
+      dst[conicCount] = Conic::create(lastQ, offCurve, finalPt, cosThetaOver2);
       conicCount++;
     }
   }
@@ -965,8 +923,7 @@ std::optional<std::span<const Conic>> Conic::buildUnitArc(
   return std::span<const Conic>(dst, conicCount);
 }
 
-std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1,
-                                                  Point pt2, float weight) {
+std::optional<AutoConicToQuads> autoConicToQuads(Point pt0, Point pt1, Point pt2, float weight) {
   Conic conic = Conic::create(pt0, pt1, pt2, weight);
   auto pow2 = conic.computeQuadPow2(0.25f);
   if (!pow2.has_value()) return std::nullopt;

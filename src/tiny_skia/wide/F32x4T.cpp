@@ -31,9 +31,7 @@ namespace {
 
 }  // namespace
 
-float F32x4T::cmpMask(bool predicate) {
-  return backend::scalar::f32x4CmpMask(predicate);
-}
+float F32x4T::cmpMask(bool predicate) { return backend::scalar::f32x4CmpMask(predicate); }
 
 F32x4T F32x4T::abs() const {
   if constexpr (useX86Avx2FmaF32x4()) {
@@ -156,13 +154,9 @@ F32x4T F32x4T::floor() const {
   return F32x4T(backend::scalar::f32x4Floor(lanes_));
 }
 
-F32x4T F32x4T::fract() const {
-  return *this - floor();
-}
+F32x4T F32x4T::fract() const { return *this - floor(); }
 
-F32x4T F32x4T::normalize() const {
-  return max(F32x4T::splat(0.0f)).min(F32x4T::splat(1.0f));
-}
+F32x4T F32x4T::normalize() const { return max(F32x4T::splat(0.0f)).min(F32x4T::splat(1.0f)); }
 
 F32x4T F32x4T::round() const {
   if constexpr (useX86Avx2FmaF32x4()) {
@@ -318,9 +312,7 @@ F32x4T F32x4T::operator^(const F32x4T& rhs) const {
   return F32x4T(backend::scalar::f32x4BitXor(lanes_, rhs.lanes_));
 }
 
-F32x4T F32x4T::operator-() const {
-  return F32x4T::splat(0.0f) - *this;
-}
+F32x4T F32x4T::operator-() const { return F32x4T::splat(0.0f) - *this; }
 
 F32x4T F32x4T::operator~() const {
   if constexpr (useX86Avx2FmaF32x4()) {
@@ -343,8 +335,6 @@ F32x4T& F32x4T::operator*=(const F32x4T& rhs) {
   return *this;
 }
 
-bool F32x4T::operator==(const F32x4T& rhs) const {
-  return lanes_ == rhs.lanes_;
-}
+bool F32x4T::operator==(const F32x4T& rhs) const { return lanes_ == rhs.lanes_; }
 
 }  // namespace tiny_skia::wide

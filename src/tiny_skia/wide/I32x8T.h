@@ -17,9 +17,7 @@ class I32x8T {
     return I32x8T({n, n, n, n, n, n, n, n});
   }
 
-  [[nodiscard]] constexpr std::array<std::int32_t, 8> lanes() const {
-    return lanes_;
-  }
+  [[nodiscard]] constexpr std::array<std::int32_t, 8> lanes() const { return lanes_; }
 
   [[nodiscard]] I32x8T blend(const I32x8T& t, const I32x8T& f) const;
 

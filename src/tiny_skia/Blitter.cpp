@@ -4,9 +4,7 @@
 
 namespace tiny_skia {
 
-void Blitter::unreachable() const {
-  std::abort();
-}
+void Blitter::unreachable() const { std::abort(); }
 
 void Blitter::blitH(std::uint32_t x, std::uint32_t y, LengthU32 width) {
   (void)x;
@@ -15,9 +13,7 @@ void Blitter::blitH(std::uint32_t x, std::uint32_t y, LengthU32 width) {
   unreachable();
 }
 
-void Blitter::blitAntiH(std::uint32_t x,
-                        std::uint32_t y,
-                        std::span<std::uint8_t> alpha,
+void Blitter::blitAntiH(std::uint32_t x, std::uint32_t y, std::span<std::uint8_t> alpha,
                         std::span<AlphaRun> runs) {
   (void)x;
   (void)y;
@@ -26,10 +22,7 @@ void Blitter::blitAntiH(std::uint32_t x,
   unreachable();
 }
 
-void Blitter::blitV(std::uint32_t x,
-                    std::uint32_t y,
-                    LengthU32 height,
-                    AlphaU8 alpha) {
+void Blitter::blitV(std::uint32_t x, std::uint32_t y, LengthU32 height, AlphaU8 alpha) {
   (void)x;
   (void)y;
   (void)height;

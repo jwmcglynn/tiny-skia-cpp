@@ -4,8 +4,8 @@
 
 namespace tiny_skia {
 
-Pattern::Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality,
-                 float opacity, Transform transform)
+Pattern::Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,
+                 Transform transform)
     : pixmap_(pixmap),
       opacity_(NormalizedF32::newClamped(opacity)),
       transform_(transform),
@@ -17,8 +17,7 @@ bool Pattern::isOpaque() const {
   return false;
 }
 
-bool Pattern::pushStages(ColorSpace cs,
-                         pipeline::RasterPipelineBuilder& p) const {
+bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) const {
   using Stage = pipeline::Stage;
 
   const auto ts = transform_.invert();
@@ -42,12 +41,10 @@ bool Pattern::pushStages(ColorSpace cs,
 
   switch (quality) {
     case FilterQuality::Nearest: {
-      p.ctx().limit_x = pipeline::TileCtx{
-          .scale = static_cast<float>(pixmap_.width()),
-          .inv_scale = 1.0f / static_cast<float>(pixmap_.width())};
-      p.ctx().limit_y = pipeline::TileCtx{
-          .scale = static_cast<float>(pixmap_.height()),
-          .inv_scale = 1.0f / static_cast<float>(pixmap_.height())};
+      p.ctx().limit_x = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.width()),
+                                          .inv_scale = 1.0f / static_cast<float>(pixmap_.width())};
+      p.ctx().limit_y = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.height()),
+                                          .inv_scale = 1.0f / static_cast<float>(pixmap_.height())};
 
       switch (spread_mode_) {
         case SpreadMode::Pad:
@@ -64,18 +61,18 @@ bool Pattern::pushStages(ColorSpace cs,
       break;
     }
     case FilterQuality::Bilinear: {
-      p.ctx().sampler = pipeline::SamplerCtx{
-          .spread_mode = spread_mode_,
-          .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
-          .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
+      p.ctx().sampler =
+          pipeline::SamplerCtx{.spread_mode = spread_mode_,
+                               .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
+                               .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bilinear);
       break;
     }
     case FilterQuality::Bicubic: {
-      p.ctx().sampler = pipeline::SamplerCtx{
-          .spread_mode = spread_mode_,
-          .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
-          .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
+      p.ctx().sampler =
+          pipeline::SamplerCtx{.spread_mode = spread_mode_,
+                               .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
+                               .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bicubic);
       p.push(Stage::Clamp0);
       p.push(Stage::ClampA);

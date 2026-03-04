@@ -24,8 +24,8 @@ struct StrokeDash {
   /// Offset into the dash pattern.
   float offset = 0.0f;
 
-  [[nodiscard]] static std::optional<StrokeDash> create(
-      std::vector<float> dashArray, float dashOffset);
+  [[nodiscard]] static std::optional<StrokeDash> create(std::vector<float> dashArray,
+                                                        float dashOffset);
 };
 
 /// Stroke properties. Matches Rust `Stroke`.

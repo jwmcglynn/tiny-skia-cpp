@@ -1,10 +1,10 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
-
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Math.h"
 

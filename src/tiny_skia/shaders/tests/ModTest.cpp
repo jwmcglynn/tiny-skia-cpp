@@ -1,20 +1,19 @@
-#include "tiny_skia/shaders/Mod.h"
+#include <gtest/gtest.h>
 
 #include <cmath>
-
-#include <gtest/gtest.h>
 
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Math.h"
 #include "tiny_skia/Point.h"
 #include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/shaders/Mod.h"
 
 namespace {
 
 using tiny_skia::Color;
 using tiny_skia::ColorSpace;
-using tiny_skia::GradientStop;
 using tiny_skia::Gradient;
+using tiny_skia::GradientStop;
 using tiny_skia::LinearGradient;
 using tiny_skia::NormalizedF32;
 using tiny_skia::Pattern;
@@ -181,18 +180,16 @@ TEST(GradientStopTest, CreateNormal) {
 // ---------------------------------------------------------------------------
 
 TEST(LinearGradientTest, CreateRejectsEmptyStops) {
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {}, SpreadMode::Pad, Transform::identity());
+  const auto result = LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 0), {},
+                                             SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(LinearGradientTest, CreateSingleStopReturnsSolidColor) {
   const auto c = Color::fromRgba8(50, 127, 150, 200);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.5f, c)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result = LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 0),
+                                             {GradientStop::create(0.5f, c)}, SpreadMode::Pad,
+                                             Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
   EXPECT_EQ(std::get<Color>(*result), c);
@@ -201,10 +198,10 @@ TEST(LinearGradientTest, CreateSingleStopReturnsSolidColor) {
 TEST(LinearGradientTest, CreateDegeneratePadReturnsLastColor) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(0, 0),  // degenerate: same point
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(0, 0),  // degenerate: same point
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
   EXPECT_EQ(std::get<Color>(*result), c1);
@@ -213,10 +210,10 @@ TEST(LinearGradientTest, CreateDegeneratePadReturnsLastColor) {
 TEST(LinearGradientTest, CreateDegenerateRepeatReturnsAverage) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(0, 0),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Repeat, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(0, 0),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Repeat, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
   // Average color should be between c0 and c1.
@@ -228,10 +225,10 @@ TEST(LinearGradientTest, CreateDegenerateRepeatReturnsAverage) {
 TEST(LinearGradientTest, CreateDegenerateReflectReturnsAverage) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(0, 0),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Reflect, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(0, 0),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Reflect, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
 }
@@ -239,20 +236,20 @@ TEST(LinearGradientTest, CreateDegenerateReflectReturnsAverage) {
 TEST(LinearGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(100, 100),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 100),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(LinearGradientTest, CreateValidTwoStopReturnsGradient) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
-  const auto result = LinearGradient::create(
-      Point::fromXy(10, 10), Point::fromXy(190, 190),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(10, 10), Point::fromXy(190, 190),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<LinearGradient>(*result));
 }
@@ -261,11 +258,11 @@ TEST(LinearGradientTest, CreateValidThreeStopReturnsGradient) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
   const auto c2 = Color::fromRgba8(40, 180, 55, 160);
-  const auto result = LinearGradient::create(
-      Point::fromXy(10, 10), Point::fromXy(190, 190),
-      {GradientStop::create(0.0f, c0), GradientStop::create(0.5f, c1),
-       GradientStop::create(1.0f, c2)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(10, 10), Point::fromXy(190, 190),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(0.5f, c1),
+                              GradientStop::create(1.0f, c2)},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<LinearGradient>(*result));
 }
@@ -273,10 +270,10 @@ TEST(LinearGradientTest, CreateValidThreeStopReturnsGradient) {
 TEST(LinearGradientTest, CreateInfinityLengthReturnsNullopt) {
   const auto c0 = Color::white;
   const auto c1 = Color::black;
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(INFINITY, 0),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(INFINITY, 0),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
@@ -287,8 +284,7 @@ TEST(LinearGradientTest, CreateInfinityLengthReturnsNullopt) {
 TEST(LinearGradientTest, OpaqueColorsReportOpaque) {
   const auto result = LinearGradient::create(
       Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
@@ -298,10 +294,10 @@ TEST(LinearGradientTest, OpaqueColorsReportOpaque) {
 TEST(LinearGradientTest, TransparentColorsReportNonOpaque) {
   const auto c0 = Color::fromRgba8(255, 0, 0, 128);
   const auto c1 = Color::fromRgba8(0, 0, 255, 200);
-  const auto result = LinearGradient::create(
-      Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(0, 0), Point::fromXy(100, 0),
+                             {GradientStop::create(0.0f, c0), GradientStop::create(1.0f, c1)},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
   EXPECT_FALSE(std::get<LinearGradient>(*result).isOpaque());
@@ -324,8 +320,7 @@ TEST(ShaderTest, SolidColorTransparentIsNotOpaque) {
 TEST(ShaderTest, LinearGradientOpaqueIsOpaque) {
   const auto result = LinearGradient::create(
       Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
@@ -344,8 +339,7 @@ TEST(ShaderTest, TransformShaderSolidColorIsNoOp) {
 TEST(ShaderTest, TransformShaderUpdatesGradientTransform) {
   const auto result = LinearGradient::create(
       Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
@@ -369,8 +363,7 @@ TEST(ShaderTest, ApplyOpacitySolidColor) {
 TEST(ShaderTest, ApplyOpacityGradient) {
   const auto result = LinearGradient::create(
       Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
@@ -386,17 +379,16 @@ TEST(ShaderTest, ApplyOpacityGradient) {
 // ---------------------------------------------------------------------------
 
 TEST(LinearGradientTest, PushStagesTwoStopPad) {
-  const auto result = LinearGradient::create(
-      Point::fromXy(10, 10), Point::fromXy(190, 190),
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(10, 10), Point::fromXy(190, 190),
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<LinearGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<LinearGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   // Should have pushed at least SeedShader + Transform + PadX1 +
   // EvenlySpaced2StopGradient + Premultiply (colors are non-opaque).
@@ -404,18 +396,17 @@ TEST(LinearGradientTest, PushStagesTwoStopPad) {
 }
 
 TEST(LinearGradientTest, PushStagesThreeStopRepeat) {
-  const auto result = LinearGradient::create(
-      Point::fromXy(10, 10), Point::fromXy(100, 100),
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(0.5f, Color::fromRgba8(220, 140, 75, 180)),
-       GradientStop::create(1.0f, Color::fromRgba8(40, 180, 55, 160))},
-      SpreadMode::Repeat, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(10, 10), Point::fromXy(100, 100),
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(0.5f, Color::fromRgba8(220, 140, 75, 180)),
+                              GradientStop::create(1.0f, Color::fromRgba8(40, 180, 55, 160))},
+                             SpreadMode::Repeat, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<LinearGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<LinearGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   EXPECT_GE(builder.compile().stageCount(), 4u);
 }
@@ -423,15 +414,13 @@ TEST(LinearGradientTest, PushStagesThreeStopRepeat) {
 TEST(LinearGradientTest, PushStagesOpaqueSkipsPremultiply) {
   const auto result = LinearGradient::create(
       Point::fromXy(0, 0), Point::fromXy(100, 0),
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<LinearGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<LinearGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<LinearGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   // With opaque colors, no Premultiply stage, so fewer stages.
   const auto pipeline = builder.compile();
@@ -446,17 +435,16 @@ TEST(LinearGradientTest, CreateWithOffsetStopsSucceeds) {
   const auto c0 = Color::fromRgba8(50, 127, 150, 200);
   const auto c1 = Color::fromRgba8(220, 140, 75, 180);
   // Stops don't start at 0 or end at 1 → triggers dummy insertion.
-  const auto result = LinearGradient::create(
-      Point::fromXy(10, 10), Point::fromXy(190, 190),
-      {GradientStop::create(0.25f, c0), GradientStop::create(0.75f, c1)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      LinearGradient::create(Point::fromXy(10, 10), Point::fromXy(190, 190),
+                             {GradientStop::create(0.25f, c0), GradientStop::create(0.75f, c1)},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<LinearGradient>(*result));
 
   // Verify it can push stages without error.
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<LinearGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<LinearGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
 }
 
@@ -477,18 +465,16 @@ TEST(ShaderTest, PushStagesSolidColor) {
 // ---------------------------------------------------------------------------
 
 TEST(SweepGradientTest, CreateRejectsEmptyStops) {
-  const auto result = SweepGradient::create(
-      Point::fromXy(100, 100), 0.0f, 360.0f,
-      {}, SpreadMode::Pad, Transform::identity());
+  const auto result = SweepGradient::create(Point::fromXy(100, 100), 0.0f, 360.0f, {},
+                                            SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(SweepGradientTest, CreateSingleStopReturnsSolidColor) {
   const auto c = Color::fromRgba8(50, 127, 150, 200);
-  const auto result = SweepGradient::create(
-      Point::fromXy(100, 100), 0.0f, 360.0f,
-      {GradientStop::create(0.5f, c)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      SweepGradient::create(Point::fromXy(100, 100), 0.0f, 360.0f, {GradientStop::create(0.5f, c)},
+                            SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
 }
@@ -496,8 +482,7 @@ TEST(SweepGradientTest, CreateSingleStopReturnsSolidColor) {
 TEST(SweepGradientTest, CreateRejectsInvertedAngles) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 270.0f, 90.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
@@ -505,28 +490,27 @@ TEST(SweepGradientTest, CreateRejectsInvertedAngles) {
 TEST(SweepGradientTest, CreateRejectsNonFiniteAngles) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 0.0f, INFINITY,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(SweepGradientTest, CreateValidFullCircle) {
-  const auto result = SweepGradient::create(
-      Point::fromXy(100, 100), 0.0f, 360.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      SweepGradient::create(Point::fromXy(100, 100), 0.0f, 360.0f,
+                            {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                            SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<SweepGradient>(*result));
 }
 
 TEST(SweepGradientTest, CreatePartialSweep) {
-  const auto result = SweepGradient::create(
-      Point::fromXy(100, 100), 135.0f, 225.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      SweepGradient::create(Point::fromXy(100, 100), 135.0f, 225.0f,
+                            {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                             GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                            SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<SweepGradient>(*result));
 }
@@ -534,8 +518,7 @@ TEST(SweepGradientTest, CreatePartialSweep) {
 TEST(SweepGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 0.0f, 360.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
   EXPECT_FALSE(result.has_value());
 }
@@ -543,15 +526,13 @@ TEST(SweepGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
 TEST(SweepGradientTest, PushStagesSucceeds) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 0.0f, 360.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<SweepGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<SweepGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   EXPECT_GE(builder.compile().stageCount(), 3u);
 }
@@ -559,15 +540,13 @@ TEST(SweepGradientTest, PushStagesSucceeds) {
 TEST(SweepGradientTest, PushStagesPartialSweepHasScaleBias) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 135.0f, 225.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<SweepGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<SweepGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   // Partial sweep needs XYToUnitAngle + ApplyConcentricScaleBias.
   EXPECT_GE(builder.compile().stageCount(), 4u);
@@ -576,8 +555,7 @@ TEST(SweepGradientTest, PushStagesPartialSweepHasScaleBias) {
 TEST(SweepGradientTest, ShaderVariantDispatch) {
   const auto result = SweepGradient::create(
       Point::fromXy(100, 100), 0.0f, 360.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<SweepGradient>(*result));
@@ -598,18 +576,16 @@ TEST(SweepGradientTest, ShaderVariantDispatch) {
 // ---------------------------------------------------------------------------
 
 TEST(RadialGradientTest, CreateRejectsEmptyStops) {
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {}, SpreadMode::Pad, Transform::identity());
+  const auto result = RadialGradient::create(Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100),
+                                             100.0f, {}, SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(RadialGradientTest, CreateSingleStopReturnsSolidColor) {
   const auto c = Color::fromRgba8(50, 127, 150, 200);
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.5f, c)},
-      SpreadMode::Pad, Transform::identity());
+  const auto result = RadialGradient::create(Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100),
+                                             100.0f, {GradientStop::create(0.5f, c)},
+                                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<Color>(*result));
 }
@@ -617,52 +593,51 @@ TEST(RadialGradientTest, CreateSingleStopReturnsSolidColor) {
 TEST(RadialGradientTest, CreateRejectsNegativeRadius) {
   const auto result = RadialGradient::create(
       Point::fromXy(100, 100), -1.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(RadialGradientTest, CreateSimpleRadial) {
   // Simple: same center, start radius = 0.
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      RadialGradient::create(Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
 }
 
 TEST(RadialGradientTest, CreateConcentricRadial) {
   // Concentric: same center, different non-zero radii.
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 30.0f, Point::fromXy(100, 100), 90.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      RadialGradient::create(Point::fromXy(100, 100), 30.0f, Point::fromXy(100, 100), 90.0f,
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
 }
 
 TEST(RadialGradientTest, CreateTwoPointConical) {
   // Two-point conical: different centers, different radii.
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      RadialGradient::create(Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
 }
 
 TEST(RadialGradientTest, CreateStripGradient) {
   // Strip: different centers, same radius.
-  const auto result = RadialGradient::create(
-      Point::fromXy(50, 100), 50.0f, Point::fromXy(150, 100), 50.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      RadialGradient::create(Point::fromXy(50, 100), 50.0f, Point::fromXy(150, 100), 50.0f,
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   EXPECT_TRUE(std::holds_alternative<RadialGradient>(*result));
 }
@@ -670,8 +645,7 @@ TEST(RadialGradientTest, CreateStripGradient) {
 TEST(RadialGradientTest, CreateNonInvertibleTransformReturnsNullopt) {
   const auto result = RadialGradient::create(
       Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::fromScale(0.0f, 0.0f));
   EXPECT_FALSE(result.has_value());
 }
@@ -680,8 +654,7 @@ TEST(RadialGradientTest, CreateDegenerateSameCenterSameRadius) {
   // Both center and radii degenerate with Pad mode and radius > threshold.
   const auto result = RadialGradient::create(
       Point::fromXy(100, 100), 50.0f, Point::fromXy(100, 100), 50.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   // With Pad and radius > threshold, creates a hard-stop gradient.
   ASSERT_TRUE(result.has_value());
@@ -691,31 +664,28 @@ TEST(RadialGradientTest, CreateDegenerateSameCenterSameRadius) {
 TEST(RadialGradientTest, PushStagesSimpleRadial) {
   const auto result = RadialGradient::create(
       Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<RadialGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<RadialGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   EXPECT_GE(builder.compile().stageCount(), 3u);
 }
 
 TEST(RadialGradientTest, PushStagesTwoPointConical) {
-  const auto result = RadialGradient::create(
-      Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
-      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
-       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
-      SpreadMode::Pad, Transform::identity());
+  const auto result =
+      RadialGradient::create(Point::fromXy(100, 100), 0.0f, Point::fromXy(120, 80), 100.0f,
+                             {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+                              GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+                             SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
-  const bool ok = std::get<RadialGradient>(*result).pushStages(
-      ColorSpace::Linear, builder);
+  const bool ok = std::get<RadialGradient>(*result).pushStages(ColorSpace::Linear, builder);
   EXPECT_TRUE(ok);
   EXPECT_GE(builder.compile().stageCount(), 4u);
 }
@@ -723,8 +693,7 @@ TEST(RadialGradientTest, PushStagesTwoPointConical) {
 TEST(RadialGradientTest, ShaderVariantDispatch) {
   const auto result = RadialGradient::create(
       Point::fromXy(100, 100), 0.0f, Point::fromXy(100, 100), 100.0f,
-      {GradientStop::create(0.0f, Color::white),
-       GradientStop::create(1.0f, Color::black)},
+      {GradientStop::create(0.0f, Color::white), GradientStop::create(1.0f, Color::black)},
       SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(result.has_value());
   ASSERT_TRUE(std::holds_alternative<RadialGradient>(*result));
@@ -750,8 +719,8 @@ TEST(PatternTest, CreateAndPushStagesNearest) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
-                          1.0f, Transform::identity());
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
+                         Transform::identity());
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   const bool ok = pat.pushStages(ColorSpace::Linear, builder);
@@ -764,8 +733,8 @@ TEST(PatternTest, CreateAndPushStagesBilinear) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bilinear,
-                          1.0f, Transform::fromScale(2.0f, 2.0f));
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bilinear, 1.0f,
+                         Transform::fromScale(2.0f, 2.0f));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   const bool ok = pat.pushStages(ColorSpace::Linear, builder);
@@ -778,8 +747,8 @@ TEST(PatternTest, CreateAndPushStagesBicubic) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bicubic,
-                          1.0f, Transform::fromScale(2.0f, 2.0f));
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bicubic, 1.0f,
+                         Transform::fromScale(2.0f, 2.0f));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   const bool ok = pat.pushStages(ColorSpace::Linear, builder);
@@ -793,8 +762,8 @@ TEST(PatternTest, NonInvertibleTransformFails) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
-                          1.0f, Transform::fromScale(0.0f, 0.0f));
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
+                         Transform::fromScale(0.0f, 0.0f));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   EXPECT_FALSE(pat.pushStages(ColorSpace::Linear, builder));
@@ -805,8 +774,8 @@ TEST(PatternTest, PatternIsNeverOpaque) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
-                          1.0f, Transform::identity());
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
+                         Transform::identity());
   EXPECT_FALSE(pat.isOpaque());
 }
 
@@ -815,8 +784,8 @@ TEST(PatternTest, OpacityAppliesScale1FloatStage) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
-                          0.5f, Transform::identity());
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 0.5f,
+                         Transform::identity());
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   const bool ok = pat.pushStages(ColorSpace::Linear, builder);
@@ -830,8 +799,8 @@ TEST(PatternTest, RepeatSpreadModePushesRepeatStage) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  tiny_skia::Pattern pat(*pixmap, SpreadMode::Repeat, tiny_skia::FilterQuality::Nearest,
-                          1.0f, Transform::identity());
+  tiny_skia::Pattern pat(*pixmap, SpreadMode::Repeat, tiny_skia::FilterQuality::Nearest, 1.0f,
+                         Transform::identity());
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;
   const bool ok = pat.pushStages(ColorSpace::Linear, builder);
@@ -844,9 +813,8 @@ TEST(PatternTest, ShaderVariantDispatch) {
   const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
-  Shader shader = tiny_skia::Pattern(*pixmap, SpreadMode::Pad,
-                                      tiny_skia::FilterQuality::Nearest,
-                                      1.0f, Transform::identity());
+  Shader shader = tiny_skia::Pattern(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
+                                     1.0f, Transform::identity());
   EXPECT_FALSE(tiny_skia::isShaderOpaque(shader));
 
   tiny_skia::pipeline::RasterPipelineBuilder builder;

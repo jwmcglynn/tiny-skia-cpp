@@ -12,22 +12,14 @@
 
 namespace tiny_skia {
 
-using LineProc = void (*)(std::span<const Point>,
-                         const ScreenIntRect* clip,
-                         Blitter& blitter);
+using LineProc = void (*)(std::span<const Point>, const ScreenIntRect* clip, Blitter& blitter);
 
 namespace scan {
 
-void strokePath(const Path& path,
-               LineCap lineCap,
-               const ScreenIntRect& clip,
-               Blitter& blitter);
+void strokePath(const Path& path, LineCap lineCap, const ScreenIntRect& clip, Blitter& blitter);
 
-void strokePathImpl(const Path& path,
-                   LineCap lineCap,
-                   const ScreenIntRect& clip,
-                   LineProc lineProc,
-                   Blitter& blitter);
+void strokePathImpl(const Path& path, LineCap lineCap, const ScreenIntRect& clip, LineProc lineProc,
+                    Blitter& blitter);
 
 }  // namespace scan
 

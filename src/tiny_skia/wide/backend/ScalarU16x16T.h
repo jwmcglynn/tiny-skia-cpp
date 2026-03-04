@@ -36,9 +36,7 @@ namespace tiny_skia::wide::backend::scalar {
   return U16x16T(out);
 }
 
-[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask,
-                                         const U16x16T& t,
-                                         const U16x16T& e) {
+[[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t, const U16x16T& e) {
   std::array<std::uint16_t, 16> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = genericBitBlend(mask.lanes()[i], t.lanes()[i], e.lanes()[i]);

@@ -40,8 +40,7 @@ namespace {
 }
 
 [[maybe_unused]] [[nodiscard]] std::array<std::int32_t, 8> joinI32Lanes(
-    const std::array<std::int32_t, 4>& lo,
-    const std::array<std::int32_t, 4>& hi) {
+    const std::array<std::int32_t, 4>& lo, const std::array<std::int32_t, 4>& hi) {
   return {lo[0], lo[1], lo[2], lo[3], hi[0], hi[1], hi[2], hi[3]};
 }
 
@@ -62,15 +61,15 @@ namespace {
 [[maybe_unused]] [[nodiscard]] F32x8T composeF32x8(const F32x4T& lo, const F32x4T& hi) {
   const auto loLanes = lo.lanes();
   const auto hiLanes = hi.lanes();
-  return F32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1],
-                 hiLanes[2], hiLanes[3]});
+  return F32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1], hiLanes[2],
+                 hiLanes[3]});
 }
 
 [[maybe_unused]] [[nodiscard]] U32x8T composeU32x8(const U32x4T& lo, const U32x4T& hi) {
   const auto loLanes = lo.lanes();
   const auto hiLanes = hi.lanes();
-  return U32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1],
-                 hiLanes[2], hiLanes[3]});
+  return U32x8T({loLanes[0], loLanes[1], loLanes[2], loLanes[3], hiLanes[0], hiLanes[1], hiLanes[2],
+                 hiLanes[3]});
 }
 
 }  // namespace

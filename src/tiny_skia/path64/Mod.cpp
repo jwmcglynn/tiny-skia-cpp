@@ -7,9 +7,7 @@ namespace tiny_skia::path64 {
 
 namespace {
 
-std::uint64_t asBits(double value) {
-  return std::bit_cast<std::uint64_t>(value);
-}
+std::uint64_t asBits(double value) { return std::bit_cast<std::uint64_t>(value); }
 
 double cbrt5d(double value) {
   constexpr std::uint32_t kCbrtBias = 715094163;
@@ -42,8 +40,6 @@ double cubeRoot(double value) {
   return value < 0.0 ? -result : result;
 }
 
-double interp(double a, double b, double t) {
-  return a + (b - a) * t;
-}
+double interp(double a, double b, double t) { return a + (b - a) * t; }
 
 }  // namespace tiny_skia::path64

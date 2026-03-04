@@ -1,15 +1,15 @@
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <cstdint>
 #include <limits>
 #include <optional>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-
-#include "tiny_skia/tests/test_utils/GeomMatchers.h"
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/PathRectRs.h"
 #include "tiny_skia/PathScalarRs.h"
 #include "tiny_skia/PathSizeRs.h"
+#include "tiny_skia/tests/test_utils/GeomMatchers.h"
 
 using tiny_skia::tests::matchers::OptionalScreenIntRectEq;
 using tiny_skia::tests::matchers::ScreenIntRectEq;
@@ -46,8 +46,7 @@ TEST(GeomTest, IntSizeAndRectConversions) {
   const auto screen = sizeOpt->toScreenIntRect(1, 2);
   EXPECT_THAT(screen, ScreenIntRectEq(1u, 2u, 3u, 4u));
 
-  const auto rectOpt =
-      tiny_skia::IntRect::fromXYWH(10, 20, 3, 4);
+  const auto rectOpt = tiny_skia::IntRect::fromXYWH(10, 20, 3, 4);
   ASSERT_THAT(rectOpt, testing::Optional(testing::_));
   const auto rect = *rectOpt;
   const auto converted = tiny_skia::intRectToScreen(rect);

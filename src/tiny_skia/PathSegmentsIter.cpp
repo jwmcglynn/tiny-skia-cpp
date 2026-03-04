@@ -1,7 +1,6 @@
-#include "tiny_skia/Path.h"
-
 #include <algorithm>
 
+#include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/PathGeometry.h"
 
@@ -9,8 +8,7 @@ namespace tiny_skia {
 
 namespace {
 
-std::size_t computeQuadExtremas(Point p0, Point p1, Point p2,
-                                Point extremas[5]) {
+std::size_t computeQuadExtremas(Point p0, Point p1, Point p2, Point extremas[5]) {
   std::size_t idx = 0;
   if (auto t = path_geometry::findQuadExtrema(p0.x, p1.x, p2.x)) {
     const Point src[3] = {p0, p1, p2};
@@ -24,25 +22,20 @@ std::size_t computeQuadExtremas(Point p0, Point p1, Point p2,
   return idx + 1;
 }
 
-std::size_t computeCubicExtremas(Point p0, Point p1, Point p2, Point p3,
-                                 Point extremas[5]) {
+std::size_t computeCubicExtremas(Point p0, Point p1, Point p2, Point p3, Point extremas[5]) {
   auto ts0 = path_geometry::newTValues();
   auto ts1 = path_geometry::newTValues();
-  const auto n0 =
-      path_geometry::findCubicExtremaT(p0.x, p1.x, p2.x, p3.x, ts0.data());
-  const auto n1 =
-      path_geometry::findCubicExtremaT(p0.y, p1.y, p2.y, p3.y, ts1.data());
+  const auto n0 = path_geometry::findCubicExtremaT(p0.x, p1.x, p2.x, p3.x, ts0.data());
+  const auto n1 = path_geometry::findCubicExtremaT(p0.y, p1.y, p2.y, p3.y, ts1.data());
   const auto totalLen = n0 + n1;
 
   const Point src[4] = {p0, p1, p2, p3};
   std::size_t idx = 0;
   for (std::size_t i = 0; i < n0; ++i) {
-    extremas[idx++] =
-        path_geometry::evalCubicPosAt(src, ts0[i].toNormalized());
+    extremas[idx++] = path_geometry::evalCubicPosAt(src, ts0[i].toNormalized());
   }
   for (std::size_t i = 0; i < n1; ++i) {
-    extremas[idx++] =
-        path_geometry::evalCubicPosAt(src, ts1[i].toNormalized());
+    extremas[idx++] = path_geometry::evalCubicPosAt(src, ts1[i].toNormalized());
   }
   extremas[totalLen] = p3;
   return totalLen + 1;
@@ -73,12 +66,10 @@ std::optional<Rect> Path::computeTightBounds() const {
         count = 1;
         break;
       case PathSegment::Kind::QuadTo:
-        count = computeQuadExtremas(lastPt, seg->pts[0], seg->pts[1],
-                                    extremas);
+        count = computeQuadExtremas(lastPt, seg->pts[0], seg->pts[1], extremas);
         break;
       case PathSegment::Kind::CubicTo:
-        count = computeCubicExtremas(lastPt, seg->pts[0], seg->pts[1],
-                                     seg->pts[2], extremas);
+        count = computeCubicExtremas(lastPt, seg->pts[0], seg->pts[1], seg->pts[2], extremas);
         break;
       case PathSegment::Kind::Close:
         break;
@@ -103,8 +94,6 @@ PathBuilder Path::clear() {
   PathBuilder builder(verbs_.capacity(), points_.capacity());
   return builder;
 }
-
-
 
 PathSegment PathSegmentsIter::autoClose() {
   if (isAutoClose_ && lastPoint_ != lastMoveTo_) {
@@ -185,13 +174,10 @@ bool PathSegmentsIter::hasValidTangent() const {
         if (iter.lastPoint_ == seg->pts[0]) continue;
         return true;
       case PathSegment::Kind::QuadTo:
-        if (iter.lastPoint_ == seg->pts[0] &&
-            iter.lastPoint_ == seg->pts[1])
-          continue;
+        if (iter.lastPoint_ == seg->pts[0] && iter.lastPoint_ == seg->pts[1]) continue;
         return true;
       case PathSegment::Kind::CubicTo:
-        if (iter.lastPoint_ == seg->pts[0] &&
-            iter.lastPoint_ == seg->pts[1] &&
+        if (iter.lastPoint_ == seg->pts[0] && iter.lastPoint_ == seg->pts[1] &&
             iter.lastPoint_ == seg->pts[2])
           continue;
         return true;

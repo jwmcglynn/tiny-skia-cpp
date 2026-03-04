@@ -36,15 +36,12 @@ struct Paint {
   void setColor(const Color& color) { shader = color; }
 
   /// Sets a paint source to a solid color from RGBA8 components.
-  void setColorRgba8(std::uint8_t r, std::uint8_t g, std::uint8_t b,
-                     std::uint8_t a) {
+  void setColorRgba8(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a) {
     setColor(Color::fromRgba8(r, g, b, a));
   }
 
   /// Checks that the paint source is a solid color.
-  [[nodiscard]] bool isSolidColor() const {
-    return std::holds_alternative<Color>(shader);
-  }
+  [[nodiscard]] bool isSolidColor() const { return std::holds_alternative<Color>(shader); }
 };
 
 /// Splits the target pixmap into a list of tiles for large pixmaps.
@@ -54,14 +51,13 @@ class DrawTiler {
   static constexpr std::uint32_t kMaxDimensions = 8192 - 1;
 
   /// Returns true if tiling is required for the given dimensions.
-  [[nodiscard]] static bool required(std::uint32_t imageWidth,
-                                     std::uint32_t imageHeight) {
+  [[nodiscard]] static bool required(std::uint32_t imageWidth, std::uint32_t imageHeight) {
     return imageWidth > kMaxDimensions || imageHeight > kMaxDimensions;
   }
 
   /// Creates a tiler if tiling is required, otherwise returns nullopt.
-  [[nodiscard]] static std::optional<DrawTiler> create(
-      std::uint32_t imageWidth, std::uint32_t imageHeight) {
+  [[nodiscard]] static std::optional<DrawTiler> create(std::uint32_t imageWidth,
+                                                       std::uint32_t imageHeight) {
     if (required(imageWidth, imageHeight)) {
       return DrawTiler(imageWidth, imageHeight);
     }
@@ -79,9 +75,8 @@ class DrawTiler {
                          ? std::min(image_height_ - y_offset_, kMaxDimensions)
                          : image_height_;
 
-      const auto r = ScreenIntRect::fromXYWH(
-          x_offset_, y_offset_,
-          std::min(image_width_ - x_offset_, kMaxDimensions), h);
+      const auto r = ScreenIntRect::fromXYWH(x_offset_, y_offset_,
+                                             std::min(image_width_ - x_offset_, kMaxDimensions), h);
 
       x_offset_ += kMaxDimensions;
       if (x_offset_ >= image_width_) {
@@ -113,28 +108,25 @@ class DrawTiler {
 /// Determines if a stroke should be treated as a hairline.
 /// Returns the coverage scaling factor, or nullopt for thick strokes.
 /// Matches Rust `treat_as_hairline`.
-[[nodiscard]] std::optional<float> treatAsHairline(const Paint& paint,
-                                                   float strokeWidth,
+[[nodiscard]] std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
                                                    Transform ts);
 
 // ---- Drawing functions (on PixmapMut) ----
 
 /// Draws a filled rectangle onto the pixmap.
 /// Matches Rust `PixmapMut::fill_rect`.
-void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint,
-              Transform transform, const Mask* mask = nullptr);
+void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint, Transform transform,
+              const Mask* mask = nullptr);
 
 /// Draws a filled path onto the pixmap.
 /// Matches Rust `PixmapMut::fill_path`.
-void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint,
-              FillRule fillRule, Transform transform,
-              const Mask* mask = nullptr);
+void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
+              Transform transform, const Mask* mask = nullptr);
 
 /// Draws a pixmap on top of the current pixmap.
 /// Matches Rust `PixmapMut::draw_pixmap`.
-void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y,
-                PixmapRef src, const PixmapPaint& paint,
-                Transform transform, const Mask* mask = nullptr);
+void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y, PixmapRef src,
+                const PixmapPaint& paint, Transform transform, const Mask* mask = nullptr);
 
 /// Applies a mask to already-drawn content.
 /// Matches Rust `PixmapMut::apply_mask`.
@@ -142,9 +134,8 @@ void applyMask(PixmapMut& pixmap, const Mask& mask);
 
 /// Strokes a path onto the pixmap.
 /// Matches Rust `PixmapMut::stroke_path`.
-void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint,
-                const Stroke& stroke, Transform transform,
-                const Mask* mask = nullptr);
+void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
+                Transform transform, const Mask* mask = nullptr);
 
 /// Strokes a path with a hairline (subpixel width).
 /// Private helper. Matches Rust `PixmapMut::stroke_hairline`.

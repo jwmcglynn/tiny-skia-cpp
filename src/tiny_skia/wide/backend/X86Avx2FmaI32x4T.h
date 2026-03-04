@@ -30,8 +30,8 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Blend(const std::array<std::int32_t, 4>& mask,
-                                                             const std::array<std::int32_t, 4>& t,
-                                                             const std::array<std::int32_t, 4>& f) {
+                                                            const std::array<std::int32_t, 4>& t,
+                                                            const std::array<std::int32_t, 4>& f) {
   const __m128i mask_lanes = loadI32x4(mask);
   const __m128i true_lanes = loadI32x4(t);
   const __m128i false_lanes = loadI32x4(f);
@@ -40,20 +40,17 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpEq(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_cmpeq_epi32(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpGt(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_cmpgt_epi32(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpLt(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_cmpgt_epi32(loadI32x4(rhs), loadI32x4(lhs)));
 }
 
@@ -67,53 +64,50 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Add(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_add_epi32(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Mul(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_mullo_epi32(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4And(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_and_si128(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Or(const std::array<std::int32_t, 4>& lhs,
-                                                          const std::array<std::int32_t, 4>& rhs) {
+                                                         const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_or_si128(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Xor(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return storeI32x4(_mm_xor_si128(loadI32x4(lhs), loadI32x4(rhs)));
 }
 
 #else
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Blend(const std::array<std::int32_t, 4>& mask,
-                                                             const std::array<std::int32_t, 4>& t,
-                                                             const std::array<std::int32_t, 4>& f) {
+                                                            const std::array<std::int32_t, 4>& t,
+                                                            const std::array<std::int32_t, 4>& f) {
   return scalar::i32x4Blend(mask, t, f);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpEq(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4CmpEq(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpGt(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4CmpGt(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4CmpLt(
-    const std::array<std::int32_t, 4>& lhs,
-    const std::array<std::int32_t, 4>& rhs) {
+    const std::array<std::int32_t, 4>& lhs, const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4CmpLt(lhs, rhs);
 }
 
@@ -127,27 +121,27 @@ namespace tiny_skia::wide::backend::x86_avx2_fma {
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Add(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4Add(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Mul(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4Mul(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4And(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4And(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Or(const std::array<std::int32_t, 4>& lhs,
-                                                          const std::array<std::int32_t, 4>& rhs) {
+                                                         const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4Or(lhs, rhs);
 }
 
 [[nodiscard]] inline std::array<std::int32_t, 4> i32x4Xor(const std::array<std::int32_t, 4>& lhs,
-                                                           const std::array<std::int32_t, 4>& rhs) {
+                                                          const std::array<std::int32_t, 4>& rhs) {
   return scalar::i32x4Xor(lhs, rhs);
 }
 

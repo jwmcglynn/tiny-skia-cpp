@@ -20,55 +20,55 @@ namespace tiny_skia::wide::backend::scalar {
 
 [[nodiscard]] inline std::array<float, 4> f32x4Max(const std::array<float, 4>& lhs,
                                                    const std::array<float, 4>& rhs) {
-  return {fasterMax(lhs[0], rhs[0]), fasterMax(lhs[1], rhs[1]),
-          fasterMax(lhs[2], rhs[2]), fasterMax(lhs[3], rhs[3])};
+  return {fasterMax(lhs[0], rhs[0]), fasterMax(lhs[1], rhs[1]), fasterMax(lhs[2], rhs[2]),
+          fasterMax(lhs[3], rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Min(const std::array<float, 4>& lhs,
                                                    const std::array<float, 4>& rhs) {
-  return {fasterMin(lhs[0], rhs[0]), fasterMin(lhs[1], rhs[1]),
-          fasterMin(lhs[2], rhs[2]), fasterMin(lhs[3], rhs[3])};
+  return {fasterMin(lhs[0], rhs[0]), fasterMin(lhs[1], rhs[1]), fasterMin(lhs[2], rhs[2]),
+          fasterMin(lhs[3], rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpEq(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] == rhs[0]), f32x4CmpMask(lhs[1] == rhs[1]),
           f32x4CmpMask(lhs[2] == rhs[2]), f32x4CmpMask(lhs[3] == rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpNe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] != rhs[0]), f32x4CmpMask(lhs[1] != rhs[1]),
           f32x4CmpMask(lhs[2] != rhs[2]), f32x4CmpMask(lhs[3] != rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] >= rhs[0]), f32x4CmpMask(lhs[1] >= rhs[1]),
           f32x4CmpMask(lhs[2] >= rhs[2]), f32x4CmpMask(lhs[3] >= rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpGt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] > rhs[0]), f32x4CmpMask(lhs[1] > rhs[1]),
           f32x4CmpMask(lhs[2] > rhs[2]), f32x4CmpMask(lhs[3] > rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLe(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] <= rhs[0]), f32x4CmpMask(lhs[1] <= rhs[1]),
           f32x4CmpMask(lhs[2] <= rhs[2]), f32x4CmpMask(lhs[3] <= rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4CmpLt(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   return {f32x4CmpMask(lhs[0] < rhs[0]), f32x4CmpMask(lhs[1] < rhs[1]),
           f32x4CmpMask(lhs[2] < rhs[2]), f32x4CmpMask(lhs[3] < rhs[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Blend(const std::array<float, 4>& mask,
-                                                      const std::array<float, 4>& t,
-                                                      const std::array<float, 4>& f) {
+                                                     const std::array<float, 4>& t,
+                                                     const std::array<float, 4>& f) {
   std::array<float, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     const std::uint32_t maskBits = std::bit_cast<std::uint32_t>(mask[i]);
@@ -122,8 +122,8 @@ namespace tiny_skia::wide::backend::scalar {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4RecipSqrt(const std::array<float, 4>& lanes) {
-  return {1.0f / std::sqrt(lanes[0]), 1.0f / std::sqrt(lanes[1]),
-          1.0f / std::sqrt(lanes[2]), 1.0f / std::sqrt(lanes[3])};
+  return {1.0f / std::sqrt(lanes[0]), 1.0f / std::sqrt(lanes[1]), 1.0f / std::sqrt(lanes[2]),
+          1.0f / std::sqrt(lanes[3])};
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4Sqrt(const std::array<float, 4>& lanes) {
@@ -151,7 +151,7 @@ namespace tiny_skia::wide::backend::scalar {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitAnd(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   std::array<float, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = std::bit_cast<float>(std::bit_cast<std::uint32_t>(lhs[i]) &
@@ -162,7 +162,7 @@ namespace tiny_skia::wide::backend::scalar {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitOr(const std::array<float, 4>& lhs,
-                                                      const std::array<float, 4>& rhs) {
+                                                     const std::array<float, 4>& rhs) {
   std::array<float, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = std::bit_cast<float>(std::bit_cast<std::uint32_t>(lhs[i]) |
@@ -173,7 +173,7 @@ namespace tiny_skia::wide::backend::scalar {
 }
 
 [[nodiscard]] inline std::array<float, 4> f32x4BitXor(const std::array<float, 4>& lhs,
-                                                       const std::array<float, 4>& rhs) {
+                                                      const std::array<float, 4>& rhs) {
   std::array<float, 4> out{};
   for (std::size_t i = 0; i < out.size(); ++i) {
     out[i] = std::bit_cast<float>(std::bit_cast<std::uint32_t>(lhs[i]) ^

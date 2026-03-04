@@ -1,5 +1,3 @@
-#include "tiny_skia/wide/I32x4T.h"
-
 #include <array>
 #include <bit>
 #include <cstdint>
@@ -7,6 +5,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "tiny_skia/wide/F32x4T.h"
+#include "tiny_skia/wide/I32x4T.h"
 
 namespace {
 

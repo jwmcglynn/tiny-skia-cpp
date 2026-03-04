@@ -10,7 +10,8 @@ namespace tiny_skia {
 namespace {
 
 std::optional<std::size_t> dataLenForSize(IntSize size) {
-  constexpr auto kMaxWidth = static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max() / 4);
+  constexpr auto kMaxWidth =
+      static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max() / 4);
 
   const auto width = static_cast<std::uint32_t>(size.width());
   const auto height = static_cast<std::uint32_t>(size.height());
@@ -26,14 +27,13 @@ std::optional<std::size_t> dataLenForSize(IntSize size) {
   return static_cast<std::size_t>(bytes);
 }
 
-std::optional<std::size_t> pixelIndex(std::uint32_t width,
-                                      std::uint32_t height,
-                                      std::uint32_t x,
+std::optional<std::size_t> pixelIndex(std::uint32_t width, std::uint32_t height, std::uint32_t x,
                                       std::uint32_t y) {
   if (x >= width || y >= height) {
     return std::nullopt;
   }
-  return static_cast<std::size_t>(y) * static_cast<std::size_t>(width) + static_cast<std::size_t>(x);
+  return static_cast<std::size_t>(y) * static_cast<std::size_t>(width) +
+         static_cast<std::size_t>(x);
 }
 
 bool containsRect(const IntRect& outer, const IntRect& inner) {
@@ -44,8 +44,7 @@ bool containsRect(const IntRect& outer, const IntRect& inner) {
 }  // namespace
 
 std::optional<PixmapRef> PixmapRef::fromBytes(std::span<const std::uint8_t> data,
-                                              std::uint32_t width,
-                                              std::uint32_t height) {
+                                              std::uint32_t width, std::uint32_t height) {
   const auto size = IntSize::fromWh(width, height);
   if (!size.has_value()) {
     return std::nullopt;
@@ -95,8 +94,9 @@ std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
   const auto srcWidth = static_cast<std::size_t>(width());
   const auto rowBytes = static_cast<std::size_t>(clipped->width()) * kBytesPerPixel;
   for (std::uint32_t y = 0; y < clipped->height(); ++y) {
-    const auto srcOffset = (static_cast<std::size_t>(clipped->top()) + y) * srcWidth * kBytesPerPixel +
-                           static_cast<std::size_t>(clipped->left()) * kBytesPerPixel;
+    const auto srcOffset =
+        (static_cast<std::size_t>(clipped->top()) + y) * srcWidth * kBytesPerPixel +
+        static_cast<std::size_t>(clipped->left()) * kBytesPerPixel;
     const auto dstOffset = static_cast<std::size_t>(y) * rowBytes;
     std::copy_n(srcBytes.data() + srcOffset, rowBytes, dstBytes.data() + dstOffset);
   }
@@ -104,8 +104,7 @@ std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
   return out;
 }
 
-std::optional<PixmapMut> PixmapMut::fromBytes(std::span<std::uint8_t> data,
-                                              std::uint32_t width,
+std::optional<PixmapMut> PixmapMut::fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
                                               std::uint32_t height) {
   const auto size = IntSize::fromWh(width, height);
   if (!size.has_value()) {
@@ -146,9 +145,9 @@ std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
   }
 
   const auto srcWidth = static_cast<std::size_t>(size_.width());
-  const auto offset =
-      (static_cast<std::size_t>(intersection->top()) * srcWidth + static_cast<std::size_t>(intersection->left())) *
-      kBytesPerPixel;
+  const auto offset = (static_cast<std::size_t>(intersection->top()) * srcWidth +
+                       static_cast<std::size_t>(intersection->left())) *
+                      kBytesPerPixel;
   const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
   if (!subSize.has_value()) {
     return std::nullopt;
@@ -162,8 +161,8 @@ std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
 }
 
 std::span<std::uint8_t> SubPixmapMut::dataMut() const {
-  const auto len =
-      static_cast<std::size_t>(real_width) * static_cast<std::size_t>(size.height()) * kBytesPerPixel;
+  const auto len = static_cast<std::size_t>(real_width) * static_cast<std::size_t>(size.height()) *
+                   kBytesPerPixel;
   return std::span<std::uint8_t>(data, len);
 }
 
@@ -189,13 +188,9 @@ std::optional<Pixmap> Pixmap::fromVec(std::vector<std::uint8_t> data, IntSize si
   return Pixmap(std::move(data), size);
 }
 
-std::span<const PremultipliedColorU8> Pixmap::pixels() const {
-  return asRef().pixels();
-}
+std::span<const PremultipliedColorU8> Pixmap::pixels() const { return asRef().pixels(); }
 
-std::span<PremultipliedColorU8> Pixmap::pixelsMut() {
-  return asMut().pixelsMut();
-}
+std::span<PremultipliedColorU8> Pixmap::pixelsMut() { return asMut().pixelsMut(); }
 
 std::optional<PremultipliedColorU8> Pixmap::pixel(std::uint32_t x, std::uint32_t y) const {
   return asRef().pixel(x, y);
