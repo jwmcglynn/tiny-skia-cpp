@@ -32,24 +32,24 @@ struct Pipeline {
   std::size_t dy = 0;
   std::size_t tail = 0;
   const ScreenIntRect* rect = nullptr;
-  const AAMaskCtx* aa_mask_ctx = nullptr;
-  const MaskCtx* mask_ctx = nullptr;
+  const AAMaskCtx* aaMaskCtx = nullptr;
+  const MaskCtx* maskCtx = nullptr;
   Context* ctx = nullptr;
-  const PixmapRef* pixmap_src = nullptr;
-  SubPixmapMut* pixmap_dst = nullptr;
+  const PixmapRef* pixmapSrc = nullptr;
+  SubPixmapMut* pixmapDst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>&,
-           const ScreenIntRect& rect_arg, const AAMaskCtx& aa_mask_ctx_arg,
-           const MaskCtx& mask_ctx_arg, Context& ctx_arg, const PixmapRef& pixmap_src_arg,
-           SubPixmapMut* pixmap_dst_arg)
+           const ScreenIntRect& rect_arg, const AAMaskCtx& aaMaskCtxArg,
+           const MaskCtx& maskCtxArg, Context& ctx_arg, const PixmapRef& pixmapSrcArg,
+           SubPixmapMut* pixmapDstArg)
       : functions(&fun),
         rect(&rect_arg),
-        aa_mask_ctx(&aa_mask_ctx_arg),
-        mask_ctx(&mask_ctx_arg),
+        aaMaskCtx(&aaMaskCtxArg),
+        maskCtx(&maskCtxArg),
         ctx(&ctx_arg),
-        pixmap_src(&pixmap_src_arg),
-        pixmap_dst(pixmap_dst_arg) {}
+        pixmapSrc(&pixmapSrcArg),
+        pixmapDst(pixmapDstArg) {}
 
   void nextStage() {
     const auto next = (*functions)[index];
@@ -114,7 +114,7 @@ void premultiply(Pipeline& pipeline) {
 }
 
 void uniform_color(Pipeline& pipeline) {
-  const auto& u = pipeline.ctx->uniform_color;
+  const auto& u = pipeline.ctx->uniformColor;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] = u.r;
     pipeline.g[i] = u.g;
@@ -139,7 +139,7 @@ void seed_shader(Pipeline& pipeline) {
 }
 
 void scale_u8(Pipeline& pipeline) {
-  const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   const std::array<float, kStageWidth> c{
       static_cast<float>(data[0]) / 255.0f,
       static_cast<float>(data[1]) / 255.0f,
@@ -161,7 +161,7 @@ void scale_u8(Pipeline& pipeline) {
 }
 
 void lerp_u8(Pipeline& pipeline) {
-  const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   const std::array<float, kStageWidth> c{
       static_cast<float>(data[0]) / 255.0f,
       static_cast<float>(data[1]) / 255.0f,
@@ -183,7 +183,7 @@ void lerp_u8(Pipeline& pipeline) {
 }
 
 void scale_1_float(Pipeline& pipeline) {
-  const auto c = pipeline.ctx->current_coverage;
+  const auto c = pipeline.ctx->currentCoverage;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] *= c;
     pipeline.g[i] *= c;
@@ -194,7 +194,7 @@ void scale_1_float(Pipeline& pipeline) {
 }
 
 void lerp_1_float(Pipeline& pipeline) {
-  const auto c = pipeline.ctx->current_coverage;
+  const auto c = pipeline.ctx->currentCoverage;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] = pipeline.dr[i] + (pipeline.r[i] - pipeline.dr[i]) * c;
     pipeline.g[i] = pipeline.dg[i] + (pipeline.g[i] - pipeline.dg[i]) * c;
@@ -487,21 +487,21 @@ void store_8888(std::uint8_t* data, std::size_t stride, std::size_t dx, std::siz
 }
 
 void load_dst(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
+  if (pipeline.pixmapDst == nullptr) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
+  load_8888(pipeline.pixmapDst->data, pipeline.pixmapDst->realWidth, pipeline.dx, pipeline.dy,
             pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void store(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
+  if (pipeline.pixmapDst == nullptr) {
     pipeline.nextStage();
     return;
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
+  store_8888(pipeline.pixmapDst->data, pipeline.pixmapDst->realWidth, pipeline.dx, pipeline.dy,
              pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
@@ -512,14 +512,14 @@ void store_u8(Pipeline& pipeline) { pipeline.nextStage(); }
 void load_mask_u8(Pipeline& pipeline) { pipeline.nextStage(); }
 
 void mask_u8(Pipeline& pipeline) {
-  if (pipeline.mask_ctx == nullptr || pipeline.mask_ctx->data == nullptr) {
+  if (pipeline.maskCtx == nullptr || pipeline.maskCtx->data == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  const auto offset = pipeline.maskCtx->byteOffset(pipeline.dx, pipeline.dy);
   std::array<float, kStageWidth> c{};
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    c[i] = static_cast<float>(pipeline.mask_ctx->data[offset + i]) * kInv255;
+    c[i] = static_cast<float>(pipeline.maskCtx->data[offset + i]) * kInv255;
   }
   bool all_zero = true;
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
@@ -541,11 +541,11 @@ void mask_u8(Pipeline& pipeline) {
 }
 
 void source_over_rgba(Pipeline& pipeline) {
-  if (pipeline.pixmap_dst == nullptr) {
+  if (pipeline.pixmapDst == nullptr) {
     pipeline.nextStage();
     return;
   }
-  load_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
+  load_8888(pipeline.pixmapDst->data, pipeline.pixmapDst->realWidth, pipeline.dx, pipeline.dy,
             pipeline.tail, pipeline, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto inv_a = 1.0f - pipeline.a[i];
@@ -554,7 +554,7 @@ void source_over_rgba(Pipeline& pipeline) {
     pipeline.b[i] = pipeline.db[i] * inv_a + pipeline.b[i];
     pipeline.a[i] = pipeline.da[i] * inv_a + pipeline.a[i];
   }
-  store_8888(pipeline.pixmap_dst->data, pipeline.pixmap_dst->realWidth, pipeline.dx, pipeline.dy,
+  store_8888(pipeline.pixmapDst->data, pipeline.pixmapDst->realWidth, pipeline.dx, pipeline.dy,
              pipeline.tail, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
@@ -626,8 +626,8 @@ inline void load_gathered_pixel(const PixmapRef& pixmap, std::uint32_t ix, float
 /// Sample a single pixel with tiling applied.
 inline void sample(const PixmapRef& pixmap, const SamplerCtx& ctx, float x, float y, float& r,
                    float& g, float& b, float& a) {
-  x = tile(x, ctx.spread_mode, static_cast<float>(pixmap.width()), ctx.inv_width);
-  y = tile(y, ctx.spread_mode, static_cast<float>(pixmap.height()), ctx.inv_height);
+  x = tile(x, ctx.spreadMode, static_cast<float>(pixmap.width()), ctx.invWidth);
+  y = tile(y, ctx.spreadMode, static_cast<float>(pixmap.height()), ctx.invHeight);
   const auto ix = gather_ix_scalar(pixmap, x, y);
   load_gathered_pixel(pixmap, ix, r, g, b, a);
 }
@@ -712,11 +712,11 @@ inline float float_and_mask(float v, std::uint32_t mask) {
 // ---------------------------------------------------------------------------
 
 void gather(Pipeline& pipeline) {
-  if (pipeline.pixmap_src == nullptr) {
+  if (pipeline.pixmapSrc == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto& pixmap = *pipeline.pixmap_src;
+  const auto& pixmap = *pipeline.pixmapSrc;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const auto ix = gather_ix_scalar(pixmap, pipeline.r[i], pipeline.g[i]);
     load_gathered_pixel(pixmap, ix, pipeline.r[i], pipeline.g[i], pipeline.b[i], pipeline.a[i]);
@@ -736,31 +736,31 @@ void transform(Pipeline& pipeline) {
 }
 
 void reflect(Pipeline& pipeline) {
-  const auto& lx = pipeline.ctx->limit_x;
-  const auto& ly = pipeline.ctx->limit_y;
+  const auto& lx = pipeline.ctx->limitX;
+  const auto& ly = pipeline.ctx->limitY;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = exclusive_reflect(pipeline.r[i], lx.scale, lx.inv_scale);
-    pipeline.g[i] = exclusive_reflect(pipeline.g[i], ly.scale, ly.inv_scale);
+    pipeline.r[i] = exclusive_reflect(pipeline.r[i], lx.scale, lx.invScale);
+    pipeline.g[i] = exclusive_reflect(pipeline.g[i], ly.scale, ly.invScale);
   }
   pipeline.nextStage();
 }
 
 void repeat(Pipeline& pipeline) {
-  const auto& lx = pipeline.ctx->limit_x;
-  const auto& ly = pipeline.ctx->limit_y;
+  const auto& lx = pipeline.ctx->limitX;
+  const auto& ly = pipeline.ctx->limitY;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.r[i] = exclusive_repeat(pipeline.r[i], lx.scale, lx.inv_scale);
-    pipeline.g[i] = exclusive_repeat(pipeline.g[i], ly.scale, ly.inv_scale);
+    pipeline.r[i] = exclusive_repeat(pipeline.r[i], lx.scale, lx.invScale);
+    pipeline.g[i] = exclusive_repeat(pipeline.g[i], ly.scale, ly.invScale);
   }
   pipeline.nextStage();
 }
 
 void bilinear(Pipeline& pipeline) {
-  if (pipeline.pixmap_src == nullptr) {
+  if (pipeline.pixmapSrc == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto& pixmap = *pipeline.pixmap_src;
+  const auto& pixmap = *pipeline.pixmapSrc;
   const auto& ctx = pipeline.ctx->sampler;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float cx = pipeline.r[i];
@@ -795,11 +795,11 @@ void bilinear(Pipeline& pipeline) {
 }
 
 void bicubic(Pipeline& pipeline) {
-  if (pipeline.pixmap_src == nullptr) {
+  if (pipeline.pixmapSrc == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto& pixmap = *pipeline.pixmap_src;
+  const auto& pixmap = *pipeline.pixmapSrc;
   const auto& ctx = pipeline.ctx->sampler;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float cx = pipeline.r[i];
@@ -859,7 +859,7 @@ void repeat_x1(Pipeline& pipeline) {
 }
 
 void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
-  const auto& ctx = pipeline.ctx->evenly_spaced_2_stop_gradient;
+  const auto& ctx = pipeline.ctx->evenlySpaced2StopGradient;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float t = pipeline.r[i];
     pipeline.r[i] = mad(t, ctx.factor.r, ctx.bias.r);
@@ -878,7 +878,7 @@ void gradient(Pipeline& pipeline) {
     // Loop starts at 1 because idx 0 is the color before the first stop.
     std::uint32_t idx = 0;
     for (std::size_t s = 1; s < ctx.len; ++s) {
-      if (t >= ctx.t_values[s]) {
+      if (t >= ctx.tValues[s]) {
         idx += 1;
       }
     }
@@ -1137,7 +1137,7 @@ void xy_to_2pt_conical_focal_on_circle(Pipeline& pipeline) {
 }
 
 void xy_to_2pt_conical_well_behaved(Pipeline& pipeline) {
-  const float p0 = pipeline.ctx->two_point_conical_gradient.p0;
+  const float p0 = pipeline.ctx->twoPointConicalGradient.p0;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float x = pipeline.r[i];
     const float y = pipeline.g[i];
@@ -1147,7 +1147,7 @@ void xy_to_2pt_conical_well_behaved(Pipeline& pipeline) {
 }
 
 void xy_to_2pt_conical_smaller(Pipeline& pipeline) {
-  const float p0 = pipeline.ctx->two_point_conical_gradient.p0;
+  const float p0 = pipeline.ctx->twoPointConicalGradient.p0;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float x = pipeline.r[i];
     const float y = pipeline.g[i];
@@ -1157,7 +1157,7 @@ void xy_to_2pt_conical_smaller(Pipeline& pipeline) {
 }
 
 void xy_to_2pt_conical_greater(Pipeline& pipeline) {
-  const float p0 = pipeline.ctx->two_point_conical_gradient.p0;
+  const float p0 = pipeline.ctx->twoPointConicalGradient.p0;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float x = pipeline.r[i];
     const float y = pipeline.g[i];
@@ -1167,7 +1167,7 @@ void xy_to_2pt_conical_greater(Pipeline& pipeline) {
 }
 
 void xy_to_2pt_conical_strip(Pipeline& pipeline) {
-  const float p0 = pipeline.ctx->two_point_conical_gradient.p0;
+  const float p0 = pipeline.ctx->twoPointConicalGradient.p0;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float x = pipeline.r[i];
     const float y = pipeline.g[i];
@@ -1177,7 +1177,7 @@ void xy_to_2pt_conical_strip(Pipeline& pipeline) {
 }
 
 void mask_2pt_conical_nan(Pipeline& pipeline) {
-  auto& ctx = pipeline.ctx->two_point_conical_gradient;
+  auto& ctx = pipeline.ctx->twoPointConicalGradient;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float t = pipeline.r[i];
     const bool is_nan = (t != t);
@@ -1188,7 +1188,7 @@ void mask_2pt_conical_nan(Pipeline& pipeline) {
 }
 
 void mask_2pt_conical_degenerates(Pipeline& pipeline) {
-  auto& ctx = pipeline.ctx->two_point_conical_gradient;
+  auto& ctx = pipeline.ctx->twoPointConicalGradient;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     const float t = pipeline.r[i];
     const bool is_degenerate = (t <= 0.0f) || (t != t);
@@ -1199,7 +1199,7 @@ void mask_2pt_conical_degenerates(Pipeline& pipeline) {
 }
 
 void apply_vector_mask(Pipeline& pipeline) {
-  const auto& mask = pipeline.ctx->two_point_conical_gradient.mask;
+  const auto& mask = pipeline.ctx->twoPointConicalGradient.mask;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] = float_and_mask(pipeline.r[i], mask[i]);
     pipeline.g[i] = float_and_mask(pipeline.g[i], mask[i]);
@@ -1210,7 +1210,7 @@ void apply_vector_mask(Pipeline& pipeline) {
 }
 
 void alter_2pt_conical_compensate_focal(Pipeline& pipeline) {
-  const float p1 = pipeline.ctx->two_point_conical_gradient.p1;
+  const float p1 = pipeline.ctx->twoPointConicalGradient.p1;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] += p1;
   }
@@ -1232,7 +1232,7 @@ void negate_x(Pipeline& pipeline) {
 }
 
 void apply_concentric_scale_bias(Pipeline& pipeline) {
-  const auto& ctx = pipeline.ctx->two_point_conical_gradient;
+  const auto& ctx = pipeline.ctx->twoPointConicalGradient;
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.r[i] = pipeline.r[i] * ctx.p0 + ctx.p1;
   }
@@ -1328,9 +1328,9 @@ void justReturn(Pipeline& pipeline) { (void)pipeline; }
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
-           const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, const MaskCtx& mask_ctx,
-           Context& ctx, const PixmapRef& pixmap_src, SubPixmapMut* pixmap_dst) {
-  Pipeline p(functions, tail_functions, rect, aa_mask_ctx, mask_ctx, ctx, pixmap_src, pixmap_dst);
+           const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
+           Context& ctx, const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst) {
+  Pipeline p(functions, tail_functions, rect, aaMaskCtx, maskCtx, ctx, pixmapSrc, pixmapDst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {
     std::size_t x = rect.x();

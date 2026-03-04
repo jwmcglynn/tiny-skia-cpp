@@ -23,7 +23,7 @@ bool isNotMonotonic(float a, float b, float c) {
   return ab == 0.0f || bc < 0.0f;
 }
 
-void chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
+void chopQuadAt(const std::array<Point, 3>& src, float t, std::array<Point, 5>& dst) {
   auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
   const auto p01 = Point{interp(src[0].x, src[1].x, t), interp(src[0].y, src[1].y, t)};
   const auto p12 = Point{interp(src[1].x, src[2].x, t), interp(src[1].y, src[2].y, t)};
@@ -36,7 +36,7 @@ void chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
   dst[4] = src[2];
 }
 
-std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& dst) {
+std::size_t chopQuadAtYExtrema(const std::array<Point, 3>& src, std::array<Point, 5>& dst) {
   const auto a = src[0].y;
   auto b = src[1].y;
   const auto c = src[2].y;
@@ -159,7 +159,7 @@ std::size_t chopCubicAt(std::array<Point, 4> src, std::span<const float> tValues
   return tValues.size();
 }
 
-std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
+std::size_t chopCubicAtYExtrema(const std::array<Point, 4>& src, std::array<Point, 10>& dst) {
   auto tValuesF = path_geometry::newTValues();
   auto rawCount =
       path_geometry::findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValuesF.data());

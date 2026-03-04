@@ -36,7 +36,7 @@ std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth, Tran
     return 1.0f;
   }
 
-  if (!paint.anti_alias) {
+  if (!paint.antiAlias) {
     return std::nullopt;
   }
 
@@ -80,7 +80,7 @@ void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint, Transform
       return;
     }
 
-    if (paint.anti_alias) {
+    if (paint.antiAlias) {
       scan::fillRectAa(rect, clip, *blitter);
     } else {
       scan::fillRect(rect, clip, *blitter);
@@ -130,7 +130,7 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule 
           continue;
         }
 
-        if (paintCopy.anti_alias) {
+        if (paintCopy.antiAlias) {
           scan::path_aa::fillPath(pathCopy, fillRule, clipRect, *blitter);
         } else {
           scan::fillPath(pathCopy, fillRule, clipRect, *blitter);
@@ -154,7 +154,7 @@ void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule 
         return;
       }
 
-      if (paint.anti_alias) {
+      if (paint.antiAlias) {
         scan::path_aa::fillPath(path, fillRule, clipRect, *blitter);
       } else {
         scan::fillPath(path, fillRule, clipRect, *blitter);
@@ -190,9 +190,9 @@ void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y, PixmapRef src
 
   Paint paint;
   paint.shader = Pattern(src, SpreadMode::Pad, ppaint.quality, ppaint.opacity, pattTransform);
-  paint.blend_mode = ppaint.blend_mode;
-  paint.anti_alias = false;
-  paint.force_hq_pipeline = false;
+  paint.blendMode = ppaint.blendMode;
+  paint.antiAlias = false;
+  paint.forceHqPipeline = false;
   paint.colorspace = ColorSpace::Linear;
 
   fillRect(pixmap, rect, paint, transform, mask);
@@ -248,7 +248,7 @@ void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const S
     auto paintCopy = paint;
     if (*coverage == 1.0f) {
       // No changes to paint.
-    } else if (shouldPreScaleCoverage(paintCopy.blend_mode)) {
+    } else if (shouldPreScaleCoverage(paintCopy.blendMode)) {
       auto scale = static_cast<std::int32_t>(*coverage * 256.0f);
       auto newAlpha = (255 * scale) >> 8;
       applyShaderOpacity(paintCopy.shader, static_cast<float>(newAlpha) / 255.0f);
@@ -325,7 +325,7 @@ void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
     return;
   }
 
-  if (paint.anti_alias) {
+  if (paint.antiAlias) {
     scan::hairline_aa::strokePath(path, lineCap, clip, *blitter);
   } else {
     scan::strokePath(path, lineCap, clip, *blitter);

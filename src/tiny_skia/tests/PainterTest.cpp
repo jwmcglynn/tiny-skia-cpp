@@ -35,10 +35,10 @@ using tiny_skia::Transform;
 TEST(PaintTest, DefaultPaint) {
   Paint paint;
   EXPECT_TRUE(paint.isSolidColor());
-  EXPECT_EQ(paint.blend_mode, BlendMode::SourceOver);
-  EXPECT_TRUE(paint.anti_alias);
+  EXPECT_EQ(paint.blendMode, BlendMode::SourceOver);
+  EXPECT_TRUE(paint.antiAlias);
   EXPECT_EQ(paint.colorspace, ColorSpace::Linear);
-  EXPECT_FALSE(paint.force_hq_pipeline);
+  EXPECT_FALSE(paint.forceHqPipeline);
 }
 
 TEST(PaintTest, SetColor) {
@@ -192,14 +192,14 @@ TEST(PainterHelpersTest, TreatAsHairlineZeroWidth) {
 
 TEST(PainterHelpersTest, TreatAsHairlineNotAntiAliased) {
   Paint paint;
-  paint.anti_alias = false;
+  paint.antiAlias = false;
   auto result = tiny_skia::treatAsHairline(paint, 0.5f, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
 
 TEST(PainterHelpersTest, TreatAsHairlineThinStroke) {
   Paint paint;
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   auto result = tiny_skia::treatAsHairline(paint, 0.5f, Transform::identity());
   ASSERT_TRUE(result.has_value());
   // fast_len(0.5, 0) = 0.5, fast_len(0, 0.5) = 0.5, ave = 0.5
@@ -208,7 +208,7 @@ TEST(PainterHelpersTest, TreatAsHairlineThinStroke) {
 
 TEST(PainterHelpersTest, TreatAsHairlineThickStroke) {
   Paint paint;
-  paint.anti_alias = true;
+  paint.antiAlias = true;
   auto result = tiny_skia::treatAsHairline(paint, 5.0f, Transform::identity());
   EXPECT_FALSE(result.has_value());
 }
@@ -321,7 +321,7 @@ TEST(FillRectTest, SolidColorFill) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -352,7 +352,7 @@ TEST(FillRectTest, WithTransformDelegatesToFillPath) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(0, 255, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // Translate by (3, 3) - should put the rectangle at (3,3)-(8,8).
   tiny_skia::fillRect(mut, *rect, paint, Transform::fromTranslate(3.0f, 3.0f));
@@ -381,7 +381,7 @@ TEST(FillPathTest, SimpleRectanglePath) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(0, 0, 255, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
@@ -403,7 +403,7 @@ TEST(FillPathTest, EmptyPathIsNoOp) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
@@ -423,7 +423,7 @@ TEST(FillPathTest, WithTransform) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 255, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // Scale 2x.
   tiny_skia::fillPath(mut, path, paint, FillRule::Winding, Transform::fromScale(2.0f, 2.0f));
@@ -458,7 +458,7 @@ TEST(DrawPixmapTest, DrawOntoPixmapDoesNotCrash) {
   auto mut = dst->asMut();
   PixmapPaint ppaint;
   ppaint.opacity = 1.0f;
-  ppaint.blend_mode = BlendMode::Source;
+  ppaint.blendMode = BlendMode::Source;
 
   // Should not crash.
   tiny_skia::drawPixmap(mut, 3, 3, src->asRef(), ppaint, Transform::identity());
@@ -525,7 +525,7 @@ TEST(StrokeHairlineTest, BasicStroke) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   tiny_skia::strokeHairline(path, paint, LineCap::Butt, std::nullopt, subpix);
 
@@ -548,8 +548,8 @@ TEST(FillRectTest, DestinationBlendModeIsNoOp) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.blend_mode = BlendMode::Destination;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Destination;
+  paint.antiAlias = false;
 
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -570,8 +570,8 @@ TEST(FillRectTest, ClearBlendMode) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(0, 0, 0, 0));
-  paint.blend_mode = BlendMode::Clear;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Clear;
+  paint.antiAlias = false;
 
   tiny_skia::fillRect(mut, *rect, paint, Transform::identity());
 

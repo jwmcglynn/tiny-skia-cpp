@@ -41,10 +41,10 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
 
   switch (quality) {
     case FilterQuality::Nearest: {
-      p.ctx().limit_x = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.width()),
-                                          .inv_scale = 1.0f / static_cast<float>(pixmap_.width())};
-      p.ctx().limit_y = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.height()),
-                                          .inv_scale = 1.0f / static_cast<float>(pixmap_.height())};
+      p.ctx().limitX = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.width()),
+                                          .invScale = 1.0f / static_cast<float>(pixmap_.width())};
+      p.ctx().limitY = pipeline::TileCtx{.scale = static_cast<float>(pixmap_.height()),
+                                          .invScale = 1.0f / static_cast<float>(pixmap_.height())};
 
       switch (spread_mode_) {
         case SpreadMode::Pad:
@@ -62,17 +62,17 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
     }
     case FilterQuality::Bilinear: {
       p.ctx().sampler =
-          pipeline::SamplerCtx{.spread_mode = spread_mode_,
-                               .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
-                               .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
+          pipeline::SamplerCtx{.spreadMode = spread_mode_,
+                               .invWidth = 1.0f / static_cast<float>(pixmap_.width()),
+                               .invHeight = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bilinear);
       break;
     }
     case FilterQuality::Bicubic: {
       p.ctx().sampler =
-          pipeline::SamplerCtx{.spread_mode = spread_mode_,
-                               .inv_width = 1.0f / static_cast<float>(pixmap_.width()),
-                               .inv_height = 1.0f / static_cast<float>(pixmap_.height())};
+          pipeline::SamplerCtx{.spreadMode = spread_mode_,
+                               .invWidth = 1.0f / static_cast<float>(pixmap_.width()),
+                               .invHeight = 1.0f / static_cast<float>(pixmap_.height())};
       p.push(Stage::Bicubic);
       p.push(Stage::Clamp0);
       p.push(Stage::ClampA);
@@ -81,7 +81,7 @@ bool Pattern::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p) cons
   }
 
   if (opacity_ != NormalizedF32::one()) {
-    p.ctx().current_coverage = opacity_.get();
+    p.ctx().currentCoverage = opacity_.get();
     p.push(Stage::Scale1Float);
   }
 

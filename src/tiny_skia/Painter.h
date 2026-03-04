@@ -20,16 +20,16 @@ struct Paint {
   Shader shader = Color::black;
 
   /// Paint blending mode.  Default: SourceOver.
-  BlendMode blend_mode = BlendMode::SourceOver;
+  BlendMode blendMode = BlendMode::SourceOver;
 
   /// Enables anti-aliased painting.  Default: true.
-  bool anti_alias = true;
+  bool antiAlias = true;
 
   /// Colorspace for blending (gamma correction).  Default: Linear.
   ColorSpace colorspace = ColorSpace::Linear;
 
   /// Forces the high quality/precision rendering pipeline.  Default: false.
-  bool force_hq_pipeline = false;
+  bool forceHqPipeline = false;
 
   /// Sets a paint source to a solid color.
   void setColor(const Color& color) { shader = color; }

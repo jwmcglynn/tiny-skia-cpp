@@ -17,7 +17,7 @@ enum class FilterQuality {
 // Paint settings for pixmap drawing.
 struct PixmapPaint {
   float opacity = 1.0f;
-  BlendMode blend_mode = BlendMode::SourceOver;
+  BlendMode blendMode = BlendMode::SourceOver;
   FilterQuality quality = FilterQuality::Nearest;
 };
 

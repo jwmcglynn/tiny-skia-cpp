@@ -23,7 +23,7 @@ namespace tiny_skia {
 // Constants
 // ---------------------------------------------------------------------------
 
-static constexpr int QUAD_RECURSIVE_LIMIT = 3;
+static constexpr int kQuadRecursiveLimit = 3;
 
 // quads with extreme widths recurse to point of failure
 // largest seen for normal cubics: 5, 26
@@ -1157,7 +1157,7 @@ bool PathStroker::quadStroke(const Point quad[3], QuadConstruct& quadPoints) {
   }
 
   recursionDepth_ += 1;
-  if (recursionDepth_ > RECURSIVE_LIMITS[QUAD_RECURSIVE_LIMIT]) {
+  if (recursionDepth_ > RECURSIVE_LIMITS[kQuadRecursiveLimit]) {
     return false;
   }
 

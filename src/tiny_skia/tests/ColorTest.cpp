@@ -320,12 +320,12 @@ TEST(ColorTest, RasterPipelineBuilderCompileBuildsExpectedKindAndContext) {
 
   EXPECT_EQ(pipeline.kind(), tiny_skia::pipeline::RasterPipeline::Kind::High);
   const auto& ctx = pipeline.ctx();
-  EXPECT_NEAR(ctx.uniform_color.r, uniform.red(), 0.0001f);
-  EXPECT_NEAR(ctx.uniform_color.g, uniform.green(), 0.0001f);
-  EXPECT_NEAR(ctx.uniform_color.b, uniform.blue(), 0.0001f);
-  EXPECT_NEAR(ctx.uniform_color.a, uniform.alpha(), 0.0001f);
-  const std::array rgba{ctx.uniform_color.rgba[0], ctx.uniform_color.rgba[1],
-                        ctx.uniform_color.rgba[2], ctx.uniform_color.rgba[3]};
+  EXPECT_NEAR(ctx.uniformColor.r, uniform.red(), 0.0001f);
+  EXPECT_NEAR(ctx.uniformColor.g, uniform.green(), 0.0001f);
+  EXPECT_NEAR(ctx.uniformColor.b, uniform.blue(), 0.0001f);
+  EXPECT_NEAR(ctx.uniformColor.a, uniform.alpha(), 0.0001f);
+  const std::array rgba{ctx.uniformColor.rgba[0], ctx.uniformColor.rgba[1],
+                        ctx.uniformColor.rgba[2], ctx.uniformColor.rgba[3]};
   EXPECT_THAT(rgba, ElementsAre(static_cast<std::uint16_t>(uniform.red() * 255.0f + 0.5f),
                                 static_cast<std::uint16_t>(uniform.green() * 255.0f + 0.5f),
                                 static_cast<std::uint16_t>(uniform.blue() * 255.0f + 0.5f),
@@ -487,12 +487,12 @@ TEST(ColorTest, PipelineContextDefaultsMatchExpectedMembers) {
   const auto context = tiny_skia::pipeline::Context{};
   const auto& transform = context.transform;
 
-  EXPECT_EQ(context.current_coverage, 0.0f);
-  EXPECT_EQ(context.sampler.spread_mode, tiny_skia::SpreadMode::Pad);
-  EXPECT_EQ(context.sampler.inv_width, 0.0f);
-  EXPECT_EQ(context.sampler.inv_height, 0.0f);
-  const std::array uniformColor{context.uniform_color.r, context.uniform_color.g,
-                                context.uniform_color.b, context.uniform_color.a};
+  EXPECT_EQ(context.currentCoverage, 0.0f);
+  EXPECT_EQ(context.sampler.spreadMode, tiny_skia::SpreadMode::Pad);
+  EXPECT_EQ(context.sampler.invWidth, 0.0f);
+  EXPECT_EQ(context.sampler.invHeight, 0.0f);
+  const std::array uniformColor{context.uniformColor.r, context.uniformColor.g,
+                                context.uniformColor.b, context.uniformColor.a};
   EXPECT_THAT(uniformColor, ElementsAre(0.0f, 0.0f, 0.0f, 0.0f));
   EXPECT_TRUE(transform.isFinite());
   EXPECT_TRUE(transform.isIdentity());

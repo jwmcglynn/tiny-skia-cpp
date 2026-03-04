@@ -86,7 +86,7 @@ bool Gradient::pushStages(
     const auto c0 = expandColor(cs, stops_[0].color);
     const auto c1 = expandColor(cs, stops_[1].color);
 
-    p.ctx().evenly_spaced_2_stop_gradient = pipeline::EvenlySpaced2StopGradientCtx{
+    p.ctx().evenlySpaced2StopGradient = pipeline::EvenlySpaced2StopGradientCtx{
         .factor = pipeline::GradientColor{c1.red() - c0.red(), c1.green() - c0.green(),
                                           c1.blue() - c0.blue(), c1.alpha() - c0.alpha()},
         .bias = pipeline::GradientColor{c0.red(), c0.green(), c0.blue(), c0.alpha()}};
@@ -97,7 +97,7 @@ bool Gradient::pushStages(
 
     ctx.factors.reserve(std::max(stops_.size() + 1, std::size_t{16}));
     ctx.biases.reserve(std::max(stops_.size() + 1, std::size_t{16}));
-    ctx.t_values.reserve(stops_.size() + 1);
+    ctx.tValues.reserve(stops_.size() + 1);
 
     // Remove dummy stops for the search (matching Rust logic).
     std::size_t firstStop, lastStop;
@@ -116,7 +116,7 @@ bool Gradient::pushStages(
       return pipeline::GradientColor{c.red(), c.green(), c.blue(), c.alpha()};
     }());
     ctx.pushConstColor(cL);
-    ctx.t_values.push_back(0.0f);
+    ctx.tValues.push_back(0.0f);
 
     for (std::size_t i = firstStop; i < lastStop; ++i) {
       const float tR = stops_[i + 1].position.get();
@@ -131,7 +131,7 @@ bool Gradient::pushStages(
         ctx.factors.push_back(f);
         ctx.biases.push_back(pipeline::GradientColor{cL.r - f.r * tL, cL.g - f.g * tL,
                                                      cL.b - f.b * tL, cL.a - f.a * tL});
-        ctx.t_values.push_back(bound(0.0f, tL, 1.0f));
+        ctx.tValues.push_back(bound(0.0f, tL, 1.0f));
       }
 
       tL = tR;
@@ -139,7 +139,7 @@ bool Gradient::pushStages(
     }
 
     ctx.pushConstColor(cL);
-    ctx.t_values.push_back(bound(0.0f, tL, 1.0f));
+    ctx.tValues.push_back(bound(0.0f, tL, 1.0f));
 
     ctx.len = ctx.factors.size();
 

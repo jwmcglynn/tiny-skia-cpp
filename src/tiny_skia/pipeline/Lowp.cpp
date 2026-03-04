@@ -56,25 +56,25 @@ struct Pipeline {
   std::size_t dy = 0;
   std::size_t tail = 0;
   const ScreenIntRect* rect = nullptr;
-  const AAMaskCtx* aa_mask_ctx = nullptr;
-  const MaskCtx* mask_ctx = nullptr;
+  const AAMaskCtx* aaMaskCtx = nullptr;
+  const MaskCtx* maskCtx = nullptr;
   Context* ctx = nullptr;
-  SubPixmapMut* pixmap_dst = nullptr;
+  SubPixmapMut* pixmapDst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_fun,
-           const ScreenIntRect& rect_arg, const AAMaskCtx& aa_mask_ctx_arg,
-           const MaskCtx& mask_ctx_arg, Context& ctx_arg, SubPixmapMut* pixmap_dst_arg)
-      : uniform_r(U16x16T::splat(ctx_arg.uniform_color.rgba[0])),
-        uniform_g(U16x16T::splat(ctx_arg.uniform_color.rgba[1])),
-        uniform_b(U16x16T::splat(ctx_arg.uniform_color.rgba[2])),
-        uniform_a(U16x16T::splat(ctx_arg.uniform_color.rgba[3])),
+           const ScreenIntRect& rect_arg, const AAMaskCtx& aaMaskCtxArg,
+           const MaskCtx& maskCtxArg, Context& ctx_arg, SubPixmapMut* pixmapDstArg)
+      : uniform_r(U16x16T::splat(ctx_arg.uniformColor.rgba[0])),
+        uniform_g(U16x16T::splat(ctx_arg.uniformColor.rgba[1])),
+        uniform_b(U16x16T::splat(ctx_arg.uniformColor.rgba[2])),
+        uniform_a(U16x16T::splat(ctx_arg.uniformColor.rgba[3])),
         functions(&fun),
         rect(&rect_arg),
-        aa_mask_ctx(&aa_mask_ctx_arg),
-        mask_ctx(&mask_ctx_arg),
+        aaMaskCtx(&aaMaskCtxArg),
+        maskCtx(&maskCtxArg),
         ctx(&ctx_arg),
-        pixmap_dst(pixmap_dst_arg) {
+        pixmapDst(pixmapDstArg) {
     (void)tail_fun;
   }
 
@@ -235,7 +235,7 @@ void seed_shader(Pipeline& pipeline) {
 }
 
 void scale_u8(Pipeline& pipeline) {
-  const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   U16x16T c{};
   auto& cl = c.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
@@ -249,7 +249,7 @@ void scale_u8(Pipeline& pipeline) {
 }
 
 void lerp_u8(Pipeline& pipeline) {
-  const auto data = pipeline.aa_mask_ctx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
+  const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
   U16x16T c{};
   auto& cl = c.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
@@ -264,7 +264,7 @@ void lerp_u8(Pipeline& pipeline) {
 }
 
 void scale_1_float(Pipeline& pipeline) {
-  const auto c = fromFloat(pipeline.ctx->current_coverage);
+  const auto c = fromFloat(pipeline.ctx->currentCoverage);
   pipeline.r = mulDiv255(pipeline.r, c);
   pipeline.g = mulDiv255(pipeline.g, c);
   pipeline.b = mulDiv255(pipeline.b, c);
@@ -273,7 +273,7 @@ void scale_1_float(Pipeline& pipeline) {
 }
 
 void lerp_1_float(Pipeline& pipeline) {
-  const auto c = fromFloat(pipeline.ctx->current_coverage);
+  const auto c = fromFloat(pipeline.ctx->currentCoverage);
   const auto inv_c = U16x16T::splat(255) - c;
   pipeline.r = mulAddDiv255(pipeline.dr, inv_c, pipeline.r, c);
   pipeline.g = mulAddDiv255(pipeline.dg, inv_c, pipeline.g, c);
@@ -747,59 +747,59 @@ void load_8_tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T&
 }
 
 void load_dst(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  const auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void load_dst_tail(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  const auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.nextStage();
 }
 
 void store(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   store_8888_lowp(pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void store_tail(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   store_8888_tail(pipeline.tail, pixels, pipeline.r, pipeline.g, pipeline.b, pipeline.a);
   pipeline.nextStage();
 }
 
 void load_dst_u8(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
-  load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, kStageWidth),
+  assert(pipeline.pixmapDst != nullptr);
+  const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
+  load_8_lowp(std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, kStageWidth),
               pipeline.da);
   pipeline.nextStage();
 }
 
 void load_dst_u8_tail(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
+  assert(pipeline.pixmapDst != nullptr);
+  const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   load_8_tail(pipeline.tail,
-              std::span<const std::uint8_t>(pipeline.pixmap_dst->data + offset, pipeline.tail),
+              std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, pipeline.tail),
               pipeline.da);
   pipeline.nextStage();
 }
 
 void store_u8(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
+  assert(pipeline.pixmapDst != nullptr);
+  const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint16x8x2_t a16 = vld1q_u16_x2(al.data());
     const uint8x16_t a8 = vcombine_u8(vmovn_u16(a16.val[0]), vmovn_u16(a16.val[1]));
-    vst1q_u8(pipeline.pixmap_dst->data + offset, a8);
+    vst1q_u8(pipeline.pixmapDst->data + offset, a8);
     pipeline.nextStage();
     return;
   }
@@ -813,37 +813,37 @@ void store_u8(Pipeline& pipeline) {
     const __m128i a_hi =
         _mm_and_si128(_mm_loadu_si128(reinterpret_cast<const __m128i*>(al.data() + 8)), byte_mask);
     const __m128i a8 = _mm_packus_epi16(a_lo, a_hi);
-    _mm_storeu_si128(reinterpret_cast<__m128i*>(pipeline.pixmap_dst->data + offset), a8);
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(pipeline.pixmapDst->data + offset), a8);
     pipeline.nextStage();
     return;
   }
 #endif
 
-  pipeline.pixmap_dst->data[offset + 0] = static_cast<std::uint8_t>(al[0]);
-  pipeline.pixmap_dst->data[offset + 1] = static_cast<std::uint8_t>(al[1]);
-  pipeline.pixmap_dst->data[offset + 2] = static_cast<std::uint8_t>(al[2]);
-  pipeline.pixmap_dst->data[offset + 3] = static_cast<std::uint8_t>(al[3]);
-  pipeline.pixmap_dst->data[offset + 4] = static_cast<std::uint8_t>(al[4]);
-  pipeline.pixmap_dst->data[offset + 5] = static_cast<std::uint8_t>(al[5]);
-  pipeline.pixmap_dst->data[offset + 6] = static_cast<std::uint8_t>(al[6]);
-  pipeline.pixmap_dst->data[offset + 7] = static_cast<std::uint8_t>(al[7]);
-  pipeline.pixmap_dst->data[offset + 8] = static_cast<std::uint8_t>(al[8]);
-  pipeline.pixmap_dst->data[offset + 9] = static_cast<std::uint8_t>(al[9]);
-  pipeline.pixmap_dst->data[offset + 10] = static_cast<std::uint8_t>(al[10]);
-  pipeline.pixmap_dst->data[offset + 11] = static_cast<std::uint8_t>(al[11]);
-  pipeline.pixmap_dst->data[offset + 12] = static_cast<std::uint8_t>(al[12]);
-  pipeline.pixmap_dst->data[offset + 13] = static_cast<std::uint8_t>(al[13]);
-  pipeline.pixmap_dst->data[offset + 14] = static_cast<std::uint8_t>(al[14]);
-  pipeline.pixmap_dst->data[offset + 15] = static_cast<std::uint8_t>(al[15]);
+  pipeline.pixmapDst->data[offset + 0] = static_cast<std::uint8_t>(al[0]);
+  pipeline.pixmapDst->data[offset + 1] = static_cast<std::uint8_t>(al[1]);
+  pipeline.pixmapDst->data[offset + 2] = static_cast<std::uint8_t>(al[2]);
+  pipeline.pixmapDst->data[offset + 3] = static_cast<std::uint8_t>(al[3]);
+  pipeline.pixmapDst->data[offset + 4] = static_cast<std::uint8_t>(al[4]);
+  pipeline.pixmapDst->data[offset + 5] = static_cast<std::uint8_t>(al[5]);
+  pipeline.pixmapDst->data[offset + 6] = static_cast<std::uint8_t>(al[6]);
+  pipeline.pixmapDst->data[offset + 7] = static_cast<std::uint8_t>(al[7]);
+  pipeline.pixmapDst->data[offset + 8] = static_cast<std::uint8_t>(al[8]);
+  pipeline.pixmapDst->data[offset + 9] = static_cast<std::uint8_t>(al[9]);
+  pipeline.pixmapDst->data[offset + 10] = static_cast<std::uint8_t>(al[10]);
+  pipeline.pixmapDst->data[offset + 11] = static_cast<std::uint8_t>(al[11]);
+  pipeline.pixmapDst->data[offset + 12] = static_cast<std::uint8_t>(al[12]);
+  pipeline.pixmapDst->data[offset + 13] = static_cast<std::uint8_t>(al[13]);
+  pipeline.pixmapDst->data[offset + 14] = static_cast<std::uint8_t>(al[14]);
+  pipeline.pixmapDst->data[offset + 15] = static_cast<std::uint8_t>(al[15]);
   pipeline.nextStage();
 }
 
 void store_u8_tail(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  const auto offset = pipeline.dy * pipeline.pixmap_dst->realWidth + pipeline.dx;
+  assert(pipeline.pixmapDst != nullptr);
+  const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   const auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
-    pipeline.pixmap_dst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
+    pipeline.pixmapDst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
     if (i + 1 == pipeline.tail) {
       break;
     }
@@ -852,14 +852,14 @@ void store_u8_tail(Pipeline& pipeline) {
 }
 
 void load_mask_u8(Pipeline& pipeline) {
-  if (pipeline.mask_ctx == nullptr || pipeline.mask_ctx->data == nullptr) {
+  if (pipeline.maskCtx == nullptr || pipeline.maskCtx->data == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  const auto offset = pipeline.maskCtx->byteOffset(pipeline.dx, pipeline.dy);
   auto& al = pipeline.a.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    al[i] = static_cast<std::uint16_t>(pipeline.mask_ctx->data[offset + i]);
+    al[i] = static_cast<std::uint16_t>(pipeline.maskCtx->data[offset + i]);
   }
   for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
     al[i] = 0;
@@ -871,15 +871,15 @@ void load_mask_u8(Pipeline& pipeline) {
 }
 
 void mask_u8(Pipeline& pipeline) {
-  if (pipeline.mask_ctx == nullptr || pipeline.mask_ctx->data == nullptr) {
+  if (pipeline.maskCtx == nullptr || pipeline.maskCtx->data == nullptr) {
     pipeline.nextStage();
     return;
   }
-  const auto offset = pipeline.mask_ctx->byteOffset(pipeline.dx, pipeline.dy);
+  const auto offset = pipeline.maskCtx->byteOffset(pipeline.dx, pipeline.dy);
   U16x16T c{};
   auto& cl = c.lanes();
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
-    cl[i] = static_cast<std::uint16_t>(pipeline.mask_ctx->data[offset + i]);
+    cl[i] = static_cast<std::uint16_t>(pipeline.maskCtx->data[offset + i]);
   }
   bool all_zero = true;
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
@@ -899,8 +899,8 @@ void mask_u8(Pipeline& pipeline) {
 }
 
 void source_over_rgba(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   load_8888_lowp(pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
   pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
@@ -911,8 +911,8 @@ void source_over_rgba(Pipeline& pipeline) {
 }
 
 void source_over_rgba_tail(Pipeline& pipeline) {
-  assert(pipeline.pixmap_dst != nullptr);
-  auto pixels = pixelsAtXY(*pipeline.pixmap_dst, pipeline.dx, pipeline.dy);
+  assert(pipeline.pixmapDst != nullptr);
+  auto pixels = pixelsAtXY(*pipeline.pixmapDst, pipeline.dx, pipeline.dy);
   load_8888_tail(pipeline.tail, pixels, pipeline.dr, pipeline.dg, pipeline.db, pipeline.da);
   pipeline.r = sourceOverChannel(pipeline.r, pipeline.dr, pipeline.a);
   pipeline.g = sourceOverChannel(pipeline.g, pipeline.dg, pipeline.a);
@@ -1015,7 +1015,7 @@ void repeat_x1(Pipeline& pipeline) {
 }
 
 void evenly_spaced_2_stop_gradient(Pipeline& pipeline) {
-  const auto& ctx = pipeline.ctx->evenly_spaced_2_stop_gradient;
+  const auto& ctx = pipeline.ctx->evenlySpaced2StopGradient;
   auto t = join(pipeline.r, pipeline.g);
   auto rf = t * F32x16T::splat(ctx.factor.r) + F32x16T::splat(ctx.bias.r);
   auto gf = t * F32x16T::splat(ctx.factor.g) + F32x16T::splat(ctx.bias.g);
@@ -1041,7 +1041,7 @@ void gradient(Pipeline& pipeline) {
     for (std::size_t i = 0; i < 8; ++i) {
       std::uint32_t idx = 0;
       for (std::size_t s = 1; s < ctx.len; ++s) {
-        if (tv[i] >= ctx.t_values[s]) {
+        if (tv[i] >= ctx.tValues[s]) {
           idx += 1;
         }
       }
@@ -1080,9 +1080,9 @@ void justReturn(Pipeline& pipeline) { (void)pipeline; }
 
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tail_functions,
-           const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, const MaskCtx& mask_ctx,
-           Context& ctx, SubPixmapMut* pixmap_dst) {
-  Pipeline p(functions, tail_functions, rect, aa_mask_ctx, mask_ctx, ctx, pixmap_dst);
+           const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
+           Context& ctx, SubPixmapMut* pixmapDst) {
+  Pipeline p(functions, tail_functions, rect, aaMaskCtx, maskCtx, ctx, pixmapDst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {
     std::size_t x = rect.x();

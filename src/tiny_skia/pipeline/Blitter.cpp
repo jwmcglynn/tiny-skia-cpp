@@ -169,18 +169,18 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(const tiny_sk
   }
 
   // Fast-reject: Destination keeps the pixmap unchanged.
-  if (paint.blend_mode == BlendMode::Destination) {
+  if (paint.blendMode == BlendMode::Destination) {
     return std::nullopt;
   }
 
   // Fast-reject: DestinationIn with opaque solid color is a no-op.
-  if (paint.blend_mode == BlendMode::DestinationIn && isShaderOpaque(paint.shader) &&
+  if (paint.blendMode == BlendMode::DestinationIn && isShaderOpaque(paint.shader) &&
       paint.isSolidColor()) {
     return std::nullopt;
   }
 
   // Strength-reduce SourceOver to Source when opaque and no mask.
-  auto blendMode = paint.blend_mode;
+  auto blendMode = paint.blendMode;
   if (isShaderOpaque(paint.shader) && blendMode == BlendMode::SourceOver && !mask.has_value()) {
     blendMode = BlendMode::Source;
   }
@@ -193,7 +193,7 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(const tiny_sk
   }
 
   // Clear is just a transparent color memset (when not anti-aliased and no mask).
-  if (blendMode == BlendMode::Clear && !paint.anti_alias && !mask.has_value()) {
+  if (blendMode == BlendMode::Clear && !paint.antiAlias && !mask.has_value()) {
     blendMode = BlendMode::Source;
     memsetColor = PremultipliedColorU8::fromRgbaUnchecked(0, 0, 0, 0);
   }
@@ -201,7 +201,7 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(const tiny_sk
   // Build blit_anti_h pipeline.
   auto blitAntiHRp = [&]() -> std::optional<RasterPipeline> {
     RasterPipelineBuilder p;
-    p.setForceHqPipeline(paint.force_hq_pipeline);
+    p.setForceHqPipeline(paint.forceHqPipeline);
     if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
       return std::nullopt;
     }
@@ -240,7 +240,7 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(const tiny_sk
   // Build blit_rect pipeline.
   auto blitRectRp = [&]() -> std::optional<RasterPipeline> {
     RasterPipelineBuilder p;
-    p.setForceHqPipeline(paint.force_hq_pipeline);
+    p.setForceHqPipeline(paint.forceHqPipeline);
     if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
       return std::nullopt;
     }
@@ -276,7 +276,7 @@ std::optional<RasterPipelineBlitter> RasterPipelineBlitter::create(const tiny_sk
   // Build blit_mask pipeline.
   auto blitMaskRp = [&]() -> std::optional<RasterPipeline> {
     RasterPipelineBuilder p;
-    p.setForceHqPipeline(paint.force_hq_pipeline);
+    p.setForceHqPipeline(paint.forceHqPipeline);
     if (!pushShaderStages(paint.shader, paint.colorspace, p)) {
       return std::nullopt;
     }
@@ -397,7 +397,7 @@ void RasterPipelineBlitter::blitAntiH(std::uint32_t x, std::uint32_t y,
     if (coverage == 255u) {
       blitH(x, y, run);
     } else if (coverage != 0u) {
-      blit_anti_h_rp_.ctx().current_coverage = static_cast<float>(coverage) * (1.0f / 255.0f);
+      blit_anti_h_rp_.ctx().currentCoverage = static_cast<float>(coverage) * (1.0f / 255.0f);
       const auto rect = ScreenIntRect::fromXYWHSafe(x, y, run, 1u);
       blit_anti_h_rp_.run(rect, AAMaskCtx{}, mask_ctx, pixmap_src_ref, pixmap_);
     }

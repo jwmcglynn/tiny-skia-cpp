@@ -53,8 +53,8 @@ bool SweepGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& p
 
   const float scale = 1.0f / (t1_ - t0_);
   const float bias = -scale * t0_;
-  p.ctx().two_point_conical_gradient.p0 = scale;
-  p.ctx().two_point_conical_gradient.p1 = bias;
+  p.ctx().twoPointConicalGradient.p0 = scale;
+  p.ctx().twoPointConicalGradient.p1 = bias;
 
   return base_.pushStages(
       p, cs,

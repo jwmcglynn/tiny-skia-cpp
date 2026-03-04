@@ -115,8 +115,8 @@ namespace {
 
 RasterPipeline::RasterPipeline(Kind kind, Context context,
                                const std::array<Stage, kMaxStages>& stages,
-                               std::size_t stage_count) {
-  stage_count_ = std::min(stage_count, kMaxStages);
+                               std::size_t stageCount) {
+  stage_count_ = std::min(stageCount, kMaxStages);
   kind_ = kind;
   ctx_ = context;
   for (std::size_t i = 0; i < kMaxStages; ++i) {
@@ -131,44 +131,44 @@ RasterPipeline::RasterPipeline(Kind kind, Context context,
 namespace {
 
 [[nodiscard]] std::array<highp::StageFn, kMaxStages> highpFunctions(
-    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stageCount) {
   std::array<highp::StageFn, kMaxStages> functions{};
   std::fill(functions.begin(), functions.end(), &highp::justReturn);
 
-  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+  for (std::size_t i = 0; i < stageCount && i < kMaxStages; ++i) {
     functions[i] = highp::STAGES[static_cast<std::size_t>(stages[i])];
   }
   return functions;
 }
 
 [[nodiscard]] std::array<highp::StageFn, kMaxStages> highpTailFunctions(
-    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stageCount) {
   std::array<highp::StageFn, kMaxStages> tail_functions{};
   std::fill(tail_functions.begin(), tail_functions.end(), &highp::justReturn);
 
-  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+  for (std::size_t i = 0; i < stageCount && i < kMaxStages; ++i) {
     tail_functions[i] = highp::STAGES[static_cast<std::size_t>(stages[i])];
   }
   return tail_functions;
 }
 
 [[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpFunctions(
-    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stageCount) {
   std::array<lowp::StageFn, kMaxStages> functions{};
   std::fill(functions.begin(), functions.end(), &lowp::justReturn);
 
-  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+  for (std::size_t i = 0; i < stageCount && i < kMaxStages; ++i) {
     functions[i] = lowp::STAGES[static_cast<std::size_t>(stages[i])];
   }
   return functions;
 }
 
 [[nodiscard]] std::array<lowp::StageFn, kMaxStages> lowpTailFunctions(
-    const std::array<Stage, kMaxStages>& stages, std::size_t stage_count) {
+    const std::array<Stage, kMaxStages>& stages, std::size_t stageCount) {
   std::array<lowp::StageFn, kMaxStages> tail_functions{};
   std::fill(tail_functions.begin(), tail_functions.end(), &lowp::justReturn);
 
-  for (std::size_t i = 0; i < stage_count && i < kMaxStages; ++i) {
+  for (std::size_t i = 0; i < stageCount && i < kMaxStages; ++i) {
     tail_functions[i] = lowp::STAGES_TAIL[static_cast<std::size_t>(stages[i])];
   }
   return tail_functions;
@@ -195,7 +195,7 @@ void RasterPipelineBuilder::pushUniformColor(const PremultipliedColor& color) {
       static_cast<std::uint16_t>(a * 255.0f + 0.5f),
   };
 
-  ctx_.uniform_color = UniformColorCtx{
+  ctx_.uniformColor = UniformColorCtx{
       .r = r,
       .g = g,
       .b = b,
@@ -217,21 +217,21 @@ RasterPipeline RasterPipelineBuilder::compile() {
   return RasterPipeline(kind, ctx_, stages_, stage_count_);
 }
 
-void RasterPipeline::run(const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, MaskCtx mask_ctx,
-                         const PixmapRef& pixmap_src, SubPixmapMut* pixmap_dst) {
+void RasterPipeline::run(const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, MaskCtx maskCtx,
+                         const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst) {
   if (stage_count_ == 0) {
     return;
   }
 
   switch (kind_) {
     case Kind::High: {
-      highp::start(highp_functions_, highp_tail_functions_, rect, aa_mask_ctx, mask_ctx, ctx_,
-                   pixmap_src, pixmap_dst);
+      highp::start(highp_functions_, highp_tail_functions_, rect, aaMaskCtx, maskCtx, ctx_,
+                   pixmapSrc, pixmapDst);
       break;
     }
     case Kind::Low: {
-      lowp::start(lowp_functions_, lowp_tail_functions_, rect, aa_mask_ctx, mask_ctx, ctx_,
-                  pixmap_dst);
+      lowp::start(lowp_functions_, lowp_tail_functions_, rect, aaMaskCtx, maskCtx, ctx_,
+                  pixmapDst);
       break;
     }
   }

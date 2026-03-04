@@ -13,14 +13,14 @@ std::optional<Mask> Mask::fromSize(std::uint32_t width, std::uint32_t height) {
     return std::nullopt;
   }
 
-  const auto data_len = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
-  return Mask(std::vector<std::uint8_t>(data_len, 0), size.value());
+  const auto dataLen = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+  return Mask(std::vector<std::uint8_t>(dataLen, 0), size.value());
 }
 
 std::optional<Mask> Mask::fromVec(std::vector<std::uint8_t> data, IntSize size) {
-  const auto data_len =
+  const auto dataLen =
       static_cast<std::size_t>(size.width()) * static_cast<std::size_t>(size.height());
-  if (data.size() != data_len) {
+  if (data.size() != dataLen) {
     return std::nullopt;
   }
 
@@ -28,9 +28,9 @@ std::optional<Mask> Mask::fromVec(std::vector<std::uint8_t> data, IntSize size) 
 }
 
 Mask Mask::fromPixmap(const PixmapRef& pixmap, MaskType maskType) {
-  const auto data_len =
+  const auto dataLen =
       static_cast<std::size_t>(pixmap.width()) * static_cast<std::size_t>(pixmap.height());
-  auto data = std::vector<std::uint8_t>(data_len, 0);
+  auto data = std::vector<std::uint8_t>(dataLen, 0);
 
   const auto pixels = pixmap.pixels();
   switch (maskType) {

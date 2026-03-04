@@ -45,11 +45,11 @@ minor code-quality improvements — all behavior-preserving.
   - [x] Add `[[nodiscard]]` to `Pixmap::take()`, `Pixmap::takeDemultiplied()`, and `Mask::take()`.
   - [x] Fix malformed comment `/ blend_fn:` → verified false positive; comment is correct.
   - [ ] Build and test gate. (Bazel registry unreachable in current environment.)
-- [ ] Milestone 2: Medium-Priority Fixes
-  - [ ] Change array parameters to `const&` in `PathGeometry.h` (8+ functions).
-  - [ ] Rename `QUAD_RECURSIVE_LIMIT` → `kQuadRecursiveLimit` in `Stroker.cpp`.
-  - [ ] Rename `data_len` → `dataLen` in `Mask.cpp`.
-  - [ ] Normalize pipeline member/param naming (camelCase throughout).
+- [x] Milestone 2: Medium-Priority Fixes
+  - [x] Change array parameters to `const&` in `PathGeometry.h` (10 functions + wrappers).
+  - [x] Rename `QUAD_RECURSIVE_LIMIT` → `kQuadRecursiveLimit` in `Stroker.cpp`.
+  - [x] Rename `data_len` → `dataLen` in `Mask.cpp`.
+  - [x] Normalize pipeline/Paint member naming to camelCase throughout.
   - [ ] Build and test gate.
 - [ ] Milestone 3: Low-Priority Fixes
   - [ ] Add `[[nodiscard]]` to internal scan-module helpers.

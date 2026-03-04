@@ -50,7 +50,7 @@ TEST(PipelineGatherTest, DrawPixmapCopiesPixels) {
   auto dst = make4x4(0, 0, 255, 255);
 
   PixmapPaint ppaint;
-  ppaint.blend_mode = BlendMode::Source;
+  ppaint.blendMode = BlendMode::Source;
   ppaint.quality = FilterQuality::Nearest;
   ppaint.opacity = 1.0f;
 
@@ -71,7 +71,7 @@ TEST(PipelineGatherTest, DrawPixmapWithOffset) {
   dst.fill(Color::fromRgba8(0, 0, 0, 255));
 
   PixmapPaint ppaint;
-  ppaint.blend_mode = BlendMode::Source;
+  ppaint.blendMode = BlendMode::Source;
   ppaint.quality = FilterQuality::Nearest;
   ppaint.opacity = 1.0f;
 
@@ -100,7 +100,7 @@ TEST(PipelineTransformTest, ScaledFillRect) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   // Scale 2x, so a 1x1 rect becomes 2x2.
   const auto ts = Transform::fromScale(2.0f, 2.0f);
@@ -135,7 +135,7 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
@@ -180,7 +180,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
@@ -221,7 +221,7 @@ TEST(PipelineGradientTest, RadialGradient) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
@@ -258,7 +258,7 @@ TEST(PipelineGradientTest, SweepGradient) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
@@ -290,7 +290,7 @@ TEST(PipelineTileModeTest, PadGradient) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
@@ -317,7 +317,7 @@ TEST(PipelineTileModeTest, RepeatGradient) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
@@ -345,7 +345,7 @@ TEST(PipelineTileModeTest, ReflectGradient) {
 
   Paint paint;
   setShaderFromVariant(paint, std::move(*grad));
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
@@ -368,8 +368,8 @@ TEST(PipelineBlendTest, DarkenBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 50, 100, 255));
-  paint.blend_mode = BlendMode::Darken;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Darken;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -390,8 +390,8 @@ TEST(PipelineBlendTest, LightenBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 50, 100, 255));
-  paint.blend_mode = BlendMode::Lighten;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Lighten;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -410,8 +410,8 @@ TEST(PipelineBlendTest, DifferenceBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(100, 200, 50, 255));
-  paint.blend_mode = BlendMode::Difference;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Difference;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -432,8 +432,8 @@ TEST(PipelineBlendTest, ExclusionBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.blend_mode = BlendMode::Exclusion;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Exclusion;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -454,8 +454,8 @@ TEST(PipelineBlendTest, ScreenBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
-  paint.blend_mode = BlendMode::Screen;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Screen;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -473,8 +473,8 @@ TEST(PipelineBlendTest, OverlayBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
-  paint.blend_mode = BlendMode::Overlay;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Overlay;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -492,8 +492,8 @@ TEST(PipelineBlendTest, HardLightBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
-  paint.blend_mode = BlendMode::HardLight;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::HardLight;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -510,8 +510,8 @@ TEST(PipelineBlendTest, SoftLightBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
-  paint.blend_mode = BlendMode::SoftLight;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::SoftLight;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -528,8 +528,8 @@ TEST(PipelineBlendTest, ColorDodgeBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
-  paint.blend_mode = BlendMode::ColorDodge;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::ColorDodge;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -547,8 +547,8 @@ TEST(PipelineBlendTest, ColorBurnBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
-  paint.blend_mode = BlendMode::ColorBurn;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::ColorBurn;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -570,8 +570,8 @@ TEST(PipelineBlendTest, HueBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.blend_mode = BlendMode::Hue;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Hue;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -590,8 +590,8 @@ TEST(PipelineBlendTest, SaturationBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.blend_mode = BlendMode::Saturation;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Saturation;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -608,8 +608,8 @@ TEST(PipelineBlendTest, ColorBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
-  paint.blend_mode = BlendMode::Color;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Color;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -627,8 +627,8 @@ TEST(PipelineBlendTest, LuminosityBlend) {
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
-  paint.blend_mode = BlendMode::Luminosity;
-  paint.anti_alias = false;
+  paint.blendMode = BlendMode::Luminosity;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -650,7 +650,7 @@ TEST(PipelineGammaTest, SrgbColorspace) {
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
   paint.colorspace = ColorSpace::SimpleSRGB;
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -672,7 +672,7 @@ TEST(PipelineGammaTest, Gamma2Colorspace) {
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
   paint.colorspace = ColorSpace::Gamma2;
-  paint.anti_alias = false;
+  paint.antiAlias = false;
 
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
@@ -692,7 +692,7 @@ TEST(PipelineFilterTest, BilinearDrawPixmap) {
   auto dst = make4x4(0, 0, 255, 255);
 
   PixmapPaint ppaint;
-  ppaint.blend_mode = BlendMode::Source;
+  ppaint.blendMode = BlendMode::Source;
   ppaint.quality = FilterQuality::Bilinear;
   ppaint.opacity = 1.0f;
 
@@ -710,7 +710,7 @@ TEST(PipelineFilterTest, BicubicDrawPixmap) {
   auto dst = make4x4(0, 0, 255, 255);
 
   PixmapPaint ppaint;
-  ppaint.blend_mode = BlendMode::Source;
+  ppaint.blendMode = BlendMode::Source;
   ppaint.quality = FilterQuality::Bicubic;
   ppaint.opacity = 1.0f;
 

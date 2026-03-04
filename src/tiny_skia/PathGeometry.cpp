@@ -107,7 +107,7 @@ void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) 
   dst[6] = src[3];
 }
 
-bool chopMonoCubicAt(std::array<Point, 4> src, float intercept, bool isVertical,
+bool chopMonoCubicAt(const std::array<Point, 4>& src, float intercept, bool isVertical,
                      std::array<Point, 7>& dst) {
   const auto cubic = tiny_skia::path64::cubic64::Cubic64::create({
       Point64::fromPoint(src[0]),
@@ -128,7 +128,7 @@ bool chopMonoCubicAt(std::array<Point, 4> src, float intercept, bool isVertical,
   return false;
 }
 
-bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, float& t) {
+bool chopMonoQuadAt(const std::array<Point, 3>& src, float intercept, bool isVertical, float& t) {
   // Use f32 find_unit_quad_roots (not double quad64::rootsValidT).
   const auto c0 = isVertical ? src[0].x : src[0].y;
   const auto c1 = isVertical ? src[1].x : src[1].y;
@@ -148,7 +148,7 @@ bool chopMonoQuadAt(std::array<Point, 3> src, float intercept, bool isVertical, 
 
 }  // namespace
 
-std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
+std::size_t chopQuadAt(const std::array<Point, 3>& src, float t, std::array<Point, 5>& dst) {
   // Pure f32 interpolation via interp(v0, v1, t) = v0 + (v1 - v0) * t
   auto interp = [](float v0, float v1, float tt) -> float { return v0 + (v1 - v0) * tt; };
   const auto p01 = Point{interp(src[0].x, src[1].x, t), interp(src[0].y, src[1].y, t)};
@@ -163,7 +163,7 @@ std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& 
   return 1;
 }
 
-std::size_t chopQuadAtXExtrema(std::array<Point, 3> src, std::array<Point, 5>& dst) {
+std::size_t chopQuadAtXExtrema(const std::array<Point, 3>& src, std::array<Point, 5>& dst) {
   auto a = src[0].x;
   auto b = src[1].x;
   const auto c = src[2].x;
@@ -186,7 +186,7 @@ std::size_t chopQuadAtXExtrema(std::array<Point, 3> src, std::array<Point, 5>& d
   return 0;
 }
 
-std::size_t chopQuadAtYExtrema(std::array<Point, 3> src, std::array<Point, 5>& dst) {
+std::size_t chopQuadAtYExtrema(const std::array<Point, 3>& src, std::array<Point, 5>& dst) {
   auto a = src[0].y;
   auto b = src[1].y;
   const auto c = src[2].y;
@@ -268,7 +268,7 @@ std::size_t chopCubicAt(std::span<const Point> src, std::span<const NormalizedF3
   return tValues.size();
 }
 
-std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
+std::size_t chopCubicAtXExtrema(const std::array<Point, 4>& src, std::array<Point, 10>& dst) {
   auto tValues = newTValues();
   const auto rawCount = findCubicExtremaT(src[0].x, src[1].x, src[2].x, src[3].x, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
@@ -285,7 +285,7 @@ std::size_t chopCubicAtXExtrema(std::array<Point, 4> src, std::array<Point, 10>&
   return split;
 }
 
-std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>& dst) {
+std::size_t chopCubicAtYExtrema(const std::array<Point, 4>& src, std::array<Point, 10>& dst) {
   auto tValues = newTValues();
   const auto rawCount = findCubicExtremaT(src[0].y, src[1].y, src[2].y, src[3].y, tValues.data());
   const auto split = chopCubicAt(std::span<const Point, 4>(src),
@@ -302,7 +302,7 @@ std::size_t chopCubicAtYExtrema(std::array<Point, 4> src, std::array<Point, 10>&
   return split;
 }
 
-std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
+std::size_t chopCubicAtMaxCurvature(const std::array<Point, 4>& src,
                                     std::array<NormalizedF32Exclusive, 3>& tValues,
                                     std::span<Point> dst) {
   if (dst.size() < 4) {
@@ -334,19 +334,19 @@ std::size_t chopCubicAtMaxCurvature(std::array<Point, 4> src,
                          std::span<const NormalizedF32Exclusive>(tValues.data(), count), dst);
 }
 
-bool chopMonoQuadAtX(std::array<Point, 3> src, float x, float& t) {
+bool chopMonoQuadAtX(const std::array<Point, 3>& src, float x, float& t) {
   return chopMonoQuadAt(src, x, true, t);
 }
 
-bool chopMonoQuadAtY(std::array<Point, 3> src, float y, float& t) {
+bool chopMonoQuadAtY(const std::array<Point, 3>& src, float y, float& t) {
   return chopMonoQuadAt(src, y, false, t);
 }
 
-bool chopMonoCubicAtX(std::array<Point, 4> src, float x, std::array<Point, 7>& dst) {
+bool chopMonoCubicAtX(const std::array<Point, 4>& src, float x, std::array<Point, 7>& dst) {
   return chopMonoCubicAt(src, x, true, dst);
 }
 
-bool chopMonoCubicAtY(std::array<Point, 4> src, float y, std::array<Point, 7>& dst) {
+bool chopMonoCubicAtY(const std::array<Point, 4>& src, float y, std::array<Point, 7>& dst) {
   return chopMonoCubicAt(src, y, false, dst);
 }
 

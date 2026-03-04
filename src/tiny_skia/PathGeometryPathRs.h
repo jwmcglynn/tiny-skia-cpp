@@ -9,7 +9,7 @@ namespace tiny_skia::path_geometry::path_rs {
 using Conic = ::tiny_skia::path_geometry::Conic;
 using AutoConicToQuads = ::tiny_skia::path_geometry::AutoConicToQuads;
 
-inline std::size_t chopQuadAt(std::array<Point, 3> src, float t, std::array<Point, 5>& dst) {
+inline std::size_t chopQuadAt(const std::array<Point, 3>& src, float t, std::array<Point, 5>& dst) {
   return ::tiny_skia::path_geometry::chopQuadAt(src, t, dst);
 }
 

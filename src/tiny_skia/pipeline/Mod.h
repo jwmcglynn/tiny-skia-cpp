@@ -156,9 +156,9 @@ struct MaskCtx {
 };
 
 struct SamplerCtx {
-  SpreadMode spread_mode = SpreadMode::Pad;
-  float inv_width = 0.0f;
-  float inv_height = 0.0f;
+  SpreadMode spreadMode = SpreadMode::Pad;
+  float invWidth = 0.0f;
+  float invHeight = 0.0f;
 };
 
 struct UniformColorCtx {
@@ -197,19 +197,19 @@ struct TwoPointConicalGradientCtx {
 
 struct TileCtx {
   float scale = 0.0f;
-  float inv_scale = 0.0f;  // cache of 1/scale
+  float invScale = 0.0f;  // cache of 1/scale
 };
 
 struct Context {
-  float current_coverage = 0.0f;
+  float currentCoverage = 0.0f;
   SamplerCtx sampler;
-  UniformColorCtx uniform_color;
-  EvenlySpaced2StopGradientCtx evenly_spaced_2_stop_gradient;
+  UniformColorCtx uniformColor;
+  EvenlySpaced2StopGradientCtx evenlySpaced2StopGradient;
   struct GradientCtx {
     std::size_t len = 0;
     std::vector<GradientColor> factors;
     std::vector<GradientColor> biases;
-    std::vector<float> t_values;
+    std::vector<float> tValues;
 
     void pushConstColor(GradientColor color) {
       factors.push_back(GradientColor{0.0f, 0.0f, 0.0f, 0.0f});
@@ -217,9 +217,9 @@ struct Context {
     }
   } gradient;
 
-  TwoPointConicalGradientCtx two_point_conical_gradient;
-  TileCtx limit_x;
-  TileCtx limit_y;
+  TwoPointConicalGradientCtx twoPointConicalGradient;
+  TileCtx limitX;
+  TileCtx limitY;
   Transform transform;
 };
 
@@ -232,15 +232,15 @@ class RasterPipeline {
 
   RasterPipeline() = default;
   RasterPipeline(Kind kind, Context context, const std::array<Stage, kMaxStages>& stages,
-                 std::size_t stage_count);
+                 std::size_t stageCount);
 
   [[nodiscard]] Kind kind() const { return kind_; }
 
   Context& ctx() { return ctx_; }
   [[nodiscard]] const Context& ctx() const { return ctx_; }
 
-  void run(const ScreenIntRect& rect, const AAMaskCtx& aa_mask_ctx, MaskCtx mask_ctx,
-           const PixmapRef& pixmap_src, SubPixmapMut* pixmap_dst);
+  void run(const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, MaskCtx maskCtx,
+           const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst);
 
   [[nodiscard]] std::size_t stageCount() const { return stage_count_; }
 
