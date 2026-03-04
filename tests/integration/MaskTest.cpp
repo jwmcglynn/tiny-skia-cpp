@@ -21,7 +21,7 @@ TEST(MaskTest, Rect) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -44,7 +44,7 @@ TEST(MaskTest, RectAa) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, true, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -72,7 +72,7 @@ TEST(MaskTest, RectTs) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(*transformedPath, FillRule::Winding, false, Transform::identity());
+    mask->fillPath(*transformedPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -97,7 +97,7 @@ TEST(MaskTest, CircleBottomRightAa) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+    mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -121,7 +121,7 @@ TEST(MaskTest, Stroke) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);
@@ -174,7 +174,7 @@ TEST(MaskTest, SkipDest) {
     auto clipPath = Path::fromRect(*clipRect);
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, true, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, true, Transform::identity());
 
     // Draw pixmap2 onto pixmap with mask
     PixmapPaint ppaint;
@@ -197,7 +197,7 @@ TEST(MaskTest, IntersectAa) {
 
     auto mask = Mask::fromSize(200, 200);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(*circle1, FillRule::Winding, true, Transform::identity());
+    mask->fillPath(*circle1, FillRule::Winding, true, Transform::identity());
     mask->intersectPath(*circle2, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
@@ -221,7 +221,7 @@ TEST(MaskTest, IgnoreMemset) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);
@@ -244,7 +244,7 @@ TEST(MaskTest, IgnoreSource) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(clipPath, FillRule::Winding, false, Transform::identity());
+    mask->fillPath(clipPath, FillRule::Winding, false, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 255);  // Must be opaque.
@@ -274,7 +274,7 @@ TEST(MaskTest, ApplyMask) {
 
     auto mask = Mask::fromSize(100, 100);
     ASSERT_TRUE(mask.has_value());
-    mask->Painter::fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
+    mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
     Paint paint;
     paint.setColorRgba8(50, 127, 150, 200);

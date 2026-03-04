@@ -5,6 +5,7 @@
 #include "tiny_skia/Mask.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
+#include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/pipeline/Mod.h"
 #include "tiny_skia/shaders/Mod.h"
@@ -20,6 +21,7 @@ using tiny_skia::LineCap;
 using tiny_skia::Mask;
 using tiny_skia::Paint;
 using tiny_skia::Path;
+using tiny_skia::PathBuilder;
 using tiny_skia::PathVerb;
 using tiny_skia::Pixmap;
 using tiny_skia::MutablePixmapView;
@@ -28,6 +30,7 @@ using tiny_skia::PixmapView;
 using tiny_skia::Point;
 using tiny_skia::Rect;
 using tiny_skia::ScreenIntRect;
+using tiny_skia::Stroke;
 using tiny_skia::Transform;
 
 // ---- Paint tests ----
@@ -515,19 +518,23 @@ TEST(StrokeHairlineTest, BasicStroke) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->mutableView();
-  auto subpix = mut.subpixmap();
-
   // A simple horizontal line path.
-  std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line};
-  std::vector<Point> points = {Point::fromXY(1.0f, 5.0f), Point::fromXY(9.0f, 5.0f)};
-  Path path(std::move(verbs), std::move(points));
+  PathBuilder builder;
+  builder.moveTo(1.0f, 5.0f);
+  builder.lineTo(9.0f, 5.0f);
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
   paint.antiAlias = false;
 
-  tiny_skia::Painter::strokeHairline(path, paint, LineCap::Butt, std::nullopt, subpix);
+  Stroke stroke;
+  stroke.width = 1.0f;
+  stroke.lineCap = LineCap::Butt;
+
+  auto mut = pixmap->mutableView();
+  tiny_skia::Painter::strokePath(mut, *path, paint, stroke);
 
   // The hairline should have drawn on row 5.
   auto pixel = pixmap->pixel(5, 5);

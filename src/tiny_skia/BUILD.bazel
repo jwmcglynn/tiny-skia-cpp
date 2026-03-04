@@ -63,6 +63,7 @@ tiny_skia_cc_library(
         "LineClipper.h",
         "Mask.h",
         "Math.h",
+        "Paint.h",
         "Painter.h",
         "Path.h",
         "PathBuilder.h",

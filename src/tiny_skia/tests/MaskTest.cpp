@@ -186,7 +186,7 @@ TEST(MaskTest, FillPathDrawsOntoMask) {
   auto path = builder.finish();
   ASSERT_TRUE(path.has_value());
 
-  mask->Painter::fillPath(*path, tiny_skia::FillRule::Winding, false, tiny_skia::Transform::identity());
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, false, tiny_skia::Transform::identity());
 
   // Interior pixels should be non-zero (filled).
   // Check a pixel well inside the rectangle.
@@ -212,7 +212,7 @@ TEST(MaskTest, FillPathWithTransformOffsetsPath) {
 
   // Translate path to center of mask.
   auto ts = tiny_skia::Transform::fromTranslate(3.0f, 3.0f);
-  mask->Painter::fillPath(*path, tiny_skia::FillRule::Winding, false, ts);
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, false, ts);
 
   // (0,0) should be zero (path was translated away).
   EXPECT_EQ(mask->data()[0], 0u);

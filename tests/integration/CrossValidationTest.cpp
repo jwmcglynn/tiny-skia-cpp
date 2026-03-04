@@ -54,7 +54,7 @@ TEST(CrossValidation, FillIntRect) {
   // Rust side
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::Painter::fillRect(*rust, 10.0f, 15.0f, 90.0f, 85.0f, 50, 127, 150, 200,
+  rr::fillRect(*rust, 10.0f, 15.0f, 90.0f, 85.0f, 50, 127, 150, 200,
                /*antiAlias=*/false, BlendMode::SourceOver,
                Transform::identity());
 
@@ -76,7 +76,7 @@ TEST(CrossValidation, FillFloatRectAa) {
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::Painter::fillRect(*rust, 10.3f, 15.4f, 90.8f, 86.0f, 50, 127, 150, 200,
+  rr::fillRect(*rust, 10.3f, 15.4f, 90.8f, 86.0f, 50, 127, 150, 200,
                /*antiAlias=*/true, BlendMode::SourceOver,
                Transform::identity());
 
@@ -119,7 +119,7 @@ TEST(CrossValidation, FillTriangleWinding) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -155,7 +155,7 @@ TEST(CrossValidation, FillTriangleEvenOdd) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::EvenOdd,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::EvenOdd,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -189,7 +189,7 @@ TEST(CrossValidation, FillQuadCurve) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -223,7 +223,7 @@ TEST(CrossValidation, FillCubicCurve) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -250,7 +250,7 @@ TEST(CrossValidation, FillRectScaled) {
 
   auto rust = rr::Pixmap::create(100, 100);
   ASSERT_TRUE(rust.has_value());
-  rr::Painter::fillRect(*rust, 5.0f, 5.0f, 45.0f, 45.0f, 50, 127, 150, 200,
+  rr::fillRect(*rust, 5.0f, 5.0f, 45.0f, 45.0f, 50, 127, 150, 200,
                /*antiAlias=*/true, BlendMode::SourceOver, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -289,7 +289,7 @@ TEST(CrossValidation, FillPathTranslated) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 200, 100, 50, 255, FillRule::Winding, ts);
+  rr::fillPath(*rust, *rustPath, 200, 100, 50, 255, FillRule::Winding, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
 }
@@ -322,7 +322,7 @@ TEST(CrossValidation, FillCircle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -352,7 +352,7 @@ TEST(CrossValidation, FillRectBlendXor) {
   ASSERT_TRUE(rust.has_value());
   rust->fill(0, 0, 0, 255);
 
-  rr::Painter::fillRect(*rust, 10.0f, 10.0f, 90.0f, 90.0f, 50, 127, 150, 200,
+  rr::fillRect(*rust, 10.0f, 10.0f, 90.0f, 90.0f, 50, 127, 150, 200,
                /*antiAlias=*/false, BlendMode::Xor, Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -388,7 +388,7 @@ TEST(CrossValidation, StrokeCircle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   // Allow up to 3 pixels of difference due to FMA contraction differences
@@ -429,7 +429,7 @@ TEST(CrossValidation, StrokeRoundCaps) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -468,7 +468,7 @@ TEST(CrossValidation, StrokeRoundJoinTriangle) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -508,7 +508,7 @@ TEST(CrossValidation, StrokeDashedLine) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
+  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke,
                  Transform::identity());
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
@@ -554,7 +554,7 @@ TEST(CrossValidation, StrokeScaledPath) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke, ts);
+  rr::strokePath(*rust, *rustPath, 50, 127, 150, 200, stroke, ts);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);
 }
@@ -606,7 +606,7 @@ TEST(CrossValidation, FillPathNoAntiAlias) {
   auto rustPath = rpb.finish();
   ASSERT_TRUE(rustPath.has_value());
 
-  rr::Painter::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
+  rr::fillPath(*rust, *rustPath, 50, 127, 150, 200, FillRule::Winding,
                Transform::identity(), /*antiAlias=*/false);
 
   EXPECT_CROSS_MATCH(*cpp, *rust);

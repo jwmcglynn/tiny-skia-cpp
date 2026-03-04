@@ -382,8 +382,8 @@ void BM_StrokePath_Cpp(benchmark::State& state) {
 
   for (auto _ : state) {
     pixmap->fill(clearColor);
-    auto mut = pixmap->asMut();
-    tiny_skia::strokePath(mut, *path, paint, stroke, Transform::identity());
+    auto mut = pixmap->mutableView();
+    tiny_skia::Painter::strokePath(mut, *path, paint, stroke, Transform::identity());
     benchmark::DoNotOptimize(pixmap->data().data());
     benchmark::ClobberMemory();
   }
@@ -407,7 +407,7 @@ void BM_FillPath_LinearGradient_Cpp(benchmark::State& state) {
 
   const auto d = static_cast<float>(dim);
   auto gradient = LinearGradient::create(
-      Point::fromXy(0.1f * d, 0.1f * d), Point::fromXy(0.9f * d, 0.9f * d),
+      Point::fromXY(0.1f * d, 0.1f * d), Point::fromXY(0.9f * d, 0.9f * d),
       {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
        GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
       SpreadMode::Pad, Transform::identity());
@@ -423,8 +423,8 @@ void BM_FillPath_LinearGradient_Cpp(benchmark::State& state) {
 
   for (auto _ : state) {
     pixmap->fill(clearColor);
-    auto mut = pixmap->asMut();
-    tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    auto mut = pixmap->mutableView();
+    tiny_skia::Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     benchmark::DoNotOptimize(pixmap->data().data());
     benchmark::ClobberMemory();
   }
@@ -453,8 +453,8 @@ void BM_FillPath_Opaque_Cpp(benchmark::State& state) {
 
   for (auto _ : state) {
     pixmap->fill(clearColor);
-    auto mut = pixmap->asMut();
-    tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    auto mut = pixmap->mutableView();
+    tiny_skia::Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     benchmark::DoNotOptimize(pixmap->data().data());
     benchmark::ClobberMemory();
   }
