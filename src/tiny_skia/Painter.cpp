@@ -86,7 +86,7 @@ void Painter::fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint&
       scan::fillRect(rect, clip, *blitter);
     }
   } else {
-    const auto path = pathFromRect(rect);
+    const auto path = Path::fromRect(rect);
     Painter::fillPath(pixmap, path, paint, FillRule::Winding, transform, mask);
   }
 }

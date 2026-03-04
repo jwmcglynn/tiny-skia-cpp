@@ -22,7 +22,7 @@ TEST(PixmapTest, CloneRect1) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = true;
 
-    auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
+    auto circle = Path::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
     auto mut = pixmap->mutableView();
@@ -47,7 +47,7 @@ TEST(PixmapTest, CloneRect2) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = true;
 
-    auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
+    auto circle = Path::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
     auto mut = pixmap->mutableView();
@@ -72,7 +72,7 @@ TEST(PixmapTest, CloneRectOutOfBound) {
     paint.setColorRgba8(50, 127, 150, 200);
     paint.antiAlias = true;
 
-    auto circle = PathBuilder::fromCircle(100.0f, 100.0f, 80.0f);
+    auto circle = Path::fromCircle(100.0f, 100.0f, 80.0f);
     ASSERT_TRUE(circle.has_value());
 
     auto mut = pixmap->mutableView();

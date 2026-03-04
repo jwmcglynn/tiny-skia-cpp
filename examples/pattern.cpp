@@ -45,7 +45,7 @@ int main() {
   paint.shader = Pattern(triangle.view(), SpreadMode::Repeat, FilterQuality::Bicubic, 1.0f,
                          Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f));
 
-  auto path = PathBuilder::fromCircle(200.0f, 200.0f, 180.0f);
+  auto path = Path::fromCircle(200.0f, 200.0f, 180.0f);
 
   auto pixmap = Pixmap::fromSize(400, 400);
   auto mut = pixmap->mutableView();

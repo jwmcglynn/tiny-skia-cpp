@@ -51,7 +51,7 @@ TEST(PatternTest, PadNearest) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -76,7 +76,7 @@ TEST(PatternTest, RepeatNearest) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -101,7 +101,7 @@ TEST(PatternTest, ReflectNearest) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -129,7 +129,7 @@ TEST(PatternTest, PadBicubic) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -155,7 +155,7 @@ TEST(PatternTest, RepeatBicubic) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -181,7 +181,7 @@ TEST(PatternTest, ReflectBicubic) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -206,7 +206,7 @@ TEST(PatternTest, FilterNearestNoTs) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -234,7 +234,7 @@ TEST(PatternTest, FilterNearest) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -260,7 +260,7 @@ TEST(PatternTest, FilterBilinear) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
@@ -286,7 +286,7 @@ TEST(PatternTest, FilterBicubic) {
 
     auto pathRect = Rect::fromLtrb(10.0f, 10.0f, 190.0f, 190.0f);
     ASSERT_TRUE(pathRect.has_value());
-    auto path = pathFromRect(*pathRect);
+    auto path = Path::fromRect(*pathRect);
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());

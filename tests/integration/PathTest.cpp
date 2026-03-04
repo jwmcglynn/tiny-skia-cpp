@@ -374,7 +374,7 @@ TEST(PathTest, InvalidTransform) {
 // circle
 // ---------------------------------------------------------------------------
 TEST(PathTest, circle) {
-    auto path = PathBuilder::fromCircle(250.0f, 250.0f, 300.0f);
+    auto path = Path::fromCircle(250.0f, 250.0f, 300.0f);
     EXPECT_TRUE(path.has_value());  // Must not panic.
 }
 
@@ -382,7 +382,7 @@ TEST(PathTest, circle) {
 // large_circle
 // ---------------------------------------------------------------------------
 TEST(PathTest, LargeCircle) {
-    auto path = PathBuilder::fromCircle(250.0f, 250.0f, 2000.0f);
+    auto path = Path::fromCircle(250.0f, 250.0f, 2000.0f);
     EXPECT_TRUE(path.has_value());  // Must not panic.
 }
 
