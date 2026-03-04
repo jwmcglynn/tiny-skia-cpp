@@ -4,7 +4,7 @@
 
 namespace tiny_skia {
 
-Pattern::Pattern(PixmapRef pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,
+Pattern::Pattern(PixmapView pixmap, SpreadMode spreadMode, FilterQuality quality, float opacity,
                  Transform transform)
     : pixmap_(pixmap),
       opacity_(NormalizedF32::newClamped(opacity)),

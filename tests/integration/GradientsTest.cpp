@@ -38,7 +38,7 @@ TEST(GradientsTest, TwoStopsLinearPadLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-pad-lq.png");
@@ -65,7 +65,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-repeat-lq.png");
@@ -92,7 +92,7 @@ TEST(GradientsTest, TwoStopsLinearReflectLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-reflect-lq.png");
@@ -120,7 +120,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/three-stops-evenly-spaced-lq.png");
@@ -147,7 +147,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-unevenly-spaced-lq.png");
@@ -179,7 +179,7 @@ TEST(GradientsTest, TwoStopsLinearPadHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-pad-hq.png");
@@ -207,7 +207,7 @@ TEST(GradientsTest, TwoStopsLinearRepeatHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-repeat-hq.png");
@@ -235,7 +235,7 @@ TEST(GradientsTest, TwoStopsLinearReflectHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-linear-reflect-hq.png");
@@ -264,7 +264,7 @@ TEST(GradientsTest, ThreeStopsEvenlySpacedHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/three-stops-evenly-spaced-hq.png");
@@ -292,7 +292,7 @@ TEST(GradientsTest, TwoStopsUnevenlySpacedHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/two-stops-unevenly-spaced-hq.png");
@@ -327,7 +327,7 @@ TEST(GradientsTest, WellBehavedRadial) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/well-behaved-radial.png");
@@ -356,7 +356,7 @@ TEST(GradientsTest, FocalOnCircleRadial) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/focal-on-circle-radial.png");
@@ -385,7 +385,7 @@ TEST(GradientsTest, ConicalGreaterRadial) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/conical-greater-radial.png");
@@ -414,7 +414,7 @@ TEST(GradientsTest, SimpleRadialLq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/simple-radial-lq.png");
@@ -444,7 +444,7 @@ TEST(GradientsTest, SimpleRadialHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/simple-radial-hq.png");
@@ -474,7 +474,7 @@ TEST(GradientsTest, SimpleRadialWithTsHq) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/simple-radial-with-ts-hq.png");
@@ -507,7 +507,7 @@ TEST(GradientsTest, globalOpacity) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/global-opacity.png");
@@ -537,7 +537,7 @@ TEST(GradientsTest, StripGradient) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/strip-gradient.png");
@@ -567,7 +567,7 @@ TEST(GradientsTest, ConcentricRadial) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/concentric-radial.png");
@@ -598,7 +598,7 @@ TEST(GradientsTest, ConicalSmallerRadial) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/conical-smaller-radial.png");
@@ -630,7 +630,7 @@ TEST(GradientsTest, SweepGradient) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/sweep-gradient.png");
@@ -658,7 +658,7 @@ TEST(GradientsTest, SweepGradientFull) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "gradients/sweep-gradient-full.png");

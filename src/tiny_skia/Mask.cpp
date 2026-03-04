@@ -27,7 +27,7 @@ std::optional<Mask> Mask::fromVec(std::vector<std::uint8_t> data, IntSize size) 
   return Mask(std::move(data), size);
 }
 
-Mask Mask::fromPixmap(const PixmapRef& pixmap, MaskType maskType) {
+Mask Mask::fromPixmap(const PixmapView& pixmap, MaskType maskType) {
   const auto dataLen =
       static_cast<std::size_t>(pixmap.width()) * static_cast<std::size_t>(pixmap.height());
   auto data = std::vector<std::uint8_t>(dataLen, 0);
@@ -62,15 +62,15 @@ Mask Mask::fromPixmap(const PixmapRef& pixmap, MaskType maskType) {
   return Mask(std::move(data), pixmap.size());
 }
 
-SubMaskRef Mask::asSubmask() const {
-  return SubMaskRef{
+SubMaskView Mask::submask() const {
+  return SubMaskView{
       .size = size_,
       .realWidth = width(),
       .data = data_.data(),
   };
 }
 
-std::optional<SubMaskRef> Mask::submask(IntRect rect) const {
+std::optional<SubMaskView> Mask::submask(IntRect rect) const {
   const auto self = IntRect::fromXYWH(0, 0, width(), height());
   if (!self.has_value()) {
     return std::nullopt;
@@ -89,22 +89,22 @@ std::optional<SubMaskRef> Mask::submask(IntRect rect) const {
     return std::nullopt;
   }
 
-  return SubMaskRef{
+  return SubMaskView{
       .size = subSize.value(),
       .realWidth = width(),
       .data = data_.data() + offset,
   };
 }
 
-SubMaskMut Mask::asSubpixmap() {
-  return SubMaskMut{
+MutableSubMaskView Mask::subpixmap() {
+  return MutableSubMaskView{
       .size = size_,
       .realWidth = width(),
       .data = data_.data(),
   };
 }
 
-std::optional<SubMaskMut> Mask::subpixmap(IntRect rect) {
+std::optional<MutableSubMaskView> Mask::subpixmap(IntRect rect) {
   const auto self = IntRect::fromXYWH(0, 0, width(), height());
   if (!self.has_value()) {
     return std::nullopt;
@@ -123,7 +123,7 @@ std::optional<SubMaskMut> Mask::subpixmap(IntRect rect) {
     return std::nullopt;
   }
 
-  return SubMaskMut{
+  return MutableSubMaskView{
       .size = subSize.value(),
       .realWidth = width(),
       .data = data_.data() + offset,

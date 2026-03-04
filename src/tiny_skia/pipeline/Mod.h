@@ -11,9 +11,9 @@ namespace tiny_skia {
 
 class Color;
 class PremultipliedColor;
-class PixmapRef;
+class PixmapView;
 class ScreenIntRect;
-struct SubPixmapMut;
+struct MutableSubPixmapView;
 
 enum class SpreadMode {
   Pad,
@@ -240,7 +240,7 @@ class RasterPipeline {
   [[nodiscard]] const Context& ctx() const { return ctx_; }
 
   void run(const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, MaskCtx maskCtx,
-           const PixmapRef& pixmapSrc, SubPixmapMut* pixmapDst);
+           const PixmapView& pixmapSrc, MutableSubPixmapView* pixmapDst);
 
   [[nodiscard]] std::size_t stageCount() const { return stageCount_; }
 

@@ -38,7 +38,7 @@ std::optional<std::size_t> pixelIndex(std::uint32_t width, std::uint32_t height,
 
 }  // namespace
 
-std::optional<PixmapRef> PixmapRef::fromBytes(std::span<const std::uint8_t> data,
+std::optional<PixmapView> PixmapView::fromBytes(std::span<const std::uint8_t> data,
                                               std::uint32_t width, std::uint32_t height) {
   const auto size = IntSize::fromWh(width, height);
   if (!size.has_value()) {
@@ -50,16 +50,16 @@ std::optional<PixmapRef> PixmapRef::fromBytes(std::span<const std::uint8_t> data
     return std::nullopt;
   }
 
-  return PixmapRef(data.data(), data.size(), size.value());
+  return PixmapView(data.data(), data.size(), size.value());
 }
 
-std::span<const PremultipliedColorU8> PixmapRef::pixels() const {
+std::span<const PremultipliedColorU8> PixmapView::pixels() const {
   static_assert(sizeof(PremultipliedColorU8) == kBytesPerPixel);
   const auto* ptr = reinterpret_cast<const PremultipliedColorU8*>(data_);
   return std::span<const PremultipliedColorU8>(ptr, len_ / kBytesPerPixel);
 }
 
-std::optional<PremultipliedColorU8> PixmapRef::pixel(std::uint32_t x, std::uint32_t y) const {
+std::optional<PremultipliedColorU8> PixmapView::pixel(std::uint32_t x, std::uint32_t y) const {
   const auto index = pixelIndex(width(), height(), x, y);
   if (!index.has_value()) {
     return std::nullopt;
@@ -67,7 +67,7 @@ std::optional<PremultipliedColorU8> PixmapRef::pixel(std::uint32_t x, std::uint3
   return pixels()[index.value()];
 }
 
-std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
+std::optional<Pixmap> PixmapView::cloneRect(const IntRect& rect) const {
   const auto full = IntRect::fromXYWH(0, 0, width(), height());
   if (!full.has_value()) {
     return std::nullopt;
@@ -99,7 +99,7 @@ std::optional<Pixmap> PixmapRef::cloneRect(const IntRect& rect) const {
   return out;
 }
 
-std::optional<PixmapMut> PixmapMut::fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
+std::optional<MutablePixmapView> MutablePixmapView::fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
                                               std::uint32_t height) {
   const auto size = IntSize::fromWh(width, height);
   if (!size.has_value()) {
@@ -111,24 +111,24 @@ std::optional<PixmapMut> PixmapMut::fromBytes(std::span<std::uint8_t> data, std:
     return std::nullopt;
   }
 
-  return PixmapMut(data.data(), data.size(), size.value());
+  return MutablePixmapView(data.data(), data.size(), size.value());
 }
 
-std::span<PremultipliedColorU8> PixmapMut::pixelsMut() const {
+std::span<PremultipliedColorU8> MutablePixmapView::pixelsMut() const {
   static_assert(sizeof(PremultipliedColorU8) == kBytesPerPixel);
   auto* ptr = reinterpret_cast<PremultipliedColorU8*>(data_);
   return std::span<PremultipliedColorU8>(ptr, len_ / kBytesPerPixel);
 }
 
-SubPixmapMut PixmapMut::asSubpixmap() const {
-  return SubPixmapMut{
+MutableSubPixmapView MutablePixmapView::subpixmap() const {
+  return MutableSubPixmapView{
       .size = size_,
       .realWidth = static_cast<std::size_t>(size_.width()),
       .data = data_,
   };
 }
 
-std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
+std::optional<MutableSubPixmapView> MutablePixmapView::subpixmap(const IntRect& rect) const {
   const auto full = IntRect::fromXYWH(0, 0, width(), height());
   if (!full.has_value()) {
     return std::nullopt;
@@ -148,14 +148,14 @@ std::optional<SubPixmapMut> PixmapMut::subpixmap(const IntRect& rect) const {
     return std::nullopt;
   }
 
-  return SubPixmapMut{
+  return MutableSubPixmapView{
       .size = subSize.value(),
       .realWidth = srcWidth,
       .data = data_ + offset,
   };
 }
 
-std::span<std::uint8_t> SubPixmapMut::dataMut() const {
+std::span<std::uint8_t> MutableSubPixmapView::dataMut() const {
   const auto len = static_cast<std::size_t>(realWidth) * static_cast<std::size_t>(size.height()) *
                    kBytesPerPixel;
   return std::span<std::uint8_t>(data, len);
@@ -183,16 +183,16 @@ std::optional<Pixmap> Pixmap::fromVec(std::vector<std::uint8_t> data, IntSize si
   return Pixmap(std::move(data), size);
 }
 
-std::span<const PremultipliedColorU8> Pixmap::pixels() const { return asRef().pixels(); }
+std::span<const PremultipliedColorU8> Pixmap::pixels() const { return view().pixels(); }
 
-std::span<PremultipliedColorU8> Pixmap::pixelsMut() { return asMut().pixelsMut(); }
+std::span<PremultipliedColorU8> Pixmap::pixelsMut() { return mutableView().pixelsMut(); }
 
 std::optional<PremultipliedColorU8> Pixmap::pixel(std::uint32_t x, std::uint32_t y) const {
-  return asRef().pixel(x, y);
+  return view().pixel(x, y);
 }
 
 std::optional<Pixmap> Pixmap::cloneRect(const IntRect& rect) const {
-  return asRef().cloneRect(rect);
+  return view().cloneRect(rect);
 }
 
 void Pixmap::fill(const Color& color) {

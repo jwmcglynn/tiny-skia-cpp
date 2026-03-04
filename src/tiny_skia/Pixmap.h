@@ -16,13 +16,13 @@ namespace tiny_skia {
 inline constexpr std::size_t kBytesPerPixel = 4;
 
 class Pixmap;
-struct SubPixmapMut;
+struct MutableSubPixmapView;
 
-class PixmapRef {
+class PixmapView {
  public:
-  PixmapRef() = default;
+  PixmapView() = default;
 
-  static std::optional<PixmapRef> fromBytes(std::span<const std::uint8_t> data, std::uint32_t width,
+  static std::optional<PixmapView> fromBytes(std::span<const std::uint8_t> data, std::uint32_t width,
                                             std::uint32_t height);
 
   [[nodiscard]] std::uint32_t width() const { return size_.width(); }
@@ -43,7 +43,7 @@ class PixmapRef {
  private:
   friend class Pixmap;
 
-  explicit PixmapRef(const std::uint8_t* data, std::size_t len, IntSize size)
+  explicit PixmapView(const std::uint8_t* data, std::size_t len, IntSize size)
       : data_(data), len_(len), size_(size) {}
 
   const std::uint8_t* data_ = nullptr;
@@ -51,13 +51,13 @@ class PixmapRef {
   IntSize size_;
 };
 
-class PixmapMut {
+class MutablePixmapView {
  public:
-  PixmapMut() = default;
-  explicit PixmapMut(std::uint8_t* data, std::size_t len, IntSize size)
+  MutablePixmapView() = default;
+  explicit MutablePixmapView(std::uint8_t* data, std::size_t len, IntSize size)
       : data_(data), len_(len), size_(size) {}
 
-  static std::optional<PixmapMut> fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
+  static std::optional<MutablePixmapView> fromBytes(std::span<std::uint8_t> data, std::uint32_t width,
                                             std::uint32_t height);
 
   [[nodiscard]] std::uint32_t width() const { return size_.width(); }
@@ -71,8 +71,8 @@ class PixmapMut {
   }
 
   [[nodiscard]] std::span<PremultipliedColorU8> pixelsMut() const;
-  [[nodiscard]] SubPixmapMut asSubpixmap() const;
-  [[nodiscard]] std::optional<SubPixmapMut> subpixmap(const IntRect& rect) const;
+  [[nodiscard]] MutableSubPixmapView subpixmap() const;
+  [[nodiscard]] std::optional<MutableSubPixmapView> subpixmap(const IntRect& rect) const;
 
  private:
   std::uint8_t* data_ = nullptr;
@@ -80,7 +80,7 @@ class PixmapMut {
   IntSize size_;
 };
 
-struct SubPixmapMut {
+struct MutableSubPixmapView {
   IntSize size{};
   std::size_t realWidth = 0;
   std::uint8_t* data = nullptr;
@@ -99,9 +99,9 @@ class Pixmap {
   static std::optional<Pixmap> fromSize(std::uint32_t width, std::uint32_t height);
   static std::optional<Pixmap> fromVec(std::vector<std::uint8_t> data, IntSize size);
 
-  [[nodiscard]] PixmapRef asRef() const { return PixmapRef(data_.data(), data_.size(), size_); }
+  [[nodiscard]] PixmapView view() const { return PixmapView(data_.data(), data_.size(), size_); }
 
-  [[nodiscard]] PixmapMut asMut() { return PixmapMut(data_.data(), data_.size(), size_); }
+  [[nodiscard]] MutablePixmapView mutableView() { return MutablePixmapView(data_.data(), data_.size(), size_); }
 
   [[nodiscard]] std::uint32_t width() const { return size_.width(); }
 

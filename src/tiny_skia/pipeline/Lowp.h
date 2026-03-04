@@ -18,7 +18,7 @@ void justReturn(Pipeline&);
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFunctions,
            const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
-           Context& ctx, SubPixmapMut* pixmapDst);
+           Context& ctx, MutableSubPixmapView* pixmapDst);
 
 bool fnPtrEq(StageFn a, StageFn b);
 const void* fnPtr(StageFn fn);

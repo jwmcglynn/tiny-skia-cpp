@@ -39,21 +39,21 @@ TEST(PipelineBlitterTest, CreateRejectsNullPixmap) {
 TEST(PipelineBlitterTest, CreateRejectsMaskSizeMismatch) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 2);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto mask = tiny_skia::Mask::fromSize(1, 2);
   ASSERT_TRUE(mask.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   EXPECT_THAT(tiny_skia::pipeline::RasterPipelineBlitter::create(
-                  color, &sub, tiny_skia::BlendMode::SourceOver, mask->asSubmask()),
+                  color, &sub, tiny_skia::BlendMode::SourceOver, mask->submask()),
               Eq(std::nullopt));
 }
 
 TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{0u, 128u},
                                        tiny_skia::IntSize::fromWh(2, 1).value());
@@ -61,7 +61,7 @@ TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(
-      color, &sub, tiny_skia::BlendMode::SourceOver, mask->asSubmask());
+      color, &sub, tiny_skia::BlendMode::SourceOver, mask->submask());
   ASSERT_TRUE(blitter.has_value());
   EXPECT_FALSE(blitter->isMaskOnly());
 
@@ -75,7 +75,7 @@ TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
 TEST(PipelineBlitterTest, CreateBlitMaskWritesColorWithMaskCoverage) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{64u, 255u},
                                        tiny_skia::IntSize::fromWh(2, 1).value());
@@ -94,7 +94,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskWritesColorWithMaskCoverage) {
 TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto external = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{255u, 128u},
                                            tiny_skia::IntSize::fromWh(2, 1).value());
@@ -105,7 +105,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(
-      color, &sub, tiny_skia::BlendMode::SourceOver, external->asSubmask());
+      color, &sub, tiny_skia::BlendMode::SourceOver, external->submask());
   ASSERT_TRUE(blitter.has_value());
 
   blitter->blitMask(*incoming, tiny_skia::ScreenIntRect::fromXYWHSafe(0, 0, 2u, 1u));
@@ -117,7 +117,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
 TEST(PipelineBlitterTest, CreateBlitMaskPartialCoverageComposesAcrossPasses) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto incoming = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{255u},
                                            tiny_skia::IntSize::fromWh(1, 1).value());
@@ -136,7 +136,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskPartialCoverageComposesAcrossPasses) {
 TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub);
@@ -154,7 +154,7 @@ TEST(PipelineBlitterTest, CreateBlitVPartialCoverageSetsColorAndComposesAlpha) {
 TEST(PipelineBlitterTest, CreateBlitVOpaqueCoverageComposesAcrossPasses) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub);
@@ -169,7 +169,7 @@ TEST(PipelineBlitterTest, CreateBlitVOpaqueCoverageComposesAcrossPasses) {
 TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub);
@@ -186,7 +186,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2PartialCoverageSetsColorAndAlpha) {
 TEST(PipelineBlitterTest, CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub);
@@ -202,7 +202,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiH2OpaqueCoverageComposesAcrossPasses) {
 TEST(PipelineBlitterTest, CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 2);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::create(color, &sub);
@@ -217,7 +217,7 @@ TEST(PipelineBlitterTest, CreateBlitAntiV2OpaqueCoverageComposesAcrossPasses) {
 TEST(PipelineBlitterTest, CreateMaskAndBlitRectWritesOpaqueAlphaInRegion) {
   auto pixmap = tiny_skia::Pixmap::fromSize(4, 3);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -236,7 +236,7 @@ TEST(PipelineBlitterTest, CreateMaskAndBlitRectWritesOpaqueAlphaInRegion) {
 TEST(PipelineBlitterTest, BlitAntiHRespectsRunsAndCoverageKinds) {
   auto pixmap = tiny_skia::Pixmap::fromSize(5, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -258,7 +258,7 @@ TEST(PipelineBlitterTest, BlitAntiHRespectsRunsAndCoverageKinds) {
 TEST(PipelineBlitterTest, BlitVHandlesTransparentPartialAndOpaqueCoverage) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 3);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -275,7 +275,7 @@ TEST(PipelineBlitterTest, BlitVHandlesTransparentPartialAndOpaqueCoverage) {
 TEST(PipelineBlitterTest, BlitAntiH2WritesPerPixelCoverage) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -289,7 +289,7 @@ TEST(PipelineBlitterTest, BlitAntiH2WritesPerPixelCoverage) {
 TEST(PipelineBlitterTest, PartialCoverageComposesWithExistingDestinationAlpha) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -303,7 +303,7 @@ TEST(PipelineBlitterTest, PartialCoverageComposesWithExistingDestinationAlpha) {
 TEST(PipelineBlitterTest, BlitRectClipsToPixmapBounds) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 2);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -318,7 +318,7 @@ TEST(PipelineBlitterTest, BlitRectClipsToPixmapBounds) {
 TEST(PipelineBlitterTest, BlitAntiHStopsAtRunSentinel) {
   auto pixmap = tiny_skia::Pixmap::fromSize(4, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -341,7 +341,7 @@ TEST(PipelineBlitterTest, BlitAntiHStopsAtRunSentinel) {
 TEST(PipelineBlitterTest, BlitMaskClipsWhenClipExceedsMaskDimensions) {
   auto pixmap = tiny_skia::Pixmap::fromSize(3, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -362,7 +362,7 @@ TEST(PipelineBlitterTest, BlitMaskClipsWhenClipExceedsMaskDimensions) {
 TEST(PipelineBlitterTest, BlitMaskPartialCoverageComposesAcrossPasses) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 1);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -382,7 +382,7 @@ TEST(PipelineBlitterTest, BlitMaskPartialCoverageComposesAcrossPasses) {
 TEST(PipelineBlitterTest, BlitMaskLerpsDestinationAlphaWithCoverageMap) {
   auto pixmap = tiny_skia::Pixmap::fromSize(2, 2);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());
@@ -403,7 +403,7 @@ TEST(PipelineBlitterTest, BlitMaskLerpsDestinationAlphaWithCoverageMap) {
 TEST(PipelineBlitterTest, BlitAntiV2WritesSeparatePixelCoverages) {
   auto pixmap = tiny_skia::Pixmap::fromSize(1, 2);
   ASSERT_TRUE(pixmap.has_value());
-  auto sub = pixmap->asMut().asSubpixmap();
+  auto sub = pixmap->mutableView().subpixmap();
 
   auto blitter = tiny_skia::pipeline::RasterPipelineBlitter::createMask(&sub);
   ASSERT_TRUE(blitter.has_value());

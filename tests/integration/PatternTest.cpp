@@ -31,7 +31,7 @@ Pixmap createTriangle() {
 
     auto pixmap = Pixmap::fromSize(20, 20);
     EXPECT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
     return std::move(*pixmap);
 }
@@ -42,7 +42,7 @@ TEST(PatternTest, PadNearest) {
     Paint paint;
     paint.antiAlias = false;
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Pad,
         FilterQuality::Nearest,
         1.0f,
@@ -55,7 +55,7 @@ TEST(PatternTest, PadNearest) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/pad-nearest.png");
@@ -67,7 +67,7 @@ TEST(PatternTest, RepeatNearest) {
     Paint paint;
     paint.antiAlias = false;
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Nearest,
         1.0f,
@@ -80,7 +80,7 @@ TEST(PatternTest, RepeatNearest) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/repeat-nearest.png");
@@ -92,7 +92,7 @@ TEST(PatternTest, ReflectNearest) {
     Paint paint;
     paint.antiAlias = false;
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Reflect,
         FilterQuality::Nearest,
         1.0f,
@@ -105,7 +105,7 @@ TEST(PatternTest, ReflectNearest) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/reflect-nearest.png");
@@ -120,7 +120,7 @@ TEST(PatternTest, PadBicubic) {
     //   = (sx=1.1, kx=0.3, ky=0.0, sy=1.4, tx=0.0, ty=0.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Pad,
         FilterQuality::Bicubic,
         1.0f,
@@ -133,7 +133,7 @@ TEST(PatternTest, PadBicubic) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/pad-bicubic.png");
@@ -146,7 +146,7 @@ TEST(PatternTest, RepeatBicubic) {
     paint.antiAlias = false;
     // Rust: Transform::fromRow(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Bicubic,
         1.0f,
@@ -159,7 +159,7 @@ TEST(PatternTest, RepeatBicubic) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/repeat-bicubic.png");
@@ -172,7 +172,7 @@ TEST(PatternTest, ReflectBicubic) {
     paint.antiAlias = false;
     // Rust: Transform::fromRow(1.1, 0.3, 0.0, 1.4, 0.0, 0.0)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Reflect,
         FilterQuality::Bicubic,
         1.0f,
@@ -185,7 +185,7 @@ TEST(PatternTest, ReflectBicubic) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/reflect-bicubic.png");
@@ -197,7 +197,7 @@ TEST(PatternTest, FilterNearestNoTs) {
     Paint paint;
     paint.antiAlias = false;
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Nearest,
         1.0f,
@@ -210,7 +210,7 @@ TEST(PatternTest, FilterNearestNoTs) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-nearest-no-ts.png");
@@ -225,7 +225,7 @@ TEST(PatternTest, FilterNearest) {
     //   = (sx=1.5, kx=0.0, ky=-0.4, sy=-0.8, tx=5.0, ty=1.0)
     // C++: fromRow(sx, ky, kx, sy, tx, ty)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Nearest,
         1.0f,
@@ -238,7 +238,7 @@ TEST(PatternTest, FilterNearest) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-nearest.png");
@@ -251,7 +251,7 @@ TEST(PatternTest, FilterBilinear) {
     paint.antiAlias = false;
     // Rust: Transform::fromRow(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Bilinear,
         1.0f,
@@ -264,7 +264,7 @@ TEST(PatternTest, FilterBilinear) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-bilinear.png");
@@ -277,7 +277,7 @@ TEST(PatternTest, FilterBicubic) {
     paint.antiAlias = false;
     // Rust: Transform::fromRow(1.5, 0.0, -0.4, -0.8, 5.0, 1.0)
     paint.shader = Pattern(
-        triangle.asRef(),
+        triangle.view(),
         SpreadMode::Repeat,
         FilterQuality::Bicubic,
         1.0f,
@@ -290,7 +290,7 @@ TEST(PatternTest, FilterBicubic) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     fillPath(mut, path, paint, FillRule::Winding, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "pattern/filter-bicubic.png");

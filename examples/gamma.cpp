@@ -45,7 +45,7 @@ int main() {
     auto xf = Transform::identity();
     xf = xf.preTranslate(0.0f, 240.0f * static_cast<float>(i));
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, xf);
 
     // Move down 0.5 pixel so lines start in the middle of the pixel.

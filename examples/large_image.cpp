@@ -58,7 +58,7 @@ int main() {
   paint.setColorRgba8(90, 175, 100, 150);
   paint.antiAlias = true;
   auto largeRect = Rect::fromXywh(500.0f, 500.0f, 19000.0f, 19000.0f);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillRect(mut, *largeRect, paint, Transform::identity());
 
   // Fill path1 with mask.

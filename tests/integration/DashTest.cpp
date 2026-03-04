@@ -31,7 +31,7 @@ TEST(DashTest, Line) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/line.png");
@@ -54,7 +54,7 @@ TEST(DashTest, Quad) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/quad.png");
@@ -77,7 +77,7 @@ TEST(DashTest, Cubic) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/cubic.png");
@@ -100,7 +100,7 @@ TEST(DashTest, Hairline) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/hairline.png");
@@ -129,7 +129,7 @@ TEST(DashTest, Complex) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/complex.png");
@@ -159,7 +159,7 @@ TEST(DashTest, MultiSubpaths) {
 
     auto pixmap = Pixmap::fromSize(200, 200);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     // Allow up to 1 pixel of difference due to FMA contraction differences
@@ -189,7 +189,7 @@ TEST(DashTest, Closed) {
 
     auto pixmap = Pixmap::fromSize(100, 100);
     ASSERT_TRUE(pixmap.has_value());
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "dash/closed.png");

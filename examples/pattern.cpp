@@ -28,7 +28,7 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(20, 20);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
   return std::move(*pixmap);
 }
@@ -42,13 +42,13 @@ int main() {
 
   Paint paint;
   paint.antiAlias = true;
-  paint.shader = Pattern(triangle.asRef(), SpreadMode::Repeat, FilterQuality::Bicubic, 1.0f,
+  paint.shader = Pattern(triangle.view(), SpreadMode::Repeat, FilterQuality::Bicubic, 1.0f,
                          Transform::fromRow(1.5f, -0.4f, 0.0f, -0.8f, 5.0f, 1.0f));
 
   auto path = PathBuilder::fromCircle(200.0f, 200.0f, 180.0f);
 
   auto pixmap = Pixmap::fromSize(400, 400);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();

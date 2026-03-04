@@ -35,7 +35,7 @@ Pixmap drawLine(float x0, float y0, float x1, float y1,
     stroke.width = width;
     stroke.lineCap = lineCap;
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     return std::move(*pixmap);
@@ -63,7 +63,7 @@ Pixmap drawQuad(bool antiAlias, float width, LineCap lineCap) {
     stroke.width = width;
     stroke.lineCap = lineCap;
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     return std::move(*pixmap);
@@ -93,7 +93,7 @@ Pixmap drawCubic(const float (&points)[8], bool antiAlias, float width,
     stroke.width = width;
     stroke.lineCap = lineCap;
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     return std::move(*pixmap);
@@ -182,7 +182,7 @@ TEST(Hairline, ClipLine00V2) {
     auto path = builder.finish();
     ASSERT_TRUE(path.has_value());
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "hairline/clip-line-00-v2.png");
@@ -317,7 +317,7 @@ TEST(Hairline, ClippedCircleAa) {
     auto path = PathBuilder::fromCircle(50.0f, 50.0f, 55.0f);
     ASSERT_TRUE(path.has_value());
 
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, Transform::identity());
 
     EXPECT_GOLDEN_MATCH(*pixmap, "hairline/clipped-circle-aa.png");

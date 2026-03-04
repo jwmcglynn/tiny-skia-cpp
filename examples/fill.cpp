@@ -41,7 +41,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillPath(mut, *path1, paint1, FillRule::Winding, Transform::identity());
   fillPath(mut, *path2, paint2, FillRule::Winding, Transform::identity());
 

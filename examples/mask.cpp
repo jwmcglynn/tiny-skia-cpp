@@ -34,7 +34,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(500, 500);
   auto rect = Rect::fromXywh(0.0f, 0.0f, 500.0f, 500.0f);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
   auto data = pixmap->takeDemultiplied();

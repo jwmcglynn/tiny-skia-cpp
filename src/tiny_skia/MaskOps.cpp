@@ -27,8 +27,8 @@ void fillMaskRegion(const Path& path, FillRule fillRule, bool antiAlias,
   if (!tempPixmap) {
     return;
   }
-  auto tempMut = tempPixmap->asMut();
-  auto subpix = tempMut.asSubpixmap();
+  auto tempMut = tempPixmap->mutableView();
+  auto subpix = tempMut.subpixmap();
 
   auto blitter = pipeline::RasterPipelineBlitter::createMask(&subpix);
   if (!blitter.has_value()) {

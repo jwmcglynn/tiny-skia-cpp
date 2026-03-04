@@ -28,7 +28,7 @@ int main() {
   for (int i = 0; i < 20; ++i) {
     Stroke stroke;
     stroke.width = 2.0f - (static_cast<float>(i) / 10.0f);
-    auto mut = pixmap->asMut();
+    auto mut = pixmap->mutableView();
     strokePath(mut, *path, paint, stroke, transform);
     transform = transform.preTranslate(0.0f, 20.0f);
   }

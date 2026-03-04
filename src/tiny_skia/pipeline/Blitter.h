@@ -19,16 +19,16 @@ class RasterPipelineBlitter final : public tiny_skia::Blitter {
  public:
   /// Creates a blitter from a solid color.
   static std::optional<RasterPipelineBlitter> create(PremultipliedColorU8 color,
-                                                     SubPixmapMut* pixmap,
+                                                     MutableSubPixmapView* pixmap,
                                                      BlendMode blendMode = BlendMode::SourceOver,
-                                                     std::optional<SubMaskRef> mask = std::nullopt);
+                                                     std::optional<SubMaskView> mask = std::nullopt);
 
   /// Creates a blitter from a Paint (with Shader support).
   static std::optional<RasterPipelineBlitter> create(const tiny_skia::Paint& paint,
-                                                     std::optional<SubMaskRef> mask,
-                                                     SubPixmapMut* pixmap);
+                                                     std::optional<SubMaskView> mask,
+                                                     MutableSubPixmapView* pixmap);
 
-  static std::optional<RasterPipelineBlitter> createMask(SubPixmapMut* pixmap);
+  static std::optional<RasterPipelineBlitter> createMask(MutableSubPixmapView* pixmap);
 
   void blitH(std::uint32_t x, std::uint32_t y, LengthU32 width) override;
   void blitAntiH(std::uint32_t x, std::uint32_t y, std::span<std::uint8_t> alpha,
@@ -42,16 +42,16 @@ class RasterPipelineBlitter final : public tiny_skia::Blitter {
   [[nodiscard]] bool isMaskOnly() const { return isMaskOnly_; }
 
  private:
-  RasterPipelineBlitter(SubPixmapMut* pixmap, bool isMaskOnly,
+  RasterPipelineBlitter(MutableSubPixmapView* pixmap, bool isMaskOnly,
                         std::optional<PremultipliedColorU8> memsetColor,
-                        std::optional<SubMaskRef> mask, Pixmap pixmapSrcStorage,
+                        std::optional<SubMaskView> mask, Pixmap pixmapSrcStorage,
                         RasterPipeline blitAntiHRp, RasterPipeline blitRectRp,
                         RasterPipeline blitMaskRp);
 
-  SubPixmapMut* pixmap_ = nullptr;
+  MutableSubPixmapView* pixmap_ = nullptr;
   bool isMaskOnly_ = false;
   std::optional<PremultipliedColorU8> memsetColor_;
-  std::optional<SubMaskRef> mask_;
+  std::optional<SubMaskView> mask_;
   Pixmap pixmapSrcStorage_;
   RasterPipeline blitAntiHRp_;
   RasterPipeline blitRectRp_;

@@ -107,29 +107,29 @@ class DrawTiler {
 [[nodiscard]] std::optional<float> treatAsHairline(const Paint& paint, float strokeWidth,
                                                    Transform ts);
 
-// ---- Drawing functions (on PixmapMut) ----
+// ---- Drawing functions (on MutablePixmapView) ----
 
 /// Draws a filled rectangle onto the pixmap.
-void fillRect(PixmapMut& pixmap, const Rect& rect, const Paint& paint, Transform transform,
+void fillRect(MutablePixmapView& pixmap, const Rect& rect, const Paint& paint, Transform transform,
               const Mask* mask = nullptr);
 
 /// Draws a filled path onto the pixmap.
-void fillPath(PixmapMut& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
+void fillPath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, FillRule fillRule,
               Transform transform, const Mask* mask = nullptr);
 
 /// Draws a pixmap on top of the current pixmap.
-void drawPixmap(PixmapMut& pixmap, std::int32_t x, std::int32_t y, PixmapRef src,
+void drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, PixmapView src,
                 const PixmapPaint& paint, Transform transform, const Mask* mask = nullptr);
 
 /// Applies a mask to already-drawn content.
-void applyMask(PixmapMut& pixmap, const Mask& mask);
+void applyMask(MutablePixmapView& pixmap, const Mask& mask);
 
 /// Strokes a path onto the pixmap.
-void strokePath(PixmapMut& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
+void strokePath(MutablePixmapView& pixmap, const Path& path, const Paint& paint, const Stroke& stroke,
                 Transform transform, const Mask* mask = nullptr);
 
 /// Strokes a path with a hairline (subpixel width).
 void strokeHairline(const Path& path, const Paint& paint, LineCap lineCap,
-                    std::optional<SubMaskRef> mask, SubPixmapMut& subpix);
+                    std::optional<SubMaskView> mask, MutableSubPixmapView& subpix);
 
 }  // namespace tiny_skia

@@ -58,12 +58,12 @@ struct Pipeline {
   const AAMaskCtx* aaMaskCtx = nullptr;
   const MaskCtx* maskCtx = nullptr;
   Context* ctx = nullptr;
-  SubPixmapMut* pixmapDst = nullptr;
+  MutableSubPixmapView* pixmapDst = nullptr;
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFun,
-           const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg, const MaskCtx& maskCtxArg,
-           Context& ctxArg, SubPixmapMut* pixmapDstArg)
+           const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg,
+           const MaskCtx& maskCtxArg, Context& ctxArg, MutableSubPixmapView* pixmapDstArg)
       : uniformR(U16x16T::splat(ctxArg.uniformColor.rgba[0])),
         uniformG(U16x16T::splat(ctxArg.uniformColor.rgba[1])),
         uniformB(U16x16T::splat(ctxArg.uniformColor.rgba[2])),
@@ -391,7 +391,7 @@ void xOr(Pipeline& pipeline) {
 void nullFn(Pipeline& pipeline) { (void)pipeline; }
 
 // Returns a span of PremultipliedColorU8 pixels starting at (dx, dy) in the pixmap.
-inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap, std::size_t dx,
+inline std::span<PremultipliedColorU8> pixelsAtXY(MutableSubPixmapView& pixmap, std::size_t dx,
                                                   std::size_t dy) {
   const auto pixelOffset = dy * pixmap.realWidth + dx;
   auto* pixels = reinterpret_cast<PremultipliedColorU8*>(pixmap.data);
@@ -1080,7 +1080,7 @@ void justReturn(Pipeline& pipeline) { (void)pipeline; }
 void start(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& functions,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFunctions,
            const ScreenIntRect& rect, const AAMaskCtx& aaMaskCtx, const MaskCtx& maskCtx,
-           Context& ctx, SubPixmapMut* pixmapDst) {
+           Context& ctx, MutableSubPixmapView* pixmapDst) {
   Pipeline p(functions, tailFunctions, rect, aaMaskCtx, maskCtx, ctx, pixmapDst);
 
   for (std::size_t y = rect.y(); y < rect.bottom(); ++y) {

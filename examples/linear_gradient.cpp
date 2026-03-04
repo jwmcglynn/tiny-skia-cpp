@@ -37,7 +37,7 @@ int main() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   auto data = pixmap->takeDemultiplied();

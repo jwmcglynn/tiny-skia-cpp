@@ -29,7 +29,7 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(200, 200);
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 
   // Stroke a border around the triangle pixmap.
@@ -53,8 +53,8 @@ int main() {
   PixmapPaint ppaint;
   ppaint.quality = FilterQuality::Bicubic;
 
-  auto mut = pixmap->asMut();
-  drawPixmap(mut, 20, 20, triangle.asRef(), ppaint,
+  auto mut = pixmap->mutableView();
+  drawPixmap(mut, 20, 20, triangle.view(), ppaint,
              Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
   auto data = pixmap->takeDemultiplied();

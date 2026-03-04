@@ -54,8 +54,8 @@ TEST(PipelineGatherTest, DrawPixmapCopiesPixels) {
   ppaint.quality = FilterQuality::Nearest;
   ppaint.opacity = 1.0f;
 
-  auto dstMut = dst.asMut();
-  drawPixmap(dstMut, 0, 0, src.asRef(), ppaint, Transform::identity());
+  auto dstMut = dst.mutableView();
+  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // The destination should now be red.
   const auto px = readPx(dst, 0, 0);
@@ -75,8 +75,8 @@ TEST(PipelineGatherTest, DrawPixmapWithOffset) {
   ppaint.quality = FilterQuality::Nearest;
   ppaint.opacity = 1.0f;
 
-  auto dstMut = dst.asMut();
-  drawPixmap(dstMut, 2, 2, src.asRef(), ppaint, Transform::identity());
+  auto dstMut = dst.mutableView();
+  drawPixmap(dstMut, 2, 2, src.view(), ppaint, Transform::identity());
 
   // (0,0) should still be black, (2,2) should be green.
   const auto black = readPx(dst, 0, 0);
@@ -96,7 +96,7 @@ TEST(PipelineGatherTest, DrawPixmapWithOffset) {
 TEST(PipelineTransformTest, ScaledFillRect) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -122,7 +122,7 @@ TEST(PipelineTransformTest, ScaledFillRect) {
 TEST(PipelineGradientTest, LinearGradient2Stop) {
   auto pm = Pixmap::fromSize(10, 1).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   // Create a horizontal linear gradient from red to blue.
   auto stops = std::vector<GradientStop>{
@@ -167,7 +167,7 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
 TEST(PipelineGradientTest, LinearGradient3Stop) {
   auto pm = Pixmap::fromSize(10, 1).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   auto stops = std::vector<GradientStop>{
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
@@ -206,7 +206,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
 TEST(PipelineGradientTest, RadialGradient) {
   auto pm = Pixmap::fromSize(10, 10).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   auto stops = std::vector<GradientStop>{
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
@@ -244,7 +244,7 @@ TEST(PipelineGradientTest, RadialGradient) {
 TEST(PipelineGradientTest, SweepGradient) {
   auto pm = Pixmap::fromSize(10, 10).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   auto stops = std::vector<GradientStop>{
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
@@ -277,7 +277,7 @@ TEST(PipelineGradientTest, SweepGradient) {
 TEST(PipelineTileModeTest, PadGradient) {
   auto pm = Pixmap::fromSize(20, 1).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   // Gradient from red to blue over x=[0, 10). Beyond 10, pad.
   auto stops = std::vector<GradientStop>{
@@ -305,7 +305,7 @@ TEST(PipelineTileModeTest, PadGradient) {
 TEST(PipelineTileModeTest, RepeatGradient) {
   auto pm = Pixmap::fromSize(20, 1).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   auto stops = std::vector<GradientStop>{
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
@@ -333,7 +333,7 @@ TEST(PipelineTileModeTest, RepeatGradient) {
 TEST(PipelineTileModeTest, ReflectGradient) {
   auto pm = Pixmap::fromSize(20, 1).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   auto stops = std::vector<GradientStop>{
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
@@ -364,7 +364,7 @@ TEST(PipelineBlendTest, DarkenBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   // Fill with a medium gray.
   pm.fill(Color::fromRgba8(128, 128, 128, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 50, 100, 255));
@@ -386,7 +386,7 @@ TEST(PipelineBlendTest, DarkenBlend) {
 TEST(PipelineBlendTest, LightenBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(128, 128, 128, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 50, 100, 255));
@@ -406,7 +406,7 @@ TEST(PipelineBlendTest, LightenBlend) {
 TEST(PipelineBlendTest, DifferenceBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(100, 200, 50, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(100, 200, 50, 255));
@@ -428,7 +428,7 @@ TEST(PipelineBlendTest, DifferenceBlend) {
 TEST(PipelineBlendTest, ExclusionBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(0, 0, 0, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -450,7 +450,7 @@ TEST(PipelineBlendTest, ExclusionBlend) {
 TEST(PipelineBlendTest, ScreenBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(128, 128, 128, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
@@ -469,7 +469,7 @@ TEST(PipelineBlendTest, ScreenBlend) {
 TEST(PipelineBlendTest, OverlayBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(100, 100, 100, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
@@ -488,7 +488,7 @@ TEST(PipelineBlendTest, OverlayBlend) {
 TEST(PipelineBlendTest, HardLightBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(100, 100, 100, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
@@ -506,7 +506,7 @@ TEST(PipelineBlendTest, HardLightBlend) {
 TEST(PipelineBlendTest, SoftLightBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(100, 100, 100, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
@@ -524,7 +524,7 @@ TEST(PipelineBlendTest, SoftLightBlend) {
 TEST(PipelineBlendTest, ColorDodgeBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(128, 128, 128, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
@@ -543,7 +543,7 @@ TEST(PipelineBlendTest, ColorDodgeBlend) {
 TEST(PipelineBlendTest, ColorBurnBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(200, 200, 200, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
@@ -566,7 +566,7 @@ TEST(PipelineBlendTest, ColorBurnBlend) {
 TEST(PipelineBlendTest, HueBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(0, 128, 0, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -586,7 +586,7 @@ TEST(PipelineBlendTest, HueBlend) {
 TEST(PipelineBlendTest, SaturationBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(128, 64, 0, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -604,7 +604,7 @@ TEST(PipelineBlendTest, SaturationBlend) {
 TEST(PipelineBlendTest, ColorBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(128, 128, 128, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(255, 0, 0, 255));
@@ -623,7 +623,7 @@ TEST(PipelineBlendTest, ColorBlend) {
 TEST(PipelineBlendTest, LuminosityBlend) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::fromRgba8(255, 0, 0, 255));
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(200, 200, 200, 255));
@@ -645,7 +645,7 @@ TEST(PipelineBlendTest, LuminosityBlend) {
 TEST(PipelineGammaTest, SrgbColorspace) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
@@ -667,7 +667,7 @@ TEST(PipelineGammaTest, SrgbColorspace) {
 TEST(PipelineGammaTest, Gamma2Colorspace) {
   auto pm = Pixmap::fromSize(4, 4).value();
   pm.fill(Color::transparent);
-  auto mut = pm.asMut();
+  auto mut = pm.mutableView();
 
   Paint paint;
   paint.setColor(Color::fromRgba8(128, 128, 128, 255));
@@ -696,8 +696,8 @@ TEST(PipelineFilterTest, BilinearDrawPixmap) {
   ppaint.quality = FilterQuality::Bilinear;
   ppaint.opacity = 1.0f;
 
-  auto dstMut = dst.asMut();
-  drawPixmap(dstMut, 0, 0, src.asRef(), ppaint, Transform::identity());
+  auto dstMut = dst.mutableView();
+  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // Should copy red over blue.
   const auto px = readPx(dst, 1, 1);
@@ -714,8 +714,8 @@ TEST(PipelineFilterTest, BicubicDrawPixmap) {
   ppaint.quality = FilterQuality::Bicubic;
   ppaint.opacity = 1.0f;
 
-  auto dstMut = dst.asMut();
-  drawPixmap(dstMut, 0, 0, src.asRef(), ppaint, Transform::identity());
+  auto dstMut = dst.mutableView();
+  drawPixmap(dstMut, 0, 0, src.view(), ppaint, Transform::identity());
 
   // Should copy red over blue.
   const auto px = readPx(dst, 1, 1);

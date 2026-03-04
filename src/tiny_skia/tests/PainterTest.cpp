@@ -22,9 +22,9 @@ using tiny_skia::Paint;
 using tiny_skia::Path;
 using tiny_skia::PathVerb;
 using tiny_skia::Pixmap;
-using tiny_skia::PixmapMut;
+using tiny_skia::MutablePixmapView;
 using tiny_skia::PixmapPaint;
-using tiny_skia::PixmapRef;
+using tiny_skia::PixmapView;
 using tiny_skia::Point;
 using tiny_skia::Rect;
 using tiny_skia::ScreenIntRect;
@@ -315,7 +315,7 @@ TEST(FillRectTest, SolidColorFill) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto rect = Rect::fromLtrb(2.0f, 2.0f, 8.0f, 8.0f);
   ASSERT_TRUE(rect.has_value());
 
@@ -346,7 +346,7 @@ TEST(FillRectTest, WithTransformDelegatesToFillPath) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f);
   ASSERT_TRUE(rect.has_value());
 
@@ -376,7 +376,7 @@ TEST(FillPathTest, SimpleRectanglePath) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(1.0f, 1.0f, 9.0f, 9.0f));
 
   Paint paint;
@@ -397,7 +397,7 @@ TEST(FillPathTest, EmptyPathIsNoOp) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(128, 128, 128, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   // Empty line (zero height).
   auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 5.0f, 10.0f, 5.0f));
 
@@ -418,7 +418,7 @@ TEST(FillPathTest, WithTransform) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto path = tiny_skia::pathFromRect(*Rect::fromLtrb(0.0f, 0.0f, 5.0f, 5.0f));
 
   Paint paint;
@@ -455,13 +455,13 @@ TEST(DrawPixmapTest, DrawOntoPixmapDoesNotCrash) {
   ASSERT_TRUE(dst.has_value());
   dst->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = dst->asMut();
+  auto mut = dst->mutableView();
   PixmapPaint ppaint;
   ppaint.opacity = 1.0f;
   ppaint.blendMode = BlendMode::Source;
 
   // Should not crash.
-  tiny_skia::drawPixmap(mut, 3, 3, src->asRef(), ppaint, Transform::identity());
+  tiny_skia::drawPixmap(mut, 3, 3, src->view(), ppaint, Transform::identity());
 
   // Pixel outside the drawn area should be unchanged.
   auto corner = dst->pixel(0, 0);
@@ -481,7 +481,7 @@ TEST(ApplyMaskTest, MaskMasksOutContent) {
   auto mask = Mask::fromSize(4, 4);
   ASSERT_TRUE(mask.has_value());
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::applyMask(mut, *mask);
 
   // All pixels should be transparent (masked out).
@@ -498,7 +498,7 @@ TEST(ApplyMaskTest, MismatchedSizeIsNoOp) {
   auto mask = Mask::fromSize(8, 8);
   ASSERT_TRUE(mask.has_value());
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   tiny_skia::applyMask(mut, *mask);
 
   // Should be unchanged - still red.
@@ -515,8 +515,8 @@ TEST(StrokeHairlineTest, BasicStroke) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(0, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
-  auto subpix = mut.asSubpixmap();
+  auto mut = pixmap->mutableView();
+  auto subpix = mut.subpixmap();
 
   // A simple horizontal line path.
   std::vector<PathVerb> verbs = {PathVerb::Move, PathVerb::Line};
@@ -542,7 +542,7 @@ TEST(FillRectTest, DestinationBlendModeIsNoOp) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(100, 100, 100, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
 
@@ -564,7 +564,7 @@ TEST(FillRectTest, ClearBlendMode) {
   ASSERT_TRUE(pixmap.has_value());
   pixmap->fill(Color::fromRgba8(255, 0, 0, 255));
 
-  auto mut = pixmap->asMut();
+  auto mut = pixmap->mutableView();
   auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
 

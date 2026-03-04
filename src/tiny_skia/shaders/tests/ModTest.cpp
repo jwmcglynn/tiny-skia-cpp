@@ -716,7 +716,7 @@ TEST(RadialGradientTest, ShaderVariantDispatch) {
 TEST(PatternTest, CreateAndPushStagesNearest) {
   // Create a small 4x4 pixmap for testing.
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);  // 4x4 RGBA, all white
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
@@ -730,7 +730,7 @@ TEST(PatternTest, CreateAndPushStagesNearest) {
 
 TEST(PatternTest, CreateAndPushStagesBilinear) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bilinear, 1.0f,
@@ -744,7 +744,7 @@ TEST(PatternTest, CreateAndPushStagesBilinear) {
 
 TEST(PatternTest, CreateAndPushStagesBicubic) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Bicubic, 1.0f,
@@ -759,7 +759,7 @@ TEST(PatternTest, CreateAndPushStagesBicubic) {
 
 TEST(PatternTest, NonInvertibleTransformFails) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
@@ -771,7 +771,7 @@ TEST(PatternTest, NonInvertibleTransformFails) {
 
 TEST(PatternTest, PatternIsNeverOpaque) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 1.0f,
@@ -781,7 +781,7 @@ TEST(PatternTest, PatternIsNeverOpaque) {
 
 TEST(PatternTest, OpacityAppliesScale1FloatStage) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest, 0.5f,
@@ -796,7 +796,7 @@ TEST(PatternTest, OpacityAppliesScale1FloatStage) {
 
 TEST(PatternTest, RepeatSpreadModePushesRepeatStage) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   tiny_skia::Pattern pat(*pixmap, SpreadMode::Repeat, tiny_skia::FilterQuality::Nearest, 1.0f,
@@ -810,7 +810,7 @@ TEST(PatternTest, RepeatSpreadModePushesRepeatStage) {
 
 TEST(PatternTest, ShaderVariantDispatch) {
   std::vector<std::uint8_t> data(4 * 4 * 4, 255);
-  const auto pixmap = tiny_skia::PixmapRef::fromBytes(data, 4, 4);
+  const auto pixmap = tiny_skia::PixmapView::fromBytes(data, 4, 4);
   ASSERT_TRUE(pixmap.has_value());
 
   Shader shader = tiny_skia::Pattern(*pixmap, SpreadMode::Pad, tiny_skia::FilterQuality::Nearest,
