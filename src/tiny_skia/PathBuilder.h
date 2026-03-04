@@ -28,15 +28,15 @@ class PathBuilder {
   [[nodiscard]] std::size_t size() const { return verbs_.size(); }
   [[nodiscard]] bool empty() const { return verbs_.empty(); }
 
-  void moveTo(float x, float y);
-  void lineTo(float x, float y);
-  void quadTo(float x1, float y1, float x, float y);
-  void quadToPt(Point p1, Point p);
-  void cubicTo(float x1, float y1, float x2, float y2, float x, float y);
-  void cubicToPt(Point p1, Point p2, Point p);
-  void conicTo(float x1, float y1, float x, float y, float weight);
-  void conicPointsTo(Point pt1, Point pt2, float weight);
-  void close();
+  PathBuilder& moveTo(float x, float y);
+  PathBuilder& lineTo(float x, float y);
+  PathBuilder& quadTo(float x1, float y1, float x, float y);
+  PathBuilder& quadToPt(Point p1, Point p);
+  PathBuilder& cubicTo(float x1, float y1, float x2, float y2, float x, float y);
+  PathBuilder& cubicToPt(Point p1, Point p2, Point p);
+  PathBuilder& conicTo(float x1, float y1, float x, float y, float weight);
+  PathBuilder& conicPointsTo(Point pt1, Point pt2, float weight);
+  PathBuilder& close();
 
   [[nodiscard]] std::optional<Point> lastPoint() const;
   void setLastPoint(Point pt);
@@ -50,12 +50,12 @@ class PathBuilder {
     return b.finish();
   }
 
-  void pushRect(const Rect& rect);
-  void pushOval(const Rect& oval);
-  void pushCircle(float x, float y, float r);
-  void pushPath(const Path& other);
-  void pushPathBuilder(const PathBuilder& other);
-  void reversePathTo(const PathBuilder& other);
+  PathBuilder& pushRect(const Rect& rect);
+  PathBuilder& pushOval(const Rect& oval);
+  PathBuilder& pushCircle(float x, float y, float r);
+  PathBuilder& pushPath(const Path& other);
+  PathBuilder& pushPathBuilder(const PathBuilder& other);
+  PathBuilder& reversePathTo(const PathBuilder& other);
 
   void clear();
 
