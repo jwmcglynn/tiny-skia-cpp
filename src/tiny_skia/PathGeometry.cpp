@@ -28,53 +28,6 @@ bool isNotMonotonic(float a, float b, float c) {
   return ab == 0.0f || bc < 0.0f;
 }
 
-std::size_t findCubicExtrema(std::span<const float, 4> src, std::array<double, 3>& extrema) {
-  const auto na = static_cast<double>(src[3] - src[0] + 3.0f * (src[1] - src[2]));
-  const auto nb = static_cast<double>(2.0f * (src[0] - src[1] - src[1] + src[2]));
-  const auto nc = static_cast<double>(src[1] - src[0]);
-  return tiny_skia::path64::quad64::rootsValidT(na, nb, nc, extrema);
-}
-
-std::array<double, 4> formulateF1DotF2(double p0, double p1, double p2, double p3) {
-  const auto a = p1 - p0;
-  const auto b = p2 - 2.0 * p1 + p0;
-  const auto c = p3 + 3.0 * (p1 - p2) - p0;
-  return {c * c, 3.0 * b * c, 2.0 * b * b + c * a, a * b};
-}
-
-std::size_t findMaxCurvatureRoots(std::array<Point, 4> src, std::array<double, 3>& t) {
-  auto x = formulateF1DotF2(src[0].x, src[1].x, src[2].x, src[3].x);
-  const auto y = formulateF1DotF2(src[0].y, src[1].y, src[2].y, src[3].y);
-  for (std::size_t i = 0; i < x.size(); ++i) {
-    x[i] += y[i];
-  }
-
-  return tiny_skia::path64::cubic64::rootsValidT(x[0], x[1], x[2], x[3], t);
-}
-
-void interpCubicAt(std::span<const Point, 4> src, double t, std::span<Point, 7> dst) {
-  const auto ab = Point{src[0].x + static_cast<float>((src[1].x - src[0].x) * t),
-                        src[0].y + static_cast<float>((src[1].y - src[0].y) * t)};
-  const auto bc = Point{src[1].x + static_cast<float>((src[2].x - src[1].x) * t),
-                        src[1].y + static_cast<float>((src[2].y - src[1].y) * t)};
-  const auto cd = Point{src[2].x + static_cast<float>((src[3].x - src[2].x) * t),
-                        src[2].y + static_cast<float>((src[3].y - src[2].y) * t)};
-  const auto abc = Point{ab.x + static_cast<float>((bc.x - ab.x) * t),
-                         ab.y + static_cast<float>((bc.y - ab.y) * t)};
-  const auto bcd = Point{bc.x + static_cast<float>((cd.x - bc.x) * t),
-                         bc.y + static_cast<float>((cd.y - bc.y) * t)};
-  const auto abcd = Point{abc.x + static_cast<float>((bcd.x - abc.x) * t),
-                          abc.y + static_cast<float>((bcd.y - abc.y) * t)};
-
-  dst[0] = src[0];
-  dst[1] = ab;
-  dst[2] = abc;
-  dst[3] = abcd;
-  dst[4] = bcd;
-  dst[5] = cd;
-  dst[6] = src[3];
-}
-
 // Pure f32 de Casteljau's algorithm.
 // Uses interp(v0, v1, t) = v0 + (v1 - v0) * t in f32 precision.
 void chopCubicAt2(std::span<const Point, 4> src, float t, std::span<Point> dst) {

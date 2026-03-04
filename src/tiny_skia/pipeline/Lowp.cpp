@@ -99,7 +99,7 @@ namespace {
 #endif
 }
 
-[[nodiscard]] constexpr bool useX86Avx2FmaNative() {
+[[nodiscard]] [[maybe_unused]] constexpr bool useX86Avx2FmaNative() {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__AVX2__) && defined(__FMA__) && \
     (defined(__x86_64__) || defined(__i386__))
   return true;

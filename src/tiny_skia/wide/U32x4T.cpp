@@ -28,11 +28,11 @@ namespace {
 #endif
 }
 
-[[nodiscard]] std::array<std::uint32_t, 8> widenU32x4(const std::array<std::uint32_t, 4>& lanes) {
+[[nodiscard]] [[maybe_unused]] std::array<std::uint32_t, 8> widenU32x4(const std::array<std::uint32_t, 4>& lanes) {
   return {lanes[0], lanes[1], lanes[2], lanes[3], 0u, 0u, 0u, 0u};
 }
 
-[[nodiscard]] std::array<std::uint32_t, 4> narrowU32x8(const std::array<std::uint32_t, 8>& lanes) {
+[[nodiscard]] [[maybe_unused]] std::array<std::uint32_t, 4> narrowU32x8(const std::array<std::uint32_t, 8>& lanes) {
   return {lanes[0], lanes[1], lanes[2], lanes[3]};
 }
 

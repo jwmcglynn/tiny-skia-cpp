@@ -206,7 +206,7 @@ std::optional<ClippedEdges> EdgeClipper::clipLine(Point p0, Point p1) {
 }
 
 void EdgeClipper::pushLine(Point p0, Point p1) {
-  const auto pushed = edges_.pushLine(p0, p1);
+  [[maybe_unused]] const auto pushed = edges_.pushLine(p0, p1);
   assert(pushed);
 }
 
@@ -214,7 +214,7 @@ void EdgeClipper::pushVerticalLine(float x, float y0, float y1, bool reverse) {
   if (reverse) {
     std::swap(y0, y1);
   }
-  const auto pushed = edges_.pushLine(Point{x, y0}, Point{x, y1});
+  [[maybe_unused]] const auto pushed = edges_.pushLine(Point{x, y0}, Point{x, y1});
   assert(pushed);
 }
 
@@ -309,7 +309,7 @@ void EdgeClipper::clipMonoQuad(const std::array<Point, 3>& src) {
 }
 
 void EdgeClipper::pushQuad(const std::array<Point, 3>& pts, bool reverse) {
-  const auto pushed = edges_.pushQuad(pts, reverse);
+  [[maybe_unused]] const auto pushed = edges_.pushQuad(pts, reverse);
   assert(pushed);
 }
 
@@ -398,7 +398,7 @@ void EdgeClipper::clipMonoCubic(const std::array<Point, 4>& src) {
 }
 
 void EdgeClipper::pushCubic(const std::array<Point, 4>& pts, bool reverse) {
-  const auto pushed = edges_.pushCubic(pts, reverse);
+  [[maybe_unused]] const auto pushed = edges_.pushCubic(pts, reverse);
   assert(pushed);
 }
 

@@ -36,11 +36,6 @@ std::optional<std::size_t> pixelIndex(std::uint32_t width, std::uint32_t height,
          static_cast<std::size_t>(x);
 }
 
-bool containsRect(const IntRect& outer, const IntRect& inner) {
-  return outer.left() <= inner.left() && outer.top() <= inner.top() &&
-         outer.right() >= inner.right() && outer.bottom() >= inner.bottom();
-}
-
 }  // namespace
 
 std::optional<PixmapRef> PixmapRef::fromBytes(std::span<const std::uint8_t> data,

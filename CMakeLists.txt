@@ -86,11 +86,11 @@ function(add_tiny_skia_target TARGET_NAME SIMD_DEFINE)
     ${SIMD_DEFINE}
   )
 
-  # Disable FMA contraction for bit-exact reproducibility.
+  # Warnings.
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-    target_compile_options(${TARGET_NAME} PRIVATE -ffp-contract=off)
+    target_compile_options(${TARGET_NAME} PRIVATE -Wall -ffp-contract=off)
   elseif(MSVC)
-    target_compile_options(${TARGET_NAME} PRIVATE /fp:precise)
+    target_compile_options(${TARGET_NAME} PRIVATE /W3 /fp:precise)
   endif()
 
   # Platform-specific SIMD flags for the native target.

@@ -177,7 +177,7 @@ bool RadialGradient::pushStages(ColorSpace cs, pipeline::RasterPipelineBuilder& 
   }
 
   p.ctx().twoPointConicalGradient =
-      pipeline::TwoPointConicalGradientCtx{.mask = 0, .p0 = p0, .p1 = p1};
+      pipeline::TwoPointConicalGradientCtx{.mask = {}, .p0 = p0, .p1 = p1};
 
   const auto& gt = gradientType_;
   return base_.pushStages(

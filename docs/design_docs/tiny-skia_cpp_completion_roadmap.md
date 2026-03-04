@@ -88,7 +88,7 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Enforce `bazel build //...` and `bazel test //...` as required CI checks.
   - [x] Add CI validation for the CMake build path.
   - [ ] Add dedicated warning-clean builds for both `clang` and `gcc`.
-  - [ ] Drive compiler warnings to zero (or explicitly documented allowlist) for both
+  - [x] Drive compiler warnings to zero (or explicitly documented allowlist) for both
     `clang` and `gcc`.
   - [ ] Gate CI on warning-clean status for both compilers.
   - [ ] Add sanitizer jobs (ASan/UBSan; TSan where stable) with documented scopes.
