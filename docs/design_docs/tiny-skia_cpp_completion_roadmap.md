@@ -3,7 +3,7 @@
 **Status:** Design
 **Author:** Codex
 **Created:** 2026-03-03
-**Updated:** 2026-03-03
+**Updated:** 2026-03-04
 
 ## Summary
 
@@ -75,8 +75,8 @@ inputs. These should be treated as untrusted. Production hardening includes:
 ## Implementation Plan
 
 - [ ] Milestone 1: Tooling Standardization (Formatting Foundation)
-  - [ ] Add/confirm `.clang-format` and formatter version policy in docs.
-  - [ ] Run `clang-format` across C++ sources and headers with tracked file audit.
+  - [x] Add/confirm `.clang-format` and formatter version policy in docs.
+  - [x] Run `clang-format` across C++ sources and headers with tracked file audit.
   - [ ] Add/confirm `buildifier` formatting commands and policy for Bazel files.
   - [ ] Add and document a CMake build path for the library (and tests where practical).
   - [ ] Verify Bazel files are buildifier-formatted and include no follow-up drift.
