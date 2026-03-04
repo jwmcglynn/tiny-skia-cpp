@@ -107,8 +107,7 @@ class Painter {
                        FillRule fillRule, Transform transform = Transform::identity(),
                        const Mask* mask = nullptr);
 
-  /// Composites a source pixmap onto a destination.
-  /// @param x,y Destination offset in pixels.
+  /// Composites a source pixmap onto a destination at offset (x, y).
   static void drawPixmap(MutablePixmapView& pixmap, std::int32_t x, std::int32_t y, PixmapView src,
                          const PixmapPaint& paint = {}, Transform transform = Transform::identity(),
                          const Mask* mask = nullptr);

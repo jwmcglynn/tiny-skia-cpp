@@ -60,8 +60,8 @@ The @ref tiny_skia::Shader variant holds one of:
 ## Examples
 
 Full examples are in the `examples/` directory:
-- @ref fill.cpp — basic path filling
-- @ref stroke.cpp — dashed stroke with round caps
-- @ref linear_gradient.cpp — linear gradient shader
-- @ref mask.cpp — alpha mask clipping
-- @ref pattern.cpp — pixmap pattern shader
+- `fill.cpp` — basic path filling
+- `stroke.cpp` — dashed stroke with round caps
+- `linear_gradient.cpp` — linear gradient shader
+- `mask.cpp` — alpha mask clipping
+- `pattern.cpp` — pixmap pattern shader

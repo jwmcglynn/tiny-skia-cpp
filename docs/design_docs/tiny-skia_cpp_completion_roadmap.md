@@ -107,14 +107,14 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [x] Add `AGENTS.md` section for API users (public entry points, expected usage patterns,
     ownership/lifetime expectations, and minimal end-to-end examples).
 
-- [ ] Milestone 4: API Documentation and Doxygen Delivery
-  - [ ] Add Doxygen `@file`, `@brief`, and ownership/contract comments to public headers.
-  - [ ] Add class/function/group docs for core API and pipeline entry points.
-  - [ ] Standardize parameter and return contracts for pointer/ownership-sensitive APIs.
-  - [ ] Set up Doxygen config and local doc generation workflow.
-  - [ ] Address Doxygen warnings and enforce warning tracking to zero/new-only policy.
-  - [ ] Add CI workflow to generate docs and publish to GitHub Pages.
-  - [ ] Publish and maintain a comprehensive API documentation site artifact.
+- [x] Milestone 4: API Documentation and Doxygen Delivery
+  - [x] Add Doxygen `@file`, `@brief`, and ownership/contract comments to public headers.
+  - [x] Add class/function/group docs for core API and pipeline entry points.
+  - [x] Standardize parameter and return contracts for pointer/ownership-sensitive APIs.
+  - [x] Set up Doxygen config and local doc generation workflow.
+  - [x] Address Doxygen warnings and enforce warning tracking to zero/new-only policy.
+  - [x] Add CI workflow to generate docs and publish to GitHub Pages.
+  - [x] Publish and maintain a comprehensive API documentation site artifact.
 
 - [ ] Milestone 5: Code Review and C++20 Readability Hardening
   - [x] Execute module-by-module readability pass with deterministic review notes.

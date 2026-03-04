@@ -18,8 +18,7 @@ class SweepGradient {
  public:
   explicit SweepGradient(Gradient base) : base_(std::move(base)) {}
 
-  /// Creates a sweep gradient.
-  /// @param startAngle,endAngle Angle range in degrees.
+  /// Creates a sweep gradient between startAngle and endAngle (degrees).
   /// Returns a Color if the gradient degenerates to a single color.
   static std::optional<std::variant<Color, SweepGradient>> create(Point center, float startAngle,
                                                                   float endAngle,

@@ -1,6 +1,6 @@
 # Design: Doxygen Documentation & Public Surface
 
-**Status:** Design
+**Status:** Complete
 **Author:** Claude
 **Created:** 2026-03-04
 
@@ -19,7 +19,7 @@ GitHub Pages.
 - `EXTRACT_PRIVATE = NO` so private members/classes are hidden from users.
 - GitHub Actions workflow to build Doxygen and deploy to GitHub Pages on push
   to `main`.
-- CMake `docs` target for local builds (`cmake --build build --target docs`).
+- Local builds via `doxygen Doxyfile` from repo root.
 
 ## Non-Goals
 
@@ -68,36 +68,35 @@ internal subdirectories.
 
 ## Implementation Plan
 
-- [ ] Milestone 1: Doxyfile + CMake integration
-  - [ ] Create `Doxyfile.in` with CMake-substituted output dir
-  - [ ] Add `docs` custom target to CMakeLists.txt
-  - [ ] Configure: `EXTRACT_PRIVATE = NO`, `EXTRACT_STATIC = YES`,
+- [x] Milestone 1: Doxyfile setup
+  - [x] Create `Doxyfile` with public-headers-only INPUT list
+  - [x] Configure: `EXTRACT_PRIVATE = NO`, `EXTRACT_STATIC = YES`,
         `HIDE_UNDOC_MEMBERS = YES`, `HIDE_UNDOC_CLASSES = YES`
-  - [ ] `INPUT` = public headers only (explicit list)
-  - [ ] `EXCLUDE_PATTERNS` for internal subdirs
-  - [ ] Verify local build produces clean output
+  - [x] `INPUT` = public headers only (explicit list)
+  - [x] Add `docs/mainpage.md` as main page
+  - [x] Verify local build produces clean output (zero warnings)
 
-- [ ] Milestone 2: Add doc comments to public headers
-  - [ ] `Painter.h` — class + each static method (1 line each)
-  - [ ] `Paint.h` — struct fields + methods
-  - [ ] `Pixmap.h` — all 4 classes, factory methods, view accessors
-  - [ ] `Mask.h` — class + factories + fillPath/intersectPath
-  - [ ] `Path.h` — class + factories + transform/stroke/dash
-  - [ ] `PathBuilder.h` — class + all builder methods
-  - [ ] `Color.h` — all 4 color classes + ColorSpace enum
-  - [ ] `Geom.h` — Rect, IntRect, ScreenIntRect, IntSize
-  - [ ] `Point.h` — Point struct
-  - [ ] `Transform.h` — class + factories + operations
-  - [ ] `Stroke.h` — struct + fields
-  - [ ] `BlendMode.h` — enum values
-  - [ ] `shaders/*.h` — gradient + pattern factories
-  - [ ] Mark internal symbols with `@internal`
+- [x] Milestone 2: Add doc comments to public headers
+  - [x] `Painter.h` — class + each static method (1 line each)
+  - [x] `Paint.h` — struct fields + methods
+  - [x] `Pixmap.h` — all 4 classes, factory methods, view accessors
+  - [x] `Mask.h` — class + factories + fillPath/intersectPath
+  - [x] `Path.h` — class + factories + transform/stroke/dash
+  - [x] `PathBuilder.h` — class + all builder methods
+  - [x] `Color.h` — all 4 color classes + ColorSpace enum
+  - [x] `Geom.h` — Rect, IntRect, ScreenIntRect, IntSize
+  - [x] `Point.h` — Point struct
+  - [x] `Transform.h` — class + factories + operations
+  - [x] `Stroke.h` — struct + fields
+  - [x] `BlendMode.h` — enum values
+  - [x] `shaders/*.h` — gradient + pattern factories
+  - [x] Mark internal symbols with `@internal`
 
-- [ ] Milestone 3: GitHub Pages deployment workflow
-  - [ ] Create `.github/workflows/docs.yml`
-  - [ ] Install doxygen in CI
-  - [ ] Build docs
-  - [ ] Deploy to gh-pages branch using `actions/deploy-pages`
+- [x] Milestone 3: GitHub Pages deployment workflow
+  - [x] Create `.github/workflows/docs.yml`
+  - [x] Install doxygen in CI
+  - [x] Build docs
+  - [x] Deploy to gh-pages branch using `actions/deploy-pages`
 
 ## Doc Comment Style Guide
 
