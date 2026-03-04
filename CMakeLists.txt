@@ -82,7 +82,6 @@ function(add_tiny_skia_target TARGET_NAME SIMD_DEFINE)
   target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
 
   target_compile_definitions(${TARGET_NAME} PRIVATE
-    TINYSKIA_CPP_BIT_EXACT_MODE=1
     ${SIMD_DEFINE}
   )
 

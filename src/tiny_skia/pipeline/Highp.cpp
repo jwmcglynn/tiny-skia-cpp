@@ -1,6 +1,8 @@
 // Disable FMA contraction to match Rust's highp pipeline, which uses software
 // SIMD wrappers (f32x8) that prevent LLVM from fusing multiply-add.
+#ifdef __clang__
 #pragma clang fp contract(off)
+#endif
 
 #include "tiny_skia/pipeline/Highp.h"
 

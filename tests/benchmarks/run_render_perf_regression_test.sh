@@ -120,14 +120,13 @@ baseline_ratio() {
     echo "1.29"; return
   fi
 
-  # New workloads: x86 baselines TBD — skip gracefully for now.
   if [[ "${arch}" == "x86" && "${workload}" == "stroke_path" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.00"; return
+    echo "1.28"; return
   fi
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path_gradient" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.00"; return
+    echo "2.12"; return
   fi
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path_opaque" \
     && "${metric}" == "simd_over_scalar" ]]; then

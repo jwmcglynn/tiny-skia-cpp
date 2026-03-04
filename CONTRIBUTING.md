@@ -96,18 +96,6 @@ The project requires Bazel 7+. If you see version errors, install Bazelisk:
 Ensure your compiler supports C++20. The `.bazelrc` sets `--cxxopt=-std=c++20`.
 For CMake, the `CMakeLists.txt` requires `cxx_std_20`.
 
-### SIMD build failures
-
-On x86_64, the native SIMD build requires AVX2+FMA support. If your CPU lacks
-these, use the scalar target:
-```bash
-# Bazel
-bazel build --//bazel/config:simd_mode=scalar //...
-
-# CMake (link against scalar target)
-target_link_libraries(your_target PRIVATE tiny_skia_scalar)
-```
-
 ### Floating-point result differences
 
 All builds use `-ffp-contract=off` to ensure bit-exact reproducibility across

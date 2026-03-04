@@ -1,6 +1,7 @@
 """Performance benchmarks for SIMD/scalar/Rust comparison."""
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//:bazel/defs.bzl", "tiny_skia_cc_binary")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -9,29 +10,15 @@ _COMMON_DEPS = [
     "@google_benchmark//:benchmark_main",
 ]
 
-_NATIVE_X86_COPTS = select({
-    "//bazel/config:simd_native_x86_64": [
-        "-mavx2",
-        "-mfma",
-    ],
-    "//bazel/config:simd_native_x86_32": [
-        "-mavx2",
-        "-mfma",
-    ],
-    "//conditions:default": [],
-})
-
-cc_binary(
+tiny_skia_cc_binary(
     name = "render_perf_bench_native",
     srcs = ["RenderPerfBench.cpp"],
-    copts = ["-std=c++20"] + _NATIVE_X86_COPTS,
     deps = _COMMON_DEPS + ["//src:tiny_skia_lib_native"],
 )
 
-cc_binary(
+tiny_skia_cc_binary(
     name = "render_perf_bench_scalar",
     srcs = ["RenderPerfBench.cpp"],
-    copts = ["-std=c++20"],
     deps = _COMMON_DEPS + ["//src:tiny_skia_lib_scalar"],
 )
 
@@ -48,5 +35,8 @@ sh_test(
         ":render_perf_bench_native",
         ":render_perf_bench_scalar",
     ],
-    tags = ["perf_regression"],
+    tags = [
+        "exclusive",
+        "perf_regression",
+    ],
 )

@@ -1,6 +1,8 @@
 // Disable FMA contraction to match Rust's lowp pipeline, which uses software
 // SIMD wrappers (f32x16/f32x8) that prevent LLVM from fusing multiply-add.
+#ifdef __clang__
 #pragma clang fp contract(off)
+#endif
 
 #include "tiny_skia/pipeline/Lowp.h"
 
@@ -33,22 +35,19 @@ using tiny_skia::wide::F32x16T;
 using tiny_skia::wide::F32x8T;
 using tiny_skia::wide::U16x16T;
 
-// Maps to Rust's u16x16 — a 16-element channel of lowp pixel values in [0, 255].
-using LowpChannel = U16x16T;
-
 struct Pipeline {
-  LowpChannel r{};
-  LowpChannel g{};
-  LowpChannel b{};
-  LowpChannel a{};
-  LowpChannel uniformR{};
-  LowpChannel uniformG{};
-  LowpChannel uniformB{};
-  LowpChannel uniformA{};
-  LowpChannel dr{};
-  LowpChannel dg{};
-  LowpChannel db{};
-  LowpChannel da{};
+  U16x16T r{};
+  U16x16T g{};
+  U16x16T b{};
+  U16x16T a{};
+  U16x16T uniformR{};
+  U16x16T uniformG{};
+  U16x16T uniformB{};
+  U16x16T uniformA{};
+  U16x16T dr{};
+  U16x16T dg{};
+  U16x16T db{};
+  U16x16T da{};
 
   const std::array<StageFn, tiny_skia::pipeline::kMaxStages>* functions = nullptr;
   std::size_t index = 0;
@@ -63,8 +62,8 @@ struct Pipeline {
 
   Pipeline(const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& fun,
            const std::array<StageFn, tiny_skia::pipeline::kMaxStages>& tailFun,
-           const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg,
-           const MaskCtx& maskCtxArg, Context& ctxArg, SubPixmapMut* pixmapDstArg)
+           const ScreenIntRect& rectArg, const AAMaskCtx& aaMaskCtxArg, const MaskCtx& maskCtxArg,
+           Context& ctxArg, SubPixmapMut* pixmapDstArg)
       : uniformR(U16x16T::splat(ctxArg.uniformColor.rgba[0])),
         uniformG(U16x16T::splat(ctxArg.uniformColor.rgba[1])),
         uniformB(U16x16T::splat(ctxArg.uniformColor.rgba[2])),
@@ -322,7 +321,7 @@ void destinationAtop(Pipeline& pipeline) {
 
 void destinationIn(Pipeline& pipeline) {
   blendFn(pipeline,
-           [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) { return mulDiv255(d, sa); });
+          [](U16x16T /*s*/, U16x16T d, U16x16T sa, U16x16T /*da*/) { return mulDiv255(d, sa); });
 }
 
 void destinationOut(Pipeline& pipeline) {
@@ -339,7 +338,7 @@ void sourceAtop(Pipeline& pipeline) {
 
 void sourceIn(Pipeline& pipeline) {
   blendFn(pipeline,
-           [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) { return mulDiv255(s, da); });
+          [](U16x16T s, U16x16T /*d*/, U16x16T /*sa*/, U16x16T da) { return mulDiv255(s, da); });
 }
 
 void sourceOut(Pipeline& pipeline) {
@@ -362,7 +361,7 @@ void destinationOver(Pipeline& pipeline) {
 
 void modulate(Pipeline& pipeline) {
   blendFn(pipeline,
-           [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) { return mulDiv255(s, d); });
+          [](U16x16T s, U16x16T d, U16x16T /*sa*/, U16x16T /*da*/) { return mulDiv255(s, d); });
 }
 
 void multiply(Pipeline& pipeline) {
@@ -402,7 +401,7 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(SubPixmapMut& pixmap, std::siz
 
 // Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
 void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
-                    U16x16T& ob, U16x16T& oa) {
+                  U16x16T& ob, U16x16T& oa) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
@@ -551,7 +550,7 @@ void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U1
 }
 
 void load8888Tail(std::size_t count, std::span<const PremultipliedColorU8> pixels, U16x16T& or_,
-                    U16x16T& og, U16x16T& ob, U16x16T& oa) {
+                  U16x16T& og, U16x16T& ob, U16x16T& oa) {
   std::array<PremultipliedColorU8, kStageWidth> tmp{};
   tmp.fill(PremultipliedColorU8::transparent);
   std::copy_n(pixels.begin(), count, tmp.begin());
@@ -560,7 +559,7 @@ void load8888Tail(std::size_t count, std::span<const PremultipliedColorU8> pixel
 
 // Stores U16x16T pixel channels to u8 pixels.
 void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
-                     const U16x16T& b, const U16x16T& a) {
+                   const U16x16T& b, const U16x16T& a) {
 #if defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
@@ -685,7 +684,7 @@ void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, con
 }
 
 void store8888Tail(std::size_t count, std::span<PremultipliedColorU8> pixels, const U16x16T& r,
-                     const U16x16T& g, const U16x16T& b, const U16x16T& a) {
+                   const U16x16T& g, const U16x16T& b, const U16x16T& a) {
   const auto& rl = r.lanes();
   const auto& gl = g.lanes();
   const auto& bl = b.lanes();
@@ -778,7 +777,7 @@ void loadDstU8(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   load8Lowp(std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, kStageWidth),
-              pipeline.da);
+            pipeline.da);
   pipeline.nextStage();
 }
 
@@ -786,8 +785,8 @@ void loadDstU8Tail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
   load8Tail(pipeline.tail,
-              std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, pipeline.tail),
-              pipeline.da);
+            std::span<const std::uint8_t>(pipeline.pixmapDst->data + offset, pipeline.tail),
+            pipeline.da);
   pipeline.nextStage();
 }
 

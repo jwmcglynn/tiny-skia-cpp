@@ -53,7 +53,7 @@ tiny_skia_cc_library(
         "backend/X86Avx2FmaU16x16T.h",
         "backend/X86Avx2FmaU32x8T.h",
     ],
-    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"] + _SIMD_MODE_DEFINES,
+    defines = _SIMD_MODE_DEFINES,
     include_prefix = "tiny_skia/wide",
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],

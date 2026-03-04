@@ -1,6 +1,7 @@
 #include "tiny_skia/pipeline/Blitter.h"
 
 #include <algorithm>
+#include <cstring>
 
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/shaders/Mod.h"

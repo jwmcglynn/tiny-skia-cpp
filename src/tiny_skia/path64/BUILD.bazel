@@ -20,7 +20,6 @@ tiny_skia_cc_library(
         "Quad64.h",
         "Scalar64.h",
     ],
-    defines = ["TINYSKIA_CPP_BIT_EXACT_MODE=1"],
     include_prefix = "tiny_skia/path64",
     strip_include_prefix = ".",
     visibility = ["//visibility:public"],
