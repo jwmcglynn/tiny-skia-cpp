@@ -7,24 +7,28 @@
 ## Summary
 
 The public API currently follows Rust conventions — free functions like
-`fillRect(pixmapMut, rect, paint, transform)` that take a `PixmapMut&` as the
-first argument. This is unnatural in C++, where the same operation would be a
-method: `pixmap.fillRect(rect, paint)`.
+`fillRect(pixmapMut, rect, paint, transform)` in the `tiny_skia` namespace.
+This is unnatural in C++, where the same operations belong as methods on a
+class.
 
-This design adds method-based drawing APIs to `Pixmap` and `PixmapMut`, moves
-implementation-detail symbols out of the public surface, and adds convenience
-factory methods — all without introducing allocations or virtual dispatch.
+This design:
+1. Moves the free drawing functions into a `Painter` class as static methods.
+2. Adds convenience instance methods on `Pixmap` and `PixmapMut` that delegate
+   to `Painter`.
+3. Hides implementation-detail symbols from the public surface.
+4. Adds `Path::fromRect()` and `Path::fromCircle()` convenience statics.
+
+All changes are zero-overhead: no allocations, no virtual dispatch.
 
 ## Goals
 
-- Drawing operations become methods on `Pixmap` and `PixmapMut`.
-- Default `Transform::identity()` parameter so callers don't have to spell it
-  out in the common case.
-- Hide internal helpers (`DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
-  `strokeHairline`) from the public header.
+- Free drawing functions become `Painter::fillRect(...)` etc. (static methods).
+- `Pixmap`/`PixmapMut` get instance methods as syntactic sugar.
+- Default `Transform::identity()` parameter eliminates boilerplate.
+- Internal helpers (`DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
+  `strokeHairline`) move into `namespace detail` or become private.
 - Add `Path::fromRect()` and `Path::fromCircle()` convenience statics.
 - Zero new allocations, zero virtual calls, zero overhead vs current code.
-- Existing free-function API remains available (but can be deprecated later).
 
 ## Non-Goals
 
@@ -35,41 +39,49 @@ factory methods — all without introducing allocations or virtual dispatch.
   aggregate fields are idiomatic C++ already.
 - Renaming `PixmapRef`/`PixmapMut` — these names are reasonable for non-owning
   views analogous to `std::span`.
-- Removing the free-function API in this change.
 
 ## Next Steps
 
-1. Add drawing methods to `Pixmap` and `PixmapMut`.
-2. Move internal helpers into a `detail` namespace in `Painter.h`.
-3. Add `Path::fromRect()` / `Path::fromCircle()`.
-4. Build and test.
+1. Introduce `Painter` class with static methods in `Painter.h`.
+2. Move internal helpers into `Painter` as private statics or `detail`.
+3. Add drawing methods to `Pixmap` and `PixmapMut`.
+4. Add `Path::fromRect()` / `Path::fromCircle()`.
+5. Build and test.
 
 ## Implementation Plan
 
-- [ ] Milestone 1: Drawing methods on `Pixmap` and `PixmapMut`
-  - [ ] Add method declarations to `Pixmap` in `Pixmap.h`
-  - [ ] Add method declarations to `PixmapMut` in `Pixmap.h`
-  - [ ] Implement methods in `Pixmap.cpp` (thin delegation to free functions)
-  - [ ] Build and test gate
-- [ ] Milestone 2: Hide implementation details
+- [ ] Milestone 1: `Painter` class with static methods
+  - [ ] Wrap existing free functions as `Painter::fillRect`,
+        `Painter::fillPath`, `Painter::strokePath`, `Painter::drawPixmap`,
+        `Painter::applyMask` — all `static`
   - [ ] Move `DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
-        `strokeHairline` into `namespace detail` in `Painter.h`
-  - [ ] Update internal callers
+        `strokeHairline` into `Painter` as `private` statics
+        (or a `detail` namespace)
+  - [ ] Move `Paint` and `PixmapPaint` out of `Painter.h` into their own
+        header `Paint.h` (they are value types, not painter internals)
+  - [ ] Keep old free functions as deprecated inline wrappers that delegate to
+        `Painter::*` (allows incremental migration)
+  - [ ] Add default `Transform` parameter:
+        `Transform transform = Transform::identity()`
+  - [ ] Build and test gate
+- [ ] Milestone 2: Instance methods on `Pixmap` and `PixmapMut`
+  - [ ] Add drawing method declarations to `Pixmap` in `Pixmap.h`
+  - [ ] Add drawing method declarations to `PixmapMut` in `Pixmap.h`
+  - [ ] Implement in `Pixmap.cpp` (thin delegation to `Painter::*`)
   - [ ] Build and test gate
 - [ ] Milestone 3: Path convenience factories
   - [ ] Add `Path::fromRect(const Rect&)` static method
-  - [ ] Add `Path::fromCircle(float cx, float cy, float radius)` static method
+  - [ ] Add `Path::fromCircle(float cx, float cy, float radius)` static
+  - [ ] Keep `pathFromRect()` as deprecated inline wrapper
   - [ ] Build and test gate
-- [ ] Milestone 4: Default transform parameter on free functions
-  - [ ] Add `= Transform::identity()` default to `fillRect`, `fillPath`,
-        `strokePath`, `drawPixmap` free-function signatures
-  - [ ] Verify no ambiguity; build and test gate
 
 ## Proposed Architecture
 
 ### Before (Rust-style)
 
 ```cpp
+#include "tiny_skia/Painter.h"
+
 auto pixmap = Pixmap::fromSize(100, 100);
 auto mut = pixmap->asMut();
 
@@ -86,29 +98,107 @@ fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
 ### After (idiomatic C++)
 
 ```cpp
+#include "tiny_skia/Painter.h"
+
 auto pixmap = Pixmap::fromSize(100, 100);
 
 Paint paint;
 paint.setColorRgba8(0, 128, 255, 255);
 
+// Option A: Static methods on Painter (explicit about which subsystem)
 auto rect = Rect::fromXywh(10, 10, 80, 80);
-pixmap->fillRect(*rect, paint);
+Painter::fillRect(pixmap->asMut(), *rect, paint);
 
 auto path = Path::fromCircle(50, 50, 40);
+Painter::fillPath(pixmap->asMut(), *path, paint, FillRule::Winding);
+
+// Option B: Instance methods on Pixmap (most concise)
+pixmap->fillRect(*rect, paint);
 pixmap->fillPath(*path, paint, FillRule::Winding);
 ```
 
 Key differences:
-- `pixmap->fillRect(...)` instead of `fillRect(mut, ...)`
-- No explicit `asMut()` call needed
-- No `Transform::identity()` boilerplate
+- `Painter::fillRect(...)` groups drawing operations under a class
+- `pixmap->fillRect(...)` is available as sugar for the common case
+- No `Transform::identity()` boilerplate (defaulted)
 - `Path::fromCircle` instead of `PathBuilder::fromCircle`
 
-### New method signatures
+### Painter class
 
 ```cpp
-// --- Pixmap (non-const methods that operate on owned buffer) ---
+/// Groups all drawing operations. All methods are static — Painter has no
+/// state and cannot be instantiated. This replaces the previous free
+/// functions and provides a clear public API surface.
+class Painter {
+ public:
+  Painter() = delete;
 
+  /// Fills an axis-aligned rectangle onto the pixmap.
+  static void fillRect(PixmapMut& pixmap, const Rect& rect,
+                       const Paint& paint,
+                       Transform transform = Transform::identity(),
+                       const Mask* mask = nullptr);
+
+  /// Fills a path onto the pixmap.
+  static void fillPath(PixmapMut& pixmap, const Path& path,
+                       const Paint& paint, FillRule fillRule,
+                       Transform transform = Transform::identity(),
+                       const Mask* mask = nullptr);
+
+  /// Strokes a path onto the pixmap.
+  static void strokePath(PixmapMut& pixmap, const Path& path,
+                         const Paint& paint, const Stroke& stroke,
+                         Transform transform = Transform::identity(),
+                         const Mask* mask = nullptr);
+
+  /// Composites a source pixmap onto a destination pixmap.
+  static void drawPixmap(PixmapMut& pixmap, std::int32_t x,
+                         std::int32_t y, PixmapRef src,
+                         const PixmapPaint& paint = {},
+                         Transform transform = Transform::identity(),
+                         const Mask* mask = nullptr);
+
+  /// Applies a mask to already-drawn content.
+  static void applyMask(PixmapMut& pixmap, const Mask& mask);
+
+ private:
+  // Internal helpers — no longer on the public surface.
+  static bool isTooBigForMath(const Path& path);
+  static std::optional<float> treatAsHairline(const Paint& paint,
+                                              float strokeWidth,
+                                              Transform ts);
+  static void strokeHairline(const Path& path, const Paint& paint,
+                             LineCap lineCap,
+                             std::optional<SubMaskRef> mask,
+                             SubPixmapMut& subpix);
+};
+```
+
+`DrawTiler` moves into `namespace detail` (it's a multi-line class, awkward
+as a private nested class, and tests may want to unit-test it):
+
+```cpp
+namespace detail {
+class DrawTiler { /* unchanged implementation */ };
+}  // namespace detail
+```
+
+### Paint extraction
+
+`Paint` and `PixmapPaint` are currently defined in `Painter.h`. They are
+standalone value types with no dependency on `Painter`, so they move to a
+new `Paint.h` header. `Painter.h` includes `Paint.h`. Existing code that
+includes `Painter.h` continues to compile unchanged.
+
+```
+// New file: Paint.h
+struct Paint { ... };      // moved from Painter.h
+struct PixmapPaint { ... }; // if it exists, also moved
+```
+
+### Pixmap / PixmapMut instance methods
+
+```cpp
 class Pixmap {
  public:
   // ... existing API unchanged ...
@@ -136,76 +226,42 @@ class Pixmap {
 };
 ```
 
-```cpp
-// --- PixmapMut (same methods for non-owning mutable views) ---
+`PixmapMut` gets the same set.
 
-class PixmapMut {
- public:
-  // ... existing API unchanged ...
-
-  void fillRect(const Rect& rect, const Paint& paint,
-                Transform transform = Transform::identity(),
-                const Mask* mask = nullptr);
-
-  void fillPath(const Path& path, const Paint& paint,
-                FillRule fillRule,
-                Transform transform = Transform::identity(),
-                const Mask* mask = nullptr);
-
-  void strokePath(const Path& path, const Paint& paint,
-                  const Stroke& stroke,
-                  Transform transform = Transform::identity(),
-                  const Mask* mask = nullptr);
-
-  void drawPixmap(std::int32_t x, std::int32_t y, PixmapRef src,
-                  const PixmapPaint& paint = {},
-                  Transform transform = Transform::identity(),
-                  const Mask* mask = nullptr);
-
-  void applyMask(const Mask& mask);
-};
-```
-
-### Implementation
-
-Each method is a one-liner that delegates to the existing free function:
+### Implementation (all thin wrappers)
 
 ```cpp
+// Pixmap delegates through asMut() → Painter
 void Pixmap::fillRect(const Rect& rect, const Paint& paint,
                       Transform transform, const Mask* mask) {
   auto mut = asMut();
-  tiny_skia::fillRect(mut, rect, paint, transform, mask);
+  Painter::fillRect(mut, rect, paint, transform, mask);
 }
 
+// PixmapMut delegates directly to Painter
 void PixmapMut::fillRect(const Rect& rect, const Paint& paint,
                          Transform transform, const Mask* mask) {
-  tiny_skia::fillRect(*this, rect, paint, transform, mask);
+  Painter::fillRect(*this, rect, paint, transform, mask);
 }
 ```
 
-### Internal-detail hiding
+### Deprecated free-function wrappers
 
-Move these symbols into `namespace detail`:
-
-| Symbol | Reason |
-|--------|--------|
-| `DrawTiler` | Implementation of tiled rendering |
-| `isTooBigForMath` | Internal path validation |
-| `treatAsHairline` | Internal stroke classification |
-| `strokeHairline` | Internal hairline rendering |
-
-They remain in `Painter.h` (needed by internal callers in `Painter.cpp`) but
-are clearly marked as non-public:
+To avoid breaking the ~180 existing call sites immediately, the old free
+functions remain as deprecated inline wrappers:
 
 ```cpp
-namespace detail {
-  class DrawTiler { ... };
-  bool isTooBigForMath(const Path& path);
-  std::optional<float> treatAsHairline(const Paint&, float, Transform);
-  void strokeHairline(const Path&, const Paint&, LineCap,
-                      std::optional<SubMaskRef>, SubPixmapMut&);
-}  // namespace detail
+[[deprecated("Use Painter::fillRect or pixmap.fillRect()")]]
+inline void fillRect(PixmapMut& pixmap, const Rect& rect,
+                     const Paint& paint, Transform transform,
+                     const Mask* mask = nullptr) {
+  Painter::fillRect(pixmap, rect, paint, transform, mask);
+}
+// ... same for fillPath, strokePath, drawPixmap, applyMask
 ```
+
+This allows incremental migration of call sites. The wrappers can be
+removed in a follow-up once all callers are updated.
 
 ### Path convenience factories
 
@@ -216,7 +272,7 @@ class Path {
   static Path fromRect(const Rect& rect);
 
   /// Creates a circular path. Returns nullopt for non-positive radius.
-  static std::optional<Path> fromCircle(float cx, float cy, float radius);
+  static std::optional<Path> fromCircle(float cx, float cy, float r);
 };
 ```
 
@@ -225,37 +281,46 @@ class Path {
 
 ### Circular dependency note
 
-`Pixmap.h` currently does not include `Painter.h`. The new drawing methods on
-`Pixmap`/`PixmapMut` need `Paint`, `Path`, `Stroke`, `Mask`, `Transform`,
-`FillRule`, etc. Two options:
+`Pixmap.h` currently does not include `Painter.h`. The new drawing methods
+on `Pixmap`/`PixmapMut` need `Paint`, `Path`, `Stroke`, `Mask`, etc.
 
-**Option A: Forward-declare in `Pixmap.h`, implement in `Pixmap.cpp`.**
+**Approach: Forward-declare in `Pixmap.h`, implement in `Pixmap.cpp`.**
 The method bodies go in `Pixmap.cpp` which includes `Painter.h`. `Pixmap.h`
-only needs forward declarations. This avoids circular includes.
+only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
+`Mask`, `Rect`, `FillRule`, `Transform`. This avoids circular includes.
 
-**Option B: Add a new header `PixmapDraw.h`.**
-Keep `Pixmap.h` pure (data + view) and put drawing methods in a separate header
-that includes both `Pixmap.h` and `Painter.h`. Users include `PixmapDraw.h` for
-the full API.
+## File changes summary
 
-**Recommendation: Option A.** Forward declarations are simple and keep the API
-in one place. Users include `Pixmap.h` and get everything. The forward
-declarations for `Paint`, `Stroke`, `Path`, etc. are straightforward.
+| File | Change |
+|------|--------|
+| `Paint.h` (new) | `Paint`, `PixmapPaint` extracted from `Painter.h` |
+| `Painter.h` | `Painter` class with static methods; `detail::DrawTiler`; deprecated free-function wrappers; includes `Paint.h` |
+| `Painter.cpp` | Rename free functions to `Painter::` static methods |
+| `Pixmap.h` | Forward declarations + drawing method declarations |
+| `Pixmap.cpp` | Drawing method implementations delegating to `Painter` |
+| `Path.h` | Add `Path::fromRect()`, `Path::fromCircle()` statics |
+| `Path.cpp` | Implement the new statics |
 
 ## Testing and Validation
 
-- Existing tests continue to pass unchanged (free functions still work).
-- Add a small set of integration tests exercising the method-based API
-  to verify delegation is correct.
+- Existing tests continue to pass unchanged (deprecated wrappers maintain
+  backward compatibility).
+- Add a small set of tests exercising `Painter::fillRect(...)` and
+  `pixmap.fillRect(...)` to verify delegation.
 - No golden-image changes expected since behavior is identical.
 - Build and test gate: `bazel build //...` and `bazel test //...`.
 
 ## Alternatives Considered
 
-**Standalone `Canvas` or `Painter` class:**
+**Free functions only (status quo):**
+Works, but is a Rust-ism. Doesn't group related operations and pollutes
+the namespace. No discoverability via IDE autocomplete on the class.
+
+**Standalone `Canvas` class wrapping `PixmapMut`:**
 A non-owning wrapper like `Canvas(pixmapMut)` with drawing methods. Rejected
-because it adds an extra object with no benefit — `Pixmap` and `PixmapMut`
-already exist and are the natural target for methods.
+because `Painter` with static methods achieves the same grouping without
+requiring construction of a wrapper object. Instance methods on `Pixmap`
+cover the convenience case.
 
 **Replace `PixmapRef`/`PixmapMut` with `const Pixmap&`/`Pixmap&`:**
 Would break users who create views into external memory (e.g., from a
