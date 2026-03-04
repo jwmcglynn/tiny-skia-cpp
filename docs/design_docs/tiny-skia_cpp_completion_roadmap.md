@@ -3,7 +3,7 @@
 **Status:** Design
 **Author:** Codex
 **Created:** 2026-03-03
-**Updated:** 2026-03-04
+**Updated:** 2026-03-03
 
 ## Summary
 
@@ -15,6 +15,7 @@ features.
 ## Goals
 
 - Establish deterministic formatting and style tooling for C++ and Bazel files.
+- Support both Bazel and CMake build paths with CI coverage.
 - Ship complete project-facing docs, including onboarding and API references.
 - Add robust CI quality gates across supported platforms/toolchains.
 - Add explicit code coverage collection and quality gates for critical modules.
@@ -78,14 +79,14 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [x] Add/confirm `.clang-format` and formatter version policy in docs.
   - [x] Run `clang-format` across C++ sources and headers with tracked file audit.
   - [ ] Add/confirm `buildifier` formatting commands and policy for Bazel files.
-  - [ ] Add and document a CMake build path for the library (and tests where practical).
+  - [x] Add and document a CMake build path for the library (and tests where practical).
   - [ ] Verify Bazel files are buildifier-formatted and include no follow-up drift.
   - [ ] Record completion evidence for reproducible formatter runs.
 
 - [ ] Milestone 2: CI Quality Gates and Platform Matrix
   - [ ] Define CI matrix with minimum targets: `wasm`, `macOS arm64`, and `x86_64`.
   - [ ] Enforce `bazel build //...` and `bazel test //...` as required CI checks.
-  - [ ] Add CI validation for the CMake build path.
+  - [x] Add CI validation for the CMake build path.
   - [ ] Add dedicated warning-clean builds for both `clang` and `gcc`.
   - [ ] Drive compiler warnings to zero (or explicitly documented allowlist) for both
     `clang` and `gcc`.
@@ -140,7 +141,7 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Document supported platform/compiler matrix.
   - [ ] Add release checklist: changelog, docs, benchmarks, and test evidence.
   - [ ] Automate release publishing workflow for version tags and release notes.
-  - [ ] Document consumer integration paths (Bazel-first; any secondary integration path).
+  - [ ] Document consumer integration paths (Bazel and CMake).
 
 - [ ] Milestone 9: Completion Checklist and Acceptance
   - [ ] Confirm no intermediate-porting artifacts remain in production paths.

@@ -1,7 +1,8 @@
 # tiny-skia-cpp
 
-A C++20, Bazel-first port of [tiny-skia](https://github.com/linebender/tiny-skia),
+A C++20 port of [tiny-skia](https://github.com/linebender/tiny-skia),
 a minimal CPU-only 2D rendering library originally written in Rust.
+Builds with Bazel or CMake.
 
 The goal is a line-by-line, bit-accurate C++ translation focused on correctness
 and deterministic rendering.
@@ -28,9 +29,9 @@ See `docs/design_docs/` for design documents, validation audit, and function-lev
 ## Requirements
 
 - C++20 compiler (GCC 11+, Clang 14+, MSVC 19.30+)
-- [Bazel](https://bazel.build/) 7+ (or [Bazelisk](https://github.com/bazelbuild/bazelisk))
+- [Bazel](https://bazel.build/) 7+ (or [Bazelisk](https://github.com/bazelbuild/bazelisk)), **or** [CMake](https://cmake.org/) 3.16+
 
-## Quick Start
+## Quick Start (Bazel)
 
 ```bash
 # Install Bazelisk (if bazel is not already installed)
@@ -47,6 +48,25 @@ The `env-setup.sh` script accepts optional environment variables:
 
 - `INSTALL_DIR` — where to place the `bazel` binary (default: `/usr/local/bin`)
 - `BAZELISK_VERSION` — Bazelisk release tag (default: `v1.25.0`)
+
+## Quick Start (CMake)
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+
+This produces two static library targets:
+
+- **`tiny_skia`** — native SIMD (AVX2+FMA on x86_64, NEON on ARM64)
+- **`tiny_skia_scalar`** — portable scalar-only backend
+
+To use in your own CMake project:
+
+```cmake
+add_subdirectory(path/to/tiny-skia-cpp)
+target_link_libraries(your_target PRIVATE tiny_skia)
+```
 
 ## Examples
 
