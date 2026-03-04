@@ -129,12 +129,12 @@ inputs. These should be treated as untrusted. Production hardening includes:
   - [ ] Introduce dependency/license/vulnerability checks in CI.
   - [ ] Add SECURITY policy and issue disclosure guidance.
 
-- [ ] Milestone 7: Performance Optimization and Regression Guardrails
-  - [ ] Establish baseline measurements for representative rendering workloads.
-  - [ ] Identify and benchmark top bottlenecks with reproducible harnesses.
-  - [ ] Apply low-risk optimizations and track before/after deltas.
-  - [ ] Define and enforce regression thresholds in CI/perf workflow.
-  - [ ] Validate semantic parity after each optimization batch.
+- [x] Milestone 7: Performance Optimization and Regression Guardrails
+  - [x] Establish baseline measurements for representative rendering workloads.
+  - [x] Identify and benchmark top bottlenecks with reproducible harnesses.
+  - [x] Apply low-risk optimizations and track before/after deltas.
+  - [x] Define and enforce regression thresholds in CI/perf workflow.
+  - [x] Validate semantic parity after each optimization batch.
 
 - [ ] Milestone 8: Release Engineering and Production Delivery
   - [ ] Define versioning strategy (SemVer) and compatibility policy.

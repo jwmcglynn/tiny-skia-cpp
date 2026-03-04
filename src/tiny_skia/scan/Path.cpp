@@ -260,9 +260,9 @@ void fillPathImpl(const Path& path, FillRule fillRule, const ScreenIntRect& clip
   if (!edgesOpt.has_value()) {
     return;
   }
-  auto edges = std::move(edgesOpt.value());
+  auto builtEdges = std::move(edgesOpt.value());
 
-  std::sort(edges.begin(), edges.end(), [](const Edge& lhs, const Edge& rhs) {
+  std::sort(builtEdges.begin(), builtEdges.end(), [](const Edge& lhs, const Edge& rhs) {
     auto valueL = lhs.asLine().firstY;
     auto valueR = rhs.asLine().firstY;
     if (valueL == valueR) {
@@ -273,18 +273,25 @@ void fillPathImpl(const Path& path, FillRule fillRule, const ScreenIntRect& clip
     return valueL < valueR;
   });
 
-  for (std::size_t i = 0; i < edges.size(); ++i) {
-    edges[i].asLine().prev = static_cast<std::uint32_t>(i);
-    edges[i].asLine().next = static_cast<std::uint32_t>(i + 2);
-  }
-
+  // Build final edge list with head/tail sentinels at indices 0 and n+1.
+  // Pre-allocate to avoid O(n) insert at the beginning.
   constexpr auto kEdgeHeadY = std::numeric_limits<std::int32_t>::min();
   constexpr auto kEdgeTailY = std::numeric_limits<std::int32_t>::max();
+
+  std::vector<Edge> edges;
+  edges.reserve(builtEdges.size() + 2);
+
   LineEdge headLine;
   headLine.next = 1;
   headLine.x = std::numeric_limits<FDot16>::min();
   headLine.firstY = kEdgeHeadY;
-  edges.insert(edges.begin(), Edge(headLine));
+  edges.push_back(Edge(headLine));
+
+  for (std::size_t i = 0; i < builtEdges.size(); ++i) {
+    builtEdges[i].asLine().prev = static_cast<std::uint32_t>(i);
+    builtEdges[i].asLine().next = static_cast<std::uint32_t>(i + 2);
+    edges.push_back(std::move(builtEdges[i]));
+  }
 
   LineEdge tailLine;
   tailLine.prev = static_cast<std::uint32_t>(edges.size() - 1);

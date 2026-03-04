@@ -10,6 +10,10 @@
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
+#include "tiny_skia/Point.h"
+#include "tiny_skia/Stroke.h"
+#include "tiny_skia/shaders/Gradient.h"
+#include "tiny_skia/shaders/LinearGradient.h"
 #include "tiny_skia/wide/backend/BackendConfig.h"
 #include "tiny_skia_ffi.h"
 
@@ -18,11 +22,16 @@ namespace {
 using tiny_skia::BlendMode;
 using tiny_skia::Color;
 using tiny_skia::FillRule;
+using tiny_skia::GradientStop;
+using tiny_skia::LinearGradient;
 using tiny_skia::Paint;
 using tiny_skia::Path;
 using tiny_skia::PathBuilder;
 using tiny_skia::Pixmap;
+using tiny_skia::Point;
 using tiny_skia::Rect;
+using tiny_skia::SpreadMode;
+using tiny_skia::Stroke;
 using tiny_skia::Transform;
 using tiny_skia::wide::backend::backendName;
 using tiny_skia::wide::backend::selectedBackend;
@@ -350,6 +359,109 @@ void BM_FillRect_Rust(benchmark::State& state) {
   recordThroughput(state, state.range(0));
 }
 
+void BM_StrokePath_Cpp(benchmark::State& state) {
+  const auto dim = static_cast<std::uint32_t>(state.range(0));
+  auto pixmap = Pixmap::fromSize(dim, dim);
+  if (!pixmap.has_value()) {
+    state.SkipWithError("Failed to allocate C++ pixmap");
+    return;
+  }
+
+  auto path = createCppPath(static_cast<float>(dim));
+  if (!path.has_value()) {
+    state.SkipWithError("Failed to create C++ path");
+    return;
+  }
+
+  const Paint paint = createPaint();
+  Stroke stroke;
+  stroke.width = 3.0f;
+  stroke.lineCap = tiny_skia::LineCap::Round;
+  stroke.lineJoin = tiny_skia::LineJoin::Round;
+  const Color clearColor = Color::fromRgba8(0, 0, 0, 0);
+
+  for (auto _ : state) {
+    pixmap->fill(clearColor);
+    auto mut = pixmap->asMut();
+    tiny_skia::strokePath(mut, *path, paint, stroke, Transform::identity());
+    benchmark::DoNotOptimize(pixmap->data().data());
+    benchmark::ClobberMemory();
+  }
+
+  recordThroughput(state, state.range(0));
+}
+
+void BM_FillPath_LinearGradient_Cpp(benchmark::State& state) {
+  const auto dim = static_cast<std::uint32_t>(state.range(0));
+  auto pixmap = Pixmap::fromSize(dim, dim);
+  if (!pixmap.has_value()) {
+    state.SkipWithError("Failed to allocate C++ pixmap");
+    return;
+  }
+
+  auto path = createCppPath(static_cast<float>(dim));
+  if (!path.has_value()) {
+    state.SkipWithError("Failed to create C++ path");
+    return;
+  }
+
+  const auto d = static_cast<float>(dim);
+  auto gradient = LinearGradient::create(
+      Point::fromXy(0.1f * d, 0.1f * d), Point::fromXy(0.9f * d, 0.9f * d),
+      {GradientStop::create(0.0f, Color::fromRgba8(50, 127, 150, 200)),
+       GradientStop::create(1.0f, Color::fromRgba8(220, 140, 75, 180))},
+      SpreadMode::Pad, Transform::identity());
+  if (!gradient.has_value()) {
+    state.SkipWithError("Failed to create linear gradient");
+    return;
+  }
+
+  Paint paint;
+  paint.antiAlias = true;
+  paint.shader = std::get<LinearGradient>(std::move(*gradient));
+  const Color clearColor = Color::fromRgba8(0, 0, 0, 0);
+
+  for (auto _ : state) {
+    pixmap->fill(clearColor);
+    auto mut = pixmap->asMut();
+    tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    benchmark::DoNotOptimize(pixmap->data().data());
+    benchmark::ClobberMemory();
+  }
+
+  recordThroughput(state, state.range(0));
+}
+
+void BM_FillPath_Opaque_Cpp(benchmark::State& state) {
+  const auto dim = static_cast<std::uint32_t>(state.range(0));
+  auto pixmap = Pixmap::fromSize(dim, dim);
+  if (!pixmap.has_value()) {
+    state.SkipWithError("Failed to allocate C++ pixmap");
+    return;
+  }
+
+  auto path = createCppPath(static_cast<float>(dim));
+  if (!path.has_value()) {
+    state.SkipWithError("Failed to create C++ path");
+    return;
+  }
+
+  Paint paint;
+  paint.setColorRgba8(22, 158, 255, 255);
+  paint.antiAlias = true;
+  const Color clearColor = Color::fromRgba8(0, 0, 0, 0);
+
+  for (auto _ : state) {
+    pixmap->fill(clearColor);
+    auto mut = pixmap->asMut();
+    tiny_skia::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+    benchmark::DoNotOptimize(pixmap->data().data());
+    benchmark::ClobberMemory();
+  }
+
+  recordThroughput(state, state.range(0));
+}
+
 [[maybe_unused]] const bool kBenchmarkContextInitialized = []() {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE)
   benchmark::AddCustomContext("simdMode", "native");
@@ -366,5 +478,8 @@ BENCHMARK(BM_FillPath_Cpp)->Arg(kSceneSize);
 BENCHMARK(BM_FillPath_Rust)->Arg(kSceneSize);
 BENCHMARK(BM_FillRect_Cpp)->Arg(kSceneSize);
 BENCHMARK(BM_FillRect_Rust)->Arg(kSceneSize);
+BENCHMARK(BM_StrokePath_Cpp)->Arg(kSceneSize);
+BENCHMARK(BM_FillPath_LinearGradient_Cpp)->Arg(kSceneSize);
+BENCHMARK(BM_FillPath_Opaque_Cpp)->Arg(kSceneSize);
 
 }  // namespace

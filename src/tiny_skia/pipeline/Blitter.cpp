@@ -458,6 +458,7 @@ void RasterPipelineBlitter::blitRect(const ScreenIntRect& rect) {
     const auto c = *memsetColor_;
     const auto maxX = std::min<std::size_t>(pixmap_->width(), rect.x() + rect.width());
     const auto maxY = std::min<std::size_t>(pixmap_->height(), rect.y() + rect.height());
+    const auto rowWidth = maxX - rect.x();
     auto* data = pixmap_->data;
 
     if (isMaskOnly_) {
@@ -468,14 +469,13 @@ void RasterPipelineBlitter::blitRect(const ScreenIntRect& rect) {
         }
       }
     } else {
+      // Pack the 4-byte color into a uint32_t and fill entire rows at once.
+      std::uint32_t pixel = 0;
+      std::memcpy(&pixel, &c, sizeof(pixel));
+      auto* pixels = reinterpret_cast<std::uint32_t*>(data);
       for (std::size_t yy = rect.y(); yy < maxY; ++yy) {
-        for (std::size_t xx = rect.x(); xx < maxX; ++xx) {
-          const auto offset = (yy * pixmap_->realWidth + xx) * kBytesPerPixel;
-          data[offset + 0] = c.red();
-          data[offset + 1] = c.green();
-          data[offset + 2] = c.blue();
-          data[offset + 3] = c.alpha();
-        }
+        auto* row = pixels + yy * pixmap_->realWidth + rect.x();
+        std::fill(row, row + rowWidth, pixel);
       }
     }
     return;

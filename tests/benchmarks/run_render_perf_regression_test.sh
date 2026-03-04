@@ -73,20 +73,33 @@ baseline_ratio() {
 
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.45"; return
+    echo "1.52"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.42"; return
+    echo "1.62"; return
   fi
 
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.85"; return
+    echo "1.87"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.91"; return
+    echo "1.96"; return
+  fi
+
+  if [[ "${arch}" == "arm64" && "${workload}" == "stroke_path" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "0.93"; return
+  fi
+  if [[ "${arch}" == "arm64" && "${workload}" == "fill_path_gradient" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "0.86"; return
+  fi
+  if [[ "${arch}" == "arm64" && "${workload}" == "fill_path_opaque" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "1.11"; return
   fi
 
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path" \
@@ -105,6 +118,20 @@ baseline_ratio() {
   if [[ "${arch}" == "x86" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_rust" ]]; then
     echo "1.29"; return
+  fi
+
+  # New workloads: x86 baselines TBD — skip gracefully for now.
+  if [[ "${arch}" == "x86" && "${workload}" == "stroke_path" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "1.00"; return
+  fi
+  if [[ "${arch}" == "x86" && "${workload}" == "fill_path_gradient" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "1.00"; return
+  fi
+  if [[ "${arch}" == "x86" && "${workload}" == "fill_path_opaque" \
+    && "${metric}" == "simd_over_scalar" ]]; then
+    echo "1.00"; return
   fi
 
   echo ""
@@ -180,11 +207,23 @@ fill_rect_cpp_scalar="$(extract_mean_real_time_ns "${SCALAR_CSV}" "BM_FillRect_C
 fill_rect_rust_native="$(extract_mean_real_time_ns "${NATIVE_CSV}" "BM_FillRect_Rust/512")"
 fill_rect_rust_scalar="$(extract_mean_real_time_ns "${SCALAR_CSV}" "BM_FillRect_Rust/512")"
 
+stroke_path_cpp_native="$(extract_mean_real_time_ns "${NATIVE_CSV}" "BM_StrokePath_Cpp/512")"
+stroke_path_cpp_scalar="$(extract_mean_real_time_ns "${SCALAR_CSV}" "BM_StrokePath_Cpp/512")"
+
+fill_path_gradient_cpp_native="$(extract_mean_real_time_ns "${NATIVE_CSV}" "BM_FillPath_LinearGradient_Cpp/512")"
+fill_path_gradient_cpp_scalar="$(extract_mean_real_time_ns "${SCALAR_CSV}" "BM_FillPath_LinearGradient_Cpp/512")"
+
+fill_path_opaque_cpp_native="$(extract_mean_real_time_ns "${NATIVE_CSV}" "BM_FillPath_Opaque_Cpp/512")"
+fill_path_opaque_cpp_scalar="$(extract_mean_real_time_ns "${SCALAR_CSV}" "BM_FillPath_Opaque_Cpp/512")"
+
 for value in \
   "${fill_path_cpp_native}" "${fill_path_cpp_scalar}" \
   "${fill_path_rust_native}" "${fill_path_rust_scalar}" \
   "${fill_rect_cpp_native}" "${fill_rect_cpp_scalar}" \
-  "${fill_rect_rust_native}" "${fill_rect_rust_scalar}"; do
+  "${fill_rect_rust_native}" "${fill_rect_rust_scalar}" \
+  "${stroke_path_cpp_native}" "${stroke_path_cpp_scalar}" \
+  "${fill_path_gradient_cpp_native}" "${fill_path_gradient_cpp_scalar}" \
+  "${fill_path_opaque_cpp_native}" "${fill_path_opaque_cpp_scalar}"; do
   if [[ -z "${value}" ]]; then
     echo "Failed to parse benchmark CSV output" >&2
     exit 1
@@ -200,14 +239,25 @@ fill_path_simd_over_rust="$(ratio "${fill_path_rust_avg}" "${fill_path_cpp_nativ
 fill_rect_simd_over_scalar="$(ratio "${fill_rect_cpp_scalar}" "${fill_rect_cpp_native}")"
 fill_rect_simd_over_rust="$(ratio "${fill_rect_rust_avg}" "${fill_rect_cpp_native}")"
 
+stroke_path_simd_over_scalar="$(ratio "${stroke_path_cpp_scalar}" "${stroke_path_cpp_native}")"
+fill_path_gradient_simd_over_scalar="$(ratio "${fill_path_gradient_cpp_scalar}" "${fill_path_gradient_cpp_native}")"
+fill_path_opaque_simd_over_scalar="$(ratio "${fill_path_opaque_cpp_scalar}" "${fill_path_opaque_cpp_native}")"
+
 echo "Computed metrics (matching run_render_perf_compare.sh):"
 echo "  FillPath simd_over_scalar=${fill_path_simd_over_scalar} simd_over_rust=${fill_path_simd_over_rust}"
 echo "  FillRect simd_over_scalar=${fill_rect_simd_over_scalar} simd_over_rust=${fill_rect_simd_over_rust}"
+echo "  StrokePath simd_over_scalar=${stroke_path_simd_over_scalar}"
+echo "  FillPathGradient simd_over_scalar=${fill_path_gradient_simd_over_scalar}"
+echo "  FillPathOpaque simd_over_scalar=${fill_path_opaque_simd_over_scalar}"
 
 check_metric "${ARCH_KIND}" "fill_path" "simd_over_scalar" "${fill_path_simd_over_scalar}"
 check_metric "${ARCH_KIND}" "fill_path" "simd_over_rust" "${fill_path_simd_over_rust}"
 
 check_metric "${ARCH_KIND}" "fill_rect" "simd_over_scalar" "${fill_rect_simd_over_scalar}"
 check_metric "${ARCH_KIND}" "fill_rect" "simd_over_rust" "${fill_rect_simd_over_rust}"
+
+check_metric "${ARCH_KIND}" "stroke_path" "simd_over_scalar" "${stroke_path_simd_over_scalar}"
+check_metric "${ARCH_KIND}" "fill_path_gradient" "simd_over_scalar" "${fill_path_gradient_simd_over_scalar}"
+check_metric "${ARCH_KIND}" "fill_path_opaque" "simd_over_scalar" "${fill_path_opaque_simd_over_scalar}"
 
 echo "Perf regression ratios are within configured bounds."
