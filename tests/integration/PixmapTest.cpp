@@ -124,7 +124,7 @@ TEST(PixmapTest, DrawPixmap) {
         paint.setColorRgba8(50, 127, 150, 200);
         paint.antiAlias = false;
 
-        auto rect = Rect::fromLtrb(0.0f, 50.0f, 100.0f, 100.0f);
+        auto rect = Rect::fromLTRB(0.0f, 50.0f, 100.0f, 100.0f);
         ASSERT_TRUE(rect.has_value());
 
         auto mut = subPixmap->mutableView();

@@ -26,7 +26,7 @@ void setShaderFromVariant(Paint& paint, V&& var) {
 static Pixmap make4x4(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a) {
   auto pm = Pixmap::fromSize(4, 4);
   EXPECT_TRUE(pm.has_value());
-  auto pixels = pm->pixelsMut();
+  auto pixels = pm->pixels();
   for (auto& px : pixels) {
     px = PremultipliedColorU8(r, g, b, a);
   }
@@ -104,7 +104,7 @@ TEST(PipelineTransformTest, ScaledFillRect) {
 
   // Scale 2x, so a 1x1 rect becomes 2x2.
   const auto ts = Transform::fromScale(2.0f, 2.0f);
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 1.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 1.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, ts);
 
@@ -129,7 +129,7 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+  auto grad = LinearGradient::create(Point::fromXY(0.0f, 0.0f), Point::fromXY(10.0f, 0.0f),
                                      std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
@@ -137,7 +137,7 @@ TEST(PipelineGradientTest, LinearGradient2Stop) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -174,7 +174,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
       GradientStop::create(0.5f, Color::fromRgba8(0, 255, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+  auto grad = LinearGradient::create(Point::fromXY(0.0f, 0.0f), Point::fromXY(10.0f, 0.0f),
                                      std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
@@ -182,7 +182,7 @@ TEST(PipelineGradientTest, LinearGradient3Stop) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 10.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -213,7 +213,7 @@ TEST(PipelineGradientTest, RadialGradient) {
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
   auto grad =
-      RadialGradient::create(Point::fromXy(5.0f, 5.0f), 0.0f, Point::fromXy(5.0f, 5.0f), 5.0f,
+      RadialGradient::create(Point::fromXY(5.0f, 5.0f), 0.0f, Point::fromXY(5.0f, 5.0f), 5.0f,
                              std::move(stops), SpreadMode::Pad, Transform::identity());
   if (!grad.has_value()) {
     GTEST_SKIP() << "RadialGradient::create returned nullopt";
@@ -223,7 +223,7 @@ TEST(PipelineGradientTest, RadialGradient) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -250,7 +250,7 @@ TEST(PipelineGradientTest, SweepGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = SweepGradient::create(Point::fromXy(5.0f, 5.0f), 0.0f, 360.0f, std::move(stops),
+  auto grad = SweepGradient::create(Point::fromXY(5.0f, 5.0f), 0.0f, 360.0f, std::move(stops),
                                     SpreadMode::Pad, Transform::identity());
   if (!grad.has_value()) {
     GTEST_SKIP() << "SweepGradient::create returned nullopt";
@@ -260,7 +260,7 @@ TEST(PipelineGradientTest, SweepGradient) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 10.0f, 10.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 10.0f, 10.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -284,7 +284,7 @@ TEST(PipelineTileModeTest, PadGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+  auto grad = LinearGradient::create(Point::fromXY(0.0f, 0.0f), Point::fromXY(10.0f, 0.0f),
                                      std::move(stops), SpreadMode::Pad, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
@@ -292,7 +292,7 @@ TEST(PipelineTileModeTest, PadGradient) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -311,7 +311,7 @@ TEST(PipelineTileModeTest, RepeatGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+  auto grad = LinearGradient::create(Point::fromXY(0.0f, 0.0f), Point::fromXY(10.0f, 0.0f),
                                      std::move(stops), SpreadMode::Repeat, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
@@ -319,7 +319,7 @@ TEST(PipelineTileModeTest, RepeatGradient) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -339,7 +339,7 @@ TEST(PipelineTileModeTest, ReflectGradient) {
       GradientStop::create(0.0f, Color::fromRgba8(255, 0, 0, 255)),
       GradientStop::create(1.0f, Color::fromRgba8(0, 0, 255, 255)),
   };
-  auto grad = LinearGradient::create(Point::fromXy(0.0f, 0.0f), Point::fromXy(10.0f, 0.0f),
+  auto grad = LinearGradient::create(Point::fromXY(0.0f, 0.0f), Point::fromXY(10.0f, 0.0f),
                                      std::move(stops), SpreadMode::Reflect, Transform::identity());
   ASSERT_TRUE(grad.has_value());
 
@@ -347,7 +347,7 @@ TEST(PipelineTileModeTest, ReflectGradient) {
   setShaderFromVariant(paint, std::move(*grad));
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 20.0f, 1.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 20.0f, 1.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -371,7 +371,7 @@ TEST(PipelineBlendTest, DarkenBlend) {
   paint.blendMode = BlendMode::Darken;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -393,7 +393,7 @@ TEST(PipelineBlendTest, LightenBlend) {
   paint.blendMode = BlendMode::Lighten;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -413,7 +413,7 @@ TEST(PipelineBlendTest, DifferenceBlend) {
   paint.blendMode = BlendMode::Difference;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -435,7 +435,7 @@ TEST(PipelineBlendTest, ExclusionBlend) {
   paint.blendMode = BlendMode::Exclusion;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -457,7 +457,7 @@ TEST(PipelineBlendTest, ScreenBlend) {
   paint.blendMode = BlendMode::Screen;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -476,7 +476,7 @@ TEST(PipelineBlendTest, OverlayBlend) {
   paint.blendMode = BlendMode::Overlay;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -495,7 +495,7 @@ TEST(PipelineBlendTest, HardLightBlend) {
   paint.blendMode = BlendMode::HardLight;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -513,7 +513,7 @@ TEST(PipelineBlendTest, SoftLightBlend) {
   paint.blendMode = BlendMode::SoftLight;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -531,7 +531,7 @@ TEST(PipelineBlendTest, ColorDodgeBlend) {
   paint.blendMode = BlendMode::ColorDodge;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -550,7 +550,7 @@ TEST(PipelineBlendTest, ColorBurnBlend) {
   paint.blendMode = BlendMode::ColorBurn;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -573,7 +573,7 @@ TEST(PipelineBlendTest, HueBlend) {
   paint.blendMode = BlendMode::Hue;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -593,7 +593,7 @@ TEST(PipelineBlendTest, SaturationBlend) {
   paint.blendMode = BlendMode::Saturation;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -611,7 +611,7 @@ TEST(PipelineBlendTest, ColorBlend) {
   paint.blendMode = BlendMode::Color;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -630,7 +630,7 @@ TEST(PipelineBlendTest, LuminosityBlend) {
   paint.blendMode = BlendMode::Luminosity;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -652,7 +652,7 @@ TEST(PipelineGammaTest, SrgbColorspace) {
   paint.colorspace = ColorSpace::SimpleSRGB;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 
@@ -674,7 +674,7 @@ TEST(PipelineGammaTest, Gamma2Colorspace) {
   paint.colorspace = ColorSpace::Gamma2;
   paint.antiAlias = false;
 
-  auto rect = Rect::fromLtrb(0.0f, 0.0f, 4.0f, 4.0f);
+  auto rect = Rect::fromLTRB(0.0f, 0.0f, 4.0f, 4.0f);
   ASSERT_TRUE(rect.has_value());
   Painter::fillRect(mut, *rect, paint, Transform::identity());
 

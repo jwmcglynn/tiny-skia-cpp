@@ -56,7 +56,7 @@ TEST(PipelineBlitterTest, CreateWithExternalMaskModulatesRectAlpha) {
   auto sub = pixmap->mutableView().subpixmap();
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{0u, 128u},
-                                       tiny_skia::IntSize::fromWh(2, 1).value());
+                                       tiny_skia::IntSize::fromWH(2, 1).value());
   ASSERT_TRUE(mask.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
@@ -78,7 +78,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskWritesColorWithMaskCoverage) {
   auto sub = pixmap->mutableView().subpixmap();
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{64u, 255u},
-                                       tiny_skia::IntSize::fromWh(2, 1).value());
+                                       tiny_skia::IntSize::fromWH(2, 1).value());
   ASSERT_TRUE(mask.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
@@ -97,10 +97,10 @@ TEST(PipelineBlitterTest, CreateBlitMaskCombinesWithExternalMaskCoverage) {
   auto sub = pixmap->mutableView().subpixmap();
 
   auto external = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{255u, 128u},
-                                           tiny_skia::IntSize::fromWh(2, 1).value());
+                                           tiny_skia::IntSize::fromWH(2, 1).value());
   ASSERT_TRUE(external.has_value());
   auto incoming = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{255u, 255u},
-                                           tiny_skia::IntSize::fromWh(2, 1).value());
+                                           tiny_skia::IntSize::fromWH(2, 1).value());
   ASSERT_TRUE(incoming.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 200u);
@@ -120,7 +120,7 @@ TEST(PipelineBlitterTest, CreateBlitMaskPartialCoverageComposesAcrossPasses) {
   auto sub = pixmap->mutableView().subpixmap();
 
   auto incoming = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{255u},
-                                           tiny_skia::IntSize::fromWh(1, 1).value());
+                                           tiny_skia::IntSize::fromWH(1, 1).value());
   ASSERT_TRUE(incoming.has_value());
 
   const auto color = tiny_skia::PremultipliedColorU8::fromRgbaUnchecked(10u, 20u, 30u, 100u);
@@ -347,7 +347,7 @@ TEST(PipelineBlitterTest, BlitMaskClipsWhenClipExceedsMaskDimensions) {
   ASSERT_TRUE(blitter.has_value());
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{80u, 160u},
-                                       tiny_skia::IntSize::fromWh(2, 1).value());
+                                       tiny_skia::IntSize::fromWH(2, 1).value());
   ASSERT_TRUE(mask.has_value());
 
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 3, 1);
@@ -368,7 +368,7 @@ TEST(PipelineBlitterTest, BlitMaskPartialCoverageComposesAcrossPasses) {
   ASSERT_TRUE(blitter.has_value());
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{128u},
-                                       tiny_skia::IntSize::fromWh(1, 1).value());
+                                       tiny_skia::IntSize::fromWH(1, 1).value());
   ASSERT_TRUE(mask.has_value());
 
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 1, 1);
@@ -388,7 +388,7 @@ TEST(PipelineBlitterTest, BlitMaskLerpsDestinationAlphaWithCoverageMap) {
   ASSERT_TRUE(blitter.has_value());
 
   auto mask = tiny_skia::Mask::fromVec(std::vector<std::uint8_t>{0u, 64u, 128u, 255u},
-                                       tiny_skia::IntSize::fromWh(2, 2).value());
+                                       tiny_skia::IntSize::fromWH(2, 2).value());
   ASSERT_TRUE(mask.has_value());
 
   const auto clip = tiny_skia::ScreenIntRect::fromXYWH(0, 0, 2, 2);

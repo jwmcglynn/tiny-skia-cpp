@@ -8,7 +8,7 @@
 namespace tiny_skia {
 
 std::optional<Mask> Mask::fromSize(std::uint32_t width, std::uint32_t height) {
-  const auto size = IntSize::fromWh(width, height);
+  const auto size = IntSize::fromWH(width, height);
   if (!size.has_value()) {
     return std::nullopt;
   }
@@ -84,7 +84,7 @@ std::optional<SubMaskView> Mask::submask(IntRect rect) const {
   const auto rowBytes = static_cast<std::size_t>(width());
   const auto offset = static_cast<std::size_t>(intersection->top()) * rowBytes +
                       static_cast<std::size_t>(intersection->left());
-  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  const auto subSize = IntSize::fromWH(intersection->width(), intersection->height());
   if (!subSize.has_value()) {
     return std::nullopt;
   }
@@ -118,7 +118,7 @@ std::optional<MutableSubMaskView> Mask::subpixmap(IntRect rect) {
   const auto rowBytes = static_cast<std::size_t>(width());
   const auto offset = static_cast<std::size_t>(intersection->top()) * rowBytes +
                       static_cast<std::size_t>(intersection->left());
-  const auto subSize = IntSize::fromWh(intersection->width(), intersection->height());
+  const auto subSize = IntSize::fromWH(intersection->width(), intersection->height());
   if (!subSize.has_value()) {
     return std::nullopt;
   }
@@ -130,7 +130,7 @@ std::optional<MutableSubMaskView> Mask::subpixmap(IntRect rect) {
   };
 }
 
-std::vector<std::uint8_t> Mask::take() {
+std::vector<std::uint8_t> Mask::release() {
   size_ = IntSize{};
   return std::move(data_);
 }

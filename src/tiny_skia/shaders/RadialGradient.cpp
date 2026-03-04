@@ -21,7 +21,7 @@ std::optional<Transform> tsFromPolyToPoly(Point src1, Point src2, Point dst1, Po
 }
 
 std::optional<Transform> mapToUnitX(Point origin, Point xIsOne) {
-  return tsFromPolyToPoly(origin, xIsOne, Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
+  return tsFromPolyToPoly(origin, xIsOne, Point::fromXY(0.0f, 0.0f), Point::fromXY(1.0f, 0.0f));
 }
 
 }  // namespace
@@ -43,8 +43,8 @@ bool FocalData::set(float r0_in, float r1_in, Transform& matrix) {
     isSwapped = true;
   }
 
-  const auto focalMatrix = tsFromPolyToPoly(Point::fromXy(focalX, 0.0f), Point::fromXy(1.0f, 0.0f),
-                                            Point::fromXy(0.0f, 0.0f), Point::fromXy(1.0f, 0.0f));
+  const auto focalMatrix = tsFromPolyToPoly(Point::fromXY(focalX, 0.0f), Point::fromXY(1.0f, 0.0f),
+                                            Point::fromXY(0.0f, 0.0f), Point::fromXY(1.0f, 0.0f));
   if (!focalMatrix.has_value()) return false;
 
   matrix = matrix.postConcat(*focalMatrix);

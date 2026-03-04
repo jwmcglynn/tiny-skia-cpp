@@ -18,7 +18,7 @@ class AlphaRuns {
   explicit AlphaRuns(LengthU32 width);
 
   static std::uint8_t catchOverflow(std::uint16_t alpha);
-  [[nodiscard]] bool isEmpty() const;
+  [[nodiscard]] bool empty() const;
 
   void reset(LengthU32 width);
 

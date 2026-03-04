@@ -25,8 +25,8 @@ class PathBuilder {
     points_.reserve(points_.size() + additionalPoints);
   }
 
-  [[nodiscard]] std::size_t len() const { return verbs_.size(); }
-  [[nodiscard]] bool isEmpty() const { return verbs_.empty(); }
+  [[nodiscard]] std::size_t size() const { return verbs_.size(); }
+  [[nodiscard]] bool empty() const { return verbs_.empty(); }
 
   void moveTo(float x, float y);
   void lineTo(float x, float y);

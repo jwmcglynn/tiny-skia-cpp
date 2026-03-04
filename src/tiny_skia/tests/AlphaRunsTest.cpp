@@ -23,7 +23,7 @@ TEST(AlphaRunsTest, CatchOverflow) {
 
 TEST(AlphaRunsTest, ConstructorResetAndIsEmpty) {
   tiny_skia::AlphaRuns runs(5);
-  EXPECT_TRUE(runs.isEmpty());
+  EXPECT_TRUE(runs.empty());
   EXPECT_THAT(runs.runs[0], Optional(5u));
   EXPECT_EQ(runs.alpha[0], 0u);
   EXPECT_FALSE(runs.runs[5].has_value());
@@ -39,7 +39,7 @@ TEST(AlphaRunsTest, AddComposesStartAndMiddle) {
   tiny_skia::AlphaRuns runs(5);
   auto offset = runs.add(1, 0, 3, 0, 70, 0);
   EXPECT_EQ(offset, 4u);
-  EXPECT_FALSE(runs.isEmpty());
+  EXPECT_FALSE(runs.empty());
 
   EXPECT_THAT(runs.runs[0], Optional(1u));
   EXPECT_THAT(runs.runs[1], Optional(3u));

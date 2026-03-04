@@ -62,7 +62,7 @@ IntRect ScreenIntRect::toIntRect() const {
 }
 
 Rect ScreenIntRect::toRect() const {
-  return Rect::fromLtrb(static_cast<float>(x_), static_cast<float>(y_),
+  return Rect::fromLTRB(static_cast<float>(x_), static_cast<float>(y_),
                         static_cast<float>(x_) + width_, static_cast<float>(y_) + height_)
       .value();
 }
@@ -131,11 +131,11 @@ std::optional<IntRect> IntSize::toIntRect(std::int32_t x, std::int32_t y) const 
 }
 
 Rect IntSize::toRect() const {
-  return Rect::fromLtrb(0.0f, 0.0f, static_cast<float>(width_), static_cast<float>(height_))
+  return Rect::fromLTRB(0.0f, 0.0f, static_cast<float>(width_), static_cast<float>(height_))
       .value();
 }
 
-std::optional<Rect> Rect::fromLtrb(float left, float top, float right, float bottom) {
+std::optional<Rect> Rect::fromLTRB(float left, float top, float right, float bottom) {
   if (!std::isfinite(left) || !std::isfinite(top) || !std::isfinite(right) ||
       !std::isfinite(bottom)) {
     return std::nullopt;

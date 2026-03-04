@@ -40,7 +40,7 @@ TEST(GeomTest, ScreenIntRectOperations) {
 }
 
 TEST(GeomTest, IntSizeAndRectConversions) {
-  const auto sizeOpt = tiny_skia::IntSize::fromWh(3, 4);
+  const auto sizeOpt = tiny_skia::IntSize::fromWH(3, 4);
   ASSERT_THAT(sizeOpt, testing::Optional(testing::_));
 
   const auto screen = sizeOpt->toScreenIntRect(1, 2);
@@ -54,8 +54,8 @@ TEST(GeomTest, IntSizeAndRectConversions) {
 }
 
 TEST(GeomTest, IntSizeFromWhRejectsZero) {
-  EXPECT_THAT(tiny_skia::IntSize::fromWh(0, 1), testing::Eq(std::nullopt));
-  EXPECT_THAT(tiny_skia::IntSize::fromWh(1, 0), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::IntSize::fromWH(0, 1), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::IntSize::fromWH(1, 0), testing::Eq(std::nullopt));
 }
 
 TEST(GeomTest, IntRectFromXYWHRejectsInvalidInputs) {
@@ -79,19 +79,19 @@ TEST(GeomTest, IntRectToScreenIntRectReturnsExpected) {
 }
 
 TEST(GeomTest, RectFromLtrbRejectsInvalidBounds) {
-  EXPECT_THAT(tiny_skia::Rect::fromLtrb(2.0f, 1.0f, 1.0f, 2.0f), testing::Eq(std::nullopt));
-  EXPECT_THAT(tiny_skia::Rect::fromLtrb(1.0f, 2.0f, 1.0f, 1.0f), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::Rect::fromLTRB(2.0f, 1.0f, 1.0f, 2.0f), testing::Eq(std::nullopt));
+  EXPECT_THAT(tiny_skia::Rect::fromLTRB(1.0f, 2.0f, 1.0f, 1.0f), testing::Eq(std::nullopt));
 }
 
 TEST(GeomTest, PathModuleWrappersRouteToUnderlyingImplementations) {
-  const auto rectDirect = tiny_skia::Rect::fromXywh(1.0f, 2.0f, 3.0f, 4.0f);
-  const auto rectWrapped = tiny_skia::pathRectRs::fromXywh(1.0f, 2.0f, 3.0f, 4.0f);
+  const auto rectDirect = tiny_skia::Rect::fromXYWH(1.0f, 2.0f, 3.0f, 4.0f);
+  const auto rectWrapped = tiny_skia::pathRectRs::fromXYWH(1.0f, 2.0f, 3.0f, 4.0f);
   ASSERT_THAT(rectDirect, testing::Optional(testing::_));
   ASSERT_THAT(rectWrapped, testing::Optional(testing::_));
   EXPECT_EQ(*rectWrapped, *rectDirect);
 
-  const auto sizeDirect = tiny_skia::IntSize::fromWh(3, 4);
-  const auto sizeWrapped = tiny_skia::pathSizeRs::fromWh(3, 4);
+  const auto sizeDirect = tiny_skia::IntSize::fromWH(3, 4);
+  const auto sizeWrapped = tiny_skia::pathSizeRs::fromWH(3, 4);
   ASSERT_THAT(sizeDirect, testing::Optional(testing::_));
   ASSERT_THAT(sizeWrapped, testing::Optional(testing::_));
   EXPECT_EQ(*sizeWrapped, *sizeDirect);

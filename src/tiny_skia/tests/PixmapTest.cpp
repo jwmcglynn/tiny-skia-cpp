@@ -38,7 +38,7 @@ TEST(PixmapTest, FromSizeAllocatesZeroedRgbaBuffer) {
 }
 
 TEST(PixmapTest, FromVecValidatesExactByteLength) {
-  const auto size = tiny_skia::IntSize::fromWh(2, 2);
+  const auto size = tiny_skia::IntSize::fromWH(2, 2);
   ASSERT_THAT(size, Optional(testing::_));
 
   EXPECT_THAT(tiny_skia::Pixmap::fromVec(std::vector<std::uint8_t>(15, 0), *size),
@@ -73,16 +73,16 @@ TEST(PixmapTest, DataMutPixelsMutAndTakeExposeOwnedStorage) {
   ASSERT_THAT(pixmapOpt, Optional(testing::_));
   auto pixmap = std::move(*pixmapOpt);
 
-  auto mutableBytes = pixmap.dataMut();
+  auto mutableBytes = pixmap.data();
   mutableBytes[0] = 9;
   mutableBytes[1] = 10;
   mutableBytes[2] = 11;
   mutableBytes[3] = 12;
 
-  ASSERT_EQ(pixmap.pixelsMut().size(), 1u);
-  EXPECT_THAT(pixmap.pixelsMut()[0], PremultipliedColorU8Eq(9u, 10u, 11u, 12u));
+  ASSERT_EQ(pixmap.pixels().size(), 1u);
+  EXPECT_THAT(pixmap.pixels()[0], PremultipliedColorU8Eq(9u, 10u, 11u, 12u));
 
-  const auto taken = pixmap.take();
+  const auto taken = pixmap.release();
   ASSERT_EQ(taken.size(), 4u);
   EXPECT_THAT(taken, ElementsAre(9u, 10u, 11u, 12u));
   EXPECT_TRUE(pixmap.data().empty());
@@ -100,13 +100,13 @@ TEST(PixmapTest, FillAndTakeDemultipliedMatchColorConversion) {
   ASSERT_EQ(pixmap.pixels().size(), 2u);
   EXPECT_THAT(pixmap.pixels()[0], PremultipliedColorU8Eq(128u, 0u, 0u, 128u));
 
-  const auto demul = pixmap.takeDemultiplied();
+  const auto demul = pixmap.releaseDemultiplied();
   ASSERT_EQ(demul.size(), 8u);
   EXPECT_THAT(demul, ElementsAre(255u, 0u, 0u, 128u, 255u, 0u, 0u, 128u));
 }
 
 TEST(PixmapTest, CloneRectCopiesContainedRegion) {
-  const auto size = tiny_skia::IntSize::fromWh(3, 2);
+  const auto size = tiny_skia::IntSize::fromWH(3, 2);
   ASSERT_THAT(size, Optional(testing::_));
   auto pixmap = tiny_skia::Pixmap::fromVec(
       std::vector<std::uint8_t>{
@@ -132,8 +132,8 @@ TEST(PixmapTest, MutablePixmapViewFromBytesAndSubpixmapProvideMutableSubview) {
   };
   auto mut = tiny_skia::MutablePixmapView::fromBytes(bytes, 2, 2);
   ASSERT_THAT(mut, Optional(testing::_));
-  ASSERT_EQ(mut->pixelsMut().size(), 4u);
-  EXPECT_THAT(mut->pixelsMut()[0], PremultipliedColorU8Eq(1u, 2u, 3u, 4u));
+  ASSERT_EQ(mut->pixels().size(), 4u);
+  EXPECT_THAT(mut->pixels()[0], PremultipliedColorU8Eq(1u, 2u, 3u, 4u));
 
   const auto rect = tiny_skia::IntRect::fromXYWH(1, 1, 1, 1);
   ASSERT_THAT(rect, Optional(testing::_));

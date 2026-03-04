@@ -45,7 +45,7 @@ int main() {
   Painter::fillPath(mut, *path1, paint1, FillRule::Winding, Transform::identity());
   Painter::fillPath(mut, *path2, paint2, FillRule::Winding, Transform::identity());
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("fill.png", data.data(), 1000, 1000)) {
     std::printf("Wrote fill.png (1000x1000)\n");
   } else {

@@ -41,7 +41,7 @@ int main() {
   auto mut = pixmap->mutableView();
   Painter::strokePath(mut, *path, paint, stroke, Transform::identity());
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("stroke.png", data.data(), 500, 500)) {
     std::printf("Wrote stroke.png (500x500)\n");
   } else {

@@ -63,8 +63,8 @@ class Path {
   /// Creates a circular path. Returns nullopt for non-positive radius.
   [[nodiscard]] static std::optional<Path> fromCircle(float cx, float cy, float r);
 
-  [[nodiscard]] std::size_t len() const { return verbs_.size(); }
-  [[nodiscard]] bool isEmpty() const { return verbs_.empty(); }
+  [[nodiscard]] std::size_t size() const { return verbs_.size(); }
+  [[nodiscard]] bool empty() const { return verbs_.empty(); }
 
   [[nodiscard]] std::span<const PathVerb> verbs() const { return verbs_; }
   [[nodiscard]] std::span<const Point> points() const { return points_; }
@@ -75,10 +75,10 @@ class Path {
     if (bounds_.has_value()) {
       const auto current = bounds_.value();
       bounds_ =
-          Rect::fromLtrb(std::min(current.left(), point.x), std::min(current.top(), point.y),
+          Rect::fromLTRB(std::min(current.left(), point.x), std::min(current.top(), point.y),
                          std::max(current.right(), point.x), std::max(current.bottom(), point.y));
     } else {
-      bounds_ = Rect::fromLtrb(point.x, point.y, point.x, point.y);
+      bounds_ = Rect::fromLTRB(point.x, point.y, point.x, point.y);
     }
     points_.push_back(point);
   }
@@ -86,7 +86,7 @@ class Path {
   [[nodiscard]] bool isConvex() const { return true; }
 
   [[nodiscard]] Rect bounds() const {
-    return bounds_.value_or(Rect::fromLtrb(0.0f, 0.0f, 0.0f, 0.0f).value());
+    return bounds_.value_or(Rect::fromLTRB(0.0f, 0.0f, 0.0f, 0.0f).value());
   }
 
   /// Returns a new Path with all points transformed.
@@ -135,7 +135,7 @@ class Path {
       bottom = std::max(bottom, point.y);
     }
 
-    bounds_ = Rect::fromLtrb(left, top, right, bottom);
+    bounds_ = Rect::fromLTRB(left, top, right, bottom);
   }
 
   std::vector<PathVerb> verbs_;

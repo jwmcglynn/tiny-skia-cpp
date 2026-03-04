@@ -57,7 +57,7 @@ int main() {
   Paint paint;
   paint.setColorRgba8(90, 175, 100, 150);
   paint.antiAlias = true;
-  auto largeRect = Rect::fromXywh(500.0f, 500.0f, 19000.0f, 19000.0f);
+  auto largeRect = Rect::fromXYWH(500.0f, 500.0f, 19000.0f, 19000.0f);
   auto mut = pixmap->mutableView();
   Painter::fillRect(mut, *largeRect, paint, Transform::identity());
 
@@ -78,7 +78,7 @@ int main() {
   stroke.width = 0.8f;
   Painter::strokePath(mut, *path2, paint, stroke, Transform::identity());
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("large_image.png", data.data(), kSize, kSize)) {
     std::printf("Wrote large_image.png (%ux%u)\n", kSize, kSize);
   } else {

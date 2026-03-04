@@ -23,7 +23,7 @@ std::uint8_t AlphaRuns::catchOverflow(std::uint16_t alpha) {
   return static_cast<std::uint8_t>(alpha - (alpha >> 8));
 }
 
-bool AlphaRuns::isEmpty() const {
+bool AlphaRuns::empty() const {
   assert(runs[0].has_value());
   if (const auto run = runs[0]; run.has_value()) {
     return alpha[0] == 0 && !runs[static_cast<std::size_t>(run.value())].has_value();

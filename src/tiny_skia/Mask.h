@@ -51,7 +51,7 @@ class Mask {
     return std::span<const std::uint8_t>(data_.data(), data_.size());
   }
 
-  [[nodiscard]] std::span<std::uint8_t> dataMut() {
+  [[nodiscard]] std::span<std::uint8_t> data() {
     return std::span<std::uint8_t>(data_.data(), data_.size());
   }
 
@@ -61,7 +61,7 @@ class Mask {
   [[nodiscard]] MutableSubMaskView subpixmap();
   [[nodiscard]] std::optional<MutableSubMaskView> subpixmap(IntRect rect);
 
-  [[nodiscard]] std::vector<std::uint8_t> take();
+  [[nodiscard]] std::vector<std::uint8_t> release();
 
   /// Draws a filled path onto the mask.
   /// White (255) path on existing mask data. Call clear() first if needed.

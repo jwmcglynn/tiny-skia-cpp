@@ -16,7 +16,7 @@ class IntSize {
   constexpr IntSize() = default;
   constexpr IntSize(LengthU32 width, LengthU32 height) : width_(width), height_(height) {}
 
-  static std::optional<IntSize> fromWh(LengthU32 width, LengthU32 height) {
+  static std::optional<IntSize> fromWH(LengthU32 width, LengthU32 height) {
     if (width == 0u || height == 0u) {
       return std::nullopt;
     }
@@ -106,11 +106,11 @@ class IntRect {
 
 class Rect {
  public:
-  static std::optional<Rect> fromLtrb(float left, float top, float right, float bottom);
+  static std::optional<Rect> fromLTRB(float left, float top, float right, float bottom);
 
   /// Creates a Rect from (x, y, width, height).
-  static std::optional<Rect> fromXywh(float x, float y, float w, float h) {
-    return fromLtrb(x, y, x + w, y + h);
+  static std::optional<Rect> fromXYWH(float x, float y, float w, float h) {
+    return fromLTRB(x, y, x + w, y + h);
   }
 
   constexpr float left() const { return left_; }

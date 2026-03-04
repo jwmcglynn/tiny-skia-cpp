@@ -768,7 +768,7 @@ void doAntiHairline(std::int32_t x0, std::int32_t y0, std::int32_t x1, std::int3
 }
 
 void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, Blitter& blitter) {
-  const auto fixedBounds = Rect::fromLtrb(-kMaxCoord, -kMaxCoord, kMaxCoord, kMaxCoord);
+  const auto fixedBounds = Rect::fromLTRB(-kMaxCoord, -kMaxCoord, kMaxCoord, kMaxCoord);
   if (!fixedBounds.has_value()) {
     return;
   }
@@ -776,7 +776,7 @@ void antiHairLineRgn(std::span<const Point> points, const ScreenIntRect* clip, B
   std::optional<Rect> clipBounds;
   if (clip != nullptr) {
     const auto clipRect = clip->toRect();
-    clipBounds = Rect::fromLtrb(clipRect.left() - 1.0f, clipRect.top() - 1.0f,
+    clipBounds = Rect::fromLTRB(clipRect.left() - 1.0f, clipRect.top() - 1.0f,
                                 clipRect.right() + 1.0f, clipRect.bottom() + 1.0f);
     if (!clipBounds.has_value()) {
       return;
@@ -844,7 +844,7 @@ namespace scan::hairline_aa {
 
 void fillRect(const Rect& rect, const ScreenIntRect& clip, Blitter& blitter) {
   const auto clipRect = clip.toRect();
-  const auto clippedRect = Rect::fromLtrb(
+  const auto clippedRect = Rect::fromLTRB(
       std::max(rect.left(), clipRect.left()), std::max(rect.top(), clipRect.top()),
       std::min(rect.right(), clipRect.right()), std::min(rect.bottom(), clipRect.bottom()));
   if (!clippedRect.has_value()) {

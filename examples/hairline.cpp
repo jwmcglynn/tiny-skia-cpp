@@ -33,7 +33,7 @@ int main() {
     transform = transform.preTranslate(0.0f, 20.0f);
   }
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("hairline.png", data.data(), 500, 500)) {
     std::printf("Wrote hairline.png (500x500)\n");
   } else {

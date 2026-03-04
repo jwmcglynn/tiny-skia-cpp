@@ -33,11 +33,11 @@ int main() {
   paint.setColorRgba8(50, 127, 150, 200);
 
   auto pixmap = Pixmap::fromSize(500, 500);
-  auto rect = Rect::fromXywh(0.0f, 0.0f, 500.0f, 500.0f);
+  auto rect = Rect::fromXYWH(0.0f, 0.0f, 500.0f, 500.0f);
   auto mut = pixmap->mutableView();
   Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
 
-  auto data = pixmap->takeDemultiplied();
+  auto data = pixmap->releaseDemultiplied();
   if (examples::writePng("mask.png", data.data(), 500, 500)) {
     std::printf("Wrote mask.png (500x500)\n");
   } else {

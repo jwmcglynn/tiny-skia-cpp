@@ -127,7 +127,7 @@ struct SuperBlitter final : public Blitter {
 
  private:
   void flush() {
-    if (base_.currIy >= base_.top && !runs_.isEmpty()) {
+    if (base_.currIy >= base_.top && !runs_.empty()) {
       base_.realBlitter->blitAntiH(base_.left, static_cast<std::uint32_t>(base_.currIy),
                                    runs_.alpha, runs_.runs);
       runs_.reset(base_.width);

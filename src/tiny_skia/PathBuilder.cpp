@@ -10,12 +10,12 @@ namespace tiny_skia {
 
 void PathBuilder::moveTo(float x, float y) {
   if (!verbs_.empty() && verbs_.back() == PathVerb::Move) {
-    points_.back() = Point::fromXy(x, y);
+    points_.back() = Point::fromXY(x, y);
   } else {
     lastMoveToIndex_ = points_.size();
     moveToRequired_ = false;
     verbs_.push_back(PathVerb::Move);
-    points_.push_back(Point::fromXy(x, y));
+    points_.push_back(Point::fromXY(x, y));
   }
 }
 
@@ -33,14 +33,14 @@ void PathBuilder::injectMoveToIfNeeded() {
 void PathBuilder::lineTo(float x, float y) {
   injectMoveToIfNeeded();
   verbs_.push_back(PathVerb::Line);
-  points_.push_back(Point::fromXy(x, y));
+  points_.push_back(Point::fromXY(x, y));
 }
 
 void PathBuilder::quadTo(float x1, float y1, float x, float y) {
   injectMoveToIfNeeded();
   verbs_.push_back(PathVerb::Quad);
-  points_.push_back(Point::fromXy(x1, y1));
-  points_.push_back(Point::fromXy(x, y));
+  points_.push_back(Point::fromXY(x1, y1));
+  points_.push_back(Point::fromXY(x, y));
 }
 
 void PathBuilder::quadToPt(Point p1, Point p) { quadTo(p1.x, p1.y, p.x, p.y); }
@@ -48,9 +48,9 @@ void PathBuilder::quadToPt(Point p1, Point p) { quadTo(p1.x, p1.y, p.x, p.y); }
 void PathBuilder::cubicTo(float x1, float y1, float x2, float y2, float x, float y) {
   injectMoveToIfNeeded();
   verbs_.push_back(PathVerb::Cubic);
-  points_.push_back(Point::fromXy(x1, y1));
-  points_.push_back(Point::fromXy(x2, y2));
-  points_.push_back(Point::fromXy(x, y));
+  points_.push_back(Point::fromXY(x1, y1));
+  points_.push_back(Point::fromXY(x2, y2));
+  points_.push_back(Point::fromXY(x, y));
 }
 
 void PathBuilder::cubicToPt(Point p1, Point p2, Point p) {
@@ -69,7 +69,7 @@ void PathBuilder::conicTo(float x1, float y1, float x, float y, float weight) {
     injectMoveToIfNeeded();
     auto last = lastPoint().value_or(Point::zero());
     auto quadder =
-        pathGeometry::autoConicToQuads(last, Point::fromXy(x1, y1), Point::fromXy(x, y), weight);
+        pathGeometry::autoConicToQuads(last, Point::fromXY(x1, y1), Point::fromXY(x, y), weight);
     if (quadder.has_value()) {
       std::size_t offset = 1;
       for (std::uint8_t i = 0; i < quadder->len; ++i) {
@@ -135,17 +135,17 @@ void PathBuilder::pushOval(const Rect& oval) {
   float cy = oval.top() * 0.5f + oval.bottom() * 0.5f;
 
   Point ovalPoints[4] = {
-      Point::fromXy(cx, oval.bottom()),
-      Point::fromXy(oval.left(), cy),
-      Point::fromXy(cx, oval.top()),
-      Point::fromXy(oval.right(), cy),
+      Point::fromXY(cx, oval.bottom()),
+      Point::fromXY(oval.left(), cy),
+      Point::fromXY(cx, oval.top()),
+      Point::fromXY(oval.right(), cy),
   };
 
   Point rectPoints[4] = {
-      Point::fromXy(oval.right(), oval.bottom()),
-      Point::fromXy(oval.left(), oval.bottom()),
-      Point::fromXy(oval.left(), oval.top()),
-      Point::fromXy(oval.right(), oval.top()),
+      Point::fromXY(oval.right(), oval.bottom()),
+      Point::fromXY(oval.left(), oval.bottom()),
+      Point::fromXY(oval.left(), oval.top()),
+      Point::fromXY(oval.right(), oval.top()),
   };
 
   float weight = kScalarRoot2Over2;
@@ -157,7 +157,7 @@ void PathBuilder::pushOval(const Rect& oval) {
 }
 
 void PathBuilder::pushCircle(float x, float y, float r) {
-  auto rect = Rect::fromLtrb(x - r, y - r, x + r, y + r);
+  auto rect = Rect::fromLTRB(x - r, y - r, x + r, y + r);
   if (rect.has_value()) {
     pushOval(*rect);
   }
@@ -172,7 +172,7 @@ void PathBuilder::pushPath(const Path& other) {
 }
 
 void PathBuilder::pushPathBuilder(const PathBuilder& other) {
-  if (other.isEmpty()) {
+  if (other.empty()) {
     return;
   }
   if (lastMoveToIndex_ != 0) {
@@ -183,7 +183,7 @@ void PathBuilder::pushPathBuilder(const PathBuilder& other) {
 }
 
 void PathBuilder::reversePathTo(const PathBuilder& other) {
-  if (other.isEmpty()) {
+  if (other.empty()) {
     return;
   }
   // verbs_[0] should be Move
@@ -227,7 +227,7 @@ void PathBuilder::clear() {
 }
 
 std::optional<Path> PathBuilder::finish() {
-  if (isEmpty()) {
+  if (empty()) {
     return std::nullopt;
   }
   if (verbs_.size() == 1) {
