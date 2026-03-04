@@ -12,18 +12,21 @@ This is unnatural in C++, where the same operations belong as methods on a
 class.
 
 This design:
-1. Moves the free drawing functions into a `Painter` class as static methods.
-2. Adds convenience instance methods on `Pixmap` and `PixmapMut` that delegate
-   to `Painter`.
-3. Hides implementation-detail symbols from the public surface.
-4. Adds `Path::fromRect()` and `Path::fromCircle()` convenience statics.
+1. Renames `PixmapRef` → `PixmapView` and `PixmapMut` → `MutablePixmapView`.
+2. Moves the free drawing functions into a `Painter` class as static methods.
+3. Adds convenience instance methods on `Pixmap` and `MutablePixmapView` that
+   delegate to `Painter`.
+4. Hides implementation-detail symbols from the public surface.
+5. Adds `Path::fromRect()` and `Path::fromCircle()` convenience statics.
 
 All changes are zero-overhead: no allocations, no virtual dispatch.
 
 ## Goals
 
+- Rename Rust-flavored view types: `PixmapView` → `PixmapView`,
+  `PixmapMut` → `MutablePixmapView`, `SubPixmapMut` → `MutableSubPixmapView`.
 - Free drawing functions become `Painter::fillRect(...)` etc. (static methods).
-- `Pixmap`/`PixmapMut` get instance methods as syntactic sugar.
+- `Pixmap`/`MutablePixmapView` get instance methods as syntactic sugar.
 - Default `Transform::identity()` parameter eliminates boilerplate.
 - Internal helpers (`DrawTiler`, `isTooBigForMath`, `treatAsHairline`,
   `strokeHairline`) move into `namespace detail` or become private.
@@ -37,19 +40,27 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
   conversion from `Color` already works well.
 - Adding builder/fluent patterns to `Stroke` or `Paint` — their public
   aggregate fields are idiomatic C++ already.
-- Renaming `PixmapRef`/`PixmapMut` — these names are reasonable for non-owning
-  views analogous to `std::span`.
 
 ## Next Steps
 
-1. Introduce `Painter` class with static methods in `Painter.h`.
-2. Move internal helpers into `Painter` as private statics or `detail`.
-3. Add drawing methods to `Pixmap` and `PixmapMut`.
-4. Add `Path::fromRect()` / `Path::fromCircle()`.
-5. Build and test.
+1. Rename `PixmapRef` → `PixmapView`, `PixmapMut` → `MutablePixmapView`,
+   `MutableSubPixmapView` → `MutableSubPixmapView`.
+2. Introduce `Painter` class with static methods in `Painter.h`.
+3. Move internal helpers into `Painter` as private statics or `detail`.
+4. Add drawing methods to `Pixmap` and `MutablePixmapView`.
+5. Add `Path::fromRect()` / `Path::fromCircle()`.
+6. Build and test.
 
 ## Implementation Plan
 
+- [ ] Milestone 0: Rename view types
+  - [ ] Rename `PixmapView` → `PixmapView` throughout
+  - [ ] Rename `PixmapMut` → `MutablePixmapView` throughout
+  - [ ] Rename `MutableSubPixmapView` → `MutableSubPixmapView` throughout
+  - [ ] Rename `SubMaskView` → `MaskView` or `SubMaskView` if applicable
+  - [ ] Update `Pixmap::asRef()` → `Pixmap::view()`,
+        `Pixmap::asMut()` → `Pixmap::mutableView()`
+  - [ ] Build and test gate
 - [ ] Milestone 1: `Painter` class with static methods
   - [ ] Wrap existing free functions as `Painter::fillRect`,
         `Painter::fillPath`, `Painter::strokePath`, `Painter::drawPixmap`,
@@ -64,9 +75,9 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
   - [ ] Add default `Transform` parameter:
         `Transform transform = Transform::identity()`
   - [ ] Build and test gate
-- [ ] Milestone 2: Instance methods on `Pixmap` and `PixmapMut`
+- [ ] Milestone 2: Instance methods on `Pixmap` and `MutablePixmapView`
   - [ ] Add drawing method declarations to `Pixmap` in `Pixmap.h`
-  - [ ] Add drawing method declarations to `PixmapMut` in `Pixmap.h`
+  - [ ] Add drawing method declarations to `MutablePixmapView` in `Pixmap.h`
   - [ ] Implement in `Pixmap.cpp` (thin delegation to `Painter::*`)
   - [ ] Build and test gate
 - [ ] Milestone 3: Path convenience factories
@@ -83,7 +94,7 @@ All changes are zero-overhead: no allocations, no virtual dispatch.
 #include "tiny_skia/Painter.h"
 
 auto pixmap = Pixmap::fromSize(100, 100);
-auto mut = pixmap->asMut();
+auto mut = pixmap->mutableView();
 
 Paint paint;
 paint.setColorRgba8(0, 128, 255, 255);
@@ -107,10 +118,10 @@ paint.setColorRgba8(0, 128, 255, 255);
 
 // Option A: Static methods on Painter (explicit about which subsystem)
 auto rect = Rect::fromXywh(10, 10, 80, 80);
-Painter::fillRect(pixmap->asMut(), *rect, paint);
+Painter::fillRect(pixmap->mutableView(), *rect, paint);
 
 auto path = Path::fromCircle(50, 50, 40);
-Painter::fillPath(pixmap->asMut(), *path, paint, FillRule::Winding);
+Painter::fillPath(pixmap->mutableView(), *path, paint, FillRule::Winding);
 
 // Option B: Instance methods on Pixmap (most concise)
 pixmap->fillRect(*rect, paint);
@@ -134,32 +145,32 @@ class Painter {
   Painter() = delete;
 
   /// Fills an axis-aligned rectangle onto the pixmap.
-  static void fillRect(PixmapMut& pixmap, const Rect& rect,
+  static void fillRect(MutablePixmapView& pixmap, const Rect& rect,
                        const Paint& paint,
                        Transform transform = Transform::identity(),
                        const Mask* mask = nullptr);
 
   /// Fills a path onto the pixmap.
-  static void fillPath(PixmapMut& pixmap, const Path& path,
+  static void fillPath(MutablePixmapView& pixmap, const Path& path,
                        const Paint& paint, FillRule fillRule,
                        Transform transform = Transform::identity(),
                        const Mask* mask = nullptr);
 
   /// Strokes a path onto the pixmap.
-  static void strokePath(PixmapMut& pixmap, const Path& path,
+  static void strokePath(MutablePixmapView& pixmap, const Path& path,
                          const Paint& paint, const Stroke& stroke,
                          Transform transform = Transform::identity(),
                          const Mask* mask = nullptr);
 
   /// Composites a source pixmap onto a destination pixmap.
-  static void drawPixmap(PixmapMut& pixmap, std::int32_t x,
-                         std::int32_t y, PixmapRef src,
+  static void drawPixmap(MutablePixmapView& pixmap, std::int32_t x,
+                         std::int32_t y, PixmapView src,
                          const PixmapPaint& paint = {},
                          Transform transform = Transform::identity(),
                          const Mask* mask = nullptr);
 
   /// Applies a mask to already-drawn content.
-  static void applyMask(PixmapMut& pixmap, const Mask& mask);
+  static void applyMask(MutablePixmapView& pixmap, const Mask& mask);
 
  private:
   // Internal helpers — no longer on the public surface.
@@ -169,8 +180,8 @@ class Painter {
                                               Transform ts);
   static void strokeHairline(const Path& path, const Paint& paint,
                              LineCap lineCap,
-                             std::optional<SubMaskRef> mask,
-                             SubPixmapMut& subpix);
+                             std::optional<SubMaskView> mask,
+                             SubMutablePixmapView& subpix);
 };
 ```
 
@@ -196,7 +207,7 @@ struct Paint { ... };      // moved from Painter.h
 struct PixmapPaint { ... }; // if it exists, also moved
 ```
 
-### Pixmap / PixmapMut instance methods
+### Pixmap / MutablePixmapView instance methods
 
 ```cpp
 class Pixmap {
@@ -217,7 +228,7 @@ class Pixmap {
                   Transform transform = Transform::identity(),
                   const Mask* mask = nullptr);
 
-  void drawPixmap(std::int32_t x, std::int32_t y, PixmapRef src,
+  void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src,
                   const PixmapPaint& paint = {},
                   Transform transform = Transform::identity(),
                   const Mask* mask = nullptr);
@@ -226,20 +237,20 @@ class Pixmap {
 };
 ```
 
-`PixmapMut` gets the same set.
+`MutablePixmapView` gets the same set.
 
 ### Implementation (all thin wrappers)
 
 ```cpp
-// Pixmap delegates through asMut() → Painter
+// Pixmap delegates through mutableView() → Painter
 void Pixmap::fillRect(const Rect& rect, const Paint& paint,
                       Transform transform, const Mask* mask) {
-  auto mut = asMut();
-  Painter::fillRect(mut, rect, paint, transform, mask);
+  auto view = mutableView();
+  Painter::fillRect(view, rect, paint, transform, mask);
 }
 
-// PixmapMut delegates directly to Painter
-void PixmapMut::fillRect(const Rect& rect, const Paint& paint,
+// MutablePixmapView delegates directly to Painter
+void MutablePixmapView::fillRect(const Rect& rect, const Paint& paint,
                          Transform transform, const Mask* mask) {
   Painter::fillRect(*this, rect, paint, transform, mask);
 }
@@ -284,12 +295,27 @@ class Path {
 ### Circular dependency note
 
 `Pixmap.h` currently does not include `Painter.h`. The new drawing methods
-on `Pixmap`/`PixmapMut` need `Paint`, `Path`, `Stroke`, `Mask`, etc.
+on `Pixmap`/`MutablePixmapView` need `Paint`, `Path`, `Stroke`, `Mask`, etc.
 
 **Approach: Forward-declare in `Pixmap.h`, implement in `Pixmap.cpp`.**
 The method bodies go in `Pixmap.cpp` which includes `Painter.h`. `Pixmap.h`
 only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
 `Mask`, `Rect`, `FillRule`, `Transform`. This avoids circular includes.
+
+### Rename mapping
+
+| Before (Rust-flavored) | After (C++ idiomatic) |
+|------------------------|-----------------------|
+| `PixmapRef` | `PixmapView` |
+| `PixmapMut` | `MutablePixmapView` |
+| `SubPixmapMut` | `MutableSubPixmapView` |
+| `SubMaskView` | `SubMaskView` |
+| `Pixmap::asRef()` | `Pixmap::view()` |
+| `Pixmap::asMut()` | `Pixmap::mutableView()` |
+
+Both view types keep two types (not unified) to preserve compile-time
+const-safety: `PixmapView` holds `const uint8_t*`, `MutablePixmapView`
+holds `uint8_t*`.
 
 ## File changes summary
 
@@ -317,13 +343,13 @@ only needs forward declarations for `Paint`, `PixmapPaint`, `Path`, `Stroke`,
 Works, but is a Rust-ism. Doesn't group related operations and pollutes
 the namespace. No discoverability via IDE autocomplete on the class.
 
-**Standalone `Canvas` class wrapping `PixmapMut`:**
+**Standalone `Canvas` class wrapping `MutablePixmapView`:**
 A non-owning wrapper like `Canvas(pixmapMut)` with drawing methods. Rejected
 because `Painter` with static methods achieves the same grouping without
 requiring construction of a wrapper object. Instance methods on `Pixmap`
 cover the convenience case.
 
-**Replace `PixmapRef`/`PixmapMut` with `const Pixmap&`/`Pixmap&`:**
+**Replace `PixmapView`/`MutablePixmapView` with `const Pixmap&`/`Pixmap&`:**
 Would break users who create views into external memory (e.g., from a
 windowing toolkit's framebuffer). Keep the existing types.
 
