@@ -3,7 +3,7 @@
 #include <array>
 #include <cstddef>
 
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
 
 namespace tiny_skia::pipeline::highp {
 

@@ -7,8 +7,8 @@
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/pipeline/Mod.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 namespace {
 

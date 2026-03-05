@@ -7,7 +7,7 @@
 
 #include "tiny_skia/BlendMode.h"
 #include "tiny_skia/Color.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 namespace tiny_skia {
 

@@ -7,7 +7,7 @@ tiny_skia_cc_library(
     srcs = [
         "Cubic64.cpp",
         "LineCubicIntersections.cpp",
-        "Mod.cpp",
+        "Path64.cpp",
         "Point64.cpp",
         "Quad64.cpp",
         "Scalar64.cpp",
@@ -15,7 +15,7 @@ tiny_skia_cc_library(
     hdrs = [
         "Cubic64.h",
         "LineCubicIntersections.h",
-        "Mod.h",
+        "Path64.h",
         "Point64.h",
         "Quad64.h",
         "Scalar64.h",

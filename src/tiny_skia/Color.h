@@ -9,7 +9,7 @@
 
 #include "tiny_skia/FloatingPoint.h"
 #include "tiny_skia/Math.h"
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
 
 namespace tiny_skia {
 

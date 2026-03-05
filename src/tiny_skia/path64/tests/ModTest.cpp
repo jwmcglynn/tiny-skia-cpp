@@ -3,7 +3,7 @@
 
 #include <array>
 
-#include "tiny_skia/path64/Mod.h"
+#include "tiny_skia/path64/Path64.h"
 
 TEST(ModTest, ScalarHelpersBindAndClamp) {
   EXPECT_TRUE(tiny_skia::path64::approximatelyZeroOrMore(0.0));

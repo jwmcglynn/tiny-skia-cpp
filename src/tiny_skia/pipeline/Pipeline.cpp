@@ -1,4 +1,4 @@
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
 
 #include <algorithm>
 #include <cmath>

@@ -13,7 +13,7 @@
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 int main() {
   using namespace tiny_skia;

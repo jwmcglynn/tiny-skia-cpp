@@ -1,4 +1,4 @@
-#include "tiny_skia/scan/Mod.h"
+#include "tiny_skia/scan/Scan.h"
 
 #include "tiny_skia/scan/HairlineAa.h"
 

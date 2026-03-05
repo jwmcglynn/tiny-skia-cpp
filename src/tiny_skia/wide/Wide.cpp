@@ -1,4 +1,4 @@
-#include "tiny_skia/wide/Mod.h"
+#include "tiny_skia/wide/Wide.h"
 
 #include "tiny_skia/wide/backend/ScalarMath.h"
 

@@ -3,10 +3,10 @@
 filegroup(
     name = "srcs",
     srcs = [
-        "Blitter.cpp",
+        "PipelineBlitter.cpp",
         "Highp.cpp",
         "Lowp.cpp",
-        "Mod.cpp",
+        "Pipeline.cpp",
     ],
     visibility = ["//visibility:public"],
 )
@@ -17,7 +17,7 @@ filegroup(
         "Blitter.h",
         "Highp.h",
         "Lowp.h",
-        "Mod.h",
+        "Pipeline.h",
     ],
     visibility = ["//visibility:public"],
 )

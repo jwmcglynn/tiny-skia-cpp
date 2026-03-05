@@ -5,8 +5,8 @@
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Math.h"
 #include "tiny_skia/Point.h"
-#include "tiny_skia/pipeline/Mod.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 namespace {
 

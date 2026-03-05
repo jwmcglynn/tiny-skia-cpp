@@ -5,7 +5,7 @@ filegroup(
     srcs = [
         "Gradient.cpp",
         "LinearGradient.cpp",
-        "Mod.cpp",
+        "Shaders.cpp",
         "Pattern.cpp",
         "RadialGradient.cpp",
         "SweepGradient.cpp",
@@ -18,7 +18,7 @@ filegroup(
     srcs = [
         "Gradient.h",
         "LinearGradient.h",
-        "Mod.h",
+        "Shaders.h",
         "Pattern.h",
         "RadialGradient.h",
         "SweepGradient.h",

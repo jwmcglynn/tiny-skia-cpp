@@ -90,7 +90,7 @@ const void* fnPtr(StageFn fn) { return reinterpret_cast<const void*>(fn); }
 
 namespace {
 
-[[nodiscard]] constexpr bool useAarch64NeonNative() {
+[[nodiscard]] [[maybe_unused]] constexpr bool useAarch64NeonNative() {
 #if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   return true;
 #else

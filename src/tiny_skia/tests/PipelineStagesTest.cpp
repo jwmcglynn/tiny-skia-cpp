@@ -9,8 +9,8 @@
 #include "tiny_skia/Geom.h"
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/pipeline/Mod.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 using namespace tiny_skia;
 

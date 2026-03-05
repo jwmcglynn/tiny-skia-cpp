@@ -35,13 +35,13 @@ INPUT                  = src/tiny_skia/Canvas.h \
                          src/tiny_skia/Stroke.h \
                          src/tiny_skia/BlendMode.h \
                          src/tiny_skia/FloatingPoint.h \
-                         src/tiny_skia/shaders/Mod.h \
+                         src/tiny_skia/shaders/Shaders.h \
                          src/tiny_skia/shaders/LinearGradient.h \
                          src/tiny_skia/shaders/RadialGradient.h \
                          src/tiny_skia/shaders/SweepGradient.h \
                          src/tiny_skia/shaders/Pattern.h \
                          src/tiny_skia/shaders/Gradient.h \
-                         src/tiny_skia/pipeline/Mod.h \
+                         src/tiny_skia/pipeline/Pipeline.h \
                          docs/mainpage.md
 RECURSIVE              = NO
 FILE_PATTERNS          = *.h *.md

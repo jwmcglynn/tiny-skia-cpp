@@ -9,7 +9,7 @@
 #include "tiny_skia/Painter.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 using namespace tiny_skia;
 

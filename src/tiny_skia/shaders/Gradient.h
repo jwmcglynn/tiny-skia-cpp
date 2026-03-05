@@ -8,7 +8,7 @@
 
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Point.h"
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
 
 namespace tiny_skia {
 

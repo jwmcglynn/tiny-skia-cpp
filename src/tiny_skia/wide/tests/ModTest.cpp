@@ -1,7 +1,7 @@
 #include <cstdint>
 
 #include "gtest/gtest.h"
-#include "tiny_skia/wide/Mod.h"
+#include "tiny_skia/wide/Wide.h"
 
 namespace {
 

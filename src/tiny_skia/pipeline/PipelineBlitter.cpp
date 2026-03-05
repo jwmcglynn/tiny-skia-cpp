@@ -4,7 +4,7 @@
 #include <cstring>
 
 #include "tiny_skia/Painter.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 namespace tiny_skia::pipeline {
 namespace {

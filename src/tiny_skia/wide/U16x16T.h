@@ -9,7 +9,7 @@
 #include <arm_neon.h>
 #endif
 
-#include "tiny_skia/wide/Mod.h"
+#include "tiny_skia/wide/Wide.h"
 
 namespace tiny_skia::wide {
 

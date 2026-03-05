@@ -8,7 +8,7 @@
 #include "tiny_skia/pipeline/Blitter.h"
 #include "tiny_skia/scan/Hairline.h"
 #include "tiny_skia/scan/HairlineAa.h"
-#include "tiny_skia/scan/Mod.h"
+#include "tiny_skia/scan/Scan.h"
 #include "tiny_skia/scan/Path.h"
 #include "tiny_skia/scan/PathAa.h"
 

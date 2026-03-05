@@ -6,7 +6,7 @@
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/Stroke.h"
-#include "tiny_skia/shaders/Mod.h"
+#include "tiny_skia/shaders/Shaders.h"
 
 using namespace tiny_skia;
 

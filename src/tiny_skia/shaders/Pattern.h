@@ -6,7 +6,7 @@
 #include "tiny_skia/BlendMode.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Pixmap.h"
-#include "tiny_skia/pipeline/Mod.h"
+#include "tiny_skia/pipeline/Pipeline.h"
 
 namespace tiny_skia {
 

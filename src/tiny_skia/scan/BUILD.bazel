@@ -7,14 +7,14 @@ tiny_skia_cc_library(
     srcs = [
         "Hairline.cpp",
         "HairlineAa.cpp",
-        "Mod.cpp",
+        "Scan.cpp",
         "Path.cpp",
         "PathAa.cpp",
     ],
     hdrs = [
         "Hairline.h",
         "HairlineAa.h",
-        "Mod.h",
+        "Scan.h",
         "Path.h",
         "PathAa.h",
     ],
