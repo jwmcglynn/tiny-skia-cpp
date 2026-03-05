@@ -70,7 +70,7 @@ class PixmapView {
 };
 
 /// Mutable view into RGBA pixel data. Does not own memory.
-/// Primary drawing target — pass to Painter methods.
+/// Primary drawing target for all rendering operations.
 class MutablePixmapView {
  public:
   MutablePixmapView() = default;
@@ -99,16 +99,26 @@ class MutablePixmapView {
   /// Returns a sub-view for the given rectangle, or nullopt if out of bounds.
   [[nodiscard]] std::optional<MutableSubPixmapView> subpixmap(const IntRect& rect) const;
 
-  /// @name Convenience drawing methods
-  /// These delegate to Painter.
+  /// @name Drawing methods
   /// @{
-  void fillRect(const Rect& rect, const Paint& paint, Transform transform, const Mask* mask = nullptr);
-  void fillPath(const Path& path, const Paint& paint, FillRule fillRule, Transform transform,
+
+  /// Fills an axis-aligned rectangle.
+  void fillRect(const Rect& rect, const Paint& paint, Transform transform = Transform::identity(),
                 const Mask* mask = nullptr);
-  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke, Transform transform,
-                  const Mask* mask = nullptr);
+
+  /// Fills a path using the given fill rule.
+  void fillPath(const Path& path, const Paint& paint, FillRule fillRule,
+                Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Strokes a path with the given stroke settings.
+  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
+                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Composites a source pixmap onto this view at offset (x, y).
   void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
-                  Transform transform, const Mask* mask = nullptr);
+                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Applies a mask to already-drawn content.
   void applyMask(const Mask& mask);
   /// @}
 
@@ -177,16 +187,26 @@ class Pixmap {
   /// Fills the entire pixmap with a color (premultiplied internally).
   void fill(const Color& color);
 
-  /// @name Convenience drawing methods
-  /// These delegate to Painter via mutableView().
+  /// @name Drawing methods
   /// @{
-  void fillRect(const Rect& rect, const Paint& paint, Transform transform, const Mask* mask = nullptr);
-  void fillPath(const Path& path, const Paint& paint, FillRule fillRule, Transform transform,
+
+  /// Fills an axis-aligned rectangle.
+  void fillRect(const Rect& rect, const Paint& paint, Transform transform = Transform::identity(),
                 const Mask* mask = nullptr);
-  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke, Transform transform,
-                  const Mask* mask = nullptr);
+
+  /// Fills a path using the given fill rule.
+  void fillPath(const Path& path, const Paint& paint, FillRule fillRule,
+                Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Strokes a path with the given stroke settings.
+  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
+                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Composites a source pixmap onto this pixmap at offset (x, y).
   void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
-                  Transform transform, const Mask* mask = nullptr);
+                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
+
+  /// Applies a mask to already-drawn content.
   void applyMask(const Mask& mask);
   /// @}
 

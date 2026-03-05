@@ -1,19 +1,40 @@
 # tiny-skia-cpp {#mainpage}
 
-A C++20 2D rendering library — a faithful port of [tiny-skia](https://github.com/niclasberg/tiny-skia) (Rust).
+A fast, minimal CPU-only 2D rendering library for C++20 — a faithful port of
+[tiny-skia](https://github.com/linebender/tiny-skia), which implements a subset of
+[Skia](https://skia.org/)'s rendering algorithms in Rust.
+
+**tiny-skia-cpp** brings the same proven rasterization and blending algorithms to C++
+with native SIMD acceleration and zero external dependencies.
+
+- **Pixel-accurate** — bit-exact output matching Rust tiny-skia
+- **Fast** — up to 1.9× faster than the Rust implementation with SIMD
+- **SIMD accelerated** — native backends for x86-64 (AVX2+FMA) and ARM64 (NEON)
+- **Tiny & fast to build** — minimal codebase, zero external dependencies
+- **Embeddable** — two static libraries, zero runtime dependencies
+- **Skia algorithms** — same rasterization, scanline, and blending algorithms as Google's Skia
+
+## Performance
+
+Speedup vs Rust tiny-skia on 512×512 px workloads (higher is better):
+
+| Workload | C++ SIMD (ARM) | C++ SIMD (x86) | Rust (tiny-skia) |
+|----------|----------------|----------------|------------------|
+| FillRect | **1.9×** | **1.3×** | 1.0× |
+| FillPath | **1.4×** | **1.2×** | 1.0× |
+
+SIMD speedup over C++ Scalar: up to 2.3× (x86 AVX2) / 1.9× (ARM NEON).
 
 ## Quick start
 
 ```cpp
-#include "tiny_skia/Painter.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 
 using namespace tiny_skia;
 
-// Create a 500x500 RGBA pixmap (transparent black).
+// Create a 500×500 RGBA pixmap (transparent black).
 auto pixmap = Pixmap::fromSize(500, 500).value();
-auto view = pixmap.mutableView();
 
 // Build a triangle path.
 PathBuilder pb;
@@ -26,7 +47,7 @@ auto path = pb.finish().value();
 // Fill with a semi-transparent green.
 Paint paint;
 paint.setColorRgba8(0, 200, 80, 180);
-Painter::fillPath(view, path, paint, FillRule::Winding);
+pixmap.fillPath(path, paint, FillRule::Winding);
 
 // pixmap now contains the rendered triangle.
 // Call pixmap.releaseDemultiplied() to get straight-alpha RGBA bytes for PNG encoding.
@@ -36,8 +57,7 @@ Painter::fillPath(view, path, paint, FillRule::Winding);
 
 | Type | Purpose |
 |------|---------|
-| @ref tiny_skia::Painter | Static drawing methods: fillRect, fillPath, strokePath, drawPixmap, applyMask |
-| @ref tiny_skia::Pixmap | Owned RGBA pixel buffer |
+| @ref tiny_skia::Pixmap | Owned RGBA pixel buffer with drawing methods (fillRect, fillPath, strokePath, drawPixmap, applyMask) |
 | @ref tiny_skia::MutablePixmapView | Non-owning mutable view into a pixmap (drawing target) |
 | @ref tiny_skia::Path | Immutable vector path (lines, quads, cubics) |
 | @ref tiny_skia::PathBuilder | Builder for constructing Path objects |

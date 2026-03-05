@@ -4,9 +4,10 @@
 ///   bazel run //examples:hairline
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/Stroke.h"
@@ -28,16 +29,16 @@ int main() {
   for (int i = 0; i < 20; ++i) {
     Stroke stroke;
     stroke.width = 2.0f - (static_cast<float>(i) / 10.0f);
-    auto mut = pixmap->mutableView();
-    Painter::strokePath(mut, *path, paint, stroke, transform);
+    pixmap->strokePath(*path, paint, stroke, transform);
     transform = transform.preTranslate(0.0f, 20.0f);
   }
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("hairline.png", data.data(), 500, 500)) {
-    std::printf("Wrote hairline.png (500x500)\n");
+  const auto out = std::filesystem::absolute("hairline.png").string();
+  if (examples::writePng(out, data.data(), 500, 500)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write hairline.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

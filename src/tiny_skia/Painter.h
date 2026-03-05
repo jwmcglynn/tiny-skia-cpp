@@ -87,13 +87,9 @@ class DrawTiler {
 
 }  // namespace detail
 
-/// All drawing operations. Stateless — all methods are static.
-///
-/// Each method renders onto a MutablePixmapView. An optional Transform
-/// and Mask can be supplied to any operation.
-///
-/// @par Example
-/// @snippet fill.cpp fill_example
+/// @internal
+/// Internal rendering implementation. Use the drawing methods on
+/// Pixmap or MutablePixmapView instead.
 class Painter {
  public:
   Painter() = delete;

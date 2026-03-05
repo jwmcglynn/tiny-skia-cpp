@@ -6,9 +6,10 @@
 #include "tiny_skia/Mask.h"
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 
@@ -34,14 +35,14 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(500, 500);
   auto rect = Rect::fromXYWH(0.0f, 0.0f, 500.0f, 500.0f);
-  auto mut = pixmap->mutableView();
-  Painter::fillRect(mut, *rect, paint, Transform::identity(), &*mask);
+  pixmap->fillRect(*rect, paint, Transform::identity(), &*mask);
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("mask.png", data.data(), 500, 500)) {
-    std::printf("Wrote mask.png (500x500)\n");
+  const auto out = std::filesystem::absolute("mask.png").string();
+  if (examples::writePng(out, data.data(), 500, 500)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write mask.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

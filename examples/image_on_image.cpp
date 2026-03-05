@@ -4,9 +4,10 @@
 ///   bazel run //examples:image_on_image
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -29,14 +30,13 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(200, 200);
-  auto mut = pixmap->mutableView();
-  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path, paint, FillRule::Winding);
 
   // Stroke a border around the triangle pixmap.
   auto rectPath = Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 200.0f, 200.0f));
   Stroke stroke;
   paint.setColorRgba8(200, 0, 0, 220);
-  Painter::strokePath(mut, rectPath, paint, stroke, Transform::identity());
+  pixmap->strokePath(rectPath, paint, stroke);
 
   return std::move(*pixmap);
 }
@@ -53,15 +53,15 @@ int main() {
   PixmapPaint ppaint;
   ppaint.quality = FilterQuality::Bicubic;
 
-  auto mut = pixmap->mutableView();
-  Painter::drawPixmap(mut, 20, 20, triangle.view(), ppaint,
-             Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
+  pixmap->drawPixmap(20, 20, triangle.view(), ppaint,
+                     Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("image_on_image.png", data.data(), 400, 400)) {
-    std::printf("Wrote image_on_image.png (400x400)\n");
+  const auto out = std::filesystem::absolute("image_on_image.png").string();
+  if (examples::writePng(out, data.data(), 400, 400)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write image_on_image.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

@@ -7,9 +7,10 @@
 
 #include <cmath>
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 
@@ -38,14 +39,14 @@ int main() {
   stroke.dash = StrokeDash::create({20.0f, 40.0f}, 0.0f);
 
   auto pixmap = Pixmap::fromSize(500, 500);
-  auto mut = pixmap->mutableView();
-  Painter::strokePath(mut, *path, paint, stroke, Transform::identity());
+  pixmap->strokePath(*path, paint, stroke);
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("stroke.png", data.data(), 500, 500)) {
-    std::printf("Wrote stroke.png (500x500)\n");
+  const auto out = std::filesystem::absolute("stroke.png").string();
+  if (examples::writePng(out, data.data(), 500, 500)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write stroke.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

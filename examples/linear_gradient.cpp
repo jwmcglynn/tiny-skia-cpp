@@ -4,11 +4,12 @@
 ///   bazel run //examples:linear_gradient
 
 #include <cstdio>
+#include <filesystem>
 #include <variant>
 
 #include "PngEncoder.h"
 #include "tiny_skia/Color.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/shaders/Mod.h"
@@ -38,15 +39,15 @@ int main() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
-  auto mut = pixmap->mutableView();
-  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path, paint, FillRule::Winding);
   //! [linear_gradient_example]
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("linear_gradient.png", data.data(), 1000, 1000)) {
-    std::printf("Wrote linear_gradient.png (1000x1000)\n");
+  const auto out = std::filesystem::absolute("linear_gradient.png").string();
+  if (examples::writePng(out, data.data(), 1000, 1000)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write linear_gradient.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

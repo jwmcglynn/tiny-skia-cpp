@@ -4,10 +4,11 @@
 ///   bazel run //examples:gamma
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
 #include "tiny_skia/Color.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/Stroke.h"
@@ -45,19 +46,19 @@ int main() {
     auto xf = Transform::identity();
     xf = xf.preTranslate(0.0f, 240.0f * static_cast<float>(i));
 
-    auto mut = pixmap->mutableView();
-    Painter::strokePath(mut, *path, paint, stroke, xf);
+    pixmap->strokePath(*path, paint, stroke, xf);
 
     // Move down 0.5 pixel so lines start in the middle of the pixel.
     xf = xf.preTranslate(500.0f, 0.5f);
-    Painter::strokePath(mut, *path, paint, stroke, xf);
+    pixmap->strokePath(*path, paint, stroke, xf);
   }
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("gamma.png", data.data(), 1000, 1000)) {
-    std::printf("Wrote gamma.png (1000x1000)\n");
+  const auto out = std::filesystem::absolute("gamma.png").string();
+  if (examples::writePng(out, data.data(), 1000, 1000)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write gamma.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

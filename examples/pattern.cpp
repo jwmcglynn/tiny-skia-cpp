@@ -4,9 +4,10 @@
 ///   bazel run //examples:pattern
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/shaders/Mod.h"
@@ -28,8 +29,7 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(20, 20);
-  auto mut = pixmap->mutableView();
-  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path, paint, FillRule::Winding);
   return std::move(*pixmap);
 }
 
@@ -48,14 +48,14 @@ int main() {
   auto path = Path::fromCircle(200.0f, 200.0f, 180.0f);
 
   auto pixmap = Pixmap::fromSize(400, 400);
-  auto mut = pixmap->mutableView();
-  Painter::fillPath(mut, *path, paint, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path, paint, FillRule::Winding);
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("pattern.png", data.data(), 400, 400)) {
-    std::printf("Wrote pattern.png (400x400)\n");
+  const auto out = std::filesystem::absolute("pattern.png").string();
+  if (examples::writePng(out, data.data(), 400, 400)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write pattern.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

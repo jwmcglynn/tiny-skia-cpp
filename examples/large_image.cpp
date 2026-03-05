@@ -6,10 +6,11 @@
 /// Creates a 20000x20000px image. May take a while and use significant memory.
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
 #include "tiny_skia/Mask.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 #include "tiny_skia/Stroke.h"
@@ -58,31 +59,31 @@ int main() {
   paint.setColorRgba8(90, 175, 100, 150);
   paint.antiAlias = true;
   auto largeRect = Rect::fromXYWH(500.0f, 500.0f, 19000.0f, 19000.0f);
-  auto mut = pixmap->mutableView();
-  Painter::fillRect(mut, *largeRect, paint, Transform::identity());
+  pixmap->fillRect(*largeRect, paint);
 
   // Fill path1 with mask.
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
-  Painter::fillPath(mut, *path1, paint, FillRule::Winding, Transform::identity(), &*mask);
+  pixmap->fillPath(*path1, paint, FillRule::Winding, Transform::identity(), &*mask);
 
   // Fill path2 without mask.
   paint.setColorRgba8(220, 140, 75, 180);
   paint.antiAlias = false;
-  Painter::fillPath(mut, *path2, paint, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path2, paint, FillRule::Winding);
 
   // Stroke path2 as a hairline.
   paint.setColorRgba8(255, 10, 15, 180);
   paint.antiAlias = true;
   Stroke stroke;
   stroke.width = 0.8f;
-  Painter::strokePath(mut, *path2, paint, stroke, Transform::identity());
+  pixmap->strokePath(*path2, paint, stroke);
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("large_image.png", data.data(), kSize, kSize)) {
-    std::printf("Wrote large_image.png (%ux%u)\n", kSize, kSize);
+  const auto out = std::filesystem::absolute("large_image.png").string();
+  if (examples::writePng(out, data.data(), kSize, kSize)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write large_image.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
   return 0;

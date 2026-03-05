@@ -6,9 +6,10 @@
 /// Produces fill.png in the current working directory.
 
 #include <cstdio>
+#include <filesystem>
 
 #include "PngEncoder.h"
-#include "tiny_skia/Painter.h"
+#include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 
@@ -42,16 +43,16 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
 
-  auto mut = pixmap->mutableView();
-  Painter::fillPath(mut, *path1, paint1, FillRule::Winding, Transform::identity());
-  Painter::fillPath(mut, *path2, paint2, FillRule::Winding, Transform::identity());
+  pixmap->fillPath(*path1, paint1, FillRule::Winding);
+  pixmap->fillPath(*path2, paint2, FillRule::Winding);
   //! [fill_example]
 
   auto data = pixmap->releaseDemultiplied();
-  if (examples::writePng("fill.png", data.data(), 1000, 1000)) {
-    std::printf("Wrote fill.png (1000x1000)\n");
+  const auto out = std::filesystem::absolute("fill.png").string();
+  if (examples::writePng(out, data.data(), 1000, 1000)) {
+    std::printf("Wrote %s\n", out.c_str());
   } else {
-    std::fprintf(stderr, "Failed to write fill.png\n");
+    std::fprintf(stderr, "Failed to write %s\n", out.c_str());
     return 1;
   }
 
