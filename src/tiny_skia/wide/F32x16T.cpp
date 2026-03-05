@@ -1,6 +1,11 @@
 #include "tiny_skia/wide/F32x16T.h"
 
+#include "tiny_skia/wide/U16x16T.h"
 #include "tiny_skia/wide/backend/ScalarF32x16T.h"
+
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+#include <arm_neon.h>
+#endif
 
 namespace tiny_skia::wide {
 
@@ -30,7 +35,21 @@ F32x16T F32x16T::round() const { return F32x16T(lo_.round(), hi_.round()); }
 void F32x16T::saveToU16x16(U16x16T& dst) const {
   // Do not use roundInt, because it involves rounding,
   // and Skia casts without it.
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  // Vectorized float→uint16 conversion: vcvtq_u32_f32 (truncate) + vmovn_u32 (narrow).
+  const auto loLanes = lo_.lanes();
+  const auto hiLanes = hi_.lanes();
+
+  const uint32x4_t u0 = vcvtq_u32_f32(vld1q_f32(&loLanes[0]));
+  const uint32x4_t u1 = vcvtq_u32_f32(vld1q_f32(&loLanes[4]));
+  const uint32x4_t u2 = vcvtq_u32_f32(vld1q_f32(&hiLanes[0]));
+  const uint32x4_t u3 = vcvtq_u32_f32(vld1q_f32(&hiLanes[4]));
+
+  dst = U16x16T(vcombine_u16(vmovn_u32(u0), vmovn_u32(u1)),
+                vcombine_u16(vmovn_u32(u2), vmovn_u32(u3)));
+#else
   backend::scalar::f32x16SaveToU16x16(*this, dst);
+#endif
 }
 
 F32x16T F32x16T::operator+(const F32x16T& rhs) const {

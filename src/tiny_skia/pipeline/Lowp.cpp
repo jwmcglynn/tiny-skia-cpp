@@ -111,15 +111,35 @@ namespace {
 inline void split(const F32x16T& v, U16x16T& lo, U16x16T& hi) {
   auto loLanes = v.lo().lanes();
   auto hiLanes = v.hi().lanes();
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  // Load float bytes directly into NEON uint16 registers.
+  uint16x8_t ll, lh, hl, hh;
+  std::memcpy(&ll, &loLanes[0], sizeof(ll));
+  std::memcpy(&lh, &loLanes[4], sizeof(lh));
+  std::memcpy(&hl, &hiLanes[0], sizeof(hl));
+  std::memcpy(&hh, &hiLanes[4], sizeof(hh));
+  lo = U16x16T(ll, lh);
+  hi = U16x16T(hl, hh);
+#else
   std::memcpy(&lo.lanes(), &loLanes, sizeof(lo.lanes()));
   std::memcpy(&hi.lanes(), &hiLanes, sizeof(hi.lanes()));
+#endif
 }
 
 // join(): reinterpret two u16x16 (32 bytes each) as f32x16 (64 bytes)
 inline F32x16T join(const U16x16T& lo, const U16x16T& hi) {
   std::array<float, 8> loF{}, hiF{};
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+  // Store NEON registers directly into float arrays.
+  uint16x8_t tmp;
+  tmp = lo.neonLo(); std::memcpy(&loF[0], &tmp, sizeof(tmp));
+  tmp = lo.neonHi(); std::memcpy(&loF[4], &tmp, sizeof(tmp));
+  tmp = hi.neonLo(); std::memcpy(&hiF[0], &tmp, sizeof(tmp));
+  tmp = hi.neonHi(); std::memcpy(&hiF[4], &tmp, sizeof(tmp));
+#else
   std::memcpy(&loF, &lo.lanes(), sizeof(loF));
   std::memcpy(&hiF, &hi.lanes(), sizeof(hiF));
+#endif
   return F32x16T(F32x8T(loF), F32x8T(hiF));
 }
 
@@ -176,6 +196,47 @@ inline U16x16T fromFloat(float f) {
 }
 
 // roundF32ToU16(): normalize, scale to [0,255], truncate
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
+
+// NEON-optimized: loads floats once, does clamp→scale→add→convert→narrow
+// all in-register, avoiding F32x8T array↔NEON roundtrips.
+inline U16x16T neonClampScaleTruncate(const F32x16T& f, bool clamp) {
+  const auto loLanes = f.lo().lanes();
+  const auto hiLanes = f.hi().lanes();
+
+  const float32x4_t zero = vdupq_n_f32(0.0f);
+  const float32x4_t one = vdupq_n_f32(1.0f);
+  const float32x4_t scale = vdupq_n_f32(255.0f);
+  const float32x4_t half = vdupq_n_f32(0.5f);
+
+  auto convert = [&](const float* ptr) -> float32x4_t {
+    float32x4_t v = vld1q_f32(ptr);
+    if (clamp) {
+      v = vmaxq_f32(v, zero);
+      v = vminq_f32(v, one);
+    }
+    return vaddq_f32(vmulq_f32(v, scale), half);
+  };
+
+  const float32x4_t f0 = convert(&loLanes[0]);
+  const float32x4_t f1 = convert(&loLanes[4]);
+  const float32x4_t f2 = convert(&hiLanes[0]);
+  const float32x4_t f3 = convert(&hiLanes[4]);
+
+  return U16x16T(vcombine_u16(vmovn_u32(vcvtq_u32_f32(f0)), vmovn_u32(vcvtq_u32_f32(f1))),
+                 vcombine_u16(vmovn_u32(vcvtq_u32_f32(f2)), vmovn_u32(vcvtq_u32_f32(f3))));
+}
+
+inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16T& r, U16x16T& g,
+                          U16x16T& b, U16x16T& a) {
+  r = neonClampScaleTruncate(rf, true);
+  g = neonClampScaleTruncate(gf, true);
+  b = neonClampScaleTruncate(bf, true);
+  a = neonClampScaleTruncate(af, false);
+}
+
+#else
+
 inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16T& r, U16x16T& g,
                           U16x16T& b, U16x16T& a) {
   rf = rf.normalize() * F32x16T::splat(255.0f) + F32x16T::splat(0.5f);
@@ -187,6 +248,8 @@ inline void roundF32ToU16(F32x16T rf, F32x16T gf, F32x16T bf, F32x16T af, U16x16
   bf.saveToU16x16(b);
   af.saveToU16x16(a);
 }
+
+#endif
 
 void moveSourceToDestination(Pipeline& pipeline) {
   pipeline.dr = pipeline.r;
@@ -235,11 +298,11 @@ void seedShader(Pipeline& pipeline) {
 
 void scaleU8(Pipeline& pipeline) {
   const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
-  U16x16T c{};
-  auto& cl = c.lanes();
+  std::array<std::uint16_t, 16> cl{};
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
+  U16x16T c(cl);
   pipeline.r = mulDiv255(pipeline.r, c);
   pipeline.g = mulDiv255(pipeline.g, c);
   pipeline.b = mulDiv255(pipeline.b, c);
@@ -249,11 +312,11 @@ void scaleU8(Pipeline& pipeline) {
 
 void lerpU8(Pipeline& pipeline) {
   const auto data = pipeline.aaMaskCtx->copyAtXY(pipeline.dx, pipeline.dy, pipeline.tail);
-  U16x16T c{};
-  auto& cl = c.lanes();
+  std::array<std::uint16_t, 16> cl{};
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     cl[i] = i < 2 ? static_cast<std::uint16_t>(data[i]) : 0;
   }
+  U16x16T c(cl);
   const auto invC = U16x16T::splat(255) - c;
   pipeline.r = mulAddDiv255(pipeline.dr, invC, pipeline.r, c);
   pipeline.g = mulAddDiv255(pipeline.dg, invC, pipeline.g, c);
@@ -402,7 +465,7 @@ inline std::span<PremultipliedColorU8> pixelsAtXY(MutableSubPixmapView& pixmap, 
 // Loads u8 pixel channels into U16x16T (zero-extend u8 -> u16).
 void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U16x16T& og,
                   U16x16T& ob, U16x16T& oa) {
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
@@ -416,10 +479,10 @@ void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U1
                               vmovl_u8(vget_high_u8(rgba.val[2]))};
     const uint16x8x2_t a16 = {vmovl_u8(vget_low_u8(rgba.val[3])),
                               vmovl_u8(vget_high_u8(rgba.val[3]))};
-    vst1q_u16_x2(or_.lanes().data(), r16);
-    vst1q_u16_x2(og.lanes().data(), g16);
-    vst1q_u16_x2(ob.lanes().data(), b16);
-    vst1q_u16_x2(oa.lanes().data(), a16);
+    or_ = U16x16T(r16.val[0], r16.val[1]);
+    og = U16x16T(g16.val[0], g16.val[1]);
+    ob = U16x16T(b16.val[0], b16.val[1]);
+    oa = U16x16T(a16.val[0], a16.val[1]);
     return;
   }
 #endif
@@ -475,10 +538,7 @@ void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U1
   }
 #endif
 
-  auto& rl = or_.lanes();
-  auto& gl = og.lanes();
-  auto& bl = ob.lanes();
-  auto& al = oa.lanes();
+  std::array<std::uint16_t, 16> rl{}, gl{}, bl{}, al{};
 
   rl[0] = pixels[0].red();
   rl[1] = pixels[1].red();
@@ -547,6 +607,11 @@ void load8888Lowp(std::span<const PremultipliedColorU8> pixels, U16x16T& or_, U1
   al[13] = pixels[13].alpha();
   al[14] = pixels[14].alpha();
   al[15] = pixels[15].alpha();
+
+  or_ = U16x16T(rl);
+  og = U16x16T(gl);
+  ob = U16x16T(bl);
+  oa = U16x16T(al);
 }
 
 void load8888Tail(std::size_t count, std::span<const PremultipliedColorU8> pixels, U16x16T& or_,
@@ -560,21 +625,16 @@ void load8888Tail(std::size_t count, std::span<const PremultipliedColorU8> pixel
 // Stores U16x16T pixel channels to u8 pixels.
 void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, const U16x16T& g,
                    const U16x16T& b, const U16x16T& a) {
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     static_assert(sizeof(PremultipliedColorU8) == 4);
 
-    const uint16x8x2_t r16 = vld1q_u16_x2(r.lanes().data());
-    const uint16x8x2_t g16 = vld1q_u16_x2(g.lanes().data());
-    const uint16x8x2_t b16 = vld1q_u16_x2(b.lanes().data());
-    const uint16x8x2_t a16 = vld1q_u16_x2(a.lanes().data());
-
     uint8x16x4_t rgba{};
     // Rust/scalar lowp store uses u16->u8 truncation (wrap), not saturation.
-    rgba.val[0] = vcombine_u8(vmovn_u16(r16.val[0]), vmovn_u16(r16.val[1]));
-    rgba.val[1] = vcombine_u8(vmovn_u16(g16.val[0]), vmovn_u16(g16.val[1]));
-    rgba.val[2] = vcombine_u8(vmovn_u16(b16.val[0]), vmovn_u16(b16.val[1]));
-    rgba.val[3] = vcombine_u8(vmovn_u16(a16.val[0]), vmovn_u16(a16.val[1]));
+    rgba.val[0] = vcombine_u8(vmovn_u16(r.neonLo()), vmovn_u16(r.neonHi()));
+    rgba.val[1] = vcombine_u8(vmovn_u16(g.neonLo()), vmovn_u16(g.neonHi()));
+    rgba.val[2] = vcombine_u8(vmovn_u16(b.neonLo()), vmovn_u16(b.neonHi()));
+    rgba.val[3] = vcombine_u8(vmovn_u16(a.neonLo()), vmovn_u16(a.neonHi()));
 
     auto* packed = reinterpret_cast<std::uint8_t*>(pixels.data());
     vst4q_u8(packed, rgba);
@@ -628,10 +688,10 @@ void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, con
   }
 #endif
 
-  const auto& rl = r.lanes();
-  const auto& gl = g.lanes();
-  const auto& bl = b.lanes();
-  const auto& al = a.lanes();
+  const auto rl = r.lanes();
+  const auto gl = g.lanes();
+  const auto bl = b.lanes();
+  const auto al = a.lanes();
 
   pixels[0] = PremultipliedColorU8::fromRgbaUnchecked(
       static_cast<std::uint8_t>(rl[0]), static_cast<std::uint8_t>(gl[0]),
@@ -685,10 +745,10 @@ void store8888Lowp(std::span<PremultipliedColorU8> pixels, const U16x16T& r, con
 
 void store8888Tail(std::size_t count, std::span<PremultipliedColorU8> pixels, const U16x16T& r,
                    const U16x16T& g, const U16x16T& b, const U16x16T& a) {
-  const auto& rl = r.lanes();
-  const auto& gl = g.lanes();
-  const auto& bl = b.lanes();
-  const auto& al = a.lanes();
+  const auto rl = r.lanes();
+  const auto gl = g.lanes();
+  const auto bl = b.lanes();
+  const auto al = a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pixels[i] = PremultipliedColorU8::fromRgbaUnchecked(
         static_cast<std::uint8_t>(rl[i]), static_cast<std::uint8_t>(gl[i]),
@@ -700,11 +760,10 @@ void store8888Tail(std::size_t count, std::span<PremultipliedColorU8> pixels, co
 }
 
 void load8Lowp(std::span<const std::uint8_t> data, U16x16T& a) {
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
     const uint8x16_t src = vld1q_u8(data.data());
-    const uint16x8x2_t wide = {vmovl_u8(vget_low_u8(src)), vmovl_u8(vget_high_u8(src))};
-    vst1q_u16_x2(a.lanes().data(), wide);
+    a = U16x16T(vmovl_u8(vget_low_u8(src)), vmovl_u8(vget_high_u8(src)));
     return;
   }
 #endif
@@ -720,7 +779,7 @@ void load8Lowp(std::span<const std::uint8_t> data, U16x16T& a) {
   }
 #endif
 
-  auto& al = a.lanes();
+  std::array<std::uint16_t, 16> al{};
   al[0] = data[0];
   al[1] = data[1];
   al[2] = data[2];
@@ -737,6 +796,7 @@ void load8Lowp(std::span<const std::uint8_t> data, U16x16T& a) {
   al[13] = data[13];
   al[14] = data[14];
   al[15] = data[15];
+  a = U16x16T(al);
 }
 
 void load8Tail(std::size_t count, std::span<const std::uint8_t> data, U16x16T& a) {
@@ -793,16 +853,16 @@ void loadDstU8Tail(Pipeline& pipeline) {
 void storeU8(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
-  const auto& al = pipeline.a.lanes();
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
   if constexpr (useAarch64NeonNative()) {
-    const uint16x8x2_t a16 = vld1q_u16_x2(al.data());
-    const uint8x16_t a8 = vcombine_u8(vmovn_u16(a16.val[0]), vmovn_u16(a16.val[1]));
+    const uint8x16_t a8 =
+        vcombine_u8(vmovn_u16(pipeline.a.neonLo()), vmovn_u16(pipeline.a.neonHi()));
     vst1q_u8(pipeline.pixmapDst->data + offset, a8);
     pipeline.nextStage();
     return;
   }
 #endif
+  const auto al = pipeline.a.lanes();
 
 #if defined(__x86_64__) || defined(__i386__)
   if constexpr (useX86Avx2FmaNative()) {
@@ -840,7 +900,7 @@ void storeU8(Pipeline& pipeline) {
 void storeU8Tail(Pipeline& pipeline) {
   assert(pipeline.pixmapDst != nullptr);
   const auto offset = pipeline.dy * pipeline.pixmapDst->realWidth + pipeline.dx;
-  const auto& al = pipeline.a.lanes();
+  const auto al = pipeline.a.lanes();
   for (std::size_t i = 0; i < kStageWidth; ++i) {
     pipeline.pixmapDst->data[offset + i] = static_cast<std::uint8_t>(al[i]);
     if (i + 1 == pipeline.tail) {
@@ -856,13 +916,11 @@ void loadMaskU8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.maskCtx->byteOffset(pipeline.dx, pipeline.dy);
-  auto& al = pipeline.a.lanes();
+  std::array<std::uint16_t, 16> al{};
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
     al[i] = static_cast<std::uint16_t>(pipeline.maskCtx->data[offset + i]);
   }
-  for (std::size_t i = pipeline.tail; i < kStageWidth; ++i) {
-    al[i] = 0;
-  }
+  pipeline.a = U16x16T(al);
   pipeline.r = U16x16T::splat(0);
   pipeline.g = U16x16T::splat(0);
   pipeline.b = U16x16T::splat(0);
@@ -875,8 +933,7 @@ void maskU8(Pipeline& pipeline) {
     return;
   }
   const auto offset = pipeline.maskCtx->byteOffset(pipeline.dx, pipeline.dy);
-  U16x16T c{};
-  auto& cl = c.lanes();
+  std::array<std::uint16_t, 16> cl{};
   for (std::size_t i = 0; i < pipeline.tail; ++i) {
     cl[i] = static_cast<std::uint16_t>(pipeline.maskCtx->data[offset + i]);
   }
@@ -887,6 +944,7 @@ void maskU8(Pipeline& pipeline) {
       break;
     }
   }
+  U16x16T c(cl);
   if (allZero) {
     return;
   }

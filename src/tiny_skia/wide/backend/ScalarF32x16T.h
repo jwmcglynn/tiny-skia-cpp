@@ -39,7 +39,7 @@ inline void f32x16SaveToU16x16(const F32x16T& value, U16x16T& dst) {
   const auto lo = value.lo().lanes();
   const auto hi = value.hi().lanes();
 
-  auto& lanes = dst.lanes();
+  std::array<std::uint16_t, 16> lanes{};
   lanes[0] = static_cast<std::uint16_t>(lo[0]);
   lanes[1] = static_cast<std::uint16_t>(lo[1]);
   lanes[2] = static_cast<std::uint16_t>(lo[2]);
@@ -57,6 +57,7 @@ inline void f32x16SaveToU16x16(const F32x16T& value, U16x16T& dst) {
   lanes[13] = static_cast<std::uint16_t>(hi[5]);
   lanes[14] = static_cast<std::uint16_t>(hi[6]);
   lanes[15] = static_cast<std::uint16_t>(hi[7]);
+  dst = U16x16T(lanes);
 }
 
 }  // namespace tiny_skia::wide::backend::scalar

@@ -5,130 +5,94 @@
 
 #include "tiny_skia/wide/backend/ScalarU16x16T.h"
 
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
 #include <arm_neon.h>
 #endif
 
 namespace tiny_skia::wide::backend::aarch64_neon {
 
-#if defined(__aarch64__) && defined(__ARM_NEON)
+#if defined(TINYSKIA_CFG_IF_SIMD_NATIVE) && defined(__aarch64__) && defined(__ARM_NEON)
 
-struct U16x16Neon {
-  uint16x8_t lo;
-  uint16x8_t hi;
-};
+namespace {
 
-[[maybe_unused]] [[nodiscard]] inline U16x16Neon splitU16x16(const U16x16T& value) {
-  const auto pair = vld1q_u16_x2(value.lanes().data());
-  return U16x16Neon{pair.val[0], pair.val[1]};
+[[nodiscard]] inline uint16x8_t div255Lo(uint16x8_t v) {
+  return vshrq_n_u16(vaddq_u16(v, vdupq_n_u16(255)), 8);
 }
 
-[[maybe_unused]] [[nodiscard]] inline U16x16T joinU16x16(const U16x16Neon& value) {
-  std::array<std::uint16_t, 16> out{};
-  const uint16x8x2_t pair = {{value.lo, value.hi}};
-  vst1q_u16_x2(out.data(), pair);
-  return U16x16T(out);
-}
-
-[[nodiscard]] inline U16x16Neon div255Neon(const U16x16Neon& value) {
-  const auto bias = vdupq_n_u16(255);
-  return U16x16Neon{vshrq_n_u16(vaddq_u16(value.lo, bias), 8),
-                    vshrq_n_u16(vaddq_u16(value.hi, bias), 8)};
-}
+}  // namespace
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Min(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vminq_u16(a.lo, b.lo), vminq_u16(a.hi, b.hi)});
+  return U16x16T(vminq_u16(lhs.neonLo(), rhs.neonLo()), vminq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Max(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vmaxq_u16(a.lo, b.lo), vmaxq_u16(a.hi, b.hi)});
+  return U16x16T(vmaxq_u16(lhs.neonLo(), rhs.neonLo()), vmaxq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16CmpLe(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vcleq_u16(a.lo, b.lo), vcleq_u16(a.hi, b.hi)});
+  return U16x16T(vcleq_u16(lhs.neonLo(), rhs.neonLo()), vcleq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Blend(const U16x16T& mask, const U16x16T& t,
                                                           const U16x16T& e) {
-  const auto m = splitU16x16(mask);
-  const auto onTrue = splitU16x16(t);
-  const auto onFalse = splitU16x16(e);
-  return joinU16x16(
-      U16x16Neon{vbslq_u16(m.lo, onTrue.lo, onFalse.lo), vbslq_u16(m.hi, onTrue.hi, onFalse.hi)});
+  return U16x16T(vbslq_u16(mask.neonLo(), t.neonLo(), e.neonLo()),
+                 vbslq_u16(mask.neonHi(), t.neonHi(), e.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Add(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vaddq_u16(a.lo, b.lo), vaddq_u16(a.hi, b.hi)});
+  return U16x16T(vaddq_u16(lhs.neonLo(), rhs.neonLo()), vaddq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Sub(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vsubq_u16(a.lo, b.lo), vsubq_u16(a.hi, b.hi)});
+  return U16x16T(vsubq_u16(lhs.neonLo(), rhs.neonLo()), vsubq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Mul(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vmulq_u16(a.lo, b.lo), vmulq_u16(a.hi, b.hi)});
+  return U16x16T(vmulq_u16(lhs.neonLo(), rhs.neonLo()), vmulq_u16(lhs.neonHi(), rhs.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16And(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vandq_u16(a.lo, b.lo), vandq_u16(a.hi, b.hi)});
+  return U16x16T(vandq_u16(lhs.neonLo(), rhs.neonLo()), vandq_u16(lhs.neonHi(), rhs.neonHi()));
+}
+
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Or(const U16x16T& lhs, const U16x16T& rhs) {
+  return U16x16T(vorrq_u16(lhs.neonLo(), rhs.neonLo()), vorrq_u16(lhs.neonHi(), rhs.neonHi()));
+}
+
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Not(const U16x16T& value) {
+  return U16x16T(vmvnq_u16(value.neonLo()), vmvnq_u16(value.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Div255(const U16x16T& value) {
-  return joinU16x16(div255Neon(splitU16x16(value)));
+  return U16x16T(div255Lo(value.neonLo()), div255Lo(value.neonHi()));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulDiv255(const U16x16T& lhs,
                                                               const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(div255Neon(U16x16Neon{vmulq_u16(a.lo, b.lo), vmulq_u16(a.hi, b.hi)}));
+  return U16x16T(div255Lo(vmulq_u16(lhs.neonLo(), rhs.neonLo())),
+                 div255Lo(vmulq_u16(lhs.neonHi(), rhs.neonHi())));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16MulAddDiv255(const U16x16T& lhs0,
                                                                  const U16x16T& rhs0,
                                                                  const U16x16T& lhs1,
                                                                  const U16x16T& rhs1) {
-  const auto a0 = splitU16x16(lhs0);
-  const auto b0 = splitU16x16(rhs0);
-  const auto a1 = splitU16x16(lhs1);
-  const auto b1 = splitU16x16(rhs1);
-  return joinU16x16(div255Neon(U16x16Neon{
-      vaddq_u16(vmulq_u16(a0.lo, b0.lo), vmulq_u16(a1.lo, b1.lo)),
-      vaddq_u16(vmulq_u16(a0.hi, b0.hi), vmulq_u16(a1.hi, b1.hi)),
-  }));
+  return U16x16T(
+      div255Lo(vaddq_u16(vmulq_u16(lhs0.neonLo(), rhs0.neonLo()),
+                          vmulq_u16(lhs1.neonLo(), rhs1.neonLo()))),
+      div255Lo(vaddq_u16(vmulq_u16(lhs0.neonHi(), rhs0.neonHi()),
+                          vmulq_u16(lhs1.neonHi(), rhs1.neonHi()))));
 }
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16SourceOver(const U16x16T& source,
                                                                const U16x16T& dest,
                                                                const U16x16T& sourceAlpha) {
-  const auto s = splitU16x16(source);
-  const auto d = splitU16x16(dest);
-  const auto sa = splitU16x16(sourceAlpha);
   const auto max255 = vdupq_n_u16(255);
-  const U16x16Neon invSa{vsubq_u16(max255, sa.lo), vsubq_u16(max255, sa.hi)};
-  const U16x16Neon dstTerm =
-      div255Neon(U16x16Neon{vmulq_u16(d.lo, invSa.lo), vmulq_u16(d.hi, invSa.hi)});
-  return joinU16x16(U16x16Neon{vaddq_u16(s.lo, dstTerm.lo), vaddq_u16(s.hi, dstTerm.hi)});
-}
-
-[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Or(const U16x16T& lhs, const U16x16T& rhs) {
-  const auto a = splitU16x16(lhs);
-  const auto b = splitU16x16(rhs);
-  return joinU16x16(U16x16Neon{vorrq_u16(a.lo, b.lo), vorrq_u16(a.hi, b.hi)});
+  const auto invSaLo = vsubq_u16(max255, sourceAlpha.neonLo());
+  const auto invSaHi = vsubq_u16(max255, sourceAlpha.neonHi());
+  const auto dstLo = div255Lo(vmulq_u16(dest.neonLo(), invSaLo));
+  const auto dstHi = div255Lo(vmulq_u16(dest.neonHi(), invSaHi));
+  return U16x16T(vaddq_u16(source.neonLo(), dstLo), vaddq_u16(source.neonHi(), dstHi));
 }
 
 #else
@@ -192,6 +156,10 @@ struct U16x16Neon {
 
 [[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Or(const U16x16T& lhs, const U16x16T& rhs) {
   return scalar::u16x16Or(lhs, rhs);
+}
+
+[[maybe_unused]] [[nodiscard]] inline U16x16T u16x16Not(const U16x16T& value) {
+  return scalar::u16x16Not(value);
 }
 
 #endif

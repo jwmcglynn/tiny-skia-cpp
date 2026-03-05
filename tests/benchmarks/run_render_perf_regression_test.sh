@@ -73,33 +73,33 @@ baseline_ratio() {
 
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.52"; return
+    echo "2.20"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.62"; return
+    echo "2.00"; return
   fi
 
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.87"; return
+    echo "3.20"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_rect" \
     && "${metric}" == "simd_over_rust" ]]; then
-    echo "1.96"; return
+    echo "2.80"; return
   fi
 
   if [[ "${arch}" == "arm64" && "${workload}" == "stroke_path" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "0.93"; return
+    echo "1.20"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path_gradient" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "0.86"; return
+    echo "1.40"; return
   fi
   if [[ "${arch}" == "arm64" && "${workload}" == "fill_path_opaque" \
     && "${metric}" == "simd_over_scalar" ]]; then
-    echo "1.11"; return
+    echo "1.25"; return
   fi
 
   if [[ "${arch}" == "x86" && "${workload}" == "fill_path" \
