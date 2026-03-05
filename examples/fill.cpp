@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -42,9 +43,10 @@ int main() {
   auto path2 = pb2.finish();
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
+  Canvas canvas(*pixmap);
 
-  pixmap->fillPath(*path1, paint1, FillRule::Winding);
-  pixmap->fillPath(*path2, paint2, FillRule::Winding);
+  canvas.fillPath(*path1, paint1, FillRule::Winding);
+  canvas.fillPath(*path2, paint2, FillRule::Winding);
   //! [fill_example]
 
   auto data = pixmap->releaseDemultiplied();

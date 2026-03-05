@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Mask.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
@@ -54,29 +55,31 @@ int main() {
   }
   mask->fillPath(*clipPath, FillRule::Winding, true, Transform::identity());
 
+  Canvas canvas(*pixmap);
+
   // Fill a large background rect.
   Paint paint;
   paint.setColorRgba8(90, 175, 100, 150);
   paint.antiAlias = true;
   auto largeRect = Rect::fromXYWH(500.0f, 500.0f, 19000.0f, 19000.0f);
-  pixmap->fillRect(*largeRect, paint);
+  canvas.fillRect(*largeRect, paint);
 
   // Fill path1 with mask.
   paint.setColorRgba8(50, 127, 150, 200);
   paint.antiAlias = true;
-  pixmap->fillPath(*path1, paint, FillRule::Winding, Transform::identity(), &*mask);
+  canvas.fillPath(*path1, paint, FillRule::Winding, Transform::identity(), &*mask);
 
   // Fill path2 without mask.
   paint.setColorRgba8(220, 140, 75, 180);
   paint.antiAlias = false;
-  pixmap->fillPath(*path2, paint, FillRule::Winding);
+  canvas.fillPath(*path2, paint, FillRule::Winding);
 
   // Stroke path2 as a hairline.
   paint.setColorRgba8(255, 10, 15, 180);
   paint.antiAlias = true;
   Stroke stroke;
   stroke.width = 0.8f;
-  pixmap->strokePath(*path2, paint, stroke);
+  canvas.strokePath(*path2, paint, stroke);
 
   auto data = pixmap->releaseDemultiplied();
   const auto out = std::filesystem::absolute("large_image.png").string();

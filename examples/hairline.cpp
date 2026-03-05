@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -25,11 +26,12 @@ int main() {
   paint.antiAlias = true;
 
   auto pixmap = Pixmap::fromSize(500, 500);
+  Canvas canvas(*pixmap);
   auto transform = Transform::identity();
   for (int i = 0; i < 20; ++i) {
     Stroke stroke;
     stroke.width = 2.0f - (static_cast<float>(i) / 10.0f);
-    pixmap->strokePath(*path, paint, stroke, transform);
+    canvas.strokePath(*path, paint, stroke, transform);
     transform = transform.preTranslate(0.0f, 20.0f);
   }
 

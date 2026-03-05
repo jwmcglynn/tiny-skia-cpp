@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
@@ -39,7 +40,8 @@ int main() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
-  pixmap->fillPath(*path, paint, FillRule::Winding);
+  Canvas canvas(*pixmap);
+  canvas.fillPath(*path, paint, FillRule::Winding);
   //! [linear_gradient_example]
 
   auto data = pixmap->releaseDemultiplied();

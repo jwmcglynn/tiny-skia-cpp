@@ -39,6 +39,7 @@ SIMD speedup over C++ Scalar: up to 2.3× (x86 AVX2) / 1.9× (ARM NEON).
 ## Quick Start
 
 ```cpp
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
 
@@ -46,6 +47,7 @@ using namespace tiny_skia;
 
 // Create a 500×500 RGBA pixmap (transparent black).
 auto pixmap = Pixmap::fromSize(500, 500).value();
+Canvas canvas(pixmap);
 
 // Build a triangle path.
 PathBuilder pb;
@@ -58,7 +60,7 @@ auto path = pb.finish().value();
 // Fill with a semi-transparent green.
 Paint paint;
 paint.setColorRgba8(0, 200, 80, 180);
-pixmap.fillPath(path, paint, FillRule::Winding);
+canvas.fillPath(path, paint, FillRule::Winding);
 
 // pixmap now contains the rendered triangle.
 // Call pixmap.releaseDemultiplied() to get straight-alpha RGBA bytes for PNG encoding.

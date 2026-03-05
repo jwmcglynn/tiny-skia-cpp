@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -34,8 +35,9 @@ int main() {
   paint.setColorRgba8(50, 127, 150, 200);
 
   auto pixmap = Pixmap::fromSize(500, 500);
+  Canvas canvas(*pixmap);
   auto rect = Rect::fromXYWH(0.0f, 0.0f, 500.0f, 500.0f);
-  pixmap->fillRect(*rect, paint, Transform::identity(), &*mask);
+  canvas.fillRect(*rect, paint, Transform::identity(), &*mask);
 
   auto data = pixmap->releaseDemultiplied();
   const auto out = std::filesystem::absolute("mask.png").string();

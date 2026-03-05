@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/Path.h"
 #include "tiny_skia/PathBuilder.h"
@@ -30,13 +31,14 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(200, 200);
-  pixmap->fillPath(*path, paint, FillRule::Winding);
+  Canvas canvas(*pixmap);
+  canvas.fillPath(*path, paint, FillRule::Winding);
 
   // Stroke a border around the triangle pixmap.
   auto rectPath = Path::fromRect(*Rect::fromLTRB(0.0f, 0.0f, 200.0f, 200.0f));
   Stroke stroke;
   paint.setColorRgba8(200, 0, 0, 220);
-  pixmap->strokePath(rectPath, paint, stroke);
+  canvas.strokePath(rectPath, paint, stroke);
 
   return std::move(*pixmap);
 }
@@ -49,11 +51,12 @@ int main() {
   auto triangle = createTriangle();
 
   auto pixmap = Pixmap::fromSize(400, 400);
+  Canvas canvas2(*pixmap);
 
   PixmapPaint ppaint;
   ppaint.quality = FilterQuality::Bicubic;
 
-  pixmap->drawPixmap(20, 20, triangle.view(), ppaint,
+  canvas2.drawPixmap(20, 20, triangle.view(), ppaint,
                      Transform::fromRow(1.2f, 0.5f, 0.5f, 1.2f, 0.0f, 0.0f));
 
   auto data = pixmap->releaseDemultiplied();

@@ -10,6 +10,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -39,7 +40,8 @@ int main() {
   stroke.dash = StrokeDash::create({20.0f, 40.0f}, 0.0f);
 
   auto pixmap = Pixmap::fromSize(500, 500);
-  pixmap->strokePath(*path, paint, stroke);
+  Canvas canvas(*pixmap);
+  canvas.strokePath(*path, paint, stroke);
 
   auto data = pixmap->releaseDemultiplied();
   const auto out = std::filesystem::absolute("stroke.png").string();

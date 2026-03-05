@@ -19,15 +19,6 @@ namespace tiny_skia {
 /// Bytes per pixel (always 4: RGBA premultiplied).
 inline constexpr std::size_t kBytesPerPixel = 4;
 
-// Forward declarations for drawing methods.
-struct Paint;
-struct PixmapPaint;
-class Path;
-struct Stroke;
-class Mask;
-class Transform;
-enum class FillRule : std::uint8_t;
-
 class Pixmap;
 struct MutableSubPixmapView;
 
@@ -99,29 +90,6 @@ class MutablePixmapView {
   /// Returns a sub-view for the given rectangle, or nullopt if out of bounds.
   [[nodiscard]] std::optional<MutableSubPixmapView> subpixmap(const IntRect& rect) const;
 
-  /// @name Drawing methods
-  /// @{
-
-  /// Fills an axis-aligned rectangle.
-  void fillRect(const Rect& rect, const Paint& paint, Transform transform = Transform::identity(),
-                const Mask* mask = nullptr);
-
-  /// Fills a path using the given fill rule.
-  void fillPath(const Path& path, const Paint& paint, FillRule fillRule,
-                Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Strokes a path with the given stroke settings.
-  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
-                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Composites a source pixmap onto this view at offset (x, y).
-  void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
-                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Applies a mask to already-drawn content.
-  void applyMask(const Mask& mask);
-  /// @}
-
  private:
   std::uint8_t* data_ = nullptr;
   std::size_t len_ = 0;
@@ -186,29 +154,6 @@ class Pixmap {
 
   /// Fills the entire pixmap with a color (premultiplied internally).
   void fill(const Color& color);
-
-  /// @name Drawing methods
-  /// @{
-
-  /// Fills an axis-aligned rectangle.
-  void fillRect(const Rect& rect, const Paint& paint, Transform transform = Transform::identity(),
-                const Mask* mask = nullptr);
-
-  /// Fills a path using the given fill rule.
-  void fillPath(const Path& path, const Paint& paint, FillRule fillRule,
-                Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Strokes a path with the given stroke settings.
-  void strokePath(const Path& path, const Paint& paint, const Stroke& stroke,
-                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Composites a source pixmap onto this pixmap at offset (x, y).
-  void drawPixmap(std::int32_t x, std::int32_t y, PixmapView src, const PixmapPaint& paint,
-                  Transform transform = Transform::identity(), const Mask* mask = nullptr);
-
-  /// Applies a mask to already-drawn content.
-  void applyMask(const Mask& mask);
-  /// @}
 
   /// Releases the raw byte buffer (premultiplied alpha).
   [[nodiscard]] std::vector<std::uint8_t> release();

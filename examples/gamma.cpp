@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Color.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
@@ -24,6 +25,7 @@ int main() {
 
   auto pixmap = Pixmap::fromSize(1000, 1000);
   pixmap->fill(Color::black);
+  Canvas canvas(*pixmap);
 
   // Build a set of 10 near-horizontal lines.
   PathBuilder pb;
@@ -46,11 +48,11 @@ int main() {
     auto xf = Transform::identity();
     xf = xf.preTranslate(0.0f, 240.0f * static_cast<float>(i));
 
-    pixmap->strokePath(*path, paint, stroke, xf);
+    canvas.strokePath(*path, paint, stroke, xf);
 
     // Move down 0.5 pixel so lines start in the middle of the pixel.
     xf = xf.preTranslate(500.0f, 0.5f);
-    pixmap->strokePath(*path, paint, stroke, xf);
+    canvas.strokePath(*path, paint, stroke, xf);
   }
 
   auto data = pixmap->releaseDemultiplied();

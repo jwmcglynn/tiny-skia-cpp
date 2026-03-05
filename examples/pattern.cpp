@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "PngEncoder.h"
+#include "tiny_skia/Canvas.h"
 #include "tiny_skia/Paint.h"
 #include "tiny_skia/PathBuilder.h"
 #include "tiny_skia/Pixmap.h"
@@ -29,7 +30,8 @@ tiny_skia::Pixmap createTriangle() {
   auto path = pb.finish();
 
   auto pixmap = Pixmap::fromSize(20, 20);
-  pixmap->fillPath(*path, paint, FillRule::Winding);
+  Canvas canvas(*pixmap);
+  canvas.fillPath(*path, paint, FillRule::Winding);
   return std::move(*pixmap);
 }
 
@@ -48,7 +50,8 @@ int main() {
   auto path = Path::fromCircle(200.0f, 200.0f, 180.0f);
 
   auto pixmap = Pixmap::fromSize(400, 400);
-  pixmap->fillPath(*path, paint, FillRule::Winding);
+  Canvas canvas2(*pixmap);
+  canvas2.fillPath(*path, paint, FillRule::Winding);
 
   auto data = pixmap->releaseDemultiplied();
   const auto out = std::filesystem::absolute("pattern.png").string();

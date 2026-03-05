@@ -49,6 +49,7 @@ tiny_skia_cc_library(
     hdrs = [
         "AlphaRuns.h",
         "BlendMode.h",
+        "Canvas.h",
         "Blitter.h",
         "Color.h",
         "Dash.h",
@@ -97,6 +98,7 @@ tiny_skia_cc_library(
 tiny_skia_cc_library(
     name = "tiny_skia_painter",
     srcs = [
+        "Canvas.cpp",
         "MaskOps.cpp",
         "Painter.cpp",
     ],
