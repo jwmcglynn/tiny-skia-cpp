@@ -220,6 +220,51 @@ TEST(MaskTest, FillPathWithTransformOffsetsPath) {
   EXPECT_GT(mask->data()[5 * mask->width() + 5], 0u);
 }
 
+TEST(MaskTest, FillPathAaUses255BasedCoverageForThreeQuarterPixel) {
+  auto mask = tiny_skia::Mask::fromSize(5, 5);
+  ASSERT_THAT(mask, Optional(testing::_));
+
+  tiny_skia::PathBuilder builder;
+  builder.moveTo(1.0f, 1.25f);
+  builder.lineTo(3.0f, 1.25f);
+  builder.lineTo(3.0f, 3.0f);
+  builder.lineTo(1.0f, 3.0f);
+  builder.close();
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
+
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, true, tiny_skia::Transform::identity());
+
+  const auto rowStride = mask->width();
+  // Analytic AA computes 191 (0xBF); supersampled AA computed 192.
+  EXPECT_EQ(mask->data()[1 * rowStride + 1], 191u);
+  EXPECT_EQ(mask->data()[1 * rowStride + 2], 191u);
+  EXPECT_EQ(mask->data()[2 * rowStride + 1], 255u);
+  EXPECT_EQ(mask->data()[2 * rowStride + 2], 255u);
+}
+
+TEST(MaskTest, FillPathAaUses255BasedCoverageForFifteenSixteenthPixel) {
+  auto mask = tiny_skia::Mask::fromSize(3, 3);
+  ASSERT_THAT(mask, Optional(testing::_));
+
+  tiny_skia::PathBuilder builder;
+  builder.moveTo(0.0625f, 0.0f);
+  builder.lineTo(1.0f, 0.0f);
+  builder.lineTo(1.0f, 1.0f);
+  builder.lineTo(0.0625f, 1.0f);
+  builder.close();
+  auto path = builder.finish();
+  ASSERT_TRUE(path.has_value());
+
+  mask->fillPath(*path, tiny_skia::FillRule::Winding, true, tiny_skia::Transform::identity());
+
+  const auto rowStride = mask->width();
+  // Analytic AA computes 239 (0xEF); supersampled AA computed 240.
+  EXPECT_EQ(mask->data()[0 * rowStride + 0], 239u);
+  EXPECT_EQ(mask->data()[0 * rowStride + 1], 0u);
+  EXPECT_EQ(mask->data()[1 * rowStride + 0], 0u);
+}
+
 // ---- intersectPath tests ----
 
 TEST(MaskTest, IntersectPathMultipliesMasks) {
