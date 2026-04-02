@@ -217,7 +217,6 @@ TEST(FillTest, TinyFloatRectAa) {
   tiny_skia::Painter::fillRect(mut, *rect, paint, Transform::identity());
 
   auto transparent = ColorU8::fromRgba(0, 0, 0, 0).premultiply();
-  auto filled = ColorU8::fromRgba(51, 128, 153, 60).premultiply();
 
   // Row 0: all transparent
   EXPECT_EQ(pixmap->pixel(0, 0), transparent);

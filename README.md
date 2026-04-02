@@ -9,7 +9,7 @@ with native SIMD acceleration and zero external dependencies.
 
 ## Highlights
 
-- **Pixel-accurate** — bit-exact output matching Rust tiny-skia, enforced by golden-image tests and `-ffp-contract=off`
+- **High fidelity** — near-pixel-accurate output validated against Rust tiny-skia via golden-image tests with configurable tolerance; not bit-exact due to additional features (analytic AA, filter primitives) and optimizations beyond the original Rust implementation
 - **Fast** — up to 1.9× faster than the Rust implementation with SIMD
 - **SIMD accelerated** — native backends for x86-64 (AVX2+FMA) and ARM64 (NEON), plus a portable scalar fallback
 - **Tiny & fast to build** — minimal codebase, zero external dependencies, fast compile times
@@ -96,16 +96,21 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-This produces two static library targets:
+This produces four static library targets:
 
-- **`tiny_skia`** — native SIMD (AVX2+FMA on x86_64, NEON on ARM64)
-- **`tiny_skia_scalar`** — portable scalar-only backend
+- **`tiny_skia`** — core rendering, native SIMD (AVX2+FMA on x86_64, NEON on ARM64)
+- **`tiny_skia_scalar`** — core rendering, portable scalar-only backend
+- **`tiny_skia_filter`** — SVG filter primitives, native SIMD
+- **`tiny_skia_filter_scalar`** — SVG filter primitives, portable scalar-only
 
 To embed in your own CMake project:
 
 ```cmake
 add_subdirectory(path/to/tiny-skia-cpp)
 target_link_libraries(your_target PRIVATE tiny_skia)
+
+# Only if you need SVG filter support:
+target_link_libraries(your_target PRIVATE tiny_skia_filter)
 ```
 
 ## Examples
@@ -123,6 +128,101 @@ bazel run //examples:gamma             # Color-space comparison (Linear/sRGB)
 bazel run //examples:image_on_image    # Compositing one pixmap onto another
 bazel run //examples:large_image       # 20000×20000 stress test with masking
 ```
+
+## SVG Filter Effects
+
+The filter module (`src/tiny_skia/filter/`) implements SVG filter primitives as
+a standalone subsystem. It is **not** part of the original Rust tiny-skia — this
+is new functionality written for the C++ port.
+
+**Bazel:** Opt-in — depend on `//src/tiny_skia/filter:filter` explicitly.
+**CMake:** Separate library targets — link `tiny_skia_filter` or `tiny_skia_filter_scalar`.
+
+### Standalone filter primitives
+
+Each primitive can be used independently without building a filter graph:
+
+```cpp
+#include "tiny_skia/Pixmap.h"
+#include "tiny_skia/filter/GaussianBlur.h"
+#include "tiny_skia/filter/ColorMatrix.h"
+#include "tiny_skia/filter/Morphology.h"
+
+using namespace tiny_skia;
+using namespace tiny_skia::filter;
+
+auto pixmap = Pixmap::fromSize(256, 256).value();
+// ... render content into pixmap ...
+
+// Apply a 3px Gaussian blur.
+gaussianBlur(pixmap, 3.0, 3.0);
+
+// Desaturate to grayscale.
+colorMatrix(pixmap, saturateMatrix(0.0));
+
+// Dilate (thicken) by 2px.
+auto dst = Pixmap::fromSize(256, 256).value();
+morphology(pixmap, dst, MorphologyOp::Dilate, 2, 2);
+```
+
+### Multi-step filter graphs
+
+For SVG `<filter>` chains, build a `FilterGraph` and execute it:
+
+```cpp
+#include "tiny_skia/filter/FilterGraph.h"
+
+using namespace tiny_skia::filter;
+
+FilterGraph graph;
+graph.useLinearRGB = true;  // Process in linear light (SVG default).
+
+// Node 0: Blur the source graphic.
+graph.nodes.push_back(GraphNode{
+    .primitive = graph_primitive::GaussianBlur{.sigmaX = 4.0, .sigmaY = 4.0},
+    .inputs = {StandardInput::SourceGraphic},
+    .result = "blurred",
+});
+
+// Node 1: Offset the blurred result to create a shadow.
+graph.nodes.push_back(GraphNode{
+    .primitive = graph_primitive::Offset{.dx = 4, .dy = 4},
+    .inputs = {NodeInput::Named{"blurred"}},
+    .result = "shadow",
+});
+
+// Node 2: Composite the original over the shadow.
+graph.nodes.push_back(GraphNode{
+    .primitive = graph_primitive::Composite{.op = CompositeOp::Over},
+    .inputs = {StandardInput::SourceGraphic, NodeInput::Named{"shadow"}},
+});
+
+auto pixmap = Pixmap::fromSize(256, 256).value();
+// ... render content into pixmap ...
+executeFilterGraph(pixmap, graph);  // Result written back to pixmap.
+```
+
+### Supported primitives
+
+| Primitive | SVG element | Description |
+|-----------|-------------|-------------|
+| GaussianBlur | `feGaussianBlur` | Discrete kernel or 3-pass box blur |
+| Flood | `feFlood` | Solid color fill |
+| Offset | `feOffset` | Integer pixel translation |
+| Composite | `feComposite` | Porter-Duff operators + arithmetic mode |
+| Blend | `feBlend` | All 16 CSS blend modes |
+| Merge | `feMerge` | N-input layer compositing |
+| ColorMatrix | `feColorMatrix` | 5×4 matrix, saturate, hueRotate, luminanceToAlpha |
+| ComponentTransfer | `feComponentTransfer` | Per-channel transfer functions |
+| ConvolveMatrix | `feConvolveMatrix` | Arbitrary convolution kernel |
+| Morphology | `feMorphology` | Erode / Dilate |
+| Tile | `feTile` | Region tiling |
+| Turbulence | `feTurbulence` | Perlin noise (fractalNoise + turbulence) |
+| DisplacementMap | `feDisplacementMap` | Channel-based pixel displacement |
+| DiffuseLighting | `feDiffuseLighting` | Lambertian shading (point/distant/spot) |
+| SpecularLighting | `feSpecularLighting` | Phong shading (point/distant/spot) |
+| DropShadow | `feDropShadow` | Composite drop shadow effect |
+| Image | `feImage` | External image injection |
 
 ## Architecture
 
@@ -144,7 +244,10 @@ PathBuilder → Path → EdgeBuilder → Scan → Pipeline → Pixmap
    gradients, and pixmap patterns.
 5. **Wide** (`src/tiny_skia/wide/`) — SIMD vector wrappers (F32x4T, F32x8T, etc.)
    for data-parallel execution.
-6. **Path64** (`src/tiny_skia/path64/`) — 64-bit path math for precision-sensitive
+6. **Filter** (`src/tiny_skia/filter/`) — SVG filter primitives (blur, lighting,
+   turbulence, color matrix, morphology, blend, composite, displacement map, etc.)
+   with SIMD-accelerated processing via `FilterGraph`.
+7. **Path64** (`src/tiny_skia/path64/`) — 64-bit path math for precision-sensitive
    subdivision operations.
 
 The drawing API lives on `Pixmap` and `MutablePixmapView`:
@@ -161,7 +264,7 @@ The `wide/` layer provides three compile-time backends with an identical API:
 | **Scalar** | All platforms (portable fallback) | `TINYSKIA_CFG_IF_SIMD_SCALAR` |
 
 Backend selection happens at compile time via `wide/backend/BackendConfig.h`.
-All backends produce bit-exact results.
+All backends produce matching results for the core rasterization pipeline.
 
 ## Module Map
 
@@ -176,7 +279,8 @@ All backends produce bit-exact results.
 | `src/tiny_skia/path64/` | 64-bit path math | Point64, Quad64, Cubic64, LineCubicIntersections |
 | `examples/` | Runnable C++ examples (PNG output) | fill, stroke, gradient, mask, pattern, ... |
 | `tests/integration/` | Golden-image integration tests | FillTest, StrokeTest, GradientsTest, ... |
-| `tests/benchmarks/` | Performance benchmarks | RenderPerfBench |
+| `src/tiny_skia/filter/` | SVG filter primitives | FilterGraph, GaussianBlur, Lighting, Turbulence, ... |
+| `tests/benchmarks/` | Performance benchmarks | RenderPerfBench, FilterPerfBench |
 | `tests/rust_ffi/` | Rust FFI for cross-validation | tiny_skia_ffi |
 
 ## Contributing

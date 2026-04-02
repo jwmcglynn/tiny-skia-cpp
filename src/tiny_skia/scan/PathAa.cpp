@@ -30,7 +30,6 @@ namespace {
 FDot16 fixedCeilToFixed(FDot16 x) { return (x + fdot16::one - 1) & ~0xFFFF; }
 FDot16 fixedFloorToFixed(FDot16 x) { return x & ~0xFFFF; }
 FDot16 intToFixed(std::int32_t x) { return x << 16; }
-FDot6 fixedToFDot6(FDot16 x) { return x >> 10; }
 
 std::int32_t sat_add(std::int32_t a, std::int32_t b) {
   auto r = static_cast<std::int64_t>(a) + b;

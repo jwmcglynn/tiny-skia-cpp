@@ -154,7 +154,6 @@ FDot16 fdot6ToFixed(FDot6 x) { return leftShift(x, 10); }
 FDot16 fdot6ToFixedDiv2(FDot6 value) { return leftShift(value, 9); }
 
 FDot16 fixedRoundToFixed(FDot16 x) { return (x + fdot16::half) & ~0xFFFF; }
-FDot16 fixedCeilToFixed(FDot16 x) { return (x + fdot16::one - 1) & ~0xFFFF; }
 
 FDot6 fdot6UpShift(FDot6 x, std::int32_t upShift) {
   assert((leftShift(x, upShift) >> upShift) == x);
@@ -182,16 +181,6 @@ FDot6 cubicDeltaFromLine(FDot6 a, FDot6 b, FDot6 c, FDot6 d) {
   return std::max(std::abs(oneThird), std::abs(twoThird));
 }
 
-std::int32_t sat_add(std::int32_t a, std::int32_t b) {
-  auto result = static_cast<std::int64_t>(a) + b;
-  if (result > std::numeric_limits<std::int32_t>::max()) {
-    return std::numeric_limits<std::int32_t>::max();
-  }
-  if (result < std::numeric_limits<std::int32_t>::min()) {
-    return std::numeric_limits<std::int32_t>::min();
-  }
-  return static_cast<std::int32_t>(result);
-}
 
 }  // namespace
 

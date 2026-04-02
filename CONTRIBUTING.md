@@ -33,9 +33,9 @@ Run `./tools/env-setup.sh` to install Bazelisk if you don't have Bazel.
 - **Line length**: 100 characters max.
 - **Naming**: `lowerCamelCase` for functions, `UpperCamelCase` for types.
 - **Formatting**: Google style via `.clang-format` (run `clang-format -i <file>`).
-- **Floating point**: always compile with `-ffp-contract=off` for bit-exact results
+- **Floating point**: always compile with `-ffp-contract=off` for reproducible results
   across SIMD backends (already set in both Bazel and CMake configs).
-- Prefer deterministic, bit-accurate implementations.
+- Prefer deterministic, reproducible implementations.
 - Keep comments to non-obvious logic only.
 
 ## Adding Tests
@@ -98,9 +98,11 @@ For CMake, the `CMakeLists.txt` requires `cxx_std_20`.
 
 ### Floating-point result differences
 
-All builds use `-ffp-contract=off` to ensure bit-exact reproducibility across
-SIMD backends. If you see floating-point mismatches, verify this flag is present
-in your build configuration.
+All builds use `-ffp-contract=off` to ensure reproducibility across SIMD
+backends. If you see unexpected floating-point mismatches, verify this flag is
+present in your build configuration. Note that the C++ port is not bit-exact
+with the Rust original due to additional features and optimizations; golden-image
+tests use configurable tolerance thresholds.
 
 ### Test failures after SIMD changes
 

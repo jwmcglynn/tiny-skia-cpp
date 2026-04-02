@@ -7,7 +7,7 @@ A fast, minimal CPU-only 2D rendering library for C++20 — a faithful port of
 **tiny-skia-cpp** brings the same proven rasterization and blending algorithms to C++
 with native SIMD acceleration and zero external dependencies.
 
-- **Pixel-accurate** — bit-exact output matching Rust tiny-skia
+- **High fidelity** — near-pixel-accurate output validated against Rust tiny-skia with tolerance-based golden-image tests
 - **Fast** — up to 1.9× faster than the Rust implementation with SIMD
 - **SIMD accelerated** — native backends for x86-64 (AVX2+FMA) and ARM64 (NEON)
 - **Tiny & fast to build** — minimal codebase, zero external dependencies

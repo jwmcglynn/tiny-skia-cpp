@@ -1,6 +1,9 @@
 # Design: Rust-to-C++ Translation Validation Audit
 
-**Status:** Complete (WI-12 through WI-18 closed)
+**Status:** Complete (WI-12 through WI-18 closed). Note: the C++ port has
+diverged from pixel-exact parity with the Rust original due to additional
+features (analytic AA rasterizer, SVG filter primitives) and SIMD optimizations.
+Golden-image tests now use configurable tolerance rather than bit-exact comparison.
 **Author:** Claude
 **Created:** 2026-03-02
 **Updated:** 2026-03-03
